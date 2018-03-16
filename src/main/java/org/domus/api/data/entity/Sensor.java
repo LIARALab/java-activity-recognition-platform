@@ -3,8 +3,8 @@ package org.domus.api.data;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Id;
-//import org.hibernate.annotations.GeneratedValue;
-//import org.hibernate.annotations.GenericGenerator;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Column;
 
 import java.util.Date;
@@ -24,8 +24,7 @@ public class Sensor {
   private String ipv6Address;
 
   @Id
-  //@GeneratedValue(generator="increment")
-  //@GenericGenerator(name="increment", strategy = "increment")
+  @GeneratedValue(strategy=GenerationType.AUTO)
   public int getIdentifier () {
     return this.identifier;
   }
