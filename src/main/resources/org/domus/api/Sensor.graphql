@@ -1,0 +1,11 @@
+type Sensor {
+  identifier: Int!,
+  name: String!,
+  ipv4_address: String,
+  ipv6_address: String,
+  type: String!,
+  unit: String!,
+  value_label: String!#,
+#  creation: Date,
+#  update: Date
+}
