@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import com.google.common.collect.Lists;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,21 +17,21 @@ import org.springframework.lang.NonNull;
 
 import org.springframework.web.bind.annotation.RequestParam;
 
-import org.domus.api.data.repository.SensorRepository;
-import org.domus.api.data.entity.Sensor;
+import org.domus.api.data.repository.IntegerStateRepository;
+import org.domus.api.data.entity.IntegerState;
 
 @RestController
-public final class SensorCollectionController {
+public final class IntegerStateCollectionController {
   @Autowired
-  private SensorRepository sensorRepository;
+  private IntegerStateRepository integerStateRepository;
 
-  @GetMapping("/sensors")
-  public List<Sensor> index (@NonNull final HttpServletRequest request) {
-    return Lists.newArrayList(this.sensorRepository.findAll());
+  @GetMapping("/states/integers")
+  public List<IntegerState> index (@NonNull final HttpServletRequest request) {
+    return Lists.newArrayList(this.integerStateRepository.findAll());
   }
 
-  @GetMapping("/sensors/{identifier}")
-  public Sensor get (@PathVariable final int identifier) {
-    return this.sensorRepository.findById(identifier).get();
+  @GetMapping("/states/integers/{identifier}")
+  public IntegerState get (@PathVariable final int identifier) {
+    return this.integerStateRepository.findById(identifier).get();
   }
 }

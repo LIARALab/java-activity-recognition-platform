@@ -4,7 +4,9 @@ import java.lang.Integer;
 
 import org.springframework.data.repository.CrudRepository;
 
-import org.domus.api.data.entity.Sensor;
+import org.domus.api.data.entity.State;
 
-public interface SensorRepository extends CrudRepository<Sensor, Integer> {
+public interface StateRepository
+       extends CrudRepository<State, Integer>
+{
 }

@@ -14,18 +14,15 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 
 @Entity
-@Table(name="sensors")
-public class Sensor {
+@Table(name="nodes")
+public class Node {
   private int identifier;
   private Date creationDate;
   private Date updateDate;
   private Date deletionDate;
   private String name;
-  private String type;
-  private String unit;
-  private String valueLabel;
-  private String ipv4Address;
-  private String ipv6Address;
+  private int start;
+  private int end;
 
   @Id
   @GeneratedValue(strategy=GenerationType.AUTO)
@@ -67,24 +64,6 @@ public class Sensor {
     this.deletionDate = deletionDate;
   }
 
-  @Column(name = "ipv4_address")
-  public String getIpv4Address () {
-    return this.ipv4Address;
-  }
-
-  public void setIpv4Address (@NonNull final String ipv4Address) {
-    this.ipv4Address = ipv4Address;
-  }
-
-  @Column(name = "ipv6_address")
-  public String getIpv6Address () {
-    return this.ipv6Address;
-  }
-
-  public void setIpv6Address (@NonNull final String ipv6Address) {
-    this.ipv6Address = ipv6Address;
-  }
-
   @Column(name = "name")
   public String getName () {
     return this.name;
@@ -94,30 +73,21 @@ public class Sensor {
     this.name = name;
   }
 
-  @Column(name = "type")
-  public String getType () {
-    return this.type;
+  @Column(name = "start")
+  public int getStart () {
+    return this.start;
   }
 
-  public void setType (@NonNull final String type) {
-    this.type = type;
+  public void setStart (final int start) {
+    this.start = start;
   }
 
-  @Column(name = "unit")
-  public String getUnit () {
-    return this.unit;
+  @Column(name = "end")
+  public int getEnd () {
+    return this.end;
   }
 
-  public void setUnit (@NonNull final String unit) {
-    this.unit = unit;
-  }
-
-  @Column(name = "value_label")
-  public String getValueLabel () {
-    return this.valueLabel;
-  }
-
-  public void setValueLabel (@NonNull final String valueLabel) {
-    this.valueLabel = valueLabel;
+  public void setEnd (final int end) {
+    this.end = end;
   }
 }
