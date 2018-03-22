@@ -6,5 +6,4 @@ import org.springframework.data.repository.CrudRepository;
 
 import org.domus.api.data.entity.Sensor;
 
-public interface SensorRepository extends CrudRepository<Sensor, Integer> {
-}
+public interface SensorRepository extends CrudRepository<Sensor, Integer> { }

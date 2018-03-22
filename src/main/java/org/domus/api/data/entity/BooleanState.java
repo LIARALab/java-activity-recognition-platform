@@ -4,8 +4,6 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Column;
 
-import java.util.Date;
-
 @Entity
 @Table(name="`states<boolean>`")
 public class BooleanState extends State {

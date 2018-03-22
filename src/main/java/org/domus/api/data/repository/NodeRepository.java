@@ -5,9 +5,7 @@ import java.lang.Integer;
 import org.springframework.data.repository.CrudRepository;
 
 import org.domus.api.data.entity.Node;
-import org.domus.api.data.repository.extension.NodeCollectionRepository;
 
 public interface NodeRepository
        extends CrudRepository<Node, Integer>
-{
-}
+{ }

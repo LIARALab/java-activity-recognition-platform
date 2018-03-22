@@ -18,7 +18,7 @@ import java.util.Date;
 public class Sensor {
   private int identifier;
   private Date creationDate;
-  private Date updateDate;
+  private Date lastUpdateDate;
   private Date deletionDate;
   private String name;
   private String type;
@@ -49,12 +49,12 @@ public class Sensor {
 
   @Column(name = "updated_at")
   @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
-  public Date getUpdateDate () {
-    return this.updateDate;
+  public Date getLastUpdateDate () {
+    return this.lastUpdateDate;
   }
 
-  public void setUpdateDate (@NonNull final Date updateDate) {
-    this.updateDate = updateDate;
+  public void setLastUpdateDate (@NonNull final Date lastUpdateDate) {
+    this.lastUpdateDate = lastUpdateDate;
   }
 
   @Column(name = "deleted_at")

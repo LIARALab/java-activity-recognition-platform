@@ -8,5 +8,4 @@ import org.domus.api.data.entity.State;
 
 public interface StateRepository
        extends CrudRepository<State, Integer>
-{
-}
+{ }

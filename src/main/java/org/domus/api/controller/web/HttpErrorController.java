@@ -1,4 +1,4 @@
-package org.domus.api.controller;
+package org.domus.api.controller.web;
 
 import org.springframework.lang.NonNull;
 

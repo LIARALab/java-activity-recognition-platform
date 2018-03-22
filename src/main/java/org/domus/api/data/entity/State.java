@@ -9,7 +9,6 @@ import javax.persistence.Column;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 
-import org.hibernate.annotations.Subselect;
 import org.hibernate.annotations.Immutable;
 
 import org.springframework.lang.NonNull;
