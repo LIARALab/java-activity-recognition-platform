@@ -19,7 +19,7 @@ import java.util.Date;
 
 @Entity
 @Table(name="states")
-@Inheritance(strategy=InheritanceType.TABLE_PER_CLASS)
+@Inheritance(strategy=InheritanceType.JOINED)
 @Immutable
 public class State {
   private int identifier;

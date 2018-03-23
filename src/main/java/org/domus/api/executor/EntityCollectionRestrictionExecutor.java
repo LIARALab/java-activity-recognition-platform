@@ -69,7 +69,7 @@ public class EntityCollectionRestrictionExecutor<T>
          this._result = this._collection.getView(offset, DEFAULT_LIMIT);
        } 
     } else {
-      this._result = this._collection.getView(offset, this._collection.getSize() - offset);
+      this._result = this._collection.getView(offset, DEFAULT_LIMIT);
     }
   }
 
