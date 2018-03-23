@@ -14,12 +14,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 
 @Entity
-@Table(name="sensors")
-public class Sensor {
-  private int identifier;
-  private Date creationDate;
-  private Date lastUpdateDate;
-  private Date deletionDate;
+@Table(name = "sensors")
+public class Sensor
+{
+  private int    identifier;
+  private Date   creationDate;
+  private Date   lastUpdateDate;
+  private Date   deletionDate;
   private String name;
   private String type;
   private String unit;
@@ -28,7 +29,7 @@ public class Sensor {
   private String ipv6Address;
 
   @Id
-  @GeneratedValue(strategy=GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.AUTO)
   public int getIdentifier () {
     return this.identifier;
   }
@@ -38,7 +39,7 @@ public class Sensor {
   }
 
   @Column(name = "created_at")
-  @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public Date getCreationDate () {
     return this.creationDate;
   }
@@ -48,7 +49,7 @@ public class Sensor {
   }
 
   @Column(name = "updated_at")
-  @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public Date getLastUpdateDate () {
     return this.lastUpdateDate;
   }
@@ -58,7 +59,7 @@ public class Sensor {
   }
 
   @Column(name = "deleted_at")
-  @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public Date getDeletionDate () {
     return this.deletionDate;
   }

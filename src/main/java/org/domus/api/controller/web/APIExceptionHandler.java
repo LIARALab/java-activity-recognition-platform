@@ -21,28 +21,26 @@ import org.domus.api.executor.RequestError;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
-public final class APIExceptionHandler {
+public final class APIExceptionHandler
+{
   @ExceptionHandler(InvalidAPIRequestException.class)
   public ResponseEntity<List<RequestError>> handleInvalidAPIRequestException (
     @NonNull final InvalidAPIRequestException exception
-  ) {
+  )
+  {
     return new ResponseEntity<>(exception.errors(), HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(EntityNotFoundException.class)
   public ResponseEntity<APIErrorMessage> handleEntityNotFoundException (
     @NonNull final EntityNotFoundException exception
-  ) {
-    return new ResponseEntity<>(
-        new APIErrorMessage("The requested entity does not exists."), 
-        HttpStatus.NOT_FOUND
-    );
+  )
+  {
+    return new ResponseEntity<>(new APIErrorMessage("The requested entity does not exists."), HttpStatus.NOT_FOUND);
   }
 
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<Exception> handleException (
-    @NonNull final Exception exception
-  ) {
+  public ResponseEntity<Exception> handleException (@NonNull final Exception exception) {
     return new ResponseEntity<>(exception, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

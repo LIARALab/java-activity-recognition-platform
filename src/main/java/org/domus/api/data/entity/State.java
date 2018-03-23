@@ -18,18 +18,19 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 
 @Entity
-@Table(name="states")
-@Inheritance(strategy=InheritanceType.JOINED)
+@Table(name = "states")
+@Inheritance(strategy = InheritanceType.JOINED)
 @Immutable
-public class State {
-  private int identifier;
+public class State
+{
+  private int  identifier;
   private Date creationDate;
   private Date updateDate;
   private Date deletionDate;
   private Date date;
 
   @Id
-  @GeneratedValue(strategy=GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.AUTO)
   public int getIdentifier () {
     return this.identifier;
   }
@@ -39,7 +40,7 @@ public class State {
   }
 
   @Column(name = "created_at")
-  @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public Date getCreationDate () {
     return this.creationDate;
   }
@@ -49,7 +50,7 @@ public class State {
   }
 
   @Column(name = "updated_at")
-  @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public Date getUpdateDate () {
     return this.updateDate;
   }
@@ -59,7 +60,7 @@ public class State {
   }
 
   @Column(name = "deleted_at")
-  @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public Date getDeletionDate () {
     return this.deletionDate;
   }
@@ -69,7 +70,7 @@ public class State {
   }
 
   @Column(name = "date")
-  @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public Date getDate () {
     return this.date;
   }

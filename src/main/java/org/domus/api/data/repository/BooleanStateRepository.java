@@ -6,6 +6,6 @@ import org.springframework.data.repository.CrudRepository;
 
 import org.domus.api.data.entity.BooleanState;
 
-public interface BooleanStateRepository
-       extends CrudRepository<BooleanState, Integer>
-{ }
+public interface BooleanStateRepository extends CrudRepository<BooleanState, Integer>
+{
+}

@@ -6,9 +6,10 @@ import javax.persistence.Table;
 import javax.persistence.Column;
 
 @Entity
-@Table(name="`states<double>`")
-@PrimaryKeyJoinColumn(name="state_identifier")
-public class DoubleState extends State {
+@Table(name = "`states<double>`")
+@PrimaryKeyJoinColumn(name = "state_identifier")
+public class DoubleState extends State
+{
   private double value;
 
   @Column(name = "value")

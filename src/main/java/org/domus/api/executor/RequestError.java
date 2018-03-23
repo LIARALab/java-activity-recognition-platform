@@ -6,14 +6,14 @@ import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class RequestError {
-  @NonNull private final APIRequest _request;
-  @NonNull private final String _message;
+public class RequestError
+{
+  @NonNull
+  private final APIRequest _request;
+  @NonNull
+  private final String     _message;
 
-  public RequestError (
-    @NonNull final APIRequest request,
-    @NonNull final String message
-  ) {
+  public RequestError(@NonNull final APIRequest request, @NonNull final String message) {
     this._request = request;
     this._message = message;
   }

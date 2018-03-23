@@ -3,24 +3,27 @@ package org.domus.api.executor;
 import org.domus.api.request.APIRequest;
 import org.springframework.lang.NonNull;
 
-public class RequestParameterValueError extends RequestParameterError {
+public class RequestParameterValueError extends RequestParameterError
+{
   private final int _index;
 
-  public RequestParameterValueError (
+  public RequestParameterValueError(
     @NonNull final APIRequest request,
     @NonNull final String parameter,
     @NonNull final String message
-  ) {
+  )
+  {
     super(request, parameter, message);
     this._index = 0;
   }
 
-  public RequestParameterValueError (
+  public RequestParameterValueError(
     @NonNull final APIRequest request,
     @NonNull final String parameter,
     @NonNull final int index,
     @NonNull final String message
-  ) {
+  )
+  {
     super(request, parameter, message);
     this._index = index;
   }

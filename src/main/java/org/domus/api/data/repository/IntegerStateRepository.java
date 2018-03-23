@@ -6,6 +6,6 @@ import org.springframework.data.repository.CrudRepository;
 
 import org.domus.api.data.entity.IntegerState;
 
-public interface IntegerStateRepository
-       extends CrudRepository<IntegerState, Integer>
-{ }
+public interface IntegerStateRepository extends CrudRepository<IntegerState, Integer>
+{
+}

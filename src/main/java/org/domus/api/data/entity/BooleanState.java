@@ -6,9 +6,10 @@ import javax.persistence.Table;
 import javax.persistence.Column;
 
 @Entity
-@Table(name="`states<boolean>`")
-@PrimaryKeyJoinColumn(name="state_identifier")
-public class BooleanState extends State {
+@Table(name = "`states<boolean>`")
+@PrimaryKeyJoinColumn(name = "state_identifier")
+public class BooleanState extends State
+{
   private boolean value;
 
   @Column(name = "value")
