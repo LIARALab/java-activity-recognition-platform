@@ -1,13 +1,43 @@
+/*******************************************************************************
+ * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
 package org.domus.api.collection;
 
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaQuery;
 
 import org.springframework.lang.NonNull;
 
 import org.domus.api.collection.exception.EntityNotFoundException;
 
-public interface EntityCollection<T>
+/**
+ * A wrapper over a collection of a type of entity of the API.
+ * 
+ * Allows you to do common requests over a predefined type of entity and help
+ * you to construct more advanced research.
+ *
+ * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ *
+ * @param <Entity> Type of entity in the collection.
+ */
+public interface EntityCollection<Entity>
 {
   /**
    * Return the size of the collection.
@@ -19,42 +49,18 @@ public interface EntityCollection<T>
   /**
    * Return a view of this collection.
    *
-   * @param offset The index of the first element to display in the returned view.
-   * @param size The number of elements to display in the returned view.
+   * @param cursor Cursor used in order to define the view.
    *
    * @return A view of this collection.
    */
-  public EntityCollectionView<T> getView (final int offset, final int size);
-
-  /**
-   * Return a view of this collection.
-   *
-   * By default, the returned view will begin with the first element of this
-   * collection.
-   *
-   * @param size The number of elements to display in the returned view.
-   *
-   * @return A view of this collection.
-   */
-  public default EntityCollectionView<T> getView (final int size) {
-    return this.getView(0, size);
-  }
-
-  /**
-   * Return a view over all this collection.
-   *
-   * @return A view of this collection.
-   */
-  public default EntityCollectionView<T> getView () {
-    return this.getView(0, this.getSize());
-  }
+  public EntityCollectionView<Entity> getView (@NonNull final Cursor cursor);
 
   /**
    * Return the content of this collection.
    *
    * @return The content of this collection.
    */
-  public default Iterable<T> getContent () {
+  public default Iterable<Entity> getContent () {
     return this.createQuery().getResultList();
   }
 
@@ -63,28 +69,28 @@ public interface EntityCollection<T>
    *
    * @param identifier Identifier of the entity to get.
    */
-  public T findById (final int identifier);
+  public Entity findById (final int identifier);
 
   /**
    * Try to find an entity of the collection.
    *
    * @param identifier Identifier of the entity to get.
    */
-  public T findByIdOrFail (final int identifier) throws EntityNotFoundException;
+  public Entity findByIdOrFail (final int identifier) throws EntityNotFoundException;
 
   /**
    * Return an entity of the collection.
    *
    * @param index Position of the entity to return in this collection.
    */
-  public T get (final int index);
+  public Entity get (final int index);
 
   /**
    * Return a query over this collection.
    *
    * @return A query over this collection.
    */
-  public TypedQuery<T> createQuery ();
+  public TypedQuery<Entity> createQuery ();
 
   /**
    * Return a criteria query over this collection.
@@ -93,7 +99,7 @@ public interface EntityCollection<T>
    *
    * @return A criteria query over this collection.
    */
-  public EntityCollectionQuery<T, T> createCollectionQuery ();
+  public EntityCollectionQuery<Entity, Entity> createCollectionQuery ();
 
   /**
    * Return a criteria query over this collection with a custom return type.
@@ -104,5 +110,5 @@ public interface EntityCollection<T>
    *
    * @return A criteria query over this collection with a custom return type.
    */
-  public <U> EntityCollectionQuery<T, U> createCollectionQuery (@NonNull final Class<U> clazz);
+  public <U> EntityCollectionQuery<Entity, U> createCollectionQuery (@NonNull final Class<U> clazz);
 }

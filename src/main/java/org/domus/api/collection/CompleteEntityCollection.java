@@ -1,3 +1,24 @@
+/*******************************************************************************
+ * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
 package org.domus.api.collection;
 
 import java.util.Optional;
@@ -17,36 +38,43 @@ import org.springframework.data.repository.CrudRepository;
 
 import org.domus.api.collection.exception.EntityNotFoundException;
 
-public class CompleteEntityCollection<T> implements EntityCollection<T>
+/**
+ * An unfiltered, complete, raw collection of entity.
+ *       
+ * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ *
+ * @param <Entity> Type of entity in the collection.
+ */
+public class CompleteEntityCollection<Entity> implements EntityCollection<Entity>
 {
   /**
    * Type of entity in this collection.
    */
   @NonNull
-  private final Class<T>                   _entity;
+  private final Class<Entity>                   _entity;
 
   /**
    * The CRUD repository of the entity for basic CRUD operations.
    */
   @NonNull
-  private final CrudRepository<T, Integer> _repository;
+  private final CrudRepository<Entity, Integer> _repository;
 
   /**
    * Builder for the criteria query.
    */
   @NonNull
-  private final CriteriaBuilder            _criteriaBuilder;
+  private final CriteriaBuilder                 _criteriaBuilder;
 
   /**
    * Entity manager.
    */
   @NonNull
-  private final EntityManager              _entityManager;
+  private final EntityManager                   _entityManager;
 
   public CompleteEntityCollection(
-    @NonNull final Class<T> entity,
+    @NonNull final Class<Entity> entity,
     @NonNull final EntityManager entityManager,
-    @NonNull final CrudRepository<T, Integer> repository
+    @NonNull final CrudRepository<Entity, Integer> repository
   )
   {
     this._entity = entity;
@@ -56,7 +84,7 @@ public class CompleteEntityCollection<T> implements EntityCollection<T>
   }
 
   @SuppressWarnings("unchecked")
-  public CompleteEntityCollection(@NonNull final Class<T> entity, @NonNull final ApplicationContext context) {
+  public CompleteEntityCollection(@NonNull final Class<Entity> entity, @NonNull final ApplicationContext context) {
     this._entity = entity;
     this._entityManager = context.getBean(EntityManager.class);
     this._criteriaBuilder = this._entityManager.getCriteriaBuilder();
@@ -64,60 +92,60 @@ public class CompleteEntityCollection<T> implements EntityCollection<T>
     final String[] beans = context
       .getBeanNamesForType(ResolvableType.forClassWithGenerics(CrudRepository.class, entity, Integer.class));
 
-    this._repository = (CrudRepository<T, Integer>) context.getBean(beans[0]);
+    this._repository = (CrudRepository<Entity, Integer>) context.getBean(beans[0]);
   }
 
   /**
-   * @see EntityCollection#getSize
+   * @see org.domus.api.collection.EntityCollection#getSize()
    */
   public int getSize () {
     return (int) this._repository.count();
   }
 
   /**
-   * @see EntityCollection#getView
+   * @see org.domus.api.collection.EntityCollection#getView(org.domus.api.collection.Cursor)
    */
-  public EntityCollectionView<T> getView (final int offset, final int size) {
-    return new EntityCollectionView<>(this, offset, size);
+  public EntityCollectionView<Entity> getView (@NonNull final Cursor cursor) {
+    return new EntityCollectionView<>(this, cursor);
   }
 
   /**
-   * @see EntityCollection#createQuery
+   * @see org.domus.api.collection.EntityCollection#createQuery()
    */
-  public TypedQuery<T> createQuery () {
+  public TypedQuery<Entity> createQuery () {
     return this._entityManager.createQuery(this.createCollectionQuery());
   }
 
   /**
-   * @see EntityCollection#createCriteriaQuery
+   * @see org.domus.api.collection.EntityCollection#createCriteriaQuery()
    */
-  public EntityCollectionQuery<T, T> createCollectionQuery () {
-    final EntityCollectionQuery<T, T> query = this.createCollectionQuery(this._entity);
+  public EntityCollectionQuery<Entity, Entity> createCollectionQuery () {
+    final EntityCollectionQuery<Entity, Entity> query = this.createCollectionQuery(this._entity);
     query.select(query.getCollectionRoot());
     return query;
   }
 
   /**
-   * @see EntityCollection#createCriteriaQuery
+   * @see org.domus.api.collection.EntityCollection#createCriteriaQuery(java.lang.Class)
    */
-  public <U> EntityCollectionQuery<T, U> createCollectionQuery (@NonNull final Class<U> clazz) {
+  public <U> EntityCollectionQuery<Entity, U> createCollectionQuery (@NonNull final Class<U> clazz) {
     final CriteriaQuery<U> query = this._criteriaBuilder.createQuery(clazz);
-    return new EntityCollectionQuery<T, U>(query, this._entity);
+    return new EntityCollectionQuery<Entity, U>(query, this._entity);
   }
 
   /**
-   * @see EntityCollection#findById
+   * @see org.domus.api.collection.EntityCollection#findById(int)
    */
-  public T findById (final int identifier) {
-    final Optional<T> result = this._repository.findById(identifier);
+  public Entity findById (final int identifier) {
+    final Optional<Entity> result = this._repository.findById(identifier);
     return (result.isPresent()) ? null : result.get();
   }
 
   /**
-   * @see EntityCollection#findByIdOrFail
+   * @see org.domus.api.collection.EntityCollection#findByIdOrFail(int)
    */
-  public T findByIdOrFail (final int identifier) throws EntityNotFoundException {
-    final Optional<T> result = this._repository.findById(identifier);
+  public Entity findByIdOrFail (final int identifier) throws EntityNotFoundException {
+    final Optional<Entity> result = this._repository.findById(identifier);
 
     if (result.isPresent()) {
       return result.get();
@@ -127,16 +155,16 @@ public class CompleteEntityCollection<T> implements EntityCollection<T>
   }
 
   /**
-   * @see EntityCollection#get
+   * @see org.domus.api.collection.EntityCollection#get(int)
    */
-  public T get (final int index) {
+  public Entity get (final int index) {
     return null;
   }
 
   /**
-   * @see EntityCollection#getContent
+   * @see org.domus.api.collection.EntityCollection#getContent()
    */
-  public Iterable<T> getContent () {
+  public Iterable<Entity> getContent () {
     return this._repository.findAll();
   }
 }

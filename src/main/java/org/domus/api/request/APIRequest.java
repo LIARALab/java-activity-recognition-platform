@@ -1,50 +1,90 @@
+/*******************************************************************************
+ * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
 package org.domus.api.request;
 
-import java.lang.Iterable;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.ArrayList;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.lang.NonNull;
 
-/**
- * An api request.
- */
-public class APIRequest implements Iterable<Map.Entry<String, String[]>>
-{
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+public interface APIRequest extends Iterable<APIRequestParameter>
+{  
   /**
-   * Request parameter.
+   * Create an API request from a given HTTP request.
+   * 
+   * @param request An http request to use for the creation of the APIRequest.
+   * @return An API request with all parameters of the given HttpServletRequest.
    */
-  @NonNull
-  private final Map<String, List<String>> _parameters;
-
-  public static APIRequest from (@NonNull final Map<String, String[]> map) {
-    final APIRequest result = new APIRequest();
-
-    for (Map.Entry<String, String[]> entry : map.entrySet()) {
-      result.add(entry.getKey(), entry.getValue());
-    }
-
-    return result;
-  }
-
   public static APIRequest from (@NonNull final HttpServletRequest request) {
-    return APIRequest.from(request.getParameterMap());
+    return new ImmutableAPIRequest(request);
   }
 
   /**
-   * Create a new empty request.
+   * Create an API request from a given map request.
+   * 
+   * @param request An map request to use for the creation of the APIRequest.
+   * @return An API request with all parameters of the given map request.
    */
-  public APIRequest() {
-    this._parameters = new HashMap<>();
+  public static APIRequest from (@NonNull final Map<String, String[]> request) {
+    return new ImmutableAPIRequest(request);
   }
-
+  
+  /**
+   * Return a copy of a request.
+   * 
+   * @param request Request to copy.
+   * @return A copy of the given request.
+   */
+  public static APIRequest copy (@NonNull final APIRequest request) {
+    return new ImmutableAPIRequest(request);
+  }
+  
+  /**
+   * Return an immutable request from a request.
+   * 
+   * @param request Request to transform.
+   * @return An immutable request.
+   */
+  public static APIRequest immutable (@NonNull final APIRequest request) {
+    if (request instanceof ImmutableAPIRequest) {
+      return request;
+    } else {
+      return new ImmutableAPIRequest(request);
+    }
+  }
+  
+  /**
+   * Create and return a mutable APIRequest.
+   * 
+   * @return A mutable APIRequest instance.
+   */
+  public static MutableAPIRequest createMutable () {
+    return new MutableAPIRequest();
+  }
+  
   /**
    * Check if a parameter is registered in this request.
    *
@@ -52,121 +92,24 @@ public class APIRequest implements Iterable<Map.Entry<String, String[]>>
    *
    * @return True if the given parameter exists in this request, false otherwise.
    */
-  public boolean contains (@NonNull final String name) {
-    return this._parameters.containsKey(name);
-  }
-
-  /**
-   * Add a value to a parameter of this request.
-   *
-   * @param name Name of the parameter to mutate.
-   * @param value The value to add to the parameter.
-   */
-  public void add (@NonNull final String name, @NonNull final String value) {
-    if (!this._parameters.containsKey(name)) {
-      this._parameters.put(name, new ArrayList<>());
-    }
-
-    this._parameters.get(name).add(value);
-  }
-
-  /**
-   * Add some values to a parameter of this request.
-   *
-   * @param name Name of the parameter to mutate.
-   * @param values All values to add to the parameter.
-   */
-  public void add (@NonNull final String name, @NonNull final Iterable<String> values) {
-    if (!this._parameters.containsKey(name)) {
-      this._parameters.put(name, new ArrayList<>());
-    }
-
-    final List<String> parameterValues = this._parameters.get(name);
-
-    for (final String value : values) {
-      parameterValues.add(value);
-    }
-  }
-
-  /**
-   * Add some values to a parameter of this request.
-   *
-   * @param name Name of the parameter to mutate.
-   * @param values All values to add to the parameter.
-   */
-  public void add (@NonNull final String name, @NonNull final String[] values) {
-    if (!this._parameters.containsKey(name)) {
-      this._parameters.put(name, new ArrayList<>(values.length));
-    }
-
-    final List<String> parameterValues = this._parameters.get(name);
-
-    for (final String value : values) {
-      parameterValues.add(value);
-    }
-  }
-
-  /**
-   * Add some values to a parameter of this request.
-   *
-   * @param name Name of the parameter to mutate.
-   * @param values All values to add to the parameter.
-   */
-  public void add (@NonNull final String name, @NonNull final Iterator<String> values) {
-    if (!this._parameters.containsKey(name)) {
-      this._parameters.put(name, new ArrayList<>());
-    }
-
-    final List<String> parameterValues = this._parameters.get(name);
-
-    while (values.hasNext()) {
-      parameterValues.add(values.next());
-    }
-  }
-
-  /**
-   * Remove a parameter from the request.
-   *
-   * @param name Name of the parameter to remove.
-   */
-  public void remove (@NonNull final String name) {
-    this._parameters.remove(name);
-  }
-
-  /**
-   * Remove a value of a parameter of this request.
-   *
-   * @param name Name of the parameter to mutate.
-   * @param index Index of the value to remove.
-   */
-  public void remove (@NonNull final String name, final int index) {
-    final List<String> parameterValues = this._parameters.get(name);
-    parameterValues.remove(index);
-
-    if (parameterValues.size() <= 0) {
-      this._parameters.remove(name);
-    }
-  }
+  public boolean contains (@NonNull final String name);
 
   /**
    * Return the number of parameter registered in this request.
    *
    * @return The number of parameter registered in this request.
    */
-  public int size () {
-    return this._parameters.size();
-  }
+  @JsonIgnore
+  public int getParameterCount ();
 
   /**
    * Return the number of values registered for a given parameter.
    *
-   * @param name The name of the parameter to check.
+   * @param parameter The name of the parameter to check.
    *
    * @return The number of values registered for the given parameter.
    */
-  public int size (@NonNull final String name) {
-    return this._parameters.get(name).size();
-  }
+  public int getValueCount (@NonNull final String parameter);
 
   /**
    * Return all values assigned to a parameter of this request.
@@ -175,10 +118,7 @@ public class APIRequest implements Iterable<Map.Entry<String, String[]>>
    *
    * @return All values assigned to the given parameter.
    */
-  public String[] get (@NonNull final String name) {
-    final List<String> parameterValues = this._parameters.get(name);
-    return parameterValues.toArray(new String[parameterValues.size()]);
-  }
+  public String[] getValues (@NonNull final String name);
 
   /**
    * Return a value assigned to a parameter of this request.
@@ -188,23 +128,22 @@ public class APIRequest implements Iterable<Map.Entry<String, String[]>>
    *
    * @return The requested value of the given parameter.
    */
-  public String get (@NonNull final String name, final int index) {
-    return this._parameters.get(name).get(index);
-  }
+  public String getValue (@NonNull final String name, final int index);
+
+  /**
+   * Return a parameter of this request.
+   *
+   * @param name The name of the parameter to find.
+   *
+   * @return The requested parameter.
+   */
+  public APIRequestParameter getParameter (@NonNull final String name);
 
   /**
    * Return all parameters of this request.
    *
    * @return All parameters of this request.
    */
-  public Set<String> parameters () {
-    return this._parameters.keySet();
-  }
+  public Set<? extends APIRequestParameter> getParameters ();
 
-  /**
-   * @see Iterable#iterator
-   */
-  public Iterator<Map.Entry<String, String[]>> iterator () {
-    return new APIRequestIterator(this);
-  }
 }

@@ -1,3 +1,24 @@
+/*******************************************************************************
+ * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
 package org.domus.api.controller.rest;
 
 import java.util.ArrayList;
@@ -6,12 +27,13 @@ import javax.servlet.http.HttpServletRequest;
 import org.domus.api.collection.EntityCollection;
 import org.domus.api.collection.EntityCollectionView;
 import org.domus.api.collection.EntityCollections;
-import org.domus.api.executor.Executor;
-import org.domus.api.executor.EntityCollectionRestrictionExecutor;
-import org.domus.api.executor.InvalidAPIRequestException;
-import org.domus.api.executor.RequestError;
-import org.domus.api.executor.specification.SpecificationBuilder;
+import org.domus.api.data.entity.filters.EntityFilterFactory;
 import org.domus.api.request.APIRequest;
+import org.domus.api.request.parser.FreeCursorParser;
+import org.domus.api.request.validator.APIRequestValidator;
+import org.domus.api.request.validator.FreeCursorValidator;
+import org.domus.api.request.validator.error.APIRequestError;
+import org.domus.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,19 +48,14 @@ public class BaseRestController
   public <T> ResponseEntity<Iterable<T>> indexCollection (
     @NonNull final Class<T> entity,
     @NonNull final HttpServletRequest request
-  )
-    throws InvalidAPIRequestException
+  ) throws InvalidAPIRequestException
   {
-    final EntityCollectionRestrictionExecutor<T> restriction = new EntityCollectionRestrictionExecutor<>();
+    final EntityCollection<T> collection = _collections.createCollection(entity);
     final APIRequest apiRequest = APIRequest.from(request);
-    final EntityCollection<T> collection = _collections.create(entity);
+    
+    this.assertIsValidRequest(apiRequest, new FreeCursorValidator());
 
-    this.assertIsValidRequest(apiRequest, restriction);
-
-    restriction.setCollection(collection);
-    restriction.execute(apiRequest);
-
-    EntityCollectionView<T> view = restriction.getResult();
+    final EntityCollectionView<T> view = collection.getView((new FreeCursorParser()).parse(apiRequest));
 
     if (view.getSize() == collection.getSize()) {
       return new ResponseEntity<>(view.getContent(), HttpStatus.OK);
@@ -49,23 +66,20 @@ public class BaseRestController
 
   public <T> ResponseEntity<Iterable<T>> indexCollection (
     @NonNull final Class<T> entity,
-    @NonNull final SpecificationBuilder<T> builder,
+    @NonNull final EntityFilterFactory<T> filter,
     @NonNull final HttpServletRequest request
   )
     throws InvalidAPIRequestException
   {
-    final EntityCollectionRestrictionExecutor<T> restriction = new EntityCollectionRestrictionExecutor<>();
     final APIRequest apiRequest = APIRequest.from(request);
 
-    this.assertIsValidRequest(apiRequest, restriction, builder);
+    this.assertIsValidRequest(apiRequest, new FreeCursorValidator(), filter.createValidator());
 
-    builder.execute(apiRequest);
-    final EntityCollection<T> collection = _collections.create(entity, builder.getResult());
+    final EntityCollection<T> collection = _collections.createCollection(
+      entity, filter.createParser().parse(apiRequest)
+    );
 
-    restriction.setCollection(collection);
-    restriction.execute(apiRequest);
-
-    EntityCollectionView<T> view = restriction.getResult();
+    final EntityCollectionView<T> view = collection.getView((new FreeCursorParser()).parse(apiRequest));
 
     if (view.getSize() == collection.getSize()) {
       return new ResponseEntity<>(view.getContent(), HttpStatus.OK);
@@ -77,38 +91,41 @@ public class BaseRestController
   public <T> int countCollection (@NonNull final Class<T> entity, @NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
-    final EntityCollection<T> collection = _collections.create(entity);
+    final EntityCollection<T> collection = _collections.createCollection(entity);
     return collection.getSize();
   }
 
   public <T> int countCollection (
     @NonNull final Class<T> entity,
-    @NonNull final SpecificationBuilder<T> builder,
+    @NonNull final EntityFilterFactory<T> filter,
     @NonNull final HttpServletRequest request
   )
     throws InvalidAPIRequestException
   {
     final APIRequest apiRequest = APIRequest.from(request);
 
-    this.assertIsValidRequest(apiRequest, builder);
+    this.assertIsValidRequest(apiRequest, filter.createValidator());
 
-    builder.execute(apiRequest);
-    final EntityCollection<T> collection = _collections.create(entity, builder.getResult());
+    final EntityCollection<T> collection = _collections.createCollection(
+      entity, filter.createParser().parse(apiRequest)
+    );
 
     return collection.getSize();
   }
 
-  public void assertIsValidRequest (@NonNull final APIRequest request, @NonNull final Executor... executors)
-    throws InvalidAPIRequestException
+  public void assertIsValidRequest (
+    @NonNull final APIRequest request, 
+    @NonNull final APIRequestValidator... validators
+  ) throws InvalidAPIRequestException
   {
-    final List<RequestError> errors = new ArrayList<>();
+    final List<APIRequestError> errors = new ArrayList<>();
 
-    for (final Executor executor : executors) {
-      errors.addAll(executor.validate(request));
+    for (final APIRequestValidator validator : validators) {
+      errors.addAll(validator.validate(request));
     }
 
     if (errors.size() > 0) {
-      throw new InvalidAPIRequestException(errors);
+      throw new InvalidAPIRequestException(request, errors);
     }
   }
 }

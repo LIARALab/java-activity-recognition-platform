@@ -1,21 +1,36 @@
+/*******************************************************************************
+ * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
 package org.domus.api.request;
 
-import java.util.AbstractMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Iterator;
 
 import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
-public class APIRequestIterator implements Iterator<Map.Entry<String, String[]>>
+public class APIRequestIterator implements Iterator<APIRequestParameter>
 {
   @NonNull
-  private final Iterator<String> _parameters;
+  private final Iterator<? extends APIRequestParameter> _parameters;
   @NonNull
-  private final APIRequest       _request;
-  @Nullable
-  private String                 _current;
+  private final APIRequest                    _request;
 
   /**
    * Create a new iterator for a given request.
@@ -23,9 +38,8 @@ public class APIRequestIterator implements Iterator<Map.Entry<String, String[]>>
    * @param request An api request to iterate.
    */
   public APIRequestIterator(@NonNull final APIRequest request) {
-    this._parameters = request.parameters().iterator();
+    this._parameters = request.getParameters().iterator();
     this._request = request;
-    this._current = null;
   }
 
   /**
@@ -38,19 +52,7 @@ public class APIRequestIterator implements Iterator<Map.Entry<String, String[]>>
   /**
    * @see Iterator#next
    */
-  public Map.Entry<String, String[]> next () {
-    this._current = this._parameters.next();
-
-    return new AbstractMap.SimpleEntry<>(this._current, this._request.get(this._current));
-  }
-
-  /**
-   * @see Iterator#remove
-   */
-  public void remove () {
-    if (this._current == null) throw new NoSuchElementException();
-
-    this._request.remove(this._current);
-    this._current = null;
+  public APIRequestParameter next () {
+    return this._parameters.next();
   }
 }

@@ -1,6 +1,30 @@
+/*******************************************************************************
+ * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
 package org.domus.api.collection;
 
 import java.util.Collection;
+
+import javax.persistence.TypedQuery;
+
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -9,69 +33,50 @@ import org.springframework.lang.Nullable;
  *
  * A view is only a part of an entity collection that can be returned to a
  * client or used for computation.
+ * 
+ * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @param <Entity> Type of entity in the view.
  */
-public class EntityCollectionView<T>
+public class EntityCollectionView<Entity>
 {
   /**
-   * The offset of this view. It is the index of the first item displayed.
+   * The view definition.
    */
-  private int                 _offset;
-
-  /**
-   * The maximum size allowed for this view. It is the maximum number of elements
-   * to display into this view.
-   */
-  private int                 _maxSize;
+  private Cursor                   _cursor;
 
   /**
    * The parent collection of this view.
    */
   @NonNull
-  private EntityCollection<T> _parent;
+  private EntityCollection<Entity> _parent;
 
   /**
    * The content of this view.
    */
   @Nullable
-  private Collection<T>       _content;
+  private Collection<Entity>       _content;
 
   /**
    * Create a new view over all a collection.
    *
    * @param parent The parent collection of this view.
    */
-  public EntityCollectionView(@NonNull final EntityCollection<T> parent) {
+  public EntityCollectionView(@NonNull final EntityCollection<Entity> parent) {
     this.setParentCollection(parent);
-    this._offset = 0;
-    this._maxSize = parent.getSize();
-    this._content = null;
+    _cursor = Cursor.ALL;
+    _content = null;
   }
 
   /**
-   * Create a new view over a collection that has a maximum size.
+   * Create a new view over a collection.
    *
    * @param parent The parent collection of this view.
-   * @param maxSize The maximum size of this view.
+   * @param cursor The view definition.
    */
-  public EntityCollectionView(@NonNull final EntityCollection<T> parent, final int maxSize) {
+  public EntityCollectionView(@NonNull final EntityCollection<Entity> parent, @NonNull final Cursor cursor) {
     this.setParentCollection(parent);
-    this._offset = 0;
-    this._maxSize = maxSize;
-    this._content = null;
-  }
-
-  /**
-   * Create a new view over a collection with an offset and a maximum size.
-   *
-   * @param parent The parent collection of this view.
-   * @param offset The offset of this view.
-   * @param maxSize The size of this view.
-   */
-  public EntityCollectionView(@NonNull final EntityCollection<T> parent, final int offset, final int maxSize) {
-    this.setParentCollection(parent);
-    this._offset = offset;
-    this._maxSize = maxSize;
-    this._content = null;
+    _cursor = cursor;
+    _content = null;
   }
 
   /**
@@ -79,8 +84,8 @@ public class EntityCollectionView<T>
    *
    * @return The parent collection of this view.
    */
-  public EntityCollection<T> getParentCollection () {
-    return this._parent;
+  public EntityCollection<Entity> getParentCollection () {
+    return _parent;
   }
 
   /**
@@ -88,47 +93,28 @@ public class EntityCollectionView<T>
    *
    * @param parent The new parent collection of this view.
    */
-  public void setParentCollection (@NonNull final EntityCollection<T> parent) {
-    this._parent = parent;
-    this._content = null;
+  public void setParentCollection (@NonNull final EntityCollection<Entity> parent) {
+    _parent = parent;
+    _content = null;
   }
 
   /**
-   * Return the offset of this view.
+   * Return the definition of this view.
    *
-   * @return The offset of this view.
+   * @return The definition of this view.
    */
-  public int getOffset () {
-    return this._offset;
+  public Cursor getCursor () {
+    return _cursor;
   }
 
   /**
-   * Change the offset of this view.
+   * Change the definition of this view.
    *
-   * @param offset The new offset of this view.
+   * @param cursor The new definition of this view.
    */
-  public void setOffset (final int offset) {
-    this._offset = offset;
-    this._content = null;
-  }
-
-  /**
-   * Return the maximum size of this view.
-   *
-   * @return The maximum size of this view.
-   */
-  public int getMaxSize () {
-    return this._maxSize;
-  }
-
-  /**
-   * Change the maximum size of this view.
-   *
-   * @param maxSize The new maximum size of this view.
-   */
-  public void setMaxSize (final int maxSize) {
-    this._maxSize = maxSize;
-    this._content = null;
+  public void setCursor (@NonNull final Cursor cursor) {
+    _cursor = cursor;
+    _content = null;
   }
 
   /**
@@ -138,9 +124,9 @@ public class EntityCollectionView<T>
    */
   public int getFirst () {
     if (this.getContent().size() == 0) {
-      return this._parent.getSize();
+      return _parent.getSize();
     } else {
-      return this._offset;
+      return _cursor.getOffset();
     }
   }
 
@@ -167,16 +153,21 @@ public class EntityCollectionView<T>
    *
    * @return The content of this view.
    */
-  public Collection<T> getContent () {
-    if (this._content == null) this.update();
-    return this._content;
+  public Collection<Entity> getContent () {
+    if (_content == null) this.update();
+    return _content;
   }
 
   /**
    * Update this view content.
    */
   public void update () {
-    this._content = this.getParentCollection().createQuery().setMaxResults(this._maxSize).setFirstResult(this._offset)
-      .getResultList();
+    final TypedQuery<Entity> query = this.getParentCollection().createQuery();
+
+    if (_cursor.hasLimit()) {
+      query.setMaxResults(_cursor.getLimit());
+    }
+
+    _content = query.setFirstResult(_cursor.getOffset()).getResultList();
   }
 }

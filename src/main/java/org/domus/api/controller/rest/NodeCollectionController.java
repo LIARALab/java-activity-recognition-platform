@@ -1,3 +1,24 @@
+/*******************************************************************************
+ * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
 package org.domus.api.controller.rest;
 
 import java.util.List;
@@ -17,7 +38,8 @@ import org.springframework.lang.NonNull;
 import org.domus.api.collection.EntityCollections;
 import org.domus.api.collection.exception.EntityNotFoundException;
 import org.domus.api.data.entity.Node;
-import org.domus.api.executor.InvalidAPIRequestException;
+import org.domus.api.data.entity.Sensor;
+import org.domus.api.request.validator.error.InvalidAPIRequestException;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -41,7 +63,7 @@ public final class NodeCollectionController extends BaseRestController
 
   @GetMapping("/nodes/count")
   public int count (@NonNull final HttpServletRequest request) {
-    return _collections.create(Node.class).getSize();
+    return _collections.createCollection(Node.class).getSize();
   }
 
   @GetMapping("/nodes")
@@ -84,6 +106,40 @@ public final class NodeCollectionController extends BaseRestController
 
   @GetMapping("/nodes/{identifier}")
   public Node get (@PathVariable final int identifier) throws EntityNotFoundException {
-    return _collections.create(Node.class).findByIdOrFail(identifier);
+    return _collections.createCollection(Node.class).findByIdOrFail(identifier);
   }
+
+  @GetMapping("/nodes/{identifier}/sensors")
+  public Iterable<Sensor> getSensors (@PathVariable final int identifier) throws EntityNotFoundException {
+    return _collections.createCollection(Node.class).findByIdOrFail(identifier).getSensors();
+  }
+
+  /*
+  @GetMapping("/nodes/{identifier}/children")
+  public List<Node> getChildren (@PathVariable final int identifier) throws EntityNotFoundException {
+    final Node parent = _collections.create(Node.class).findByIdOrFail(identifier);
+    
+    _collections.getEntityManager().createQuery(
+      String.join(
+        "\r\n", 
+        "SELECT children, (COUNT(parent.name) - subtree.depth + 1) as depth",
+        "FROM",
+        "     Node children,",
+        "     Node parent,",
+        "     Node subParent",
+        "     (",
+        "        SELECT node.name, (COUNT(parent.name) - 1) AS depth",
+        "        FROM Node node,",
+        "             Node parent",
+        "        "
+        "WHERE children.start > :start",
+        "  AND children.end < :end",
+        "  AND depth >"
+        
+      ),
+      Node.class
+    );
+    
+    return null;
+  }*/
 }
