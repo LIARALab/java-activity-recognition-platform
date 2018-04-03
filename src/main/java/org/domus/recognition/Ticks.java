@@ -97,6 +97,11 @@ public class Ticks implements Iterator<Tick>
           emit(next); 
         }
         
+        if (previous != null && previous.isDown() && next.isDown() && Duration.between(previous.getDate(), next.getDate()).compareTo(_maxEventDuration) > 0) {
+          emit(Tick.before(next, _maxEventDuration).setUp());
+          emit(next);
+        }
+        
         if (previous == null && next.isDown()) {
           //System.out.println("  DEAD TICK FOUND : " + Tick.before(next, _maxEventDuration).setDown());
           emit(Tick.before(next, _maxEventDuration).setUp());
