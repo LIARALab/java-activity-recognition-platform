@@ -21,6 +21,8 @@
  ******************************************************************************/
 package org.domus.api.collection;
 
+import java.util.Iterator;
+
 import org.springframework.lang.NonNull;
 
 /**

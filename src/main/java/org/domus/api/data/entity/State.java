@@ -50,7 +50,7 @@ public class State
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "identifier")
-  private int  _identifier;
+  private Long  _identifier;
   
   @Column(name = "created_at")
   private LocalDateTime _creationDate;
@@ -83,7 +83,7 @@ public class State
     return this._deletionDate;
   }
 
-  public int getIdentifier () {
+  public long getIdentifier () {
     return this._identifier;
   }
 
@@ -92,7 +92,7 @@ public class State
     return this._sensor;
   }
 
-  public int getSensorIdentifier () {
+  public long getSensorIdentifier () {
     return this._sensor.getIdentifier();
   }
 
@@ -109,7 +109,7 @@ public class State
   public int hashCode () {
     final int prime = 31;
     int result = 1;
-    result = prime * result + _identifier;
+    result = prime * result + _identifier.intValue();
     return result;
   }
 

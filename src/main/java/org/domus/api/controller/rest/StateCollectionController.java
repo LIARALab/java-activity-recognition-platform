@@ -21,6 +21,8 @@
  ******************************************************************************/
 package org.domus.api.controller.rest;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +60,7 @@ public final class StateCollectionController extends BaseRestController
   private EntityCollections _collections;
 
   @GetMapping("/states/count")
-  public int count (@NonNull final HttpServletRequest request) {
+  public long count (@NonNull final HttpServletRequest request) {
     return _collections.createCollection(State.class).getSize();
   }
 
@@ -94,14 +96,14 @@ public final class StateCollectionController extends BaseRestController
       )
     }
   )
-  public ResponseEntity<Iterable<State>> index (@NonNull final HttpServletRequest request)
+  public ResponseEntity<List<State>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
     return this.indexCollection(State.class, new StateFilterFactory(), request);
   }
 
   @GetMapping("/states/{identifier}")
-  public State get (@PathVariable final int identifier) throws EntityNotFoundException {
+  public State get (@PathVariable final long identifier) throws EntityNotFoundException {
     return _collections.createCollection(State.class).findByIdOrFail(identifier);
   }
 }

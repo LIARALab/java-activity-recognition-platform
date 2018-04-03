@@ -45,17 +45,17 @@ public class BaseRestController
   @NonNull
   private EntityCollections _collections;
 
-  public <T> ResponseEntity<Iterable<T>> indexCollection (
-    @NonNull final Class<T> entity,
+  public <Entity> ResponseEntity<List<Entity>> indexCollection (
+    @NonNull final Class<Entity> entity,
     @NonNull final HttpServletRequest request
   ) throws InvalidAPIRequestException
   {
-    final EntityCollection<T> collection = _collections.createCollection(entity);
+    final EntityCollection<Entity, Long> collection = _collections.createCollection(entity);
     final APIRequest apiRequest = APIRequest.from(request);
     
     this.assertIsValidRequest(apiRequest, new FreeCursorValidator());
 
-    final EntityCollectionView<T> view = collection.getView((new FreeCursorParser()).parse(apiRequest));
+    final EntityCollectionView<Entity> view = collection.getView((new FreeCursorParser()).parse(apiRequest));
 
     if (view.getSize() == collection.getSize()) {
       return new ResponseEntity<>(view.getContent(), HttpStatus.OK);
@@ -64,9 +64,9 @@ public class BaseRestController
     }
   }
 
-  public <T> ResponseEntity<Iterable<T>> indexCollection (
-    @NonNull final Class<T> entity,
-    @NonNull final EntityFilterFactory<T> filter,
+  public <Entity> ResponseEntity<List<Entity>> indexCollection (
+    @NonNull final Class<Entity> entity,
+    @NonNull final EntityFilterFactory<Entity> filter,
     @NonNull final HttpServletRequest request
   )
     throws InvalidAPIRequestException
@@ -75,11 +75,11 @@ public class BaseRestController
 
     this.assertIsValidRequest(apiRequest, new FreeCursorValidator(), filter.createValidator());
 
-    final EntityCollection<T> collection = _collections.createCollection(
+    final EntityCollection<Entity, Long> collection = _collections.createCollection(
       entity, filter.createParser().parse(apiRequest)
     );
 
-    final EntityCollectionView<T> view = collection.getView((new FreeCursorParser()).parse(apiRequest));
+    final EntityCollectionView<Entity> view = collection.getView((new FreeCursorParser()).parse(apiRequest));
 
     if (view.getSize() == collection.getSize()) {
       return new ResponseEntity<>(view.getContent(), HttpStatus.OK);
@@ -88,16 +88,16 @@ public class BaseRestController
     }
   }
 
-  public <T> int countCollection (@NonNull final Class<T> entity, @NonNull final HttpServletRequest request)
+  public <Entity> long countCollection (@NonNull final Class<Entity> entity, @NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
-    final EntityCollection<T> collection = _collections.createCollection(entity);
+    final EntityCollection<Entity, Long> collection = _collections.createCollection(entity);
     return collection.getSize();
   }
 
-  public <T> int countCollection (
-    @NonNull final Class<T> entity,
-    @NonNull final EntityFilterFactory<T> filter,
+  public <Entity> long countCollection (
+    @NonNull final Class<Entity> entity,
+    @NonNull final EntityFilterFactory<Entity> filter,
     @NonNull final HttpServletRequest request
   )
     throws InvalidAPIRequestException
@@ -106,7 +106,7 @@ public class BaseRestController
 
     this.assertIsValidRequest(apiRequest, filter.createValidator());
 
-    final EntityCollection<T> collection = _collections.createCollection(
+    final EntityCollection<Entity, Long> collection = _collections.createCollection(
       entity, filter.createParser().parse(apiRequest)
     );
 

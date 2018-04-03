@@ -31,7 +31,6 @@ import org.domus.api.filter.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Component;
-import org.springframework.context.ApplicationContext;
 
 /**
  * A service that offer many helpers for creating and managing entities collections.
@@ -41,9 +40,6 @@ import org.springframework.context.ApplicationContext;
 @Component
 public class EntityCollections
 {
-  @NonNull
-  private final ApplicationContext _context;
-  
   @NonNull
   private final EntityManager _entityManager;
 
@@ -55,10 +51,8 @@ public class EntityCollections
    */
   @Autowired
   public EntityCollections(
-    @NonNull final ApplicationContext context,
     @NonNull final EntityManager entityManager
   ) {
-    this._context = context;
     this._entityManager = entityManager;
   }
 
@@ -68,8 +62,8 @@ public class EntityCollections
    * @param entity Entity type of the collection to return.
    * @return A complete entity collection.
    */
-  public <Entity> EntityCollection<Entity> createCollection (@NonNull final Class<Entity> entity) {
-    return new CompleteEntityCollection<>(entity, this._context);
+  public <Entity> EntityCollection<Entity, Long> createCollection (@NonNull final Class<Entity> entity) {
+    return new CompleteEntityCollection<>(entity, _entityManager);
   }
 
   /**
@@ -79,11 +73,11 @@ public class EntityCollections
    * @param specification Specification that all entity must match in order to be in the filtered collection.
    * @return A filtered entity collection.
    */
-  public <Entity> EntityCollection<Entity> createCollection (
+  public <Entity> EntityCollection<Entity, Long> createCollection (
     @NonNull final Class<Entity> entity, 
     @NonNull final Filter<Entity> filter
   ) {
-    return new FilteredEntityCollection<Entity>(entity, filter, this._context);
+    return new FilteredEntityCollection<Entity, Long>(entity, filter, _entityManager);
   }
   
   /**
@@ -150,18 +144,5 @@ public class EntityCollections
    */
   public EntityManager getEntityManager () {
     return this._entityManager;
-  }
-  
-  /**
-   * Return the application context attached to this service.
-   * 
-   * The application context allow this service to do some dependency injection.
-   * 
-   * @see ApplicationContext
-   * 
-   * @return The application context attached to this service.
-   */
-  public ApplicationContext getApplicationContext () {
-    return this._context;
   }
 }

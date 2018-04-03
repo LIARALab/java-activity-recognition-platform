@@ -21,12 +21,62 @@
  ******************************************************************************/
 package org.domus.api.data.repository;
 
-import java.lang.Integer;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.StreamSupport;
 
-import org.springframework.data.repository.CrudRepository;
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
+import org.domus.api.collection.EntityCollection;
+import org.domus.api.collection.EntityCollections;
+import org.domus.api.collection.exception.EntityNotFoundException;
+import org.domus.api.data.entity.Node;
 import org.domus.api.data.entity.Sensor;
+import org.domus.api.filter.Filter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.repository.Repository;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
-public interface SensorRepository extends CrudRepository<Sensor, Integer>
+import com.google.common.collect.Iterables;
+
+@Component
+public class SensorRepository implements Repository<Sensor, Long>
 {
+  @NonNull final private EntityManager _entityManager;
+  
+  @NonNull final private EntityCollections _collections;
+  
+  @NonNull final private EntityCollection<Sensor, Long> _fullCollection;
+ 
+  @Autowired
+  public SensorRepository (
+    @NonNull final ApplicationContext context
+  ) {
+    _entityManager = context.getBean(EntityManager.class);
+    _collections = context.getBean(EntityCollections.class);
+    _fullCollection = _collections.createCollection(Sensor.class);
+  }
+  
+  public EntityCollection<Sensor, Long> createCollection () {
+    return _fullCollection;
+  }
+  
+  public EntityCollection<Sensor, Long> createCollection (@NonNull final Filter<Sensor> filter) {
+    return _collections.createCollection(Sensor.class, filter);
+  }
+  
+  public Sensor findById (final long identifier) {
+    return _fullCollection.findById(identifier);
+  }
+  
+  public Sensor findByIdOrFail (final long identifier) throws EntityNotFoundException {
+    return _fullCollection.findByIdOrFail(identifier);
+  }
 }

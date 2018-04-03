@@ -23,7 +23,6 @@ package org.domus.api.data.entity;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 import org.springframework.lang.NonNull;
 
@@ -50,6 +49,10 @@ public class Presence
   public LocalDateTime getEnd () {
     return _end;
   }
+  
+  public Presence setEnd (@NonNull final LocalDateTime end) {
+    return new Presence(_start, end, _room);
+  }
 
   @JsonIgnore
   public Node getRoom () {
@@ -75,5 +78,9 @@ public class Presence
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public LocalDateTime getStart () {
     return _start;
+  }
+
+  public Presence setStart (@NonNull final LocalDateTime start) {
+    return new Presence(start, _end, _room);
   }
 }

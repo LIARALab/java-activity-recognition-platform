@@ -62,7 +62,7 @@ public final class DoubleStateCollectionController extends BaseRestController
   private EntityCollections _collections;
 
   @GetMapping("/states<double>/count")
-  public int count (@NonNull final HttpServletRequest request) {
+  public long count (@NonNull final HttpServletRequest request) {
     return _collections.createCollection(DoubleState.class).getSize();
   }
 
@@ -98,14 +98,14 @@ public final class DoubleStateCollectionController extends BaseRestController
       )
     }
   )
-  public ResponseEntity<Iterable<DoubleState>> index (@NonNull final HttpServletRequest request)
+  public ResponseEntity<List<DoubleState>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
     return this.indexCollection(DoubleState.class, request);
   }
 
   @GetMapping("/states<double>/{identifier}")
-  public DoubleState get (@PathVariable final int identifier) throws EntityNotFoundException {
+  public DoubleState get (@PathVariable final long identifier) throws EntityNotFoundException {
     return _collections.createCollection(DoubleState.class).findByIdOrFail(identifier);
   }
 }

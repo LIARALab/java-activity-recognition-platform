@@ -29,6 +29,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import javax.annotation.Nullable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 
@@ -47,35 +48,37 @@ public class Node
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "identifier")
-  private int       _identifier;
-  
+  private Long          _identifier;
+
   @Column(name = "created_at")
-  private LocalDateTime      _creationDate;
-  
+  @NonNull
+  private LocalDateTime _creationDate;
+
   @Column(name = "updated_at")
-  private LocalDateTime      _updateDate;
-  
+  @NonNull
+  private LocalDateTime _updateDate;
+
   @Column(name = "deleted_at")
-  private LocalDateTime      _deletionDate;
+  @Nullable
+  private LocalDateTime _deletionDate;
 
   @Column(name = "name")
-  private String    _name;
+  @NonNull
+  private String        _name;
 
   @Column(name = "start")
-  private int       _start;
-  
+  private int           _start;
+
   @Column(name = "end")
-  private int       _end;
-  
-  @ManyToMany(
-    cascade = CascadeType.ALL
-  )
+  private int           _end;
+
+  @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(
-    name = "sensors_by_nodes",
-    joinColumns = @JoinColumn(name = "node_identifier"),
-    inverseJoinColumns = @JoinColumn(name = "sensor_identifier")
+      name = "sensors_by_nodes",
+      joinColumns = @JoinColumn(name = "node_identifier"),
+      inverseJoinColumns = @JoinColumn(name = "sensor_identifier")
   )
-  private List<Sensor> _sensors;
+  private List<Sensor>  _sensors;
 
   public void delete () {
     this._deletionDate = LocalDateTime.now();
@@ -90,7 +93,7 @@ public class Node
   public LocalDateTime getDeletionDate () {
     return this._deletionDate;
   }
-  
+
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public LocalDateTime getUpdateDate () {
     return this._updateDate;
@@ -100,29 +103,25 @@ public class Node
     return this._end;
   }
 
-  public int getIdentifier () {
+  public long getIdentifier () {
     return this._identifier;
   }
 
   public String getName () {
     return this._name;
   }
-  
+
   @JsonIgnore
   public List<Sensor> getSensors () {
     return this._sensors;
   }
-  
+
   public int getStart () {
     return this._start;
   }
 
   public void restore () {
     this._deletionDate = null;
-  }
-
-  public void setIdentifier (final int identifier) {
-    this._identifier = identifier;
   }
 
   public void setName (@NonNull final String name) {
@@ -133,7 +132,7 @@ public class Node
   public int hashCode () {
     final int prime = 31;
     int result = 1;
-    result = prime * result + _identifier;
+    result = prime * result + _identifier.intValue();
     return result;
   }
 

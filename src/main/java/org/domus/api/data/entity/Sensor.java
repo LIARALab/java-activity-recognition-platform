@@ -48,7 +48,7 @@ public class Sensor
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "identifier")
-  private int           _identifier;
+  private Long           _identifier;
 
   @Column(name = "created_at")
   private LocalDateTime _creationDate;
@@ -61,12 +61,15 @@ public class Sensor
 
   @Column(name = "name")
   private String        _name;
-
+  
   @Column(name = "type")
   private String        _type;
 
-  @Column(name = "unit")
-  private String        _unit;
+  @Column(name = "value_type")
+  private String        _valueType;
+
+  @Column(name = "value_unit")
+  private String        _valueUnit;
 
   @Column(name = "value_label")
   private String        _valueLabel;
@@ -91,74 +94,78 @@ public class Sensor
 
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public LocalDateTime getCreationDate () {
-    return this._creationDate;
+    return _creationDate;
   }
 
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public LocalDateTime getDeletionDate () {
-    return this._deletionDate;
+    return _deletionDate;
   }
 
-  public int getIdentifier () {
-    return this._identifier;
+  public long getIdentifier () {
+    return _identifier;
   }
 
   public String getIpv4Address () {
-    return this._ipv4Address;
+    return _ipv4Address;
   }
 
   public String getIpv6Address () {
-    return this._ipv6Address;
+    return _ipv6Address;
   }
 
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public LocalDateTime getLastUpdateDate () {
-    return this._lastUpdateDate;
+    return _lastUpdateDate;
   }
 
   public String getName () {
-    return this._name;
+    return _name;
   }
 
   @JsonIgnore
   public List<Node> getNodes () {
-    return this._nodes;
+    return _nodes;
   }
 
   @JsonIgnore
   public List<State> getStates () {
-    return this._states;
+    return _states;
   }
 
   public String getType () {
-    return this._type;
+    return _type;
   }
 
-  public String getUnit () {
-    return this._unit;
+  public String getValueType () {
+    return _valueType;
+  }
+
+  public String getValueUnit () {
+    return _valueUnit;
   }
 
   public String getValueLabel () {
-    return this._valueLabel;
+    return _valueLabel;
   }
 
   public void setIpv4Address (@NonNull final String ipv4Address) {
-    this._ipv4Address = ipv4Address;
+    _ipv4Address = ipv4Address;
   }
 
   public void setIpv6Address (@NonNull final String ipv6Address) {
-    this._ipv6Address = ipv6Address;
+    _ipv6Address = ipv6Address;
   }
 
   public void setName (@NonNull final String name) {
-    this._name = name;
+    _name = name;
   }
 
   @Override
   public int hashCode () {
     final int prime = 31;
     int result = 1;
-    result = prime * result + _identifier;
+    result = prime * result + ((_identifier == null) ? 0 : _identifier.hashCode());
     return result;
   }
 
@@ -168,7 +175,9 @@ public class Sensor
     if (obj == null) return false;
     if (getClass() != obj.getClass()) return false;
     Sensor other = (Sensor) obj;
-    if (_identifier != other._identifier) return false;
+    if (_identifier == null) {
+      if (other._identifier != null) return false;
+    } else if (!_identifier.equals(other._identifier)) return false;
     return true;
   }
 }

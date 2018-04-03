@@ -25,8 +25,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.google.common.collect.Lists;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,6 +37,7 @@ import org.domus.api.collection.EntityCollections;
 import org.domus.api.collection.exception.EntityNotFoundException;
 import org.domus.api.data.entity.Node;
 import org.domus.api.data.entity.Sensor;
+import org.domus.api.data.repository.NodeRepository;
 import org.domus.api.request.validator.error.InvalidAPIRequestException;
 
 import io.swagger.annotations.Api;
@@ -59,11 +58,11 @@ public final class NodeCollectionController extends BaseRestController
 {
   @Autowired
   @NonNull
-  private EntityCollections _collections;
+  private NodeRepository _repository;
 
   @GetMapping("/nodes/count")
-  public int count (@NonNull final HttpServletRequest request) {
-    return _collections.createCollection(Node.class).getSize();
+  public long count (@NonNull final HttpServletRequest request) {
+    return _repository.createCollection().getSize();
   }
 
   @GetMapping("/nodes")
@@ -98,48 +97,24 @@ public final class NodeCollectionController extends BaseRestController
       )
     }
   )
-  public ResponseEntity<Iterable<Node>> index (@NonNull final HttpServletRequest request)
+  public ResponseEntity<List<Node>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
     return this.indexCollection(Node.class, request);
   }
 
   @GetMapping("/nodes/{identifier}")
-  public Node get (@PathVariable final int identifier) throws EntityNotFoundException {
-    return _collections.createCollection(Node.class).findByIdOrFail(identifier);
+  public Node get (@PathVariable final long identifier) throws EntityNotFoundException {
+    return _repository.findByIdOrFail(identifier);
   }
 
   @GetMapping("/nodes/{identifier}/sensors")
-  public Iterable<Sensor> getSensors (@PathVariable final int identifier) throws EntityNotFoundException {
-    return _collections.createCollection(Node.class).findByIdOrFail(identifier).getSensors();
+  public Iterable<Sensor> getSensors (@PathVariable final long identifier) throws EntityNotFoundException {
+    return _repository.findByIdOrFail(identifier).getSensors();
   }
 
-  /*
   @GetMapping("/nodes/{identifier}/children")
-  public List<Node> getChildren (@PathVariable final int identifier) throws EntityNotFoundException {
-    final Node parent = _collections.create(Node.class).findByIdOrFail(identifier);
-    
-    _collections.getEntityManager().createQuery(
-      String.join(
-        "\r\n", 
-        "SELECT children, (COUNT(parent.name) - subtree.depth + 1) as depth",
-        "FROM",
-        "     Node children,",
-        "     Node parent,",
-        "     Node subParent",
-        "     (",
-        "        SELECT node.name, (COUNT(parent.name) - 1) AS depth",
-        "        FROM Node node,",
-        "             Node parent",
-        "        "
-        "WHERE children.start > :start",
-        "  AND children.end < :end",
-        "  AND depth >"
-        
-      ),
-      Node.class
-    );
-    
-    return null;
-  }*/
+  public List<Node> getChildren (@PathVariable final long identifier) throws EntityNotFoundException {
+    return _repository.getChildren(identifier);
+  }
 }

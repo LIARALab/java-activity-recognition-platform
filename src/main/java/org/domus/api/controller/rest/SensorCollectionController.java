@@ -21,6 +21,8 @@
  ******************************************************************************/
 package org.domus.api.controller.rest;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 
@@ -77,7 +79,7 @@ public final class SensorCollectionController extends BaseRestController
       )
     }
   )
-  public int count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+  public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
     return this.countCollection(Sensor.class, new SensorFilterFactory(), request);
   }
 
@@ -121,19 +123,19 @@ public final class SensorCollectionController extends BaseRestController
     )
     }
   )
-  public ResponseEntity<Iterable<Sensor>> index (@NonNull final HttpServletRequest request)
+  public ResponseEntity<List<Sensor>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
     return this.indexCollection(Sensor.class, new SensorFilterFactory(), request);
   }
 
   @GetMapping("/sensors/{identifier}")
-  public Sensor get (@PathVariable final int identifier) throws EntityNotFoundException {
+  public Sensor get (@PathVariable final long identifier) throws EntityNotFoundException {
     return this._collections.createCollection(Sensor.class).findByIdOrFail(identifier);
   }
 
   @GetMapping("/sensors/{identifier}/nodes")
-  public Iterable<Node> getNodes (@PathVariable final int identifier) throws EntityNotFoundException {
+  public List<Node> getNodes (@PathVariable final long identifier) throws EntityNotFoundException {
     return _collections.createCollection(Sensor.class).findByIdOrFail(identifier).getNodes();
   }
 }

@@ -21,24 +21,40 @@
  ******************************************************************************/
 package org.domus.api.controller.rest;
 
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.servlet.http.HttpServletRequest;
 
+import org.domus.api.collection.CursorBasedIterator;
 import org.domus.api.collection.EntityCollectionQuery;
 import org.domus.api.collection.EntityCollections;
 import org.domus.api.collection.exception.EntityNotFoundException;
 import org.domus.api.data.entity.BooleanState;
-import org.domus.api.data.entity.Node;
 import org.domus.api.data.entity.Presence;
 import org.domus.api.data.entity.Sensor;
+import org.domus.api.data.repository.NodeRepository;
+import org.domus.api.request.APIRequest;
+import org.domus.api.request.parser.FreeCursorParser;
+import org.domus.api.request.validator.FreeCursorValidator;
+import org.domus.api.request.validator.error.InvalidAPIRequestException;
+import org.domus.recognition.PresenceRecognition;
+import org.domus.recognition.Tick;
+import org.domus.recognition.Ticks;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.google.common.collect.Iterators;
 
 import io.swagger.annotations.Api;
 
@@ -52,64 +68,92 @@ import io.swagger.annotations.Api;
     consumes = "application/json",
     protocols = "http"
 )
-public class PresenceController
+public class PresenceController extends BaseRestController
 {
   @Autowired
   private EntityCollections _collections;
   
-  @GetMapping("/presences")
-  public List<Presence> index (@NonNull final HttpServletRequest request) throws EntityNotFoundException
+  @Autowired
+  private NodeRepository _nodes;
+  
+  @Autowired
+  private ApplicationContext _context;
+  
+  @GetMapping("/sensors/{identifier}/presences")
+  public List<Presence> index (
+    @NonNull final HttpServletRequest request, 
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException
   {
-    final List<Presence> presences = new ArrayList<>();
-    final CriteriaBuilder criteriaBuilder = _collections.getEntityManager().getCriteriaBuilder();
+    final Sensor sensor = _collections.createCollection(Sensor.class).findByIdOrFail(identifier);
+    final List<Presence> result = new ArrayList<>();
+    final APIRequest apiRequest = APIRequest.from(request);
     
-    final Node appartement = _collections.createCollection(Node.class).findByIdOrFail(7);
-    final EntityCollectionQuery<Node, Node> roomsQuery = _collections.createQuery(Node.class);
-    roomsQuery.where(criteriaBuilder.gt(roomsQuery.field("start").as(Integer.class), appartement.getStart()));
-    roomsQuery.where(criteriaBuilder.lt(roomsQuery.field("end").as(Integer.class), appartement.getEnd()));
+    this.assertIsValidRequest(apiRequest, new FreeCursorValidator());
     
-    final List<Node> rooms = _collections.fetch(roomsQuery);
+    final Iterator<Presence> presences = CursorBasedIterator.apply(
+      (new FreeCursorParser()).parse(apiRequest), 
+      new PresenceRecognition(_context, sensor)
+    );
     
-    final EntityCollectionQuery<Sensor, Sensor> sensorQuery = _collections.createQuery(Sensor.class);
-    sensorQuery.where(sensorQuery.join("nodes").in(rooms));
+    Iterators.addAll(result, presences);
     
-    final List<Sensor> sensors = _collections.fetch(sensorQuery);
+    return result;
+  }
+  
+
+  @GetMapping("/sensors/{identifier}/q1")
+  public Map<String, Duration> indexQ1 (
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException
+  {
+    final Sensor sensor = _collections.createCollection(Sensor.class).findByIdOrFail(identifier);
+    final List<Sensor> sensors = _nodes.getAllSensors(sensor.getNodes(), "common/native/motion");
+
     final EntityCollectionQuery<BooleanState, BooleanState> stateQuery = _collections.createQuery(BooleanState.class);
     stateQuery.where(stateQuery.join("sensor").in(sensors));
-    stateQuery.orderBy(criteriaBuilder.asc(stateQuery.field("date")));
+    stateQuery.orderBy(_collections.getEntityManager().getCriteriaBuilder().asc(stateQuery.field("date")));
+
+    final Ticks ticks = new Ticks(_collections.fetch(stateQuery).iterator());
+    final List<Duration> durations = new ArrayList<>();
+    final Map<Sensor, Tick> lastTicks = new HashMap<>();
     
-    final Iterator<BooleanState> states = _collections.fetch(stateQuery).iterator();
-    
-    Presence lastPresence = null;
-    BooleanState last = null;
-    
-    while (states.hasNext()) {
-      final BooleanState next = states.next();
-      if (last == null || last.getValue() == false) {
-        if (next.getValue() == true) {
-          last = next;
+    while (ticks.hasNext()) {
+      final Tick tick = ticks.next();
+      final Tick previous = (lastTicks.containsKey(tick.getSensor())) ? lastTicks.get(tick.getSensor()) : null;
+      
+      if (previous != null && tick.getDate().compareTo(previous.getDate()) < 0) {
+        throw new Error("Invalid tick order.");
+      }
+      
+      if (tick.isUp()) {
+        if (previous == null || previous.isDown()) {
+          lastTicks.put(tick.getSensor(), tick);
+        } else if (previous != null && previous.isUp()) {
+          throw new Error("Invalid tick");
         }
-      } else if (last != null && last.getValue() == true) {
-        if (next.getValue() == false || !next.getSensor().equals(last.getSensor())) {
-          final Presence presence = new Presence(last.getDate(), next.getDate(), last.getSensor().getNodes().get(0));
-          
-          if (lastPresence == null) {
-            lastPresence = presence;
-          } else if (lastPresence.getRoom().equals(presence.getRoom())) {
-            lastPresence = lastPresence.merge(presence);
-          } else {
-            presences.add(lastPresence);
-            lastPresence = presence;
-          }
-          last = next;
+      } else {
+        if (previous == null || previous.isDown()) {
+          throw new Error("Invalid tick");
         }
+        
+        final Duration duration = Duration.between(previous.getDate(), tick.getDate());
+        durations.add(duration);
+        lastTicks.put(tick.getSensor(), tick);
       }
     }
     
-    if (lastPresence != null) {
-      presences.add(lastPresence);
-    }
+    Collections.sort(durations);
     
-    return presences;
+    final Map<String, Duration> qts = new HashMap<>();
+    final int q = durations.size() / 4;
+    
+    qts.put("q1", durations.get(0));
+    qts.put("q2", durations.get(q));
+    qts.put("q3", durations.get(q * 2));
+    qts.put("q4", durations.get(q * 3));
+    qts.put("q5", durations.get(durations.size() - 1));
+    
+    return qts;
   }
 }

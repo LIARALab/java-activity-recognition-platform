@@ -21,7 +21,7 @@
  ******************************************************************************/
 package org.domus.api.collection;
 
-import java.util.Collection;
+import java.util.List;
 
 import javax.persistence.TypedQuery;
 
@@ -48,20 +48,20 @@ public class EntityCollectionView<Entity>
    * The parent collection of this view.
    */
   @NonNull
-  private EntityCollection<Entity> _parent;
+  private EntityCollection<Entity, ?> _parent;
 
   /**
    * The content of this view.
    */
   @Nullable
-  private Collection<Entity>       _content;
+  private List<Entity>       _content;
 
   /**
    * Create a new view over all a collection.
    *
    * @param parent The parent collection of this view.
    */
-  public EntityCollectionView(@NonNull final EntityCollection<Entity> parent) {
+  public EntityCollectionView(@NonNull final EntityCollection<Entity, ?> parent) {
     this.setParentCollection(parent);
     _cursor = Cursor.ALL;
     _content = null;
@@ -73,7 +73,7 @@ public class EntityCollectionView<Entity>
    * @param parent The parent collection of this view.
    * @param cursor The view definition.
    */
-  public EntityCollectionView(@NonNull final EntityCollection<Entity> parent, @NonNull final Cursor cursor) {
+  public EntityCollectionView(@NonNull final EntityCollection<Entity, ?> parent, @NonNull final Cursor cursor) {
     this.setParentCollection(parent);
     _cursor = cursor;
     _content = null;
@@ -84,7 +84,7 @@ public class EntityCollectionView<Entity>
    *
    * @return The parent collection of this view.
    */
-  public EntityCollection<Entity> getParentCollection () {
+  public EntityCollection<Entity, ?> getParentCollection () {
     return _parent;
   }
 
@@ -93,7 +93,7 @@ public class EntityCollectionView<Entity>
    *
    * @param parent The new parent collection of this view.
    */
-  public void setParentCollection (@NonNull final EntityCollection<Entity> parent) {
+  public void setParentCollection (@NonNull final EntityCollection<Entity, ?> parent) {
     _parent = parent;
     _content = null;
   }
@@ -122,7 +122,7 @@ public class EntityCollectionView<Entity>
    *
    * @return The index of the first element of this view.
    */
-  public int getFirst () {
+  public long getFirst () {
     if (this.getContent().size() == 0) {
       return _parent.getSize();
     } else {
@@ -135,7 +135,7 @@ public class EntityCollectionView<Entity>
    *
    * @return The index of the last element of this view.
    */
-  public int getLast () {
+  public long getLast () {
     return this.getFirst() + this.getSize();
   }
 
@@ -144,7 +144,7 @@ public class EntityCollectionView<Entity>
    *
    * @return The number of elements in this view.
    */
-  public int getSize () {
+  public long getSize () {
     return this.getContent().size();
   }
 
@@ -153,7 +153,7 @@ public class EntityCollectionView<Entity>
    *
    * @return The content of this view.
    */
-  public Collection<Entity> getContent () {
+  public List<Entity> getContent () {
     if (_content == null) this.update();
     return _content;
   }

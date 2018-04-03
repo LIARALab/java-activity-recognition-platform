@@ -62,7 +62,7 @@ public final class BooleanStateCollectionController extends BaseRestController
   private EntityCollections _collections;
 
   @GetMapping("/states<boolean>/count")
-  public int count (@NonNull final HttpServletRequest request) {
+  public long count (@NonNull final HttpServletRequest request) {
     return _collections.createCollection(BooleanState.class).getSize();
   }
 
@@ -98,14 +98,14 @@ public final class BooleanStateCollectionController extends BaseRestController
       )
     }
   )
-  public ResponseEntity<Iterable<BooleanState>> index (@NonNull final HttpServletRequest request)
+  public ResponseEntity<List<BooleanState>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
     return this.indexCollection(BooleanState.class, request);
   }
 
   @GetMapping("/states<boolean>/{identifier}")
-  public BooleanState get (@PathVariable final int identifier) throws EntityNotFoundException {
+  public BooleanState get (@PathVariable final long identifier) throws EntityNotFoundException {
     return _collections.createCollection(BooleanState.class).findByIdOrFail(identifier);
   }
 }
