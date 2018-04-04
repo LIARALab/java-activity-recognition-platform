@@ -98,13 +98,13 @@ public class Ticks implements Iterator<Tick>
         }
         
         if (previous != null && previous.isDown() && next.isDown() && Duration.between(previous.getDate(), next.getDate()).compareTo(_maxEventDuration) > 0) {
-          emit(Tick.before(next, _maxEventDuration).setUp());
+          emit(Tick.before(next, _maxEventDuration).setUp().markDead());
           emit(next);
         }
         
         if (previous == null && next.isDown()) {
           //System.out.println("  DEAD TICK FOUND : " + Tick.before(next, _maxEventDuration).setDown());
-          emit(Tick.before(next, _maxEventDuration).setUp());
+          emit(Tick.before(next, _maxEventDuration).setUp().markDead());
         }
         
         _latest.put(next.getSensor(), next);
@@ -143,7 +143,7 @@ public class Ticks implements Iterator<Tick>
       //System.out.println("  | CHECK " + entry.getValue() + " OF " + entry.getKey().getNodes().get(0).getName());
       if (entry.getValue().isUp() && Duration.between(entry.getValue().getDate(), time).compareTo(_maxEventDuration) > 0) {
         //System.out.println("  |   DEAD TICK FOUND " + Tick.after(entry.getValue(), _maxEventDuration).setDown());
-        deadTicks.add(Tick.after(entry.getValue(), _maxEventDuration).setDown());
+        deadTicks.add(Tick.after(entry.getValue(), _maxEventDuration).setDown().markDead());
       }
     }
  

@@ -12,6 +12,7 @@ public class Tick implements Comparable<Tick>
   @NonNull private final Sensor _sensor;
   @NonNull private final LocalDateTime _date;
   @NonNull private final boolean _up;
+  @NonNull private final boolean _dead;
 
   public static Tick before (@NonNull final Tick tick) {
     return Tick.before(tick, Duration.ofMillis(1));
@@ -41,16 +42,30 @@ public class Tick implements Comparable<Tick>
     _sensor = state.getSensor();
     _date = state.getDate();
     _up = state.getValue();
+    _dead = false;
   }
   
   public Tick (
     @NonNull final Sensor sensor, 
     @NonNull final LocalDateTime date, 
-    boolean up
+    final boolean up
   ) {
     _sensor = sensor;
     _date = date;
     _up = up;
+    _dead = false;
+  }
+
+  public Tick(
+    @NonNull final Sensor sensor, 
+    @NonNull final LocalDateTime date, 
+    final boolean up, 
+    final boolean dead
+  ) {
+    _sensor = sensor;
+    _date = date;
+    _up = up;
+    _dead = dead;
   }
 
   public Sensor getSensor () {
@@ -69,25 +84,32 @@ public class Tick implements Comparable<Tick>
     return !_up;
   }
 
+  public boolean isDead () {
+    return _dead;
+  }
+  
   @Override
   public int compareTo (@NonNull final Tick other) {
     final int dateComparison = _date.compareTo(other.getDate());
     
     if (dateComparison == 0) {
-      return this.getSensor().hashCode() - other.getSensor().hashCode();
+      return getSensor().hashCode() - other.getSensor().hashCode();
     } else {
       return dateComparison;
     }
   }
 
   public Tick setDown () {
-    return new Tick (this.getSensor(), this.getDate(), false);
+    return new Tick (getSensor(), getDate(), false);
   }
   
   public Tick setUp () {
-    return new Tick (this.getSensor(), this.getDate(), true);
+    return new Tick (getSensor(), getDate(), true);
   }
   
+  public Tick markDead () {
+    return new Tick(getSensor(), getDate(), isUp(), true);
+  }
 
   @Override
   public int hashCode () {

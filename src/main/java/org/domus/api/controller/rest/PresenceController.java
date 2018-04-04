@@ -22,12 +22,15 @@
 package org.domus.api.controller.rest;
 
 import java.time.Duration;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -97,6 +100,75 @@ public class PresenceController extends BaseRestController
     );
     
     Iterators.addAll(result, presences);
+    
+    return result;
+  }
+  
+  @GetMapping("/sensors/{identifier}/presences/sum")
+  public Map<String, Duration> sum (
+    @NonNull final HttpServletRequest request, 
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException
+  {
+    final Sensor sensor = _collections.createCollection(Sensor.class).findByIdOrFail(identifier);
+    final APIRequest apiRequest = APIRequest.from(request);
+    
+    this.assertIsValidRequest(apiRequest, new FreeCursorValidator());
+    
+    final Iterator<Presence> presences = CursorBasedIterator.apply(
+      (new FreeCursorParser()).parse(apiRequest), 
+      new PresenceRecognition(_context, sensor)
+    );
+    
+    final Map<String, Duration> result = new HashMap<>();
+    
+    while (presences.hasNext()) {
+      final Presence next = presences.next();
+      if (result.containsKey(next.getRoomName())) {
+        result.put(next.getRoomName(), result.get(next.getRoomName()).plus(next.getDuration()));
+      } else {
+        result.put(next.getRoomName(), next.getDuration());
+      }
+    }
+    
+    return result;
+  }
+  
+  @GetMapping("/sensors/{identifier}/presences/avg")
+  public Map<String, Duration> avg (
+    @NonNull final HttpServletRequest request, 
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException
+  {
+    final Sensor sensor = _collections.createCollection(Sensor.class).findByIdOrFail(identifier);
+    final APIRequest apiRequest = APIRequest.from(request);
+    
+    this.assertIsValidRequest(apiRequest, new FreeCursorValidator());
+    
+    final Iterator<Presence> presences = CursorBasedIterator.apply(
+      (new FreeCursorParser()).parse(apiRequest), 
+      new PresenceRecognition(_context, sensor)
+    );
+    
+    final Map<String, Duration> sums = new HashMap<>();
+    final Map<String, Long> counts = new HashMap<>();
+    
+    while (presences.hasNext()) {
+      final Presence next = presences.next();
+      if (sums.containsKey(next.getRoomName())) {
+        sums.put(next.getRoomName(), sums.get(next.getRoomName()).plus(next.getDuration()));
+        counts.put(next.getRoomName(), counts.get(next.getRoomName()) + 1);
+      } else {
+        sums.put(next.getRoomName(), next.getDuration());
+        counts.put(next.getRoomName(), 1L);
+      }
+    }
+    
+    final Map<String, Duration> result = new HashMap<>();
+    
+    for (final String key : sums.keySet()) {
+      result.put(key, sums.get(key).dividedBy(counts.get(key)));
+    }
     
     return result;
   }

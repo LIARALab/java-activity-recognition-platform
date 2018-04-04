@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.HashMap;
 
 import javax.persistence.EntityManager;
@@ -107,23 +111,23 @@ public class PresenceRecognition implements Iterator<Presence>
   }
 
   private void onBeginingTick (@NonNull final Tick tick) {
-    System.out.println("  BEGIN EVENT");
+    //System.out.println("  BEGIN EVENT");
     _events.begin(tick.getSensor(), tick.getDate());
   }
   
-  private void onEventDetection (@NonNull final Tick tick, @NonNull final Event event) {
+  private void onEventDetection (@NonNull final Tick tick, @NonNull final Event event) {    
     _solving.add(new AbstractMap.SimpleEntry<>(tick.getSensor(), event));
     if (_solving.size() == 3) this.resolve();
   }
 
   private void onFinishingTick (@NonNull final Tick tick) {
-    System.out.println(" FINISH EVENT (" + _events.occuring(tick.getSensor()).getStart() + ")");
+    //System.out.println(" FINISH EVENT (" + _events.occuring(tick.getSensor()).getStart() + ")");
 
     if (_events.getEarlierOccuringEventKey().equals(tick.getSensor())) {
-      System.out.println("  REGISTERED");
+      //System.out.println("  REGISTERED");
       onEventDetection(tick, _events.terminate(tick.getSensor(), tick.getDate()));
     } else {
-      System.out.print("  DISCARDED");
+      //System.out.print("  DISCARDED");
       _events.forget(tick.getSensor());
     }    
   }
@@ -137,27 +141,27 @@ public class PresenceRecognition implements Iterator<Presence>
   }
 
   private void onPresenceDetection (@NonNull final Presence presence) {
-    System.out.println("  DETECT " + presence.getRoomName() + " from " + presence.getStart() + " to " + presence.getEnd());
+    //System.out.println("  DETECT " + presence.getRoomName() + " from " + presence.getStart() + " to " + presence.getEnd());
     if (presence.getDuration().compareTo(Duration.ofSeconds(1)) <= 0) {
-      System.out.println("  DISCARDED");
+      //System.out.println("  DISCARDED");
     } else if (_lastPresence == null) {
-      System.out.println("  SAVE AND WAIT");
+      //System.out.println("  SAVE AND WAIT");
       _lastPresence = presence;
     } else if (_lastPresence.getRoom().equals(presence.getRoom())) {
-      System.out.println(" MERGE");
+      //System.out.println(" MERGE");
       _lastPresence = _lastPresence.merge(presence);
     } else {
       _lastPresence = _lastPresence.setEnd(presence.getStart());
       _next.add(_lastPresence);
-      System.out.println();
-      System.out.println("  | EMITING " + _lastPresence.getRoomName() + " from " + _lastPresence.getStart() + " to " + _lastPresence.getEnd());
-      System.out.println("  SAVE AND WAIT");
+      //System.out.println();
+      //System.out.println("  | EMITING " + _lastPresence.getRoomName() + " from " + _lastPresence.getStart() + " to " + _lastPresence.getEnd());
+      //System.out.println("  SAVE AND WAIT");
       _lastPresence = presence;
     }
   }
 
   private void onTick (@NonNull final Tick tick) {
-    System.out.println(tick);
+    //System.out.println(tick);
     
     if (_events.hasOccuringEvent(tick.getSensor()) && tick.isDown()) {
       this.onFinishingTick(tick);
@@ -167,11 +171,11 @@ public class PresenceRecognition implements Iterator<Presence>
   }
 
   private void resolve () {
-    System.out.println();
-    System.out.println("  RESOLVING...");
-    for (final Map.Entry<Sensor, Event> entry : _solving) {
+    //System.out.println();
+    //System.out.println("  RESOLVING...");
+    /*for (final Map.Entry<Sensor, Event> entry : _solving) {
       System.out.println("    EVENT [" + entry.getKey().getNodes().get(0).getName() + "] from " + entry.getValue().getStart() + " to " + entry.getValue().getEnd());
-    }
+    }*/
 
     final Map.Entry<Sensor, Event> first = _solving.get(0);
     final Map.Entry<Sensor, Event> second = _solving.get(1);
@@ -191,7 +195,7 @@ public class PresenceRecognition implements Iterator<Presence>
   }
   
   private void resolveABC () {
-    System.out.println("    ABC");
+    //System.out.println("    ABC");
     final Map.Entry<Sensor, Event> first = _solving.remove(0);
     final Map.Entry<Sensor, Event> second =_solving.remove(0);
     final Map.Entry<Sensor, Event> last = _solving.get(0);
@@ -199,7 +203,7 @@ public class PresenceRecognition implements Iterator<Presence>
     final Duration secondDuration = Duration.between(second.getValue().getStart(), second.getValue().getEnd());
     final Duration innerDuration = Duration.between(first.getValue().getEnd(), last.getValue().getStart());
     final float secondFill = (secondDuration.getSeconds() + 1) / (float) (innerDuration.getSeconds() + 1);
-    System.out.println("      FILLING " + (secondFill * 100) + "%");
+    //System.out.println("      FILLING " + (secondFill * 100) + "%");
     
     // AxBxC
     if (secondFill >= 0.75) {
@@ -219,7 +223,7 @@ public class PresenceRecognition implements Iterator<Presence>
   }
 
   private void resolveABxC () {
-    System.out.println("    ABxC");
+    //System.out.println("    ABxC");
     final Map.Entry<Sensor, Event> first = _solving.remove(0);
     final Map.Entry<Sensor, Event> second =_solving.remove(0);
     final Map.Entry<Sensor, Event> last = _solving.get(0);
@@ -227,7 +231,7 @@ public class PresenceRecognition implements Iterator<Presence>
     final Duration secondDuration = Duration.between(second.getValue().getStart(), last.getValue().getStart());
     final Duration innerDuration = Duration.between(first.getValue().getEnd(), last.getValue().getStart());
     final float secondFill = (secondDuration.getSeconds() + 1) / (float) (innerDuration.getSeconds() + 1);
-    System.out.println("      FILLING " + (secondFill * 100) + "%");
+    //System.out.println("      FILLING " + (secondFill * 100) + "%");
     
     // AxBxC
     if (secondFill >= 0.75) {
@@ -252,7 +256,7 @@ public class PresenceRecognition implements Iterator<Presence>
   }
 
   private void resolveAxBC () {
-    System.out.println("    AxBC");
+    //System.out.println("    AxBC");
     final Map.Entry<Sensor, Event> first = _solving.remove(0);
     final Map.Entry<Sensor, Event> second =_solving.remove(0);
     final Map.Entry<Sensor, Event> last = _solving.get(0);
@@ -261,7 +265,7 @@ public class PresenceRecognition implements Iterator<Presence>
     final Duration innerDuration = Duration.between(first.getValue().getEnd(), last.getValue().getStart());
     final float secondFill = (secondDuration.getSeconds() + 1) / (float) (innerDuration.getSeconds() + 1);
     
-    System.out.println("      FILLING " + (secondFill * 100) + "%");
+    //System.out.println("      FILLING " + (secondFill * 100) + "%");
     // AxBxC
     if (secondFill >= 0.75) {
       _solving.add(0, second);
@@ -285,7 +289,7 @@ public class PresenceRecognition implements Iterator<Presence>
   }
 
   private void resolveAxC () {
-    System.out.println("    AxC");
+    //System.out.println("    AxC");
     final Map.Entry<Sensor, Event> first = _solving.remove(0);
     _solving.remove(0); // second
     final Map.Entry<Sensor, Event> last = _solving.get(0);
@@ -299,7 +303,7 @@ public class PresenceRecognition implements Iterator<Presence>
   }
 
   private void resolveAxBxC () {
-    System.out.println("    AxBxC");
+    //System.out.println("    AxBxC");
     final Map.Entry<Sensor, Event> first = _solving.remove(0);
     final Map.Entry<Sensor, Event> second = _solving.remove(0);
     final Map.Entry<Sensor, Event> last = _solving.get(0);
@@ -314,5 +318,22 @@ public class PresenceRecognition implements Iterator<Presence>
     this.onPresenceDetection(first);
     this.onPresenceDetection(second);
   }
+  
+  public Stream<Presence> toStream () {
+    final Spliterator<Presence> spliterator = Spliterators.spliteratorUnknownSize(
+      this, 
+      Spliterator.IMMUTABLE | Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT
+    );
+    
+    return StreamSupport.stream(spliterator, false);
+  }
 
+  public Stream<Presence> toStream (final boolean parallel) {
+    final Spliterator<Presence> spliterator = Spliterators.spliteratorUnknownSize(
+      this, 
+      Spliterator.IMMUTABLE | Spliterator.ORDERED | Spliterator.NONNULL | Spliterator.DISTINCT
+    );
+    
+    return StreamSupport.stream(spliterator, parallel);
+  }
 }
