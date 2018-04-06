@@ -6,7 +6,7 @@ import org.springframework.lang.NonNull;
 public interface CriteriaFilterASTVisitor<Entity, Value>
 {
   public void visit(
-    @NonNull final CriteriaFilterASTVisitorContext<Entity, Value> context, 
+    @NonNull final CriteriaFilterASTVisitorContext<Entity> context, 
     @NonNull final PredicateFilterNode predicate
   );
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.persistence.criteria.Predicate;
 
+import org.liara.api.criteria.CriteriaExpressionSelector;
 import org.liara.api.filter.ast.BetweenFilterNode;
 import org.liara.api.filter.ast.CommonFilterNodeType;
 import org.liara.api.filter.ast.CompositeFilterNode;
@@ -23,17 +24,24 @@ import org.liara.api.filter.visitor.VisitCommonFilterNode;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-public class CriteriaIntegerFilterASTVisitor<Entity> extends AnnotationBasedFilterASTVisitor implements CriteriaFilterASTVisitor<Entity, Integer>
+public class CriteriaComparableFilterASTVisitor<Entity, Value extends Comparable<? super Value>> extends AnnotationBasedFilterASTVisitor implements CriteriaFilterASTVisitor<Entity, Value>
 {
   @NonNull
   private final List<Predicate> _stack = new ArrayList<>();
   
   @Nullable
-  private CriteriaFilterASTVisitorContext<?, Integer> _context = null;
+  private CriteriaFilterASTVisitorContext<Entity> _context = null;
 
+  @NonNull
+  private final CriteriaExpressionSelector<Value> _field;
+  
+  public CriteriaComparableFilterASTVisitor (@NonNull final CriteriaExpressionSelector<Value> field) {
+    _field = field;
+  }
+  
   @Override
   public void visit (
-    @NonNull final CriteriaFilterASTVisitorContext<Entity, Integer> context, 
+    @NonNull final CriteriaFilterASTVisitorContext<Entity> context, 
     @NonNull final PredicateFilterNode predicate
   ) {
     _context = context;
@@ -63,58 +71,58 @@ public class CriteriaIntegerFilterASTVisitor<Entity> extends AnnotationBasedFilt
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.GREATHER_THAN)
-  public void visit (@NonNull final GreaterThanFilterNode<Integer> predicate) {
+  public void visit (@NonNull final GreaterThanFilterNode<Value> predicate) {
     _stack.add(
       _context.getCriteriaBuilder().greaterThan(
-        _context.getFiltered(),
+        _context.select(_field),
         predicate.getMinimum()
        )
     );
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.GREATHER_THAN_OR_EQUAL_TO)
-  public void visit (@NonNull final GreaterThanOrEqualToFilterNode<Integer> predicate) {
+  public void visit (@NonNull final GreaterThanOrEqualToFilterNode<Value> predicate) {
     _stack.add(
       _context.getCriteriaBuilder().greaterThanOrEqualTo(
-        _context.getFiltered(), 
+        _context.select(_field), 
         predicate.getMinimum()
       )
     );
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.LESS_THAN)
-  public void visit (@NonNull final LessThanFilterNode<Integer> predicate) {
+  public void visit (@NonNull final LessThanFilterNode<Value> predicate) {
     _stack.add(
       _context.getCriteriaBuilder().lessThan(
-        _context.getFiltered(), predicate.getMaximum()
+        _context.select(_field), predicate.getMaximum()
       )
     );
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.LESS_THAN_OR_EQUAL_TO)
-  public void visit (@NonNull final LessThanOrEqualToFilterNode<Integer> predicate) {
+  public void visit (@NonNull final LessThanOrEqualToFilterNode<Value> predicate) {
     _stack.add(
       _context.getCriteriaBuilder().lessThanOrEqualTo(
-        _context.getFiltered(), predicate.getMaximum()
+        _context.select(_field), predicate.getMaximum()
       )
     );
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.EQUAL_TO)
-  public void visit (@NonNull final EqualToFilterNode<Integer> predicate) {
+  public void visit (@NonNull final EqualToFilterNode<Value> predicate) {
     _stack.add(
       _context.getCriteriaBuilder().equal(
-        _context.getFiltered(), 
+        _context.select(_field), 
         predicate.getValue()
       )
     );
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.BETWEEN)
-  public void visit (@NonNull final BetweenFilterNode<Integer> predicate) {
+  public void visit (@NonNull final BetweenFilterNode<Value> predicate) {
     _stack.add(
       _context.getCriteriaBuilder().between(
-        _context.getFiltered(), 
+        _context.select(_field), 
         predicate.getMinimum(), 
         predicate.getMaximum()
       )

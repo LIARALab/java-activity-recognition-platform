@@ -23,88 +23,54 @@ package org.liara.api.data.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 
 import org.springframework.lang.NonNull;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "sensors")
-public class Sensor
+public class Sensor extends ApplicationEntity
 {
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(name = "identifier")
-  private Long           _identifier;
-
-  @Column(name = "created_at")
-  private LocalDateTime _creationDate;
-
-  @Column(name = "updated_at")
-  private LocalDateTime _lastUpdateDate;
-
-  @Column(name = "deleted_at")
-  private LocalDateTime _deletionDate;
-
-  @Column(name = "name")
+  @Column(name = "name", nullable = false, updatable = true, unique = false)
   private String        _name;
   
-  @Column(name = "type")
+  @Column(name = "type", nullable = false, updatable = true, unique = false)
   private String        _type;
 
-  @Column(name = "value_type")
+  @Column(name = "value_type", nullable = false, updatable = true, unique = false)
   private String        _valueType;
 
-  @Column(name = "value_unit")
+  @Column(name = "value_unit", nullable = true, updatable = true, unique = false)
   private String        _valueUnit;
 
-  @Column(name = "value_label")
+  @Column(name = "value_label", nullable = true, updatable = true, unique = false)
   private String        _valueLabel;
 
-  @Column(name = "ipv4_address")
+  @Column(name = "ipv4_address", nullable = true, updatable = true, unique = false)
   private String        _ipv4Address;
 
-  @Column(name = "ipv6_address")
+  @Column(name = "ipv6_address", nullable = true, updatable = true, unique = false)
   private String        _ipv6Address;
 
-  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-  @JoinColumn(name = "sensor_identifier")
+  @OneToMany(mappedBy="_sensor", cascade = CascadeType.ALL, orphanRemoval = false)
   private List<State>   _states;
 
   @ManyToMany()
   @JoinTable(
       name = "sensors_by_nodes",
-      joinColumns = @JoinColumn(name = "sensor_identifier"),
-      inverseJoinColumns = @JoinColumn(name = "node_identifier")
+      joinColumns = @JoinColumn(name = "sensor_identifier", nullable = false, updatable = true, unique = false),
+      inverseJoinColumns = @JoinColumn(name = "node_identifier", nullable = false, updatable = true, unique = false)
   )
   private List<Node>    _nodes;
-
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getCreationDate () {
-    return _creationDate;
-  }
-
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getDeletionDate () {
-    return _deletionDate;
-  }
-
-  public long getIdentifier () {
-    return _identifier;
-  }
 
   public String getIpv4Address () {
     return _ipv4Address;
@@ -112,11 +78,6 @@ public class Sensor
 
   public String getIpv6Address () {
     return _ipv6Address;
-  }
-
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getLastUpdateDate () {
-    return _lastUpdateDate;
   }
 
   public String getName () {
@@ -159,25 +120,5 @@ public class Sensor
 
   public void setName (@NonNull final String name) {
     _name = name;
-  }
-
-  @Override
-  public int hashCode () {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((_identifier == null) ? 0 : _identifier.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals (Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
-    Sensor other = (Sensor) obj;
-    if (_identifier == null) {
-      if (other._identifier != null) return false;
-    } else if (!_identifier.equals(other._identifier)) return false;
-    return true;
   }
 }

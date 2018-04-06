@@ -27,13 +27,13 @@ import javax.persistence.Table;
 import javax.persistence.Column;
 
 @Entity
-@Table(name = "`states<boolean>`")
+@Table(name = "states_boolean")
 @PrimaryKeyJoinColumn(name = "state_identifier")
 public class BooleanState extends State
 {
   private boolean value;
 
-  @Column(name = "value")
+  @Column(name = "value", nullable = false, unique = false, updatable = true)
   public boolean getValue () {
     return this.value;
   }

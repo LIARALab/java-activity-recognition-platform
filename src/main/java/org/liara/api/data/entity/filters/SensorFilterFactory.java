@@ -35,8 +35,8 @@ public final class SensorFilterFactory implements EntityFilterFactory<Sensor>
   @Override
   public APIRequestEntityCollectionFilterParser<Sensor> createFilterParser () {
     return new APIRequestEntityCollectionFilterParser<>(Arrays.asList(
-      APIRequestEntityFieldFilterParserFactory.integer("identifier", (builder, query, root) -> root.get("_identifier")),
-      APIRequestEntityFieldFilterParserFactory.datetime("creationDate", (builder, query, root) -> root.get("_creationDate"))
+      APIRequestEntityFieldFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
+      APIRequestEntityFieldFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate"))
     ));
   }
 

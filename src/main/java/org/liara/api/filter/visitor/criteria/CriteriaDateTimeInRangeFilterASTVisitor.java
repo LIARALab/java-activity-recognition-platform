@@ -28,7 +28,7 @@ import org.liara.api.filter.visitor.VisitCommonFilterNode;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-public class CriteriaDateTimeFilterASTVisitor<Entity> extends AnnotationBasedFilterASTVisitor implements CriteriaFilterASTVisitor<Entity, LocalDateTime>
+public class CriteriaDateTimeInRangeFilterASTVisitor<Entity> extends AnnotationBasedFilterASTVisitor implements CriteriaFilterASTVisitor<Entity, LocalDateTime>
 {
   @FunctionalInterface
   private interface PredicateFactory {
@@ -40,14 +40,22 @@ public class CriteriaDateTimeFilterASTVisitor<Entity> extends AnnotationBasedFil
   
   @Nullable
   private CriteriaFilterASTVisitorContext<Entity> _context = null;
-
-  @NonNull
-  private final CriteriaExpressionSelector<LocalDateTime> _field;
-
-  public CriteriaDateTimeFilterASTVisitor (@NonNull final CriteriaExpressionSelector<LocalDateTime> field) {
-    _field = field;
-  }
   
+  @NonNull
+  private final CriteriaExpressionSelector<LocalDateTime> _start;
+  
+  @NonNull
+  private final CriteriaExpressionSelector<LocalDateTime> _end;
+  
+  public CriteriaDateTimeInRangeFilterASTVisitor(
+    @NonNull final CriteriaExpressionSelector<LocalDateTime> start,
+    @NonNull final CriteriaExpressionSelector<LocalDateTime> end
+  )
+  {
+    _start = start;
+    _end = end;
+  }
+
   @Override
   public void visit (
     @NonNull final CriteriaFilterASTVisitorContext<Entity> context, 
@@ -81,39 +89,46 @@ public class CriteriaDateTimeFilterASTVisitor<Entity> extends AnnotationBasedFil
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.GREATHER_THAN)
   public void visit (@NonNull final GreaterThanFilterNode<PartialLocalDateTime> predicate) {
-    _stack.add(handleDate(predicate.getMinimum(), _context.getCriteriaBuilder()::greaterThan));
+    _stack.add(handleDate(_end, _context.getCriteriaBuilder()::greaterThan, predicate.getMinimum()));
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.GREATHER_THAN_OR_EQUAL_TO)
   public void visit (@NonNull final GreaterThanOrEqualToFilterNode<PartialLocalDateTime> predicate) {
-    _stack.add(handleDate(predicate.getMinimum(), _context.getCriteriaBuilder()::greaterThanOrEqualTo));
+    _stack.add(handleDate(_end, _context.getCriteriaBuilder()::greaterThanOrEqualTo, predicate.getMinimum()));
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.LESS_THAN)
   public void visit (@NonNull final LessThanFilterNode<PartialLocalDateTime> predicate) {
-    _stack.add(handleDate(predicate.getMaximum(), _context.getCriteriaBuilder()::lessThan));
+    _stack.add(handleDate(_start, _context.getCriteriaBuilder()::lessThan, predicate.getMaximum()));
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.LESS_THAN_OR_EQUAL_TO)
   public void visit (@NonNull final LessThanOrEqualToFilterNode<PartialLocalDateTime> predicate) {
-    _stack.add(handleDate(predicate.getMaximum(), _context.getCriteriaBuilder()::lessThanOrEqualTo));
+    _stack.add(handleDate(_start, _context.getCriteriaBuilder()::lessThanOrEqualTo, predicate.getMaximum()));
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.EQUAL_TO)
   public void visit (@NonNull final EqualToFilterNode<PartialLocalDateTime> predicate) {
-    _stack.add(handleDate(predicate.getValue(), _context.getCriteriaBuilder()::equal));
+    _stack.add(_context.getCriteriaBuilder().and(
+      handleDate(_end, _context.getCriteriaBuilder()::greaterThanOrEqualTo, predicate.getValue()),
+      handleDate(_start, _context.getCriteriaBuilder()::lessThanOrEqualTo, predicate.getValue())
+     ));
   }
   
-  private Predicate handleDate (@NonNull final PartialLocalDateTime date, @NonNull final PredicateFactory operator) {
+  private Predicate handleDate (
+    @NonNull final CriteriaExpressionSelector<LocalDateTime> dateField,
+    @NonNull final PredicateFactory operator,
+    @NonNull final PartialLocalDateTime date
+  ) {
     if (date.isCompleteLocalDateTime()) {
-      return operator.create(_context.select(_field), date.toLocalDateTime());
+      return operator.create(_context.select(dateField), date.toLocalDateTime());
     } else {
       final List<Predicate> predicates = new ArrayList<>();
       
       if (date.containsDatetime()) {
         predicates.add(
           operator.create(
-            date.mask(_context.select(_field), _context.getCriteriaBuilder()),
+            date.mask(_context.select(dateField), _context.getCriteriaBuilder()),
             date.toLocalDateTime()
           )
         );
@@ -124,7 +139,7 @@ public class CriteriaDateTimeFilterASTVisitor<Entity> extends AnnotationBasedFil
               .filter(date::isSupported)
               .map(
                 field -> operator.create(
-                   PartialLocalDateTime.select(_context.select(_field), _context.getCriteriaBuilder(), field), 
+                   PartialLocalDateTime.select(_context.select(dateField), _context.getCriteriaBuilder(), field), 
                    date.getLong(field)
                  )
                )
@@ -140,46 +155,12 @@ public class CriteriaDateTimeFilterASTVisitor<Entity> extends AnnotationBasedFil
     final PartialLocalDateTime minimum = predicate.getMinimum();
     final PartialLocalDateTime maximum = predicate.getMaximum();
     
-    if (minimum.isCompleteLocalDateTime()) {
-      _stack.add(
-        _context.getCriteriaBuilder().between(
-          _context.select(_field), 
-          minimum.toLocalDateTime(), 
-          maximum.toLocalDateTime()
-        )
-      );
-    } else {
-      final List<Predicate> predicates = new ArrayList<>();
-      
-      if (minimum.containsDatetime()) {
-        predicates.add(
-          _context.getCriteriaBuilder().between(
-            minimum.mask(_context.select(_field), _context.getCriteriaBuilder()),
-            minimum.toLocalDateTime(), 
-            maximum.toLocalDateTime()
-          )
-        );
-      }
-      
-      if (minimum.containsContext()) {
-        Arrays.stream(PartialLocalDateTime.CONTEXT_FIELDS)
-              .filter(minimum::isSupported)
-              .map(
-                field -> _context.getCriteriaBuilder().between(
-                   PartialLocalDateTime.select(_context.select(_field), _context.getCriteriaBuilder(), field), 
-                   minimum.getLong(field), 
-                   maximum.getLong(field)
-                 )
-               )
-              .forEach(predicates::add);
-      }
-      
-      _stack.add(
-        _context.getCriteriaBuilder().and(
-          predicates.toArray(new Predicate[predicates.size()])
-        )
-      ); 
-    }
+    _stack.add(
+      _context.getCriteriaBuilder().and(
+        handleDate(_end, _context.getCriteriaBuilder()::greaterThanOrEqualTo, minimum),
+        handleDate(_start, _context.getCriteriaBuilder()::lessThanOrEqualTo, maximum)
+      )
+    );
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.NOT)

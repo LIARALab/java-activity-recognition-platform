@@ -27,13 +27,13 @@ import javax.persistence.Table;
 import javax.persistence.Column;
 
 @Entity
-@Table(name = "`states<double>`")
+@Table(name = "states_double")
 @PrimaryKeyJoinColumn(name = "state_identifier")
 public class DoubleState extends State
 {
   private double value;
 
-  @Column(name = "value")
+  @Column(name = "value", updatable = true, nullable = false, unique = false)
   public double getValue () {
     return this.value;
   }

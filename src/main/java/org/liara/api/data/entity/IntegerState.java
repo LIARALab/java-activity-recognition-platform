@@ -27,13 +27,13 @@ import javax.persistence.Table;
 import javax.persistence.Column;
 
 @Entity
-@Table(name = "`states<int>`")
+@Table(name = "states_integer")
 @PrimaryKeyJoinColumn(name = "state_identifier")
 public class IntegerState extends State
 {
   private int value;
 
-  @Column(name = "value")
+  @Column(name = "value", nullable = false, updatable = true, unique = false)
   public int getValue () {
     return this.value;
   }

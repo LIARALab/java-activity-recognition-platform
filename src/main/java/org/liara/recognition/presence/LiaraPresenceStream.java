@@ -2,7 +2,7 @@ package org.liara.recognition.presence;
 
 import java.util.NoSuchElementException;
 
-import org.liara.api.data.entity.Presence;
+import org.liara.api.data.entity.PresenceState;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -15,7 +15,7 @@ public class LiaraPresenceStream implements PresenceStream
   private Event _lastEvent = null;
   
   @Nullable
-  private Presence _next = null;
+  private PresenceState _next = null;
   
   public LiaraPresenceStream (@NonNull final EventStream events) {
     _events = events;
@@ -28,11 +28,11 @@ public class LiaraPresenceStream implements PresenceStream
   }
 
   @Override
-  public Presence next () {
+  public PresenceState next () {
     update();
     if (_next == null) throw new NoSuchElementException();
     
-    final Presence result = _next;
+    final PresenceState result = _next;
     _next = null;
     return result;
   }
@@ -54,7 +54,12 @@ public class LiaraPresenceStream implements PresenceStream
     }
   }
 
-  private Presence toPresence (@NonNull final Event event) {
-    return new Presence(event.getStart(), event.getEnd(), event.getSensor().getNodes().get(0));
+  private PresenceState toPresence (@NonNull final Event event) {
+    final PresenceState result = new PresenceState();
+    result.setStart(event.getStart());
+    result.setEnd(event.getEnd());
+    result.setNode(event.getSensor().getNodes().get(0));
+    result.setDate(event.getEnd());
+    return result;
   }
 }

@@ -19,10 +19,7 @@ public class AnnotationBasedFilterASTVisitor implements FilterASTVisitor
   private void computeRouting () {
     final Class<? extends FilterASTVisitor> clazz = getClass();
 
-    System.out.println("REGISTERING -------------------------- START ");
-    System.out.println("FOR " + clazz);
     for (final Method method : clazz.getMethods()) {
-      System.out.println(method);
       final VisitCommonFilterNode route = method.getAnnotation(VisitCommonFilterNode.class);
       
       if (route != null) {
@@ -38,10 +35,7 @@ public class AnnotationBasedFilterASTVisitor implements FilterASTVisitor
           throw new Error("All registered visitor must accept a parameter that extends FilterAstNode");
         }
         
-        System.out.println("REGISTERING " + route.type() + " : " + method);
-        
         this._routing.put(route.type(), method);
-        System.out.println("REGISTERING -------------------------- END ");
       }
     }
   }

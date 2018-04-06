@@ -23,16 +23,11 @@ package org.liara.api.data.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Column;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-
-import org.hibernate.annotations.Immutable;
 
 import org.springframework.lang.NonNull;
 
@@ -44,82 +39,34 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "states")
 @Inheritance(strategy = InheritanceType.JOINED)
-@Immutable
-public class State
+public class State extends ApplicationEntity
 {
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(name = "identifier")
-  private Long  _identifier;
-  
-  @Column(name = "created_at")
-  private LocalDateTime _creationDate;
-
-  @Column(name = "updated_at")
-  private LocalDateTime _updateDate;
-
-  @Column(name = "deleted_at")
-  private LocalDateTime _deletionDate;
-
-  @Column(name = "date")
+  @Column(name = "date", nullable = false, updatable = true, unique = false)
   private LocalDateTime _date;
   
   @ManyToOne(optional = false)
-  @JoinColumn(name = "sensor_identifier")
+  @JoinColumn(name = "sensor_identifier", nullable = false, unique = false, updatable = true)
   private Sensor _sensor;
-
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getCreationDate () {
-    return this._creationDate;
-  }
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public LocalDateTime getDate () {
-    return this._date;
+    return _date;
   }
   
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getDeletionDate () {
-    return this._deletionDate;
-  }
-
-  public long getIdentifier () {
-    return this._identifier;
-  }
-
   @JsonIgnore
   public Sensor getSensor () {
-    return this._sensor;
+    return _sensor;
+  }
+  
+  public void setSensor (@NonNull final Sensor sensor) {
+    _sensor = sensor;
   }
 
   public long getSensorIdentifier () {
-    return this._sensor.getIdentifier();
-  }
-
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getUpdateDate () {
-    return this._updateDate;
+    return _sensor.getIdentifier();
   }
 
   public void setDate (@NonNull final LocalDateTime date) {
-    this._date = date;
-  }
-  
-  @Override
-  public int hashCode () {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + _identifier.intValue();
-    return result;
-  }
-
-  @Override
-  public boolean equals (Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
-    State other = (State) obj;
-    if (_identifier != other._identifier) return false;
-    return true;
+    _date = date;
   }
 }

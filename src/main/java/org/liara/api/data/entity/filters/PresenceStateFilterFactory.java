@@ -24,22 +24,26 @@ package org.liara.api.data.entity.filters;
 import java.util.Arrays;
 import java.util.List;
 
-import org.liara.api.data.entity.State;
+import org.liara.api.data.entity.PresenceState;
 import org.liara.api.request.parser.APIRequestEntityCollectionFilterParser;
 import org.liara.api.request.parser.APIRequestEntityFieldFilterParserFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 
-public final class StateFilterFactory implements EntityFilterFactory<State>
+public final class PresenceStateFilterFactory implements EntityFilterFactory<PresenceState>
 {
   @Override
-  public APIRequestEntityCollectionFilterParser<State> createFilterParser () {
+  public APIRequestEntityCollectionFilterParser<PresenceState> createFilterParser () {
     return new APIRequestEntityCollectionFilterParser<>(Arrays.asList(
       APIRequestEntityFieldFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
       APIRequestEntityFieldFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
-      APIRequestEntityFieldFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
       APIRequestEntityFieldFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
-      APIRequestEntityFieldFilterParserFactory.datetime("date", (root) -> root.get("_date"))   
+      APIRequestEntityFieldFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
+      APIRequestEntityFieldFilterParserFactory.datetime("start", (root) -> root.get("_start")),
+      APIRequestEntityFieldFilterParserFactory.datetime("end", (root) -> root.get("_end")),
+      APIRequestEntityFieldFilterParserFactory.datetime("emition", (root) -> root.get("_date")),
+      APIRequestEntityFieldFilterParserFactory.duration("duration", (root) -> root.get("_milliseconds")),
+      APIRequestEntityFieldFilterParserFactory.datetimeInRange("date", (root) -> root.get("_start"), (root) -> root.get("_end"))
     ));
   }
 
@@ -48,9 +52,13 @@ public final class StateFilterFactory implements EntityFilterFactory<State>
     return Arrays.asList(
       APIRequestFilterValidatorFactory.integer("identifier"),
       APIRequestFilterValidatorFactory.datetime("creationDate"),
-      APIRequestFilterValidatorFactory.datetime("deletionDate"),
       APIRequestFilterValidatorFactory.datetime("updateDate"),
-      APIRequestFilterValidatorFactory.datetime("date")
+      APIRequestFilterValidatorFactory.datetime("deletionDate"),
+      APIRequestFilterValidatorFactory.datetime("start"),
+      APIRequestFilterValidatorFactory.datetime("end"),
+      APIRequestFilterValidatorFactory.datetime("emition"),
+      APIRequestFilterValidatorFactory.duration("duration"),
+      APIRequestFilterValidatorFactory.datetimeInRange("date")
     );
   }
 }

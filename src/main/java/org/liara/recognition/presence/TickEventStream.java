@@ -37,6 +37,11 @@ public class TickEventStream implements EventStream
         _lastTick = next;
       }
     }
+    
+    if (_next == null && _ticks.hasNext() == false && _lastTick != null) {
+      _next = new Event(_lastTick.getSensor(), _lastTick.getDate());
+      _lastTick = null;
+    }
   }
 
   @Override

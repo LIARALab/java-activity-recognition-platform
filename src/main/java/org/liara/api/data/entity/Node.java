@@ -23,53 +23,31 @@ package org.liara.api.data.entity;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.annotation.Nullable;
+import javax.persistence.OneToMany;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 
 import org.springframework.lang.NonNull;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "nodes")
-public class Node
+public class Node extends ApplicationEntity
 {
-  @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(name = "identifier")
-  private Long          _identifier;
-
-  @Column(name = "created_at")
-  @NonNull
-  private LocalDateTime _creationDate;
-
-  @Column(name = "updated_at")
-  @NonNull
-  private LocalDateTime _updateDate;
-
-  @Column(name = "deleted_at")
-  @Nullable
-  private LocalDateTime _deletionDate;
-
-  @Column(name = "name")
+  @Column(name = "name", nullable = false, updatable = true, unique = false)
   @NonNull
   private String        _name;
 
-  @Column(name = "start")
+  @Column(name = "start", nullable = false, updatable = true, unique = true)
   private int           _start;
 
-  @Column(name = "end")
+  @Column(name = "end", nullable = false, updatable = true, unique = true)
   private int           _end;
 
   @ManyToMany(cascade = CascadeType.ALL)
@@ -79,32 +57,13 @@ public class Node
       inverseJoinColumns = @JoinColumn(name = "sensor_identifier")
   )
   private List<Sensor>  _sensors;
+  
+  @OneToMany(mappedBy="_node", cascade = CascadeType.ALL, orphanRemoval = false)
+  private List<PresenceState>  _presences;
 
-  public void delete () {
-    this._deletionDate = LocalDateTime.now();
-  }
-
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getCreationDate () {
-    return this._creationDate;
-  }
-
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getDeletionDate () {
-    return this._deletionDate;
-  }
-
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getUpdateDate () {
-    return this._updateDate;
-  }
 
   public int getEnd () {
     return this._end;
-  }
-
-  public long getIdentifier () {
-    return this._identifier;
   }
 
   public String getName () {
@@ -120,29 +79,7 @@ public class Node
     return this._start;
   }
 
-  public void restore () {
-    this._deletionDate = null;
-  }
-
   public void setName (@NonNull final String name) {
     this._name = name;
-  }
-
-  @Override
-  public int hashCode () {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + _identifier.intValue();
-    return result;
-  }
-
-  @Override
-  public boolean equals (Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
-    Node other = (Node) obj;
-    if (_identifier != other._identifier) return false;
-    return true;
   }
 }
