@@ -9,7 +9,7 @@ import org.liara.api.filter.visitor.criteria.CriteriaFilterASTVisitor;
 import org.liara.api.filter.visitor.criteria.CriteriaFilterASTVisitorContext;
 import org.springframework.lang.NonNull;
 
-public class EntityFieldFilter<Entity, Field>
+public class ASTBasedEntityFilter<Entity, Field> implements EntityFilter<Entity>
 {  
   @NonNull
   private final PredicateFilterNode _filter;
@@ -17,7 +17,7 @@ public class EntityFieldFilter<Entity, Field>
   @NonNull
   private final CriteriaFilterASTVisitor<Entity, Field> _visitor;
 
-  public EntityFieldFilter(
+  public ASTBasedEntityFilter(
     @NonNull final PredicateFilterNode filter,
     @NonNull final CriteriaFilterASTVisitor<Entity, Field> visitor
   )
@@ -33,15 +33,11 @@ public class EntityFieldFilter<Entity, Field>
     return new CriteriaFilterASTVisitorContext<Entity>(
         builder, 
         query, 
-        query.getCollectionRoot()
+        query.getEntity()
     );
   }
   
-  public void filter (@NonNull final CriteriaBuilder builder, @NonNull final EntityCollectionQuery<Entity, ?> query) {
-    query.where(visit(builder, query));
-  }
-  
-  public Predicate visit (@NonNull final CriteriaBuilder builder, @NonNull final EntityCollectionQuery<Entity, ?> query) {
+  public Predicate create (@NonNull final CriteriaBuilder builder, @NonNull final EntityCollectionQuery<Entity, ?> query) {
     return _visitor.visit(
       this.getContext(builder, query),
       _filter

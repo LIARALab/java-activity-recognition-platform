@@ -31,8 +31,9 @@ import javax.persistence.metamodel.EntityType;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.exception.EntityNotFoundException;
-import org.liara.api.collection.filtering.EntityCollectionFilter;
-import org.liara.api.collection.filtering.EntityFieldFilter;
+import org.liara.api.collection.filtering.CompoundEntityFilter;
+import org.liara.api.collection.filtering.ASTBasedEntityFilter;
+import org.liara.api.collection.filtering.EntityFilter;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.lang.NonNull;
@@ -59,7 +60,7 @@ public interface EntityCollection<Entity, Identifier>
     final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
     final EntityCollectionQuery<Entity, Long> query = this.createCollectionQuery(Long.class);
     
-    query.select(criteriaBuilder.count(query.getCollectionRoot()));
+    query.select(criteriaBuilder.count(query.getEntity()));
     return entityManager.createQuery(query).getSingleResult();
   }
 
@@ -97,7 +98,7 @@ public interface EntityCollection<Entity, Identifier>
     
     criteriaQuery.where(
       criteriaBuilder.equal(
-        criteriaQuery.getCollectionRoot().get(entityType.getId(identifier.getClass())),
+        criteriaQuery.getEntity().get(entityType.getId(identifier.getClass())),
         identifier
       )
     );
@@ -166,7 +167,7 @@ public interface EntityCollection<Entity, Identifier>
    */
   public default EntityCollectionQuery<Entity, Entity> createCollectionQuery () {
     final EntityCollectionQuery<Entity, Entity> query = this.createCollectionQuery(this.getEntityClass());
-    query.select(query.getCollectionRoot());
+    query.select(query.getEntity());
     return query;
   }
 
@@ -212,17 +213,6 @@ public interface EntityCollection<Entity, Identifier>
   public default EntityType<Entity> getEntityType() {
     return this.getEntityManager().getMetamodel().entity(this.getEntityClass());
   }
-  
-  /**
-   * Return a new filtered collection based on this one.
-   * 
-   * @param filter Filter to apply.
-   * @return A new filtered collection based on this one.
-   */
-  public default <Field> EntityCollection<Entity, Identifier> filter (@NonNull final EntityFieldFilter<Entity, Field> filter) {
-    final EntityCollectionFilter<Entity> collectionFilter = new EntityCollectionFilter<>(Arrays.asList(filter));
-    return new FilteredEntityCollection<>(getEntityClass(), collectionFilter, getEntityManager());
-  }
 
   /**
    * Return a new filtered collection based on this one.
@@ -230,7 +220,7 @@ public interface EntityCollection<Entity, Identifier>
    * @param filter Filter to apply.
    * @return A new filtered collection based on this one.
    */
-  public default EntityCollection<Entity, Identifier> filter (@NonNull final EntityCollectionFilter<Entity> filter) {
+  public default EntityCollection<Entity, Identifier> filter (@NonNull final EntityFilter<Entity> filter) {
     return new FilteredEntityCollection<>(getEntityClass(), filter, getEntityManager());
   }
   

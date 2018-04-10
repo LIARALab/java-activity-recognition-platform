@@ -21,61 +21,59 @@
  ******************************************************************************/
 package org.liara.api.collection;
 
-
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
 
+import org.hibernate.query.criteria.internal.compile.CompilableCriteria;
 import org.springframework.lang.NonNull;
 
-/**
- * An unfiltered, complete, raw collection of entity.
- *       
- * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
- *
- * @param <Entity> Type of entity in the collection.
- * @param <Identifier> Identifier type used for indexing the given entity type.
- */
-public class CompleteEntityCollection<Entity, Identifier> implements EntityCollection<Entity, Identifier>
+public class RootBasedEntityCollectionQuery<Entity, Result> implements EntityCollectionQuery<Entity, Result>
 {
-  /**
-   * Type of entity in this collection.
-   */
   @NonNull
-  private final Class<Entity>                   _entity;
-
-  /**
-   * Entity manager.
-   */
+  private final CriteriaQuery<Result> _query;
+  
   @NonNull
-  private final EntityManager                   _entityManager;
+  private final CompilableCriteria    _compilable;
+  
+  @NonNull
+  private final Root<Entity>          _root;
 
-  public CompleteEntityCollection(
-    @NonNull final Class<Entity> entity,
-    @NonNull final EntityManager entityManager
-  )
-  {
-    _entity = entity;
-    _entityManager = entityManager;
+  public RootBasedEntityCollectionQuery(
+    @NonNull final CriteriaQuery<Result> query, 
+    @NonNull final Class<Entity> entity
+  ) {
+    _query = query;
+    _compilable = (CompilableCriteria) query;
+    _root = query.from(entity);
   }
-
-  /**
-   * @see org.liara.api.collection.EntityCollection#createCriteriaQuery(java.lang.Class)
-   */
-  public <U> EntityCollectionQuery<Entity, U> createCollectionQuery (@NonNull final Class<U> clazz) {
-    final CriteriaBuilder criteriaBuilder = _entityManager.getCriteriaBuilder();
-    final CriteriaQuery<U> query = criteriaBuilder.createQuery(clazz);
-    
-    return new RootBasedEntityCollectionQuery<Entity, U>(query, _entity);
+  
+  public RootBasedEntityCollectionQuery(
+    @NonNull final CriteriaQuery<Result> query, 
+    @NonNull final Root<Entity> root
+  ) {
+    _query = query;
+    _compilable = (CompilableCriteria) query;
+    _root = root;
   }
 
   @Override
-  public EntityManager getEntityManager () {
-    return _entityManager;
+  public <Related> EntityCollectionQuery<Related, Result> joinCollection (String name) {
+    return new JoinBasedEntityCollectionQuery<>(this, _root.join(name));
   }
 
   @Override
-  public Class<Entity> getEntityClass () {
-    return _entity;
+  public Path<Entity> getEntity () {
+    return _root;
+  }
+
+  @Override
+  public CriteriaQuery<Result> getCriteriaQuery () {
+    return _query;
+  }
+
+  @Override
+  public CompilableCriteria getCompilableCriteria () {
+    return _compilable;
   }
 }

@@ -49,7 +49,7 @@ public class StateTickStream implements TickStream
       final BooleanState state = _states.next();
       
       if (state.getValue() == true) {
-        _next = new Tick(state.getSensor(), state.getDate());
+        _next = new Tick(state.getSensor(), state.getEmittionDate());
       }
     }
   }

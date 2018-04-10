@@ -59,7 +59,7 @@ public class LiaraPresenceStream implements PresenceStream
     result.setStart(event.getStart());
     result.setEnd(event.getEnd());
     result.setNode(event.getSensor().getNodes().get(0));
-    result.setDate(event.getEnd());
+    result.setEmittionDate(event.getEnd());
     return result;
   }
 }

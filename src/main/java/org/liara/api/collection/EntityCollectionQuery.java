@@ -41,141 +41,129 @@ import org.hibernate.query.criteria.internal.compile.CriteriaInterpretation;
 import org.hibernate.query.criteria.internal.compile.RenderingContext;
 import org.springframework.lang.NonNull;
 
-public class EntityCollectionQuery<Entity, Result> implements CriteriaQuery<Result>, CompilableCriteria
-{
-  @NonNull
-  private final CriteriaQuery<Result> _query;
+public interface EntityCollectionQuery<Entity, Result> extends CriteriaQuery<Result>, CompilableCriteria
+{  
+  public <Related> EntityCollectionQuery<Related, Result> joinCollection (@NonNull final String name);
   
-  @NonNull
-  private final CompilableCriteria    _compilable;
+  public Path<Entity> getEntity ();
+
+  public default EntityCollectionQuery<Entity, Result> select (Selection<? extends Result> selection) {
+    getCriteriaQuery().select(selection);
+    return this;
+  }
+
+  public default <X> Root<X> from (Class<X> entityClass) {
+    return getCriteriaQuery().from(entityClass);
+  }
+
+  public default <U> Subquery<U> subquery (Class<U> type) {
+    return getCriteriaQuery().subquery(type);
+  }
+
+  public default Predicate getRestriction () {
+    return getCriteriaQuery().getRestriction();
+  }
+
+  public default <X> Root<X> from (EntityType<X> entity) {
+    return getCriteriaQuery().from(entity);
+  }
+
+  public default EntityCollectionQuery<Entity, Result> multiselect (Selection<?>... selections) {
+    getCriteriaQuery().multiselect(selections);
+    return this;
+  }
+
+  public default Set<Root<?>> getRoots () {
+    return getCriteriaQuery().getRoots();
+  }
+
+  public default EntityCollectionQuery<Entity, Result> multiselect (List<Selection<?>> selectionList) {
+    getCriteriaQuery().multiselect(selectionList);
+    return this;
+  }
+
+  public default Selection<Result> getSelection () {
+    return getCriteriaQuery().getSelection();
+  }
+
+  public default List<Expression<?>> getGroupList () {
+    return getCriteriaQuery().getGroupList();
+  }
+
+  public default Predicate getGroupRestriction () {
+    return getCriteriaQuery().getGroupRestriction();
+  }
+
+  public default boolean isDistinct () {
+    return getCriteriaQuery().isDistinct();
+  }
+
+  public default Class<Result> getResultType () {
+    return getCriteriaQuery().getResultType();
+  }
+
+  public default EntityCollectionQuery<Entity, Result> where (Expression<Boolean> restriction) {
+    getCriteriaQuery().where(restriction);
+    return this;
+  }
+
+  public default EntityCollectionQuery<Entity, Result> where (Predicate... restrictions) {
+    getCriteriaQuery().where(restrictions);
+    return this;
+  }
+
+  public default EntityCollectionQuery<Entity, Result> groupBy (Expression<?>... grouping) {
+    getCriteriaQuery().groupBy(grouping);
+    return this;
+  }
+
+  public default EntityCollectionQuery<Entity, Result> groupBy (List<Expression<?>> grouping) {
+    getCriteriaQuery().groupBy(grouping);
+    return this;
+  }
+
+  public default EntityCollectionQuery<Entity, Result> having (Expression<Boolean> restriction) {
+    getCriteriaQuery().having(restriction);
+    return this;
+  }
+
+  public default EntityCollectionQuery<Entity, Result> having (Predicate... restrictions) {
+    getCriteriaQuery().having(restrictions);
+    return this;
+  }
+
+  public default EntityCollectionQuery<Entity, Result> orderBy (Order... o) {
+    getCriteriaQuery().orderBy(o);
+    return this;
+  }
+
+  public default EntityCollectionQuery<Entity, Result> orderBy (List<Order> o) {
+    getCriteriaQuery().orderBy(o);
+    return this;
+  }
+
+  public default EntityCollectionQuery<Entity, Result> distinct (boolean distinct) {
+    getCriteriaQuery().distinct(distinct);
+    return this;
+  }
+
+  public default List<Order> getOrderList () {
+    return getCriteriaQuery().getOrderList();
+  }
+
+  public default Set<ParameterExpression<?>> getParameters () {
+    return getCriteriaQuery().getParameters();
+  }
   
-  @NonNull
-  private final Root<Entity>          _root;
-
-  public EntityCollectionQuery(
-    @NonNull final CriteriaQuery<Result> query, 
-    @NonNull final Class<Entity> entity
-  ) {
-    this._query = query;
-    this._compilable = (CompilableCriteria) query;
-    this._root = query.from(entity);
-  }
+  public CriteriaQuery<Result> getCriteriaQuery ();
   
-  public Join<Object, Object> join (@NonNull final String name) {
-    return this._root.join("_" + name);
-  }
-  
-  public Path<Object> field (@NonNull final String name) {
-    return this._root.get("_" + name);
+  public CompilableCriteria getCompilableCriteria ();
+
+  public default void validate () {
+    getCompilableCriteria().validate();
   }
 
-  public Root<Entity> getCollectionRoot () {
-    return this._root;
-  }
-
-  public CriteriaQuery<Result> select (Selection<? extends Result> selection) {
-    return _query.select(selection);
-  }
-
-  public <X> Root<X> from (Class<X> entityClass) {
-    return _query.from(entityClass);
-  }
-
-  public <U> Subquery<U> subquery (Class<U> type) {
-    return _query.subquery(type);
-  }
-
-  public Predicate getRestriction () {
-    return _query.getRestriction();
-  }
-
-  public <X> Root<X> from (EntityType<X> entity) {
-    return _query.from(entity);
-  }
-
-  public CriteriaQuery<Result> multiselect (Selection<?>... selections) {
-    return _query.multiselect(selections);
-  }
-
-  public Set<Root<?>> getRoots () {
-    return _query.getRoots();
-  }
-
-  public CriteriaQuery<Result> multiselect (List<Selection<?>> selectionList) {
-    return _query.multiselect(selectionList);
-  }
-
-  public Selection<Result> getSelection () {
-    return _query.getSelection();
-  }
-
-  public List<Expression<?>> getGroupList () {
-    return _query.getGroupList();
-  }
-
-  public Predicate getGroupRestriction () {
-    return _query.getGroupRestriction();
-  }
-
-  public boolean isDistinct () {
-    return _query.isDistinct();
-  }
-
-  public Class<Result> getResultType () {
-    return _query.getResultType();
-  }
-
-  public CriteriaQuery<Result> where (Expression<Boolean> restriction) {
-    return _query.where(restriction);
-  }
-
-  public CriteriaQuery<Result> where (Predicate... restrictions) {
-    return _query.where(restrictions);
-  }
-
-  public CriteriaQuery<Result> groupBy (Expression<?>... grouping) {
-    return _query.groupBy(grouping);
-  }
-
-  public CriteriaQuery<Result> groupBy (List<Expression<?>> grouping) {
-    return _query.groupBy(grouping);
-  }
-
-  public CriteriaQuery<Result> having (Expression<Boolean> restriction) {
-    return _query.having(restriction);
-  }
-
-  public CriteriaQuery<Result> having (Predicate... restrictions) {
-    return _query.having(restrictions);
-  }
-
-  public CriteriaQuery<Result> orderBy (Order... o) {
-    return _query.orderBy(o);
-  }
-
-  public CriteriaQuery<Result> orderBy (List<Order> o) {
-    return _query.orderBy(o);
-  }
-
-  public CriteriaQuery<Result> distinct (boolean distinct) {
-    return _query.distinct(distinct);
-  }
-
-  public List<Order> getOrderList () {
-    return _query.getOrderList();
-  }
-
-  public Set<ParameterExpression<?>> getParameters () {
-    return _query.getParameters();
-  }
-
-  @Override
-  public void validate () {
-    this._compilable.validate();
-  }
-
-  @Override
-  public CriteriaInterpretation interpret (RenderingContext renderingContext) {
-    return this._compilable.interpret(renderingContext);
+  public default CriteriaInterpretation interpret (RenderingContext renderingContext) {
+    return getCompilableCriteria().interpret(renderingContext);
   }
 }

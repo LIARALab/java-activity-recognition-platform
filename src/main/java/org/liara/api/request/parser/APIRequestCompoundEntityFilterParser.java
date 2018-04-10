@@ -22,8 +22,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.liara.api.collection.filtering.EntityCollectionFilter;
-import org.liara.api.collection.filtering.EntityFieldFilter;
+import org.liara.api.collection.filtering.CompoundEntityFilter;
+import org.liara.api.collection.filtering.EntityFilter;
 import org.liara.api.request.APIRequest;
 import org.springframework.lang.NonNull;
 
@@ -33,39 +33,39 @@ import com.google.common.collect.Iterators;
 /**
  * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
  */
-public class APIRequestEntityCollectionFilterParser<Entity> implements APIRequestParser<EntityCollectionFilter<Entity>>
+public class APIRequestCompoundEntityFilterParser<Entity> implements APIRequestEntityFilterParser<Entity>
 {
   @NonNull
-  private final Set<APIRequestEntityFieldFilterParser<Entity, ?>> _parsers = new HashSet<>();
+  private final Set<APIRequestEntityFilterParser<Entity>> _parsers = new HashSet<>();
 
-  public APIRequestEntityCollectionFilterParser () {
+  public APIRequestCompoundEntityFilterParser () {
 
   }
   
-  public APIRequestEntityCollectionFilterParser (@NonNull final Iterable<APIRequestEntityFieldFilterParser<Entity, ?>> parsers) {
+  public APIRequestCompoundEntityFilterParser (@NonNull final Iterable<APIRequestEntityFilterParser<Entity>> parsers) {
     Iterables.addAll(_parsers, parsers);
   }
   
-  public APIRequestEntityCollectionFilterParser (@NonNull final Iterator<APIRequestEntityFieldFilterParser<Entity, ?>> parsers) {
+  public APIRequestCompoundEntityFilterParser (@NonNull final Iterator<APIRequestEntityFilterParser<Entity>> parsers) {
     Iterators.addAll(_parsers, parsers);
   }
   
-  public APIRequestEntityCollectionFilterParser (@NonNull final APIRequestEntityFieldFilterParser<Entity, ?>... parsers) {
+  public APIRequestCompoundEntityFilterParser (@NonNull final APIRequestEntityFilterParser<Entity>... parsers) {
     _parsers.addAll(Arrays.asList(parsers));
   }
 
   @Override
-  public EntityCollectionFilter<Entity> parse (@NonNull final APIRequest request) {
-    final List<EntityFieldFilter<Entity, ?>> filters = new ArrayList<>();
+  public CompoundEntityFilter<Entity> parse (@NonNull final APIRequest request) {
+    final List<EntityFilter<Entity>> filters = new ArrayList<>();
     
-    for (final APIRequestEntityFieldFilterParser<Entity, ?> parser : _parsers) {
-      final EntityFieldFilter<Entity, ?> filter = parser.parse(request);
+    for (final APIRequestEntityFilterParser<Entity> parser : _parsers) {
+      final EntityFilter<Entity> filter = parser.parse(request);
       
       if (filter != null) {
         filters.add(filter);
       }
     }
     
-    return new EntityCollectionFilter<Entity>(filters);
+    return new CompoundEntityFilter<Entity>(filters);
   }
 }

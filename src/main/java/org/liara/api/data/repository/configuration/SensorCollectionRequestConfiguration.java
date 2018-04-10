@@ -27,8 +27,10 @@ import java.util.List;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.sorting.Sorts;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.request.parser.APIRequestEntityCollectionFilterParser;
-import org.liara.api.request.parser.APIRequestEntityFieldFilterParserFactory;
+import org.liara.api.data.repository.SensorCollection;
+import org.liara.api.request.parser.APIRequestCompoundEntityFilterParser;
+import org.liara.api.request.parser.APIRequestEntityFilterParser;
+import org.liara.api.request.parser.APIRequestEntityFilterParserFactory;
 import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
@@ -36,12 +38,13 @@ import org.liara.api.request.validator.APIRequestValidator;
 public final class SensorCollectionRequestConfiguration implements CollectionRequestConfiguration<Sensor>
 {
   @Override
-  public APIRequestEntityCollectionFilterParser<Sensor> createFilterParser () {
-    return new APIRequestEntityCollectionFilterParser<>(Arrays.asList(
-      APIRequestEntityFieldFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
-      APIRequestEntityFieldFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
-      APIRequestEntityFieldFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
-      APIRequestEntityFieldFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate"))
+  public APIRequestEntityFilterParser<Sensor> createFilterParser () {
+    return new APIRequestCompoundEntityFilterParser<>(Arrays.asList(
+      APIRequestEntityFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
+      APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
+      APIRequestEntityFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
+      APIRequestEntityFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
+      APIRequestEntityFilterParserFactory.text("name", (root) -> root.get("_name"))
     ));
   }
 
@@ -52,7 +55,8 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       APIRequestFilterValidatorFactory.datetime("creationDate"),
       APIRequestFilterValidatorFactory.datetime("creationDate"),
       APIRequestFilterValidatorFactory.datetime("updateDate"),
-      APIRequestFilterValidatorFactory.datetime("deletionDate")
+      APIRequestFilterValidatorFactory.datetime("deletionDate"),
+      APIRequestFilterValidatorFactory.text("name")
     );
   }
 

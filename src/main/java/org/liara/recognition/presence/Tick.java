@@ -14,7 +14,7 @@ public final class Tick implements Comparable<Tick>
   
   public Tick (@NonNull final BooleanState state) {
     _sensor = state.getSensor();
-    _date = state.getDate();
+    _date = state.getEmittionDate();
   }
   
   public Tick (

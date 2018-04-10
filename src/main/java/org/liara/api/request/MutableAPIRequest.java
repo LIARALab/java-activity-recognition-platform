@@ -22,7 +22,7 @@
 package org.liara.api.request;
 
 import java.lang.Iterable;
-
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -290,5 +290,18 @@ public final class MutableAPIRequest implements APIRequest
   @Override
   public Iterator<APIRequestParameter> iterator () {
     return new APIRequestIterator(this);
+  }
+
+  @Override
+  public APIRequest subRequest (@NonNull final String prefix) {
+    final MutableAPIRequest result = new MutableAPIRequest();
+    
+    for (final APIRequestParameter parameter : this.getParameters()) {
+      if (parameter.getName().startsWith(prefix + ".")) {
+        result.addValues(parameter.getName().substring(prefix.length() + 1), parameter.getValues());
+      }
+    }
+    
+    return result;
   }
 }

@@ -27,7 +27,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.filtering.EntityCollectionFilter;
+import org.liara.api.collection.filtering.CompoundEntityFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Component;
@@ -75,7 +75,7 @@ public class EntityCollections
    */
   public <Entity> EntityCollection<Entity, Long> createCollection (
     @NonNull final Class<Entity> entity, 
-    @NonNull final EntityCollectionFilter<Entity> filter
+    @NonNull final CompoundEntityFilter<Entity> filter
   ) {
     return new FilteredEntityCollection<Entity, Long>(entity, filter, _entityManager);
   }
@@ -90,7 +90,7 @@ public class EntityCollections
   public <Entity> EntityCollectionQuery<Entity, Entity> createQuery (
     @NonNull final Class<Entity> entity
   ) {
-    return new EntityCollectionQuery<>(
+    return new RootBasedEntityCollectionQuery<>(
         _entityManager.getCriteriaBuilder().createQuery(entity), 
         entity
     );
@@ -107,7 +107,7 @@ public class EntityCollections
     @NonNull final Class<Entity> entity,
     @NonNull final Class<ReturnType> returnType
   ) {
-    return new EntityCollectionQuery<>(
+    return new RootBasedEntityCollectionQuery<>(
         _entityManager.getCriteriaBuilder().createQuery(returnType), 
         entity
     );

@@ -6,7 +6,7 @@ import java.util.Map;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Path;
 
 import org.liara.api.criteria.CriteriaExpressionSelector;
 import org.springframework.lang.NonNull;
@@ -20,7 +20,7 @@ public class CriteriaFilterASTVisitorContext<Entity>
   private final CriteriaQuery<?> _query;
   
   @NonNull
-  private final Root<Entity> _root;
+  private final Path<Entity> _root;
 
   @NonNull
   private final Map<CriteriaExpressionSelector<?>, Expression<?>> _selections = new HashMap<>();
@@ -28,10 +28,10 @@ public class CriteriaFilterASTVisitorContext<Entity>
   public CriteriaFilterASTVisitorContext(
     @NonNull final CriteriaBuilder builder,
     @NonNull final CriteriaQuery<?> query,
-    @NonNull final Root<Entity> root
+    @NonNull final Path<Entity> path
   ) {
     _query = query;
-    _root = root;
+    _root = path;
     _builder = builder;
   }
 
@@ -43,7 +43,7 @@ public class CriteriaFilterASTVisitorContext<Entity>
     return _builder;
   }
   
-  public Root<Entity> getRoot() {
+  public Path<Entity> getRoot() {
     return _root;
   }
   

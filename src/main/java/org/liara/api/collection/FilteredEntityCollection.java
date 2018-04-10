@@ -26,8 +26,9 @@ import java.util.Arrays;
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 
-import org.liara.api.collection.filtering.EntityCollectionFilter;
-import org.liara.api.collection.filtering.EntityFieldFilter;
+import org.liara.api.collection.filtering.CompoundEntityFilter;
+import org.liara.api.collection.filtering.ASTBasedEntityFilter;
+import org.liara.api.collection.filtering.EntityFilter;
 import org.springframework.lang.NonNull;
 
 /**
@@ -50,7 +51,7 @@ public class FilteredEntityCollection<Entity, Identifier> implements EntityColle
    * Filter to apply to the full collection in order to get results.
    */
   @NonNull
-  private final EntityCollectionFilter<Entity> _filter;
+  private final EntityFilter<Entity> _filter;
 
   /**
    * Entity manager.
@@ -60,7 +61,7 @@ public class FilteredEntityCollection<Entity, Identifier> implements EntityColle
 
   public FilteredEntityCollection(
     @NonNull final Class<Entity> entity,
-    @NonNull final EntityCollectionFilter<Entity> filter,
+    @NonNull final EntityFilter<Entity> filter,
     @NonNull final EntityManager entityManager
   )
   {
@@ -74,7 +75,7 @@ public class FilteredEntityCollection<Entity, Identifier> implements EntityColle
    */
   public <U> EntityCollectionQuery<Entity, U> createCollectionQuery (@NonNull final Class<U> clazz) {
     final CriteriaBuilder criteriaBuilder = _entityManager.getCriteriaBuilder();
-    final EntityCollectionQuery<Entity, U> result = new EntityCollectionQuery<>(
+    final EntityCollectionQuery<Entity, U> result = new RootBasedEntityCollectionQuery<>(
         criteriaBuilder.createQuery(clazz), _entity
     );
     _filter.filter(criteriaBuilder, result);
@@ -92,12 +93,7 @@ public class FilteredEntityCollection<Entity, Identifier> implements EntityColle
   }
 
   @Override
-  public <Field> EntityCollection<Entity, Identifier> filter (@NonNull final EntityFieldFilter<Entity, Field> filter) {
-    return new FilteredEntityCollection<>(getEntityClass(), _filter.add(filter), getEntityManager());
-  }
-
-  @Override
-  public EntityCollection<Entity, Identifier> filter (@NonNull final EntityCollectionFilter<Entity> filter) {
-    return new FilteredEntityCollection<>(getEntityClass(), _filter.merge(filter), getEntityManager());
+  public EntityCollection<Entity, Identifier> filter (@NonNull final EntityFilter<Entity> filter) {
+    return new FilteredEntityCollection<>(getEntityClass(), new CompoundEntityFilter<>(Arrays.asList(_filter, filter)), getEntityManager());
   }
 }

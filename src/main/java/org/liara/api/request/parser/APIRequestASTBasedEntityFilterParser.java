@@ -3,7 +3,8 @@ package org.liara.api.request.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.liara.api.collection.filtering.EntityFieldFilter;
+import org.liara.api.collection.filtering.ASTBasedEntityFilter;
+import org.liara.api.collection.filtering.EntityFilter;
 import org.liara.api.filter.ast.DisjunctionFilterNode;
 import org.liara.api.filter.ast.PredicateFilterNode;
 import org.liara.api.filter.parser.FilterParser;
@@ -11,7 +12,7 @@ import org.liara.api.filter.visitor.criteria.CriteriaFilterASTVisitor;
 import org.liara.api.request.APIRequest;
 import org.springframework.lang.NonNull;
 
-public class APIRequestEntityFieldFilterParser<Entity, Field> implements APIRequestParser<EntityFieldFilter<Entity, Field>>
+public class APIRequestASTBasedEntityFilterParser<Entity, Field> implements APIRequestEntityFilterParser<Entity>
 {
   @NonNull
   private final FilterParser _parser;
@@ -22,7 +23,7 @@ public class APIRequestEntityFieldFilterParser<Entity, Field> implements APIRequ
   @NonNull
   private final CriteriaFilterASTVisitor<Entity, Field> _visitor;
   
-  public APIRequestEntityFieldFilterParser(
+  public APIRequestASTBasedEntityFilterParser(
     @NonNull final String parameter, 
     @NonNull final FilterParser parser,
     @NonNull final CriteriaFilterASTVisitor<Entity, Field> visitor
@@ -33,7 +34,7 @@ public class APIRequestEntityFieldFilterParser<Entity, Field> implements APIRequ
   }
 
   @Override
-  public EntityFieldFilter<Entity, Field> parse (@NonNull final APIRequest request) {
+  public EntityFilter<Entity> parse (@NonNull final APIRequest request) {
     if (request.contains(_parameter)) {
       final List<PredicateFilterNode> predicates = new ArrayList<>();
       
@@ -41,7 +42,7 @@ public class APIRequestEntityFieldFilterParser<Entity, Field> implements APIRequ
         predicates.add(_parser.parse(value));
       }
       
-      return new EntityFieldFilter<>(new DisjunctionFilterNode(predicates), _visitor);
+      return new ASTBasedEntityFilter<>(new DisjunctionFilterNode(predicates), _visitor);
     } else {
       return null;
     }

@@ -9,7 +9,7 @@ import java.util.List;
 import org.liara.api.collection.Cursor;
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.EntityCollectionView;
-import org.liara.api.collection.filtering.EntityCollectionFilter;
+import org.liara.api.collection.filtering.EntityFilter;
 import org.liara.api.collection.sorting.Sorts;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.parser.APIRequestFreeCursorParser;
@@ -24,10 +24,8 @@ public interface CollectionRequestConfiguration<Entity>
 {
   @SuppressWarnings("unchecked")
   public static <Entity, Identifier> CollectionRequestConfiguration<Entity> getDefault (
-    @NonNull final EntityCollection<Entity, Identifier> collection
+    @NonNull final Class<?> clazz
   ) {
-    final Class<?> clazz = collection.getClass();
-    
     if (clazz.isAnnotationPresent(DefaultCollectionRequestConfiguration.class)) {
       final DefaultCollectionRequestConfiguration defaultCollection = clazz.getAnnotation(DefaultCollectionRequestConfiguration.class);
       
@@ -43,6 +41,12 @@ public interface CollectionRequestConfiguration<Entity>
     } else {
       return new EmptyCollectionRequestConfiguration<>();
     }
+  }
+  
+  public static <Entity, Identifier> CollectionRequestConfiguration<Entity> getDefault (
+    @NonNull final EntityCollection<Entity, Identifier> collection
+  ) {
+    return getDefault(collection.getClass());
   }
   
   public static void validate (
@@ -66,7 +70,7 @@ public interface CollectionRequestConfiguration<Entity>
   ) throws InvalidAPIRequestException {
     validate(request);
     
-    final EntityCollectionFilter<Entity> filter = parseFilter(request);
+    final EntityFilter<Entity> filter = parseFilter(request);
     final Cursor cursor = parseCursor(request);
     //final Sorts sorts = parseSorts(request);
     
@@ -79,13 +83,13 @@ public interface CollectionRequestConfiguration<Entity>
   ) throws InvalidAPIRequestException {
     validateFiltersAndSorts(request);
     
-    final EntityCollectionFilter<Entity> filter = parseFilter(request);
+    final EntityFilter<Entity> filter = parseFilter(request);
     //final Sorts sorts = parseSorts(request);
     
     return collection.filter(filter);
   }
   
-  public default EntityCollectionFilter<Entity> parseFilter (@NonNull final APIRequest request) {
+  public default EntityFilter<Entity> parseFilter (@NonNull final APIRequest request) {
     return createFilterParser().parse(request);
   }
   
@@ -117,7 +121,7 @@ public interface CollectionRequestConfiguration<Entity>
     CollectionRequestConfiguration.validate(validators, request);
   }
   
-  public APIRequestParser<EntityCollectionFilter<Entity>> createFilterParser ();
+  public APIRequestParser<EntityFilter<Entity>> createFilterParser ();
   
   public default APIRequestParser<Cursor> createCursorParser () {
     return new APIRequestFreeCursorParser();

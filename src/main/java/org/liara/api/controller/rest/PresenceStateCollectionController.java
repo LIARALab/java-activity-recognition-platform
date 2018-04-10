@@ -80,8 +80,8 @@ public class PresenceStateCollectionController extends BaseRestController
     final List<Sensor> sensors = _nodes.getAllSensors(sensor.getNodes(), "common/native/motion");
     
     final EntityCollectionQuery<BooleanState, BooleanState> stateQuery = _collections.createQuery(BooleanState.class);
-    stateQuery.where(stateQuery.join("sensor").in(sensors));
-    stateQuery.orderBy(_entityManager.getCriteriaBuilder().asc(stateQuery.field("date")));
+    stateQuery.where(stateQuery.joinCollection("_sensor").getEntity().in(sensors));
+    stateQuery.orderBy(_entityManager.getCriteriaBuilder().asc(stateQuery.getEntity().get("_date")));
 
     return new LiaraPresenceStream(new TickEventStream(new StateTickStream(_collections.fetch(stateQuery))));
   }

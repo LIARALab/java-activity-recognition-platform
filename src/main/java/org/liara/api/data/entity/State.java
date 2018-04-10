@@ -41,16 +41,16 @@ import java.time.LocalDateTime;
 @Inheritance(strategy = InheritanceType.JOINED)
 public class State extends ApplicationEntity
 {
-  @Column(name = "date", nullable = false, updatable = true, unique = false)
-  private LocalDateTime _date;
+  @Column(name = "emitted_at", nullable = false, updatable = true, unique = false)
+  private LocalDateTime _emittionDate;
   
   @ManyToOne(optional = false)
   @JoinColumn(name = "sensor_identifier", nullable = false, unique = false, updatable = true)
   private Sensor _sensor;
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getDate () {
-    return _date;
+  public LocalDateTime getEmittionDate () {
+    return _emittionDate;
   }
   
   @JsonIgnore
@@ -66,7 +66,7 @@ public class State extends ApplicationEntity
     return _sensor.getIdentifier();
   }
 
-  public void setDate (@NonNull final LocalDateTime date) {
-    _date = date;
+  public void setEmittionDate (@NonNull final LocalDateTime emittionDate) {
+    _emittionDate = emittionDate;
   }
 }

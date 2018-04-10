@@ -19,48 +19,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.filter.validator;
+package org.liara.api.collection;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.regex.Pattern;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Path;
 
-import org.liara.api.filter.parser.TextFilterParser;
+import org.hibernate.query.criteria.internal.compile.CompilableCriteria;
 import org.springframework.lang.NonNull;
 
-public class TextFilterValidator implements FilterValidator
+public class JoinBasedEntityCollectionQuery<Entity, Related, Result> implements EntityCollectionQuery<Related, Result>
 {
   @NonNull
-  public static final Pattern PREDICATE_PATTERN   = Pattern
-    .compile(TextFilterParser.PREDICATE_PATTERN.pattern().replaceAll("\\(\\?\\<[a-zA-Z]*?\\>", "("));
-
+  private final EntityCollectionQuery<Entity, Result> _query;
+  
   @NonNull
-  public static final Pattern FILTER_PATTERN      = Pattern.compile(
-    String.join("", "^", "(", PREDICATE_PATTERN.pattern(), ")", "((", PREDICATE_PATTERN.pattern(), "))*", "$")
-  );
+  private final Join<Entity, Related>          _root;
+  
+  public JoinBasedEntityCollectionQuery(
+    @NonNull final EntityCollectionQuery<Entity, Result> query, 
+    @NonNull final Join<Entity, Related> root
+  ) {
+    _query = query;
+    _root = root;
+  }
 
-  public List<String> validate (@NonNull final String value)
-  {
-    if (!FILTER_PATTERN.matcher(value).find()) {
-      return Arrays.asList(
-        String.join(
-          "\\r\\n",
-          "The given value does not match the text filter structure :",
-          "",
-          "text-filter: disjunction",
-          "",
-          "disjunction: conjunction(;conjunction)*",
-          "",
-          "conjunction: predicate*",
-          "",
-          "predicate: \\/([^\\/\\\\]|(\\\\.))+\\/ # regexp",
-          "         | \"([^\"\\\\]|(\\\\.))+\" # exact match",
-          "         | [^\\s\"\\/;]+ # contains"
-        )
-      );
-    } else {
-      return Collections.emptyList();
-    }
+  @Override
+  public <NextRelated> EntityCollectionQuery<NextRelated, Result> joinCollection (@NonNull final String name) {
+    return new JoinBasedEntityCollectionQuery<>(this, _root.join(name));
+  }
+
+  @Override
+  public Path<Related> getEntity () {
+    return _root;
+  }
+
+  @Override
+  public CriteriaQuery<Result> getCriteriaQuery () {
+    return _query.getCriteriaQuery();
+  }
+
+  @Override
+  public CompilableCriteria getCompilableCriteria () {
+    return _query.getCompilableCriteria();
   }
 }

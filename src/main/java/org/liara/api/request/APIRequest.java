@@ -86,6 +86,14 @@ public interface APIRequest extends Iterable<APIRequestParameter>
   }
   
   /**
+   * Return a subRequest with all parameters that share the same prefix.
+   * 
+   * @param prefix
+   * @return A subRequest with all parameters that share the same prefix.
+   */
+  public APIRequest subRequest (@NonNull final String prefix);
+  
+  /**
    * Check if a parameter is registered in this request.
    *
    * @param name The name of the parameter to find.

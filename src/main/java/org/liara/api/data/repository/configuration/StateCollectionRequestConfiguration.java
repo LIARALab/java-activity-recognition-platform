@@ -27,8 +27,10 @@ import java.util.List;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.sorting.Sorts;
 import org.liara.api.data.entity.State;
-import org.liara.api.request.parser.APIRequestEntityCollectionFilterParser;
-import org.liara.api.request.parser.APIRequestEntityFieldFilterParserFactory;
+import org.liara.api.data.repository.SensorCollection;
+import org.liara.api.request.parser.APIRequestCompoundEntityFilterParser;
+import org.liara.api.request.parser.APIRequestEntityFilterParser;
+import org.liara.api.request.parser.APIRequestEntityFilterParserFactory;
 import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
@@ -36,13 +38,14 @@ import org.liara.api.request.validator.APIRequestValidator;
 public final class StateCollectionRequestConfiguration implements CollectionRequestConfiguration<State>
 {
   @Override
-  public APIRequestEntityCollectionFilterParser<State> createFilterParser () {
-    return new APIRequestEntityCollectionFilterParser<>(Arrays.asList(
-      APIRequestEntityFieldFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
-      APIRequestEntityFieldFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
-      APIRequestEntityFieldFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestEntityFieldFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
-      APIRequestEntityFieldFilterParserFactory.datetime("date", (root) -> root.get("_date"))   
+  public APIRequestEntityFilterParser<State> createFilterParser () {
+    return new APIRequestCompoundEntityFilterParser<>(Arrays.asList(
+      APIRequestEntityFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
+      APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
+      APIRequestEntityFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
+      APIRequestEntityFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
+      APIRequestEntityFilterParserFactory.datetime("emittionDate", (root) -> root.get("_emittionDate")),
+      APIRequestEntityFilterParserFactory.join("sensor", "_sensor", CollectionRequestConfiguration.getDefault(SensorCollection.class))   
     ));
   }
 
@@ -53,7 +56,9 @@ public final class StateCollectionRequestConfiguration implements CollectionRequ
       APIRequestFilterValidatorFactory.datetime("creationDate"),
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
       APIRequestFilterValidatorFactory.datetime("updateDate"),
-      APIRequestFilterValidatorFactory.datetime("date")
+      APIRequestFilterValidatorFactory.datetime("date"),
+      APIRequestFilterValidatorFactory.datetime("emittionDate"),
+      APIRequestFilterValidatorFactory.join("sensor", CollectionRequestConfiguration.getDefault(SensorCollection.class))
     );
   }
 

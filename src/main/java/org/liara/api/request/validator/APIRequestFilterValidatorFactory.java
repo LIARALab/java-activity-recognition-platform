@@ -1,5 +1,6 @@
 package org.liara.api.request.validator;
 
+import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.filter.validator.DateTimeFilterValidator;
 import org.liara.api.filter.validator.DurationFilterValidator;
 import org.liara.api.filter.validator.IntegerFilterValidator;
@@ -26,5 +27,15 @@ public final class APIRequestFilterValidatorFactory
   
   public static APIRequestFilterValidator text (@NonNull final String parameter) {
     return new APIRequestFilterValidator(parameter, new TextFilterValidator());
+  }
+  
+  public static APIRequestValidator join (
+    @NonNull final String parameter, 
+    @NonNull final CollectionRequestConfiguration<?> configuration
+  ) {
+    return new APISubRequestValidator(
+      parameter, 
+      new CompoundAPIRequestValidator(configuration.createFilterValidators())
+    );
   }
 }

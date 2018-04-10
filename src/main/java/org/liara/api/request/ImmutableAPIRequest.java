@@ -24,6 +24,7 @@
  */
 package org.liara.api.request;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -140,6 +141,19 @@ public class ImmutableAPIRequest implements APIRequest
   @Override
   public Set<? extends APIRequestParameter> getParameters () {
     return this._parameters.values();
+  }
+
+  @Override
+  public APIRequest subRequest (@NonNull final String prefix) {
+    final Map<String, String[]> result = new HashMap<>();
+    
+    for (final APIRequestParameter parameter : this.getParameters()) {
+      if (parameter.getName().startsWith(prefix + ".")) {
+        result.put(parameter.getName().substring(prefix.length() + 1), parameter.getValues());
+      }
+    }
+    
+    return new ImmutableAPIRequest(result);
   }
 
 }
