@@ -14,7 +14,8 @@ public enum CommonFilterNodeType implements FilterNodeType
   BETWEEN("between"),
   EQUAL_TO("equal to"),
   IN("in"),
-  CONTAINS("contains"),
+  LIKE("like"),
+  REGEXP("regexp"),
   
   NOT("not"),
   

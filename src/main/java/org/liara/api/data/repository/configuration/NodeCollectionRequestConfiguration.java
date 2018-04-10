@@ -23,7 +23,8 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestEntityFieldFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
       APIRequestEntityFieldFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
       APIRequestEntityFieldFilterParserFactory.integer("start", (root) -> root.get("_start")),
-      APIRequestEntityFieldFilterParserFactory.integer("end", (root) -> root.get("_end"))
+      APIRequestEntityFieldFilterParserFactory.integer("end", (root) -> root.get("_end")),
+      APIRequestEntityFieldFilterParserFactory.text("name", (root) -> root.get("_name"))
     ));
   }
 
@@ -40,7 +41,8 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestFilterValidatorFactory.datetime("updateDate"),
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
       APIRequestFilterValidatorFactory.integer("start"),
-      APIRequestFilterValidatorFactory.integer("end")
+      APIRequestFilterValidatorFactory.integer("end"),
+      APIRequestFilterValidatorFactory.text("name")
     );
   }
 }

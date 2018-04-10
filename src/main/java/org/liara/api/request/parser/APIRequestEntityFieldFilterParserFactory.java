@@ -7,8 +7,10 @@ import org.liara.api.criteria.CriteriaRootExpressionSelector;
 import org.liara.api.filter.parser.DateTimeFilterParser;
 import org.liara.api.filter.parser.DurationFilterParser;
 import org.liara.api.filter.parser.IntegerFilterParser;
+import org.liara.api.filter.parser.TextFilterParser;
 import org.liara.api.filter.visitor.criteria.CriteriaDateTimeFilterASTVisitor;
 import org.liara.api.filter.visitor.criteria.CriteriaDateTimeInRangeFilterASTVisitor;
+import org.liara.api.filter.visitor.criteria.CriteriaTextFilterASTVisitor;
 import org.liara.api.filter.visitor.criteria.CriteriaComparableFilterASTVisitor;
 import org.springframework.lang.NonNull;
 
@@ -89,6 +91,24 @@ public final class APIRequestEntityFieldFilterParserFactory
         parameter,
         new DurationFilterParser(), 
         new CriteriaComparableFilterASTVisitor<Entity, Long>(selector)
+    );
+  }
+  
+  public static <Entity> APIRequestEntityFieldFilterParser<Entity, String> text (
+    @NonNull final String parameter, 
+    @NonNull final CriteriaRootExpressionSelector<String> selector
+  ) {
+    return APIRequestEntityFieldFilterParserFactory.text(parameter, (CriteriaExpressionSelector<String>) selector);
+  }
+  
+  public static <Entity> APIRequestEntityFieldFilterParser<Entity, String> text (
+    @NonNull final String parameter, 
+    @NonNull final CriteriaExpressionSelector<String> selector
+  ) {
+    return new APIRequestEntityFieldFilterParser<Entity, String>(
+        parameter,
+        new TextFilterParser(), 
+        new CriteriaTextFilterASTVisitor<Entity>(selector)
     );
   }
 }

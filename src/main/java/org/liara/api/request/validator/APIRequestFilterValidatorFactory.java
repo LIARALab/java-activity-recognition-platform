@@ -3,6 +3,7 @@ package org.liara.api.request.validator;
 import org.liara.api.filter.validator.DateTimeFilterValidator;
 import org.liara.api.filter.validator.DurationFilterValidator;
 import org.liara.api.filter.validator.IntegerFilterValidator;
+import org.liara.api.filter.validator.TextFilterValidator;
 import org.springframework.lang.NonNull;
 
 public final class APIRequestFilterValidatorFactory
@@ -21,5 +22,9 @@ public final class APIRequestFilterValidatorFactory
   
   public static APIRequestFilterValidator duration (@NonNull final String parameter) {
     return new APIRequestFilterValidator(parameter, new DurationFilterValidator());
+  }
+  
+  public static APIRequestFilterValidator text (@NonNull final String parameter) {
+    return new APIRequestFilterValidator(parameter, new TextFilterValidator());
   }
 }
