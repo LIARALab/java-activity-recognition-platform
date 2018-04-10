@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
 
 import org.liara.api.collection.EntityCollectionQuery;
 import org.springframework.lang.NonNull;
@@ -44,31 +45,34 @@ public class EntityCollectionFilter<Entity> implements Iterable<EntityFieldFilte
     @NonNull final CriteriaBuilder builder,
     @NonNull final EntityCollectionQuery<Entity, ?> query
   ) {
-    _filters.stream().forEach(x -> x.filter(builder, query));
+    query.where(visit(builder, query));
+  }
+  
+  public Predicate visit (
+    @NonNull final CriteriaBuilder builder,
+    @NonNull final EntityCollectionQuery<Entity, ?> query
+  ) {
+    
+    return builder.and(
+      _filters.stream().map(x -> x.visit(builder, query))
+                       .toArray(size -> new Predicate[size])
+    );
   }
 
-  public boolean add (EntityFieldFilter<Entity, ?> e) {
-    return _filters.add(e);
+  public <Field> EntityCollectionFilter<Entity> add (@NonNull final EntityFieldFilter<Entity, Field> filter) {
+    return new EntityCollectionFilter<>(Iterators.concat(_filters.iterator(), Iterators.singletonIterator(filter)));
+  }
+  
+  public <Field> EntityCollectionFilter<Entity> merge (@NonNull final EntityCollectionFilter<Entity> filter) {
+    return new EntityCollectionFilter<>(Iterators.concat(_filters.iterator(), filter.iterator()));
   }
 
-  public boolean addAll (Collection<? extends EntityFieldFilter<Entity, ?>> c) {
-    return _filters.addAll(c);
+  public EntityCollectionFilter<Entity> clear () {
+    return new EntityCollectionFilter<>();
   }
 
-  public void clear () {
-    _filters.clear();
-  }
-
-  public boolean contains (Object o) {
-    return _filters.contains(o);
-  }
-
-  public boolean remove (Object o) {
-    return _filters.remove(o);
-  }
-
-  public boolean removeAll (Collection<?> c) {
-    return _filters.removeAll(c);
+  public boolean contains (@NonNull final EntityFieldFilter<Entity, ?> filter) {
+    return _filters.contains(filter);
   }
 
   public int size () {

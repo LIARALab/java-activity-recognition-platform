@@ -21,10 +21,13 @@
  ******************************************************************************/
 package org.liara.api.collection;
 
+import java.util.Arrays;
+
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.liara.api.collection.filtering.EntityCollectionFilter;
+import org.liara.api.collection.filtering.EntityFieldFilter;
 import org.springframework.lang.NonNull;
 
 /**
@@ -86,5 +89,15 @@ public class FilteredEntityCollection<Entity, Identifier> implements EntityColle
   @Override
   public Class<Entity> getEntityClass () {
     return _entity;
+  }
+
+  @Override
+  public <Field> EntityCollection<Entity, Identifier> filter (@NonNull final EntityFieldFilter<Entity, Field> filter) {
+    return new FilteredEntityCollection<>(getEntityClass(), _filter.add(filter), getEntityManager());
+  }
+
+  @Override
+  public EntityCollection<Entity, Identifier> filter (@NonNull final EntityCollectionFilter<Entity> filter) {
+    return new FilteredEntityCollection<>(getEntityClass(), _filter.merge(filter), getEntityManager());
   }
 }

@@ -55,8 +55,8 @@ public class CompleteEntityCollection<Entity, Identifier> implements EntityColle
     @NonNull final EntityManager entityManager
   )
   {
-    this._entity = entity;
-    this._entityManager = entityManager;
+    _entity = entity;
+    _entityManager = entityManager;
   }
 
   /**

@@ -19,32 +19,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.data.entity.filters;
+package org.liara.api.data.repository.configuration;
 
 import java.util.Arrays;
 import java.util.List;
 
+import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.collection.sorting.Sorts;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.request.parser.APIRequestEntityCollectionFilterParser;
 import org.liara.api.request.parser.APIRequestEntityFieldFilterParserFactory;
+import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 
-public final class SensorFilterFactory implements EntityFilterFactory<Sensor>
+public final class SensorCollectionRequestConfiguration implements CollectionRequestConfiguration<Sensor>
 {
   @Override
   public APIRequestEntityCollectionFilterParser<Sensor> createFilterParser () {
     return new APIRequestEntityCollectionFilterParser<>(Arrays.asList(
       APIRequestEntityFieldFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
-      APIRequestEntityFieldFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate"))
+      APIRequestEntityFieldFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
+      APIRequestEntityFieldFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
+      APIRequestEntityFieldFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate"))
     ));
   }
 
   @Override
-  public List<APIRequestValidator> createValidators () {
+  public List<APIRequestValidator> createFilterValidators () {
     return Arrays.asList(
       APIRequestFilterValidatorFactory.integer("identifier"),
-      APIRequestFilterValidatorFactory.datetime("creationDate")
+      APIRequestFilterValidatorFactory.datetime("creationDate"),
+      APIRequestFilterValidatorFactory.datetime("creationDate"),
+      APIRequestFilterValidatorFactory.datetime("updateDate"),
+      APIRequestFilterValidatorFactory.datetime("deletionDate")
     );
+  }
+
+  @Override
+  public APIRequestParser<Sorts> createSortsParser () {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

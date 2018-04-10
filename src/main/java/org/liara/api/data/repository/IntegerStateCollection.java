@@ -21,11 +21,19 @@
  ******************************************************************************/
 package org.liara.api.data.repository;
 
-import java.lang.Integer;
+import javax.persistence.EntityManager;
 
+import org.liara.api.collection.CompleteEntityCollection;
 import org.liara.api.data.entity.IntegerState;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
-public interface IntegerStateRepository extends CrudRepository<IntegerState, Integer>
+@Component
+public class IntegerStateCollection extends CompleteEntityCollection<IntegerState, Long>
 {
+  @Autowired
+  public IntegerStateCollection(@NonNull final EntityManager entityManager) {
+    super(IntegerState.class, entityManager);
+  }
 }

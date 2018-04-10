@@ -19,15 +19,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.data.entity.filters;
+package org.liara.api.data.repository;
 
-import java.util.List;
+import javax.persistence.EntityManager;
 
-import org.liara.api.request.parser.APIRequestEntityCollectionFilterParser;
-import org.liara.api.request.validator.APIRequestValidator;
+import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.data.entity.BooleanState;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
-public interface EntityFilterFactory<Entity>
+@Component
+public class BooleanStateCollection extends CompleteEntityCollection<BooleanState, Long>
 {
-  public APIRequestEntityCollectionFilterParser<Entity> createFilterParser ();
-  public List<APIRequestValidator> createValidators ();
+  @Autowired
+  public BooleanStateCollection(@NonNull final EntityManager entityManager) {
+    super(BooleanState.class, entityManager);
+  }
 }

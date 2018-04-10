@@ -36,9 +36,9 @@ import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.entity.BooleanState;
 import org.liara.api.data.entity.PresenceState;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.filters.PresenceStateFilterFactory;
-import org.liara.api.data.repository.NodeRepository;
-import org.liara.api.data.repository.PresenceStateRepository;
+import org.liara.api.data.repository.NodeCollection;
+import org.liara.api.data.repository.PresenceStateCollection;
+import org.liara.api.data.repository.configuration.PresenceStateCollectionRequestConfiguration;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.liara.recognition.presence.TickEventStream;
 import org.liara.recognition.presence.LiaraPresenceStream;
@@ -71,10 +71,10 @@ public class PresenceStateCollectionController extends BaseRestController
   private EntityCollections _collections;
   
   @Autowired
-  private NodeRepository _nodes;
+  private NodeCollection _nodes;
   
   @Autowired
-  private PresenceStateRepository _presences;
+  private PresenceStateCollection _collection;
   
   private Iterator<PresenceState> presences (@NonNull final Sensor sensor) throws EntityNotFoundException {
     final List<Sensor> sensors = _nodes.getAllSensors(sensor.getNodes(), "common/native/motion");
@@ -112,7 +112,7 @@ public class PresenceStateCollectionController extends BaseRestController
   @GetMapping("/states<presence>")
   public ResponseEntity<List<PresenceState>> index (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
-    return indexCollection(PresenceState.class, new PresenceStateFilterFactory(), request);
+    return indexCollection(_collection, request);
   }
   
   @GetMapping("/states<presence>/{identifier}")
@@ -121,81 +121,13 @@ public class PresenceStateCollectionController extends BaseRestController
     @PathVariable final long identifier
   ) throws EntityNotFoundException
   {
-    return _presences.findByIdOrFail(identifier);
+    return _collection.findByIdOrFail(identifier);
   }
   
 
   @GetMapping("/states<presence>/count")
   public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
-    return countCollection(PresenceState.class, new PresenceStateFilterFactory(), request);
-  }
-  
-  @GetMapping("/states<presence>/sum")
-  public Map<String, Duration> sum (
-    @NonNull final HttpServletRequest request, 
-    @PathVariable final long identifier
-  ) throws EntityNotFoundException, InvalidAPIRequestException
-  {
-    /*final APIRequest apiRequest = APIRequest.from(request);
-    this.assertIsValidRequest(apiRequest, new APIRequestFreeCursorValidator());
-    
-    final Iterator<PresenceState> presences = CursorBasedIterator.apply(
-      (new APIRequestFreeCursorParser()).parse(apiRequest), 
-      this.presences(identifier)
-    );
-    
-    final Map<String, Duration> result = new HashMap<>();
-    
-    while (presences.hasNext()) {
-      final PresenceState next = presences.next();
-      if (result.containsKey(next.getRoomName())) {
-        result.put(next.getRoomName(), result.get(next.getRoomName()).plus(next.getDuration()));
-      } else {
-        result.put(next.getRoomName(), next.getDuration());
-      }
-    }
-    
-    return result;*/
-    return null;
-  }
-  
-  @GetMapping("/states<presences>/avg")
-  public Map<String, Duration> avg (
-    @NonNull final HttpServletRequest request, 
-    @PathVariable final long identifier
-  ) throws EntityNotFoundException, InvalidAPIRequestException
-  {
-    /*final APIRequest apiRequest = APIRequest.from(request);
-    this.assertIsValidRequest(apiRequest, new APIRequestFreeCursorValidator());
-    
-    final Iterator<PresenceState> presences = CursorBasedIterator.apply(
-      (new APIRequestFreeCursorParser()).parse(apiRequest), 
-      this.presences(identifier)
-    );
-    
-    final Map<String, Duration> sums = new HashMap<>();
-    final Map<String, Long> counts = new HashMap<>();
-    
-    while (presences.hasNext()) {
-      final PresenceState next = presences.next();
-      if (sums.containsKey(next.getRoomName())) {
-        sums.put(next.getRoomName(), sums.get(next.getRoomName()).plus(next.getDuration()));
-        counts.put(next.getRoomName(), counts.get(next.getRoomName()) + 1);
-      } else {
-        sums.put(next.getRoomName(), next.getDuration());
-        counts.put(next.getRoomName(), 1L);
-      }
-    }
-    
-    final Map<String, Duration> result = new HashMap<>();
-    
-    for (final String key : sums.keySet()) {
-      result.put(key, sums.get(key).dividedBy(counts.get(key)));
-    }
-    
-    return result;*/
-    
-    return null;
+    return countCollection(_collection, request);
   }
 }

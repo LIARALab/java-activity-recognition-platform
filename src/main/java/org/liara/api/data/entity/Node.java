@@ -30,6 +30,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 
+import org.hibernate.annotations.Formula;
 import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -60,26 +61,32 @@ public class Node extends ApplicationEntity
   
   @OneToMany(mappedBy="_node", cascade = CascadeType.ALL, orphanRemoval = false)
   private List<PresenceState>  _presences;
-
-
-  public int getEnd () {
-    return this._end;
+  
+  @Formula("(SELECT (COUNT(*) - 1) FROM nodes AS parent WHERE start BETWEEN parent.start AND parent.end)")
+  private int _depth;
+  
+  public String getName () {
+    return _name;
+  }
+  
+  public void setName (@NonNull final String name) {
+    _name = name;
+  }
+  
+  public int getStart () {
+    return _start;
   }
 
-  public String getName () {
-    return this._name;
+  public int getEnd () {
+    return _end;
+  }
+  
+  public int getDepth () {
+    return _depth;
   }
 
   @JsonIgnore
   public List<Sensor> getSensors () {
-    return this._sensors;
-  }
-
-  public int getStart () {
-    return this._start;
-  }
-
-  public void setName (@NonNull final String name) {
-    this._name = name;
+    return _sensors;
   }
 }

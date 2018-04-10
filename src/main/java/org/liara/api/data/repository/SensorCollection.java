@@ -21,11 +21,25 @@
  ******************************************************************************/
 package org.liara.api.data.repository;
 
-import java.lang.Integer;
+import javax.persistence.EntityManager;
 
-import org.liara.api.data.entity.State;
-import org.springframework.data.repository.CrudRepository;
+import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.repository.configuration.SensorCollectionRequestConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
-public interface StateRepository extends CrudRepository<State, Integer>
-{
+
+@Component
+@DefaultCollectionRequestConfiguration(SensorCollectionRequestConfiguration.class)
+public class SensorCollection extends CompleteEntityCollection<Sensor, Long>
+{ 
+  @Autowired
+  public SensorCollection (
+    @NonNull final EntityManager entityManager
+  ) {
+    super(Sensor.class, entityManager);
+  }
 }

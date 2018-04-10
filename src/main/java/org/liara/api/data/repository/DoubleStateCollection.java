@@ -23,9 +23,19 @@ package org.liara.api.data.repository;
 
 import java.lang.Integer;
 
-import org.liara.api.data.entity.DoubleState;
-import org.springframework.data.repository.CrudRepository;
+import javax.persistence.EntityManager;
 
-public interface DoubleStateRepository extends CrudRepository<DoubleState, Integer>
+import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.data.entity.DoubleState;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+
+@Component
+public class DoubleStateCollection extends CompleteEntityCollection<DoubleState, Long>
 {
+  @Autowired
+  public DoubleStateCollection(@NonNull final EntityManager entityManager) {
+    super(DoubleState.class, entityManager);
+  }
 }

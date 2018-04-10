@@ -21,11 +21,24 @@
  ******************************************************************************/
 package org.liara.api.data.repository;
 
-import java.lang.Integer;
+import javax.persistence.EntityManager;
 
-import org.liara.api.data.entity.BooleanState;
-import org.springframework.data.repository.CrudRepository;
+import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.data.entity.PresenceState;
+import org.liara.api.data.repository.configuration.PresenceStateCollectionRequestConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
-public interface BooleanStateRepository extends CrudRepository<BooleanState, Integer>
+@Component
+@DefaultCollectionRequestConfiguration(PresenceStateCollectionRequestConfiguration.class)
+public class PresenceStateCollection extends CompleteEntityCollection<PresenceState, Long>
 {
+  @Autowired
+  public PresenceStateCollection (
+    @NonNull final EntityManager entityManager
+  ) {
+    super(PresenceState.class, entityManager);
+  }
 }

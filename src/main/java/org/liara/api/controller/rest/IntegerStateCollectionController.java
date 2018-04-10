@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.liara.api.collection.EntityCollections;
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.entity.IntegerState;
+import org.liara.api.data.repository.IntegerStateCollection;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -55,11 +56,11 @@ public final class IntegerStateCollectionController extends BaseRestController
 {
   @Autowired
   @NonNull
-  private EntityCollections _collections;
+  private IntegerStateCollection _collection;
 
   @GetMapping("/states<int>/count")
-  public long count (@NonNull final HttpServletRequest request) {
-    return _collections.createCollection(IntegerState.class).getSize();
+  public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+    return countCollection(_collection, request);
   }
 
   @GetMapping("/states<int>")
@@ -97,11 +98,11 @@ public final class IntegerStateCollectionController extends BaseRestController
   public ResponseEntity<List<IntegerState>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
-    return this.indexCollection(IntegerState.class, request);
+    return indexCollection(_collection, request);
   }
 
   @GetMapping("/states<int>/{identifier}")
   public IntegerState get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collections.createCollection(IntegerState.class).findByIdOrFail(identifier);
+    return _collection.findByIdOrFail(identifier);
   }
 }

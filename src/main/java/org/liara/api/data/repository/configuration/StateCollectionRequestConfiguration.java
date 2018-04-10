@@ -19,46 +19,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.data.entity.filters;
+package org.liara.api.data.repository.configuration;
 
 import java.util.Arrays;
 import java.util.List;
 
-import org.liara.api.data.entity.PresenceState;
+import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.collection.sorting.Sorts;
+import org.liara.api.data.entity.State;
 import org.liara.api.request.parser.APIRequestEntityCollectionFilterParser;
 import org.liara.api.request.parser.APIRequestEntityFieldFilterParserFactory;
+import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 
-public final class PresenceStateFilterFactory implements EntityFilterFactory<PresenceState>
+public final class StateCollectionRequestConfiguration implements CollectionRequestConfiguration<State>
 {
   @Override
-  public APIRequestEntityCollectionFilterParser<PresenceState> createFilterParser () {
+  public APIRequestEntityCollectionFilterParser<State> createFilterParser () {
     return new APIRequestEntityCollectionFilterParser<>(Arrays.asList(
       APIRequestEntityFieldFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
       APIRequestEntityFieldFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
-      APIRequestEntityFieldFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
       APIRequestEntityFieldFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestEntityFieldFilterParserFactory.datetime("start", (root) -> root.get("_start")),
-      APIRequestEntityFieldFilterParserFactory.datetime("end", (root) -> root.get("_end")),
-      APIRequestEntityFieldFilterParserFactory.datetime("emition", (root) -> root.get("_date")),
-      APIRequestEntityFieldFilterParserFactory.duration("duration", (root) -> root.get("_milliseconds")),
-      APIRequestEntityFieldFilterParserFactory.datetimeInRange("date", (root) -> root.get("_start"), (root) -> root.get("_end"))
+      APIRequestEntityFieldFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
+      APIRequestEntityFieldFilterParserFactory.datetime("date", (root) -> root.get("_date"))   
     ));
   }
 
   @Override
-  public List<APIRequestValidator> createValidators () {
+  public List<APIRequestValidator> createFilterValidators () {
     return Arrays.asList(
       APIRequestFilterValidatorFactory.integer("identifier"),
       APIRequestFilterValidatorFactory.datetime("creationDate"),
-      APIRequestFilterValidatorFactory.datetime("updateDate"),
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
-      APIRequestFilterValidatorFactory.datetime("start"),
-      APIRequestFilterValidatorFactory.datetime("end"),
-      APIRequestFilterValidatorFactory.datetime("emition"),
-      APIRequestFilterValidatorFactory.duration("duration"),
-      APIRequestFilterValidatorFactory.datetimeInRange("date")
+      APIRequestFilterValidatorFactory.datetime("updateDate"),
+      APIRequestFilterValidatorFactory.datetime("date")
     );
+  }
+
+  @Override
+  public APIRequestParser<Sorts> createSortsParser () {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

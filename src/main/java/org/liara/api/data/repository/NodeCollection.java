@@ -32,56 +32,30 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.liara.api.collection.EntityCollection;
-import org.liara.api.collection.EntityCollections;
-import org.liara.api.collection.exception.EntityNotFoundException;
-import org.liara.api.collection.filtering.EntityCollectionFilter;
+import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.repository.configuration.NodeCollectionRequestConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.data.repository.Repository;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Iterables;
 
 @Component
-public class NodeRepository implements Repository<Node, Long>
-{
-  @NonNull final private EntityManager _entityManager;
-  
-  @NonNull final private EntityCollections _collections;
-  
-  @NonNull final private EntityCollection<Node, Long> _fullCollection;
- 
+@DefaultCollectionRequestConfiguration(NodeCollectionRequestConfiguration.class)
+public class NodeCollection extends CompleteEntityCollection<Node, Long>
+{     
   @Autowired
-  public NodeRepository (
-    @NonNull final ApplicationContext context
+  public NodeCollection (
+    @NonNull final EntityManager entityManager
   ) {
-    _entityManager = context.getBean(EntityManager.class);
-    _collections = context.getBean(EntityCollections.class);
-    _fullCollection = _collections.createCollection(Node.class);
+    super(Node.class, entityManager);
   }
   
-  public EntityCollection<Node, Long> createCollection () {
-    return _fullCollection;
-  }
-  
-  public EntityCollection<Node, Long> createCollection (@NonNull final EntityCollectionFilter<Node> filter) {
-    return _collections.createCollection(Node.class, filter);
-  }
-  
-  public Node findById (final long identifier) {
-    return _fullCollection.findById(identifier);
-  }
-  
-  public Node findByIdOrFail (final long identifier) throws EntityNotFoundException {
-    return _fullCollection.findByIdOrFail(identifier);
-  }
-  
-  public List<Node> getChildren (@NonNull final Node node) {
-    final TypedQuery<Node> query = _entityManager.createQuery(
+  public List<Node> getAllChildren (@NonNull final Node node) {
+    final TypedQuery<Node> query = getEntityManager().createQuery(
       "SELECT child FROM Node child WHERE child._start > :start AND child._end < :end", 
       Node.class
     );
@@ -92,12 +66,12 @@ public class NodeRepository implements Repository<Node, Long>
     return query.getResultList();
   }  
 
-  public List<Node> getChildren (@NonNull final Node ...nodes) {
-    return this.getChildren(Arrays.asList(nodes));
+  public List<Node> getAllChildren (@NonNull final Node ...nodes) {
+    return this.getAllChildren(Arrays.asList(nodes));
   }
   
-  public List<Node> getChildren (@NonNull final Iterable<Node> nodes) {
-    final CriteriaBuilder criteriaBuilder = _entityManager.getCriteriaBuilder();
+  public List<Node> getAllChildren (@NonNull final Iterable<Node> nodes) {
+    final CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
     final CriteriaQuery<Node> query = criteriaBuilder.createQuery(Node.class);
     
     final Root<Node> child = query.from(Node.class);
@@ -115,11 +89,11 @@ public class NodeRepository implements Repository<Node, Long>
       )  
     );
     
-    return _entityManager.createQuery(query).getResultList();
+    return getEntityManager().createQuery(query).getResultList();
   }
   
-  public List<Node> getChildren (@NonNull final long identifier) {
-    final TypedQuery<Node> query = _entityManager.createQuery(
+  public List<Node> getAllChildren (@NonNull final long identifier) {
+    final TypedQuery<Node> query = getEntityManager().createQuery(
       String.join(
         " ", 
         "SELECT child",
@@ -142,9 +116,9 @@ public class NodeRepository implements Repository<Node, Long>
    * @return
    */
   public List<Sensor> getAllSensors (@NonNull final Iterable<Node> parents, @NonNull final String type) {
-    final CriteriaBuilder criteriaBuilder = _entityManager.getCriteriaBuilder();
+    final CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
     final CriteriaQuery<Sensor> query = criteriaBuilder.createQuery(Sensor.class);
-    final List<Node> nodes = this.getChildren(parents);
+    final List<Node> nodes = this.getAllChildren(parents);
     Iterables.addAll(nodes, parents);
     
     final Root<Sensor> sensor = query.from(Sensor.class);
@@ -152,6 +126,6 @@ public class NodeRepository implements Repository<Node, Long>
     query.where(sensor.join("_nodes").in(nodes));
     query.where(criteriaBuilder.equal(sensor.get("_type"), type));
     
-    return _entityManager.createQuery(query).getResultList();
+    return getEntityManager().createQuery(query).getResultList();
   }
 }

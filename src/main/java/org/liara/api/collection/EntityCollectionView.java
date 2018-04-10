@@ -37,7 +37,7 @@ import org.springframework.lang.Nullable;
  * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
  * @param <Entity> Type of entity in the view.
  */
-public class EntityCollectionView<Entity>
+public class EntityCollectionView<Entity, Identifier>
 {
   /**
    * The view definition.
@@ -48,7 +48,7 @@ public class EntityCollectionView<Entity>
    * The parent collection of this view.
    */
   @NonNull
-  private EntityCollection<Entity, ?> _parent;
+  private EntityCollection<Entity, Identifier> _parent;
 
   /**
    * The content of this view.
@@ -61,7 +61,7 @@ public class EntityCollectionView<Entity>
    *
    * @param parent The parent collection of this view.
    */
-  public EntityCollectionView(@NonNull final EntityCollection<Entity, ?> parent) {
+  public EntityCollectionView(@NonNull final EntityCollection<Entity, Identifier> parent) {
     this.setParentCollection(parent);
     _cursor = Cursor.ALL;
     _content = null;
@@ -73,7 +73,7 @@ public class EntityCollectionView<Entity>
    * @param parent The parent collection of this view.
    * @param cursor The view definition.
    */
-  public EntityCollectionView(@NonNull final EntityCollection<Entity, ?> parent, @NonNull final Cursor cursor) {
+  public EntityCollectionView(@NonNull final EntityCollection<Entity, Identifier> parent, @NonNull final Cursor cursor) {
     this.setParentCollection(parent);
     _cursor = cursor;
     _content = null;
@@ -84,7 +84,7 @@ public class EntityCollectionView<Entity>
    *
    * @return The parent collection of this view.
    */
-  public EntityCollection<Entity, ?> getParentCollection () {
+  public EntityCollection<Entity, Identifier> getParentCollection () {
     return _parent;
   }
 
@@ -93,7 +93,7 @@ public class EntityCollectionView<Entity>
    *
    * @param parent The new parent collection of this view.
    */
-  public void setParentCollection (@NonNull final EntityCollection<Entity, ?> parent) {
+  public void setParentCollection (@NonNull final EntityCollection<Entity, Identifier> parent) {
     _parent = parent;
     _content = null;
   }
@@ -156,6 +156,15 @@ public class EntityCollectionView<Entity>
   public List<Entity> getContent () {
     if (_content == null) this.update();
     return _content;
+  }
+  
+  /**
+   * Return true if the view describe the entire collection, false otherwise.
+   * 
+   * @return True if the view describe the entire collection, false otherwise.
+   */
+  public boolean isComplete () {
+    return getParentCollection().getSize() <= getCursor().getOffset() + getCursor().getLimit();
   }
 
   /**

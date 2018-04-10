@@ -21,124 +21,42 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.EntityCollectionView;
-import org.liara.api.collection.EntityCollections;
-import org.liara.api.data.entity.filters.EntityFilterFactory;
 import org.liara.api.request.APIRequest;
-import org.liara.api.request.parser.APIRequestFreeCursorParser;
-import org.liara.api.request.validator.APIRequestValidator;
-import org.liara.api.request.validator.APIRequestFreeCursorValidator;
-import org.liara.api.request.validator.error.APIRequestError;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 
 public class BaseRestController
 {
-  @Autowired
-  @NonNull
-  private EntityCollections _collections;
-
-  public <Entity> ResponseEntity<List<Entity>> indexCollection (
-    @NonNull final Class<Entity> entity,
+  public <Entity, Identifier> ResponseEntity<List<Entity>> indexCollection (
+    @NonNull final EntityCollection<Entity, Identifier> collection, 
     @NonNull final HttpServletRequest request
-  ) throws InvalidAPIRequestException
-  {
-    final EntityCollection<Entity, Long> collection = _collections.createCollection(entity);
+  ) throws InvalidAPIRequestException {
     final APIRequest apiRequest = APIRequest.from(request);
-    
-    this.assertIsValidRequest(apiRequest, new APIRequestFreeCursorValidator());
+    final EntityCollectionView<Entity, Identifier> view = collection.apply(apiRequest);
 
-    final EntityCollectionView<Entity> view = collection.getView((new APIRequestFreeCursorParser()).parse(apiRequest));
-
-    if (view.getSize() == collection.getSize()) {
+    if (view.isComplete()) {
       return new ResponseEntity<>(view.getContent(), HttpStatus.OK);
     } else {
       return new ResponseEntity<>(view.getContent(), HttpStatus.PARTIAL_CONTENT);
     }
   }
 
-  public <Entity> ResponseEntity<List<Entity>> indexCollection (
-    @NonNull final Class<Entity> entity,
-    @NonNull final EntityFilterFactory<Entity> filter,
+  public <Entity, Identifier> long countCollection (
+    @NonNull final EntityCollection<Entity, Identifier> collection,
     @NonNull final HttpServletRequest request
   )
     throws InvalidAPIRequestException
   {
     final APIRequest apiRequest = APIRequest.from(request);
-    final List<APIRequestValidator> validators = new ArrayList<>();
-    validators.addAll(filter.createValidators());
-    validators.add(new APIRequestFreeCursorValidator());
+    final EntityCollection<Entity, Identifier> filtered = collection.filter(apiRequest);
 
-    this.assertIsValidRequest(apiRequest, validators);
-
-    final EntityCollection<Entity, Long> collection = _collections.createCollection(
-      entity, filter.createFilterParser().parse(apiRequest)
-    );
-
-    final EntityCollectionView<Entity> view = collection.getView((new APIRequestFreeCursorParser()).parse(apiRequest));
-
-    if (view.getSize() == collection.getSize()) {
-      return new ResponseEntity<>(view.getContent(), HttpStatus.OK);
-    } else {
-      return new ResponseEntity<>(view.getContent(), HttpStatus.PARTIAL_CONTENT);
-    }
-  }
-
-  public <Entity> long countCollection (@NonNull final Class<Entity> entity, @NonNull final HttpServletRequest request)
-    throws InvalidAPIRequestException
-  {
-    final EntityCollection<Entity, Long> collection = _collections.createCollection(entity);
-    return collection.getSize();
-  }
-
-  public <Entity> long countCollection (
-    @NonNull final Class<Entity> entity,
-    @NonNull final EntityFilterFactory<Entity> filter,
-    @NonNull final HttpServletRequest request
-  )
-    throws InvalidAPIRequestException
-  {
-    final APIRequest apiRequest = APIRequest.from(request);
-
-    this.assertIsValidRequest(apiRequest, filter.createValidators());
-
-    final EntityCollection<Entity, Long> collection = _collections.createCollection(
-      entity, filter.createFilterParser().parse(apiRequest)
-    );
-
-    return collection.getSize();
-  }
-
-  public void assertIsValidRequest (
-    @NonNull final APIRequest request, 
-    @NonNull final APIRequestValidator... validators
-  ) throws InvalidAPIRequestException
-  {
-    this.assertIsValidRequest(request, Arrays.asList(validators));
-  }
-  
-  public void assertIsValidRequest (
-    @NonNull final APIRequest request, 
-    @NonNull final List<APIRequestValidator> validators
-  ) throws InvalidAPIRequestException
-  {
-    final List<APIRequestError> errors = new ArrayList<>();
-
-    for (final APIRequestValidator validator : validators) {
-      errors.addAll(validator.validate(request));
-    }
-
-    if (errors.size() > 0) {
-      throw new InvalidAPIRequestException(request, errors);
-    }
+    return filtered.getSize();
   }
 }

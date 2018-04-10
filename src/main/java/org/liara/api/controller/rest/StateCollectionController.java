@@ -28,7 +28,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.liara.api.collection.EntityCollections;
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.entity.State;
-import org.liara.api.data.entity.filters.StateFilterFactory;
+import org.liara.api.data.repository.StateCollection;
+import org.liara.api.data.repository.configuration.StateCollectionRequestConfiguration;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -56,11 +57,11 @@ public final class StateCollectionController extends BaseRestController
 {
   @Autowired
   @NonNull
-  private EntityCollections _collections;
+  private StateCollection _collection;
 
   @GetMapping("/states/count")
-  public long count (@NonNull final HttpServletRequest request) {
-    return _collections.createCollection(State.class).getSize();
+  public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+    return countCollection(_collection, request);
   }
 
   @GetMapping("/states")
@@ -98,11 +99,11 @@ public final class StateCollectionController extends BaseRestController
   public ResponseEntity<List<State>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
-    return this.indexCollection(State.class, new StateFilterFactory(), request);
+    return indexCollection(_collection, request);
   }
 
   @GetMapping("/states/{identifier}")
   public State get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collections.createCollection(State.class).findByIdOrFail(identifier);
+    return _collection.findByIdOrFail(identifier);
   }
 }

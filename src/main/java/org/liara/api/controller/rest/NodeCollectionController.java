@@ -25,11 +25,10 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.liara.api.collection.EntityCollections;
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.repository.NodeRepository;
+import org.liara.api.data.repository.NodeCollection;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -57,11 +56,11 @@ public final class NodeCollectionController extends BaseRestController
 {
   @Autowired
   @NonNull
-  private NodeRepository _repository;
+  private NodeCollection _collection;
 
   @GetMapping("/nodes/count")
-  public long count (@NonNull final HttpServletRequest request) {
-    return _repository.createCollection().getSize();
+  public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+    return countCollection(_collection, request);
   }
 
   @GetMapping("/nodes")
@@ -99,21 +98,21 @@ public final class NodeCollectionController extends BaseRestController
   public ResponseEntity<List<Node>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
-    return this.indexCollection(Node.class, request);
+    return indexCollection(_collection, request);
   }
 
   @GetMapping("/nodes/{identifier}")
   public Node get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _repository.findByIdOrFail(identifier);
+    return _collection.findByIdOrFail(identifier);
   }
 
   @GetMapping("/nodes/{identifier}/sensors")
-  public Iterable<Sensor> getSensors (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _repository.findByIdOrFail(identifier).getSensors();
+  public List<Sensor> getSensors (@PathVariable final long identifier) throws EntityNotFoundException {
+    return _collection.findByIdOrFail(identifier).getSensors();
   }
 
   @GetMapping("/nodes/{identifier}/children")
   public List<Node> getChildren (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _repository.getChildren(identifier);
+    return _collection.getAllChildren(identifier);
   }
 }

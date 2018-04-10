@@ -25,12 +25,9 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.google.common.collect.Lists;
-
-import org.liara.api.collection.EntityCollections;
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.entity.DoubleState;
-import org.liara.api.data.repository.DoubleStateRepository;
+import org.liara.api.data.repository.DoubleStateCollection;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -58,11 +55,11 @@ public final class DoubleStateCollectionController extends BaseRestController
 {
   @Autowired
   @NonNull
-  private EntityCollections _collections;
+  private DoubleStateCollection _collection;
 
   @GetMapping("/states<double>/count")
-  public long count (@NonNull final HttpServletRequest request) {
-    return _collections.createCollection(DoubleState.class).getSize();
+  public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+    return countCollection(_collection, request);
   }
 
   @GetMapping("/states<double>")
@@ -100,11 +97,11 @@ public final class DoubleStateCollectionController extends BaseRestController
   public ResponseEntity<List<DoubleState>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
-    return this.indexCollection(DoubleState.class, request);
+    return indexCollection(_collection, request);
   }
 
   @GetMapping("/states<double>/{identifier}")
   public DoubleState get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collections.createCollection(DoubleState.class).findByIdOrFail(identifier);
+    return _collection.findByIdOrFail(identifier);
   }
 }

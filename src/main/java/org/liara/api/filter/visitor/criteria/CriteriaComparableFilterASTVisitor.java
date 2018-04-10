@@ -40,14 +40,14 @@ public class CriteriaComparableFilterASTVisitor<Entity, Value extends Comparable
   }
   
   @Override
-  public void visit (
+  public Predicate visit (
     @NonNull final CriteriaFilterASTVisitorContext<Entity> context, 
     @NonNull final PredicateFilterNode predicate
   ) {
     _context = context;
     visit(predicate);
-    context.getCriteriaQuery().where(_stack.remove(0));
     _context = null;
+    return _stack.remove(0);
   }
   
   @VisitCommonFilterNode(type = CommonFilterNodeType.CONJUNCTION)

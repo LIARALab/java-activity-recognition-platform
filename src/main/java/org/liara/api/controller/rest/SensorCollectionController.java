@@ -23,7 +23,6 @@ package org.liara.api.controller.rest;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 
 import io.swagger.annotations.Api;
@@ -35,11 +34,10 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import org.liara.api.collection.EntityCollections;
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.filters.SensorFilterFactory;
+import org.liara.api.data.repository.SensorCollection;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,11 +57,7 @@ public final class SensorCollectionController extends BaseRestController
 {
   @Autowired
   @NonNull
-  private EntityManager     _entityManager;
-
-  @Autowired
-  @NonNull
-  private EntityCollections _collections;
+  private SensorCollection _collection;
 
   @GetMapping("/sensors/count")
   @ApiImplicitParams(
@@ -79,7 +73,7 @@ public final class SensorCollectionController extends BaseRestController
     }
   )
   public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return this.countCollection(Sensor.class, new SensorFilterFactory(), request);
+    return countCollection(_collection, request);
   }
 
   @GetMapping("/sensors")
@@ -125,16 +119,16 @@ public final class SensorCollectionController extends BaseRestController
   public ResponseEntity<List<Sensor>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
-    return this.indexCollection(Sensor.class, new SensorFilterFactory(), request);
+    return indexCollection(_collection, request);
   }
 
   @GetMapping("/sensors/{identifier}")
   public Sensor get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return this._collections.createCollection(Sensor.class).findByIdOrFail(identifier);
+    return _collection.findByIdOrFail(identifier);
   }
 
   @GetMapping("/sensors/{identifier}/nodes")
   public List<Node> getNodes (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collections.createCollection(Sensor.class).findByIdOrFail(identifier).getNodes();
+    return _collection.findByIdOrFail(identifier).getNodes();
   }
 }

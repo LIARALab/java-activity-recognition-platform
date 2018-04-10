@@ -25,12 +25,9 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.google.common.collect.Lists;
-
-import org.liara.api.collection.EntityCollections;
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.entity.BooleanState;
-import org.liara.api.data.repository.BooleanStateRepository;
+import org.liara.api.data.repository.BooleanStateCollection;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -58,11 +55,11 @@ public final class BooleanStateCollectionController extends BaseRestController
 {
   @Autowired
   @NonNull
-  private EntityCollections _collections;
+  private BooleanStateCollection _collection;
 
   @GetMapping("/states<boolean>/count")
-  public long count (@NonNull final HttpServletRequest request) {
-    return _collections.createCollection(BooleanState.class).getSize();
+  public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+    return countCollection(_collection, request);
   }
 
   @GetMapping("/states<boolean>")
@@ -100,11 +97,11 @@ public final class BooleanStateCollectionController extends BaseRestController
   public ResponseEntity<List<BooleanState>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
-    return this.indexCollection(BooleanState.class, request);
+    return indexCollection(_collection, request);
   }
 
   @GetMapping("/states<boolean>/{identifier}")
   public BooleanState get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collections.createCollection(BooleanState.class).findByIdOrFail(identifier);
+    return _collection.findByIdOrFail(identifier);
   }
 }

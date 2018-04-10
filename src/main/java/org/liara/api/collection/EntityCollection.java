@@ -21,6 +21,7 @@
  ******************************************************************************/
 package org.liara.api.collection;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -28,7 +29,12 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.metamodel.EntityType;
 
+import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.exception.EntityNotFoundException;
+import org.liara.api.collection.filtering.EntityCollectionFilter;
+import org.liara.api.collection.filtering.EntityFieldFilter;
+import org.liara.api.request.APIRequest;
+import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.lang.NonNull;
 
 /**
@@ -64,7 +70,7 @@ public interface EntityCollection<Entity, Identifier>
    *
    * @return A view of this collection.
    */
-  public default EntityCollectionView<Entity> getView (@NonNull final Cursor cursor) {
+  public default EntityCollectionView<Entity, Identifier> getView (@NonNull final Cursor cursor) {
     return new EntityCollectionView<>(this, cursor);
   }
 
@@ -205,5 +211,52 @@ public interface EntityCollection<Entity, Identifier>
    */
   public default EntityType<Entity> getEntityType() {
     return this.getEntityManager().getMetamodel().entity(this.getEntityClass());
+  }
+  
+  /**
+   * Return a new filtered collection based on this one.
+   * 
+   * @param filter Filter to apply.
+   * @return A new filtered collection based on this one.
+   */
+  public default <Field> EntityCollection<Entity, Identifier> filter (@NonNull final EntityFieldFilter<Entity, Field> filter) {
+    final EntityCollectionFilter<Entity> collectionFilter = new EntityCollectionFilter<>(Arrays.asList(filter));
+    return new FilteredEntityCollection<>(getEntityClass(), collectionFilter, getEntityManager());
+  }
+
+  /**
+   * Return a new filtered collection based on this one.
+   * 
+   * @param filter Filter to apply.
+   * @return A new filtered collection based on this one.
+   */
+  public default EntityCollection<Entity, Identifier> filter (@NonNull final EntityCollectionFilter<Entity> filter) {
+    return new FilteredEntityCollection<>(getEntityClass(), filter, getEntityManager());
+  }
+  
+  /**
+   * Try to filter this collection with the default CollectionRequestConfiguration (if any).
+   * 
+   * @throws InvalidAPIRequestException 
+   * 
+   * @param request Request to use in order to filter this collection.
+   * @return A new collection filtered according to the given request.
+   */
+  public default EntityCollection<Entity, Identifier> filter (@NonNull final APIRequest request) throws InvalidAPIRequestException {
+    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefault(this);
+    return configuration.filterCollection(request, this);
+  }
+  
+  /**
+   * Try to apply a request to this collection with the default CollectionRequestConfiguration (if any).
+   * 
+   * @throws InvalidAPIRequestException 
+   * 
+   * @param request Request to use in order to filter this collection.
+   * @return A new view over a collection according to the given request.
+   */
+  public default EntityCollectionView<Entity, Identifier> apply (@NonNull final APIRequest request) throws InvalidAPIRequestException {
+    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefault(this);
+    return configuration.applyRequest(request, this);
   }
 }
