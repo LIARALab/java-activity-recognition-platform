@@ -1,9 +1,11 @@
 package org.liara.api.collection.configuration;
 
-import org.liara.api.collection.sorting.Sorts;
-import org.liara.api.request.parser.APIRequestCompoundEntityFilterParser;
-import org.liara.api.request.parser.APIRequestEntityFilterParser;
-import org.liara.api.request.parser.APIRequestParser;
+import java.util.Collections;
+import java.util.List;
+
+import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
+import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
+import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
 
 public final class EmptyCollectionRequestConfiguration<Entity> implements CollectionRequestConfiguration<Entity>
 {
@@ -13,7 +15,7 @@ public final class EmptyCollectionRequestConfiguration<Entity> implements Collec
   }
 
   @Override
-  public APIRequestParser<Sorts> createSortsParser () {
-    return null;
+  public List<APIRequestOrderingProcessor<Entity>> createOrderingProcessors () {
+    return Collections.emptyList();
   }
 }

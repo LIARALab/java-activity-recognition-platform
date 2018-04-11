@@ -13,7 +13,7 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR 
  * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package org.liara.api.request.parser;
+package org.liara.api.request.parser.filtering;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.liara.api.collection.filtering.CompoundEntityFilter;
+import org.liara.api.collection.filtering.ComposedEntityFilter;
 import org.liara.api.collection.filtering.EntityFilter;
 import org.liara.api.request.APIRequest;
 import org.springframework.lang.NonNull;
@@ -55,7 +55,7 @@ public class APIRequestCompoundEntityFilterParser<Entity> implements APIRequestE
   }
 
   @Override
-  public CompoundEntityFilter<Entity> parse (@NonNull final APIRequest request) {
+  public ComposedEntityFilter<Entity> parse (@NonNull final APIRequest request) {
     final List<EntityFilter<Entity>> filters = new ArrayList<>();
     
     for (final APIRequestEntityFilterParser<Entity> parser : _parsers) {
@@ -66,6 +66,6 @@ public class APIRequestCompoundEntityFilterParser<Entity> implements APIRequestE
       }
     }
     
-    return new CompoundEntityFilter<Entity>(filters);
+    return new ComposedEntityFilter<Entity>(filters);
   }
 }

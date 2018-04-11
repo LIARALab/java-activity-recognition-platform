@@ -31,9 +31,10 @@ import javax.persistence.metamodel.EntityType;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.exception.EntityNotFoundException;
-import org.liara.api.collection.filtering.CompoundEntityFilter;
+import org.liara.api.collection.filtering.ComposedEntityFilter;
 import org.liara.api.collection.filtering.ASTBasedEntityFilter;
 import org.liara.api.collection.filtering.EntityFilter;
+import org.liara.api.collection.ordering.Ordering;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.lang.NonNull;
@@ -168,6 +169,7 @@ public interface EntityCollection<Entity, Identifier>
   public default EntityCollectionQuery<Entity, Entity> createCollectionQuery () {
     final EntityCollectionQuery<Entity, Entity> query = this.createCollectionQuery(this.getEntityClass());
     query.select(query.getEntity());
+    getOrdering().order(getCriteriaBuilder(), query);
     return query;
   }
 
@@ -213,6 +215,14 @@ public interface EntityCollection<Entity, Identifier>
   public default EntityType<Entity> getEntityType() {
     return this.getEntityManager().getMetamodel().entity(this.getEntityClass());
   }
+  
+  /**
+   * Return a new filtered collection based on this one.
+   * 
+   * @param filter Filter to apply.
+   * @return A new filtered collection based on this one.
+   */
+  public EntityCollection<Entity, Identifier> order (@NonNull final Ordering<Entity> ordering);
 
   /**
    * Return a new filtered collection based on this one.
@@ -249,4 +259,6 @@ public interface EntityCollection<Entity, Identifier>
     final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefault(this);
     return configuration.applyRequest(request, this);
   }
+  
+  public Ordering<Entity> getOrdering ();
 }

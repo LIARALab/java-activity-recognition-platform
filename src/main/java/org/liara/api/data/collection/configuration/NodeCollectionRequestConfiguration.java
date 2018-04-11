@@ -1,15 +1,18 @@
-package org.liara.api.data.repository.configuration;
+package org.liara.api.data.collection.configuration;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.sorting.Sorts;
+import org.liara.api.collection.ordering.ComposedOrdering;
 import org.liara.api.data.entity.Node;
-import org.liara.api.request.parser.APIRequestCompoundEntityFilterParser;
-import org.liara.api.request.parser.APIRequestEntityFilterParser;
-import org.liara.api.request.parser.APIRequestEntityFilterParserFactory;
 import org.liara.api.request.parser.APIRequestParser;
+import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
+import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
+import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
+import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.ordering.APIRequestOrderingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 
@@ -29,11 +32,6 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
   }
 
   @Override
-  public APIRequestParser<Sorts> createSortsParser () {
-    return null;
-  }
-
-  @Override
   public Collection<APIRequestValidator> createFilterValidators () {
     return Arrays.asList(
       APIRequestFilterValidatorFactory.integer("identifier"),
@@ -43,6 +41,19 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestFilterValidatorFactory.integer("start"),
       APIRequestFilterValidatorFactory.integer("end"),
       APIRequestFilterValidatorFactory.text("name")
+    );
+  }
+
+  @Override
+  public List<APIRequestOrderingProcessor<Node>> createOrderingProcessors () {
+    return Arrays.asList(
+      APIRequestOrderingProcessorFactory.field("identifier", (root) -> root.get("_identifier")),
+      APIRequestOrderingProcessorFactory.field("creationDate", (root) -> root.get("_creationDate")),
+      APIRequestOrderingProcessorFactory.field("updateDate", (root) -> root.get("_updateDate")),
+      APIRequestOrderingProcessorFactory.field("deletionDate", (root) -> root.get("_deletionDate")),
+      APIRequestOrderingProcessorFactory.field("start", (root) -> root.get("_start")),
+      APIRequestOrderingProcessorFactory.field("end", (root) -> root.get("_end")),
+      APIRequestOrderingProcessorFactory.field("name", (root) -> root.get("_name"))
     );
   }
 }

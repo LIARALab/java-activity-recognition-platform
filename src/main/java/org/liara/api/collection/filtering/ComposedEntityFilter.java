@@ -14,24 +14,24 @@ import org.springframework.lang.NonNull;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
-public class CompoundEntityFilter<Entity> implements Iterable<EntityFilter<Entity>>, EntityFilter<Entity> 
+public class ComposedEntityFilter<Entity> implements Iterable<EntityFilter<Entity>>, EntityFilter<Entity> 
 {
   @NonNull
   private final Set<EntityFilter<Entity>> _filters = new HashSet<>();
 
-  public CompoundEntityFilter () {
+  public ComposedEntityFilter () {
 
   }
   
-  public CompoundEntityFilter (@NonNull final Iterable<EntityFilter<Entity>> filters) {
+  public ComposedEntityFilter (@NonNull final Iterable<EntityFilter<Entity>> filters) {
     Iterables.addAll(_filters, filters);
   }
   
-  public CompoundEntityFilter (@NonNull final Iterator<EntityFilter<Entity>> filters) {
+  public ComposedEntityFilter (@NonNull final Iterator<EntityFilter<Entity>> filters) {
     Iterators.addAll(_filters, filters);
   }
   
-  public CompoundEntityFilter (@NonNull final EntityFilter<Entity>... filters) {
+  public ComposedEntityFilter (@NonNull final EntityFilter<Entity>... filters) {
     _filters.addAll(Arrays.asList(filters));
   }
   
@@ -51,16 +51,16 @@ public class CompoundEntityFilter<Entity> implements Iterable<EntityFilter<Entit
     );
   }
 
-  public CompoundEntityFilter<Entity> add (@NonNull final EntityFilter<Entity> filter) {
-    return new CompoundEntityFilter<>(Iterators.concat(_filters.iterator(), Iterators.singletonIterator(filter)));
+  public ComposedEntityFilter<Entity> add (@NonNull final EntityFilter<Entity> filter) {
+    return new ComposedEntityFilter<>(Iterators.concat(_filters.iterator(), Iterators.singletonIterator(filter)));
   }
   
-  public CompoundEntityFilter<Entity> merge (@NonNull final CompoundEntityFilter<Entity> filter) {
-    return new CompoundEntityFilter<>(Iterators.concat(_filters.iterator(), filter.iterator()));
+  public ComposedEntityFilter<Entity> merge (@NonNull final ComposedEntityFilter<Entity> filter) {
+    return new ComposedEntityFilter<>(Iterators.concat(_filters.iterator(), filter.iterator()));
   }
 
-  public CompoundEntityFilter<Entity> clear () {
-    return new CompoundEntityFilter<>();
+  public ComposedEntityFilter<Entity> clear () {
+    return new ComposedEntityFilter<>();
   }
 
   public boolean contains (@NonNull final ASTBasedEntityFilter<Entity, ?> filter) {

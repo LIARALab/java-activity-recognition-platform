@@ -1,10 +1,10 @@
-package org.liara.api.request.parser;
+package org.liara.api.request.parser.filtering;
 
 import java.time.LocalDateTime;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.criteria.SimplifiedCriteriaExpressionSelector;
 import org.liara.api.criteria.CriteriaExpressionSelector;
-import org.liara.api.criteria.CriteriaRootExpressionSelector;
 import org.liara.api.filter.parser.DateTimeFilterParser;
 import org.liara.api.filter.parser.DurationFilterParser;
 import org.liara.api.filter.parser.IntegerFilterParser;
@@ -19,14 +19,14 @@ public final class APIRequestEntityFilterParserFactory
 {
   public static <Entity> APIRequestEntityFilterParser<Entity> integer (
     @NonNull final String parameter, 
-    @NonNull final CriteriaRootExpressionSelector<Integer> selector
+    @NonNull final CriteriaExpressionSelector<Integer> selector
   ) {
-    return APIRequestEntityFilterParserFactory.integer(parameter, (CriteriaExpressionSelector<Integer>) selector);
+    return APIRequestEntityFilterParserFactory.integer(parameter, (SimplifiedCriteriaExpressionSelector<Integer>) selector);
   }
   
   public static <Entity> APIRequestEntityFilterParser<Entity> integer (
     @NonNull final String parameter, 
-    @NonNull final CriteriaExpressionSelector<Integer> selector
+    @NonNull final SimplifiedCriteriaExpressionSelector<Integer> selector
   ) {
     return new APIRequestASTBasedEntityFilterParser<Entity, Integer>(
         parameter,
@@ -37,14 +37,14 @@ public final class APIRequestEntityFilterParserFactory
   
   public static <Entity> APIRequestEntityFilterParser<Entity> datetime (
     @NonNull final String parameter, 
-    @NonNull final CriteriaRootExpressionSelector<LocalDateTime> selector
+    @NonNull final CriteriaExpressionSelector<LocalDateTime> selector
   ) {
-    return APIRequestEntityFilterParserFactory.datetime(parameter, (CriteriaExpressionSelector<LocalDateTime>) selector);
+    return APIRequestEntityFilterParserFactory.datetime(parameter, (SimplifiedCriteriaExpressionSelector<LocalDateTime>) selector);
   }
   
   public static <Entity> APIRequestEntityFilterParser<Entity> datetime (
     @NonNull final String parameter, 
-    @NonNull final CriteriaExpressionSelector<LocalDateTime> selector
+    @NonNull final SimplifiedCriteriaExpressionSelector<LocalDateTime> selector
   ) {
     return new APIRequestASTBasedEntityFilterParser<Entity, LocalDateTime>(
         parameter, 
@@ -55,20 +55,20 @@ public final class APIRequestEntityFilterParserFactory
   
   public static <Entity> APIRequestEntityFilterParser<Entity> datetimeInRange (
     @NonNull final String parameter, 
-    @NonNull final CriteriaRootExpressionSelector<LocalDateTime> start,
-    @NonNull final CriteriaRootExpressionSelector<LocalDateTime> end
+    @NonNull final CriteriaExpressionSelector<LocalDateTime> start,
+    @NonNull final CriteriaExpressionSelector<LocalDateTime> end
   ) {
     return APIRequestEntityFilterParserFactory.datetimeInRange(
       parameter, 
-      (CriteriaExpressionSelector<LocalDateTime>) start, 
-      (CriteriaExpressionSelector<LocalDateTime>) end
+      (SimplifiedCriteriaExpressionSelector<LocalDateTime>) start, 
+      (SimplifiedCriteriaExpressionSelector<LocalDateTime>) end
     );
   }
   
   public static <Entity> APIRequestEntityFilterParser<Entity> datetimeInRange (
     @NonNull final String parameter, 
-    @NonNull final CriteriaExpressionSelector<LocalDateTime> start,
-    @NonNull final CriteriaExpressionSelector<LocalDateTime> end
+    @NonNull final SimplifiedCriteriaExpressionSelector<LocalDateTime> start,
+    @NonNull final SimplifiedCriteriaExpressionSelector<LocalDateTime> end
   ) {
     return new APIRequestASTBasedEntityFilterParser<Entity, LocalDateTime>(
         parameter, 
@@ -79,14 +79,14 @@ public final class APIRequestEntityFilterParserFactory
   
   public static <Entity> APIRequestEntityFilterParser<Entity> duration (
     @NonNull final String parameter, 
-    @NonNull final CriteriaRootExpressionSelector<Long> selector
+    @NonNull final CriteriaExpressionSelector<Long> selector
   ) {
-    return APIRequestEntityFilterParserFactory.duration(parameter, (CriteriaExpressionSelector<Long>) selector);
+    return APIRequestEntityFilterParserFactory.duration(parameter, (SimplifiedCriteriaExpressionSelector<Long>) selector);
   }
   
   public static <Entity> APIRequestEntityFilterParser<Entity> duration (
     @NonNull final String parameter, 
-    @NonNull final CriteriaExpressionSelector<Long> selector
+    @NonNull final SimplifiedCriteriaExpressionSelector<Long> selector
   ) {
     return new APIRequestASTBasedEntityFilterParser<Entity, Long>(
         parameter,
@@ -97,14 +97,14 @@ public final class APIRequestEntityFilterParserFactory
   
   public static <Entity> APIRequestEntityFilterParser<Entity> text (
     @NonNull final String parameter, 
-    @NonNull final CriteriaRootExpressionSelector<String> selector
+    @NonNull final CriteriaExpressionSelector<String> selector
   ) {
-    return APIRequestEntityFilterParserFactory.text(parameter, (CriteriaExpressionSelector<String>) selector);
+    return APIRequestEntityFilterParserFactory.text(parameter, (SimplifiedCriteriaExpressionSelector<String>) selector);
   }
   
   public static <Entity> APIRequestEntityFilterParser<Entity> text (
     @NonNull final String parameter, 
-    @NonNull final CriteriaExpressionSelector<String> selector
+    @NonNull final SimplifiedCriteriaExpressionSelector<String> selector
   ) {
     return new APIRequestASTBasedEntityFilterParser<Entity, String>(
         parameter,

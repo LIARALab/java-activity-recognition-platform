@@ -19,24 +19,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.data.repository;
+package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
 
 import org.liara.api.collection.CompleteEntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
-import org.liara.api.data.entity.State;
-import org.liara.api.data.repository.configuration.StateCollectionRequestConfiguration;
+import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
+import org.liara.api.data.entity.Sensor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+
 @Component
-@DefaultCollectionRequestConfiguration(StateCollectionRequestConfiguration.class)
-public class StateCollection extends CompleteEntityCollection<State, Long>
-{
+@DefaultCollectionRequestConfiguration(SensorCollectionRequestConfiguration.class)
+public class SensorCollection extends CompleteEntityCollection<Sensor, Long>
+{ 
   @Autowired
-  public StateCollection(@NonNull final EntityManager entityManager) {
-    super(State.class, entityManager);
+  public SensorCollection (
+    @NonNull final EntityManager entityManager
+  ) {
+    super(Sensor.class, entityManager);
   }
 }

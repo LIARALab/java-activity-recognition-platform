@@ -27,8 +27,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.liara.api.collection.EntityCollections;
 import org.liara.api.collection.exception.EntityNotFoundException;
+import org.liara.api.data.collection.IntegerStateCollection;
 import org.liara.api.data.entity.IntegerState;
-import org.liara.api.data.repository.IntegerStateCollection;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

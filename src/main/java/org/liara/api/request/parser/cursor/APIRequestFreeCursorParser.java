@@ -13,10 +13,11 @@
  * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR 
  * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package org.liara.api.request.parser;
+package org.liara.api.request.parser.cursor;
 
 import org.liara.api.collection.Cursor;
 import org.liara.api.request.APIRequest;
+import org.liara.api.request.parser.APIRequestParser;
 import org.springframework.lang.NonNull;
 
 /**

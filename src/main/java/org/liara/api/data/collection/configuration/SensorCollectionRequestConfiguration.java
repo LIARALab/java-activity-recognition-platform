@@ -19,19 +19,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.data.repository.configuration;
+package org.liara.api.data.collection.configuration;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.sorting.Sorts;
+import org.liara.api.collection.ordering.ComposedOrdering;
+import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.entity.PresenceState;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.repository.SensorCollection;
-import org.liara.api.request.parser.APIRequestCompoundEntityFilterParser;
-import org.liara.api.request.parser.APIRequestEntityFilterParser;
-import org.liara.api.request.parser.APIRequestEntityFilterParserFactory;
 import org.liara.api.request.parser.APIRequestParser;
+import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
+import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
+import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
+import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.ordering.APIRequestOrderingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 
@@ -61,8 +64,13 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
   }
 
   @Override
-  public APIRequestParser<Sorts> createSortsParser () {
-    // TODO Auto-generated method stub
-    return null;
+  public List<APIRequestOrderingProcessor<Sensor>> createOrderingProcessors () {
+    return Arrays.asList(
+      APIRequestOrderingProcessorFactory.field("identifier", (root) -> root.get("_identifier")),
+      APIRequestOrderingProcessorFactory.field("creationDate", (root) -> root.get("_creationDate")),
+      APIRequestOrderingProcessorFactory.field("updateDate", (root) -> root.get("_updateDate")),
+      APIRequestOrderingProcessorFactory.field("deletionDate", (root) -> root.get("_deletionDate")),
+      APIRequestOrderingProcessorFactory.field("name", (root) -> root.get("_name"))
+    );
   }
 }

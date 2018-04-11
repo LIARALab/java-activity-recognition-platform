@@ -5,7 +5,7 @@ import java.util.List;
 
 import javax.persistence.criteria.Predicate;
 
-import org.liara.api.criteria.CriteriaExpressionSelector;
+import org.liara.api.criteria.SimplifiedCriteriaExpressionSelector;
 import org.liara.api.filter.ast.CommonFilterNodeType;
 import org.liara.api.filter.ast.CompositeFilterNode;
 import org.liara.api.filter.ast.ConjunctionFilterNode;
@@ -29,9 +29,9 @@ public class CriteriaTextFilterASTVisitor<Entity> extends AnnotationBasedFilterA
   private CriteriaFilterASTVisitorContext<Entity> _context = null;
 
   @NonNull
-  private final CriteriaExpressionSelector<String> _field;
+  private final SimplifiedCriteriaExpressionSelector<String> _field;
 
-  public CriteriaTextFilterASTVisitor (@NonNull final CriteriaExpressionSelector<String> field) {
+  public CriteriaTextFilterASTVisitor (@NonNull final SimplifiedCriteriaExpressionSelector<String> field) {
     _field = field;
   }
   

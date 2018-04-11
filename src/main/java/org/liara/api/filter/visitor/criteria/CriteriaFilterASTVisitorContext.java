@@ -8,7 +8,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Path;
 
-import org.liara.api.criteria.CriteriaExpressionSelector;
+import org.liara.api.criteria.SimplifiedCriteriaExpressionSelector;
 import org.springframework.lang.NonNull;
 
 public class CriteriaFilterASTVisitorContext<Entity>
@@ -23,7 +23,7 @@ public class CriteriaFilterASTVisitorContext<Entity>
   private final Path<Entity> _root;
 
   @NonNull
-  private final Map<CriteriaExpressionSelector<?>, Expression<?>> _selections = new HashMap<>();
+  private final Map<SimplifiedCriteriaExpressionSelector<?>, Expression<?>> _selections = new HashMap<>();
   
   public CriteriaFilterASTVisitorContext(
     @NonNull final CriteriaBuilder builder,
@@ -48,7 +48,7 @@ public class CriteriaFilterASTVisitorContext<Entity>
   }
   
   @SuppressWarnings("unchecked")
-  public <Value> Expression<Value> select(@NonNull final CriteriaExpressionSelector<Value> selector) {
+  public <Value> Expression<Value> select(@NonNull final SimplifiedCriteriaExpressionSelector<Value> selector) {
    if (_selections.containsKey(selector)) {
      return (Expression<Value>) _selections.get(selector);
    } else {

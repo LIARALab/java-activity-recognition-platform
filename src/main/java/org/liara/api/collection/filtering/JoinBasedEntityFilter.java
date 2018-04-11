@@ -22,7 +22,7 @@ public class JoinBasedEntityFilter<Entity, Joined> implements EntityFilter<Entit
   )
   {
     _field = field;
-    _filter = new CompoundEntityFilter<>(filters);
+    _filter = new ComposedEntityFilter<>(filters);
   }
   
   public JoinBasedEntityFilter(
@@ -31,7 +31,7 @@ public class JoinBasedEntityFilter<Entity, Joined> implements EntityFilter<Entit
   )
   {
     _field = field;
-    _filter = new CompoundEntityFilter<>(filters);
+    _filter = new ComposedEntityFilter<>(filters);
   }
   
   public JoinBasedEntityFilter(

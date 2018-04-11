@@ -10,10 +10,12 @@ import org.liara.api.collection.Cursor;
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.EntityCollectionView;
 import org.liara.api.collection.filtering.EntityFilter;
-import org.liara.api.collection.sorting.Sorts;
+import org.liara.api.collection.ordering.Ordering;
 import org.liara.api.request.APIRequest;
-import org.liara.api.request.parser.APIRequestFreeCursorParser;
 import org.liara.api.request.parser.APIRequestParser;
+import org.liara.api.request.parser.cursor.APIRequestFreeCursorParser;
+import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.ordering.ComposedAPIRequestOrderingParser;
 import org.liara.api.request.validator.APIRequestFreeCursorValidator;
 import org.liara.api.request.validator.APIRequestValidator;
 import org.liara.api.request.validator.error.APIRequestError;
@@ -72,9 +74,9 @@ public interface CollectionRequestConfiguration<Entity>
     
     final EntityFilter<Entity> filter = parseFilter(request);
     final Cursor cursor = parseCursor(request);
-    //final Sorts sorts = parseSorts(request);
+    final Ordering<Entity> ordering = parseOrdering(request);
     
-    return collection.filter(filter).getView(cursor);
+    return collection.filter(filter).order(ordering).getView(cursor);
   }
   
   public default <Identifier> EntityCollection<Entity, Identifier> filterCollection (
@@ -84,9 +86,31 @@ public interface CollectionRequestConfiguration<Entity>
     validateFiltersAndSorts(request);
     
     final EntityFilter<Entity> filter = parseFilter(request);
-    //final Sorts sorts = parseSorts(request);
     
     return collection.filter(filter);
+  }
+  
+  public default <Identifier> EntityCollection<Entity, Identifier> orderCollection (
+    @NonNull final APIRequest request,
+    @NonNull final EntityCollection<Entity, Identifier> collection
+  ) throws InvalidAPIRequestException {
+    validateFiltersAndSorts(request);
+    
+    final Ordering<Entity> ordering = parseOrdering(request);
+    
+    return collection.order(ordering);
+  }
+  
+  public default <Identifier> EntityCollection<Entity, Identifier> filterAndOrderCollection (
+    @NonNull final APIRequest request,
+    @NonNull final EntityCollection<Entity, Identifier> collection
+  ) throws InvalidAPIRequestException {
+    validateFiltersAndSorts(request);
+
+    final EntityFilter<Entity> filter = parseFilter(request);
+    final Ordering<Entity> ordering = parseOrdering(request);
+    
+    return collection.filter(filter).order(ordering);
   }
   
   public default EntityFilter<Entity> parseFilter (@NonNull final APIRequest request) {
@@ -97,8 +121,8 @@ public interface CollectionRequestConfiguration<Entity>
     return createCursorParser().parse(request);
   }
   
-  public default Sorts parseSorts (@NonNull final APIRequest request) {
-    return createSortsParser().parse(request);
+  public default Ordering<Entity> parseOrdering (@NonNull final APIRequest request) {
+    return createOrderingParser().parse(request);
   }
   
   public default void validate (@NonNull final APIRequest request) throws InvalidAPIRequestException {
@@ -127,8 +151,12 @@ public interface CollectionRequestConfiguration<Entity>
     return new APIRequestFreeCursorParser();
   }
   
-  public APIRequestParser<Sorts> createSortsParser ();
+  public default APIRequestParser<Ordering<Entity>> createOrderingParser () {
+    return new ComposedAPIRequestOrderingParser<>(createOrderingProcessors());
+  }
   
+  public List<APIRequestOrderingProcessor<Entity>> createOrderingProcessors ();
+
   public default Collection<APIRequestValidator> createCursorValidators () {
     return Arrays.asList(new APIRequestFreeCursorValidator ());
   }
