@@ -1,5 +1,6 @@
 package org.liara.api.request.parser.ordering;
 
+import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.criteria.CriteriaExpressionSelector;
 import org.liara.api.criteria.SimplifiedCriteriaExpressionSelector;
@@ -21,11 +22,22 @@ public final class APIRequestOrderingProcessorFactory
     return new APIRequestFieldOrderingProcessor<>(key, selector);
   }
   
-  public static <Entity, Joined> APIRequestOrderingProcessor<Entity> join (
+  public static <Entity, Joined> APIRequestOrderingProcessor<Entity> joinConfiguration (
     @NonNull final String alias, 
     @NonNull final String join, 
-    @NonNull final CollectionRequestConfiguration<Joined> configuration
+    @NonNull final Class<? extends CollectionRequestConfiguration<Joined>> configuration
   ) {
     return new APIRequestJoinOrderingProcessor<>(join, alias, configuration);
+  }
+  
+  public static <Entity, Joined> APIRequestOrderingProcessor<Entity> joinCollection (
+    @NonNull final String alias, 
+    @NonNull final String join, 
+    @NonNull final Class<? extends EntityCollection<Joined, ?>> configuration
+  ) {
+    return new APIRequestJoinOrderingProcessor<>(
+        join, alias, 
+        CollectionRequestConfiguration.getDefaultClass(configuration)
+    );
   }
 }

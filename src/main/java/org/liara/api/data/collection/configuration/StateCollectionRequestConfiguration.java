@@ -45,7 +45,7 @@ public final class StateCollectionRequestConfiguration implements CollectionRequ
       APIRequestEntityFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
       APIRequestEntityFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
       APIRequestEntityFilterParserFactory.datetime("emittionDate", (root) -> root.get("_emittionDate")),
-      APIRequestEntityFilterParserFactory.join("sensor", "_sensor", CollectionRequestConfiguration.getDefault(SensorCollection.class))   
+      APIRequestEntityFilterParserFactory.joinCollection("sensor", "_sensor", SensorCollection.class)   
     ));
   }
 
@@ -58,7 +58,7 @@ public final class StateCollectionRequestConfiguration implements CollectionRequ
       APIRequestFilterValidatorFactory.datetime("updateDate"),
       APIRequestFilterValidatorFactory.datetime("date"),
       APIRequestFilterValidatorFactory.datetime("emittionDate"),
-      APIRequestFilterValidatorFactory.join("sensor", CollectionRequestConfiguration.getDefault(SensorCollection.class))
+      APIRequestFilterValidatorFactory.joinCollection("sensor", SensorCollection.class)
     );
   }
 
@@ -70,7 +70,7 @@ public final class StateCollectionRequestConfiguration implements CollectionRequ
       APIRequestOrderingProcessorFactory.field("deletionDate", (root) -> root.get("_deletionDate")),
       APIRequestOrderingProcessorFactory.field("updateDate", (root) -> root.get("_updateDate")),
       APIRequestOrderingProcessorFactory.field("emittionDate", (root) -> root.get("_emittionDate")),
-      APIRequestOrderingProcessorFactory.join("sensor", "_sensor", CollectionRequestConfiguration.getDefault(SensorCollection.class))   
+      APIRequestOrderingProcessorFactory.joinCollection("sensor", "_sensor", SensorCollection.class)   
     );
   }
 }

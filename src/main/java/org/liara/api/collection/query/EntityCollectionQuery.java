@@ -19,14 +19,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.collection;
+package org.liara.api.collection.query;
 
 import java.util.List;
 import java.util.Set;
 
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
@@ -46,11 +45,18 @@ public interface EntityCollectionQuery<Entity, Result> extends CriteriaQuery<Res
   public <Related> EntityCollectionQuery<Related, Result> joinCollection (@NonNull final String name);
   
   public Path<Entity> getEntity ();
+  
+  public <NextRelated, NextResult> EntityCollectionSubQuery<Entity, Result, NextRelated, NextResult> subquery (
+    @NonNull final Class<NextRelated> relatedClass,
+    @NonNull final Class<NextResult> resultClass
+  );
 
   public default EntityCollectionQuery<Entity, Result> select (Selection<? extends Result> selection) {
     getCriteriaQuery().select(selection);
     return this;
   }
+
+  public Path<Entity> correlateEntity (@NonNull final EntityCollectionSubQuery<Entity, ?, ?, ?> subQuery);
 
   public default <X> Root<X> from (Class<X> entityClass) {
     return getCriteriaQuery().from(entityClass);

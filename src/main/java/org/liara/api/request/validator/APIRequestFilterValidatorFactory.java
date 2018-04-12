@@ -1,6 +1,8 @@
 package org.liara.api.request.validator;
 
+import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.data.collection.StateCollection;
 import org.liara.api.filter.validator.DateTimeFilterValidator;
 import org.liara.api.filter.validator.DurationFilterValidator;
 import org.liara.api.filter.validator.IntegerFilterValidator;
@@ -29,13 +31,42 @@ public final class APIRequestFilterValidatorFactory
     return new APIRequestFilterValidator(parameter, new TextFilterValidator());
   }
   
-  public static APIRequestValidator join (
+  public static APIRequestValidator joinConfiguration (
     @NonNull final String parameter, 
-    @NonNull final CollectionRequestConfiguration<?> configuration
+    @NonNull final Class<? extends CollectionRequestConfiguration<?>> configuration
   ) {
     return new APISubRequestValidator(
       parameter, 
-      new CompoundAPIRequestValidator(configuration.createFilterValidators())
+      configuration
+    );
+  }
+  
+  public static APIRequestValidator joinCollection (
+    @NonNull final String parameter, 
+    @NonNull final Class<? extends EntityCollection<?, ?>> configuration
+  ) {
+    return new APISubRequestValidator(
+      parameter, 
+      CollectionRequestConfiguration.getDefaultClass(configuration)
+    );
+  }
+  
+  public static APIRequestValidator havingConfiguration (
+    @NonNull final String parameter, 
+    @NonNull final Class<? extends CollectionRequestConfiguration<?>> configuration
+  ) {
+    return new APISubRequestValidator(
+      parameter, configuration
+    );
+  }
+
+  public static APIRequestValidator havingCollection (
+    @NonNull final String parameter, 
+    @NonNull final Class<? extends EntityCollection<?, ?>> configuration
+  ) {
+    return new APISubRequestValidator(
+      parameter, 
+      CollectionRequestConfiguration.getDefaultClass(configuration)
     );
   }
 }

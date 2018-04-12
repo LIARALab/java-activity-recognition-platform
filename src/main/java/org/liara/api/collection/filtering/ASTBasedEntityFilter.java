@@ -3,7 +3,7 @@ package org.liara.api.collection.filtering;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 
-import org.liara.api.collection.EntityCollectionQuery;
+import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.filter.ast.PredicateFilterNode;
 import org.liara.api.filter.visitor.criteria.CriteriaFilterASTVisitor;
 import org.liara.api.filter.visitor.criteria.CriteriaFilterASTVisitorContext;

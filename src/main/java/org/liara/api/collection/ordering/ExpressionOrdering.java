@@ -7,7 +7,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
 
-import org.liara.api.collection.EntityCollectionQuery;
+import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.criteria.CriteriaExpressionSelector;
 import org.springframework.lang.NonNull;
 

@@ -35,6 +35,7 @@ import org.liara.api.collection.filtering.ComposedEntityFilter;
 import org.liara.api.collection.filtering.ASTBasedEntityFilter;
 import org.liara.api.collection.filtering.EntityFilter;
 import org.liara.api.collection.ordering.Ordering;
+import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.lang.NonNull;

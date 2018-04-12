@@ -25,11 +25,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.ordering.ComposedOrdering;
-import org.liara.api.data.collection.SensorCollection;
-import org.liara.api.data.entity.PresenceState;
+import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.request.parser.APIRequestParser;
+import org.liara.api.data.entity.State;
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
@@ -47,7 +46,9 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
       APIRequestEntityFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
       APIRequestEntityFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestEntityFilterParserFactory.text("name", (root) -> root.get("_name"))
+      APIRequestEntityFilterParserFactory.text("name", (root) -> root.get("_name")),
+      APIRequestEntityFilterParserFactory.havingCollection("states", "_states", StateCollection.class),
+      APIRequestEntityFilterParserFactory.havingCollection("nodes", "_nodes", NodeCollection.class)
     ));
   }
 
@@ -59,7 +60,9 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       APIRequestFilterValidatorFactory.datetime("creationDate"),
       APIRequestFilterValidatorFactory.datetime("updateDate"),
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
-      APIRequestFilterValidatorFactory.text("name")
+      APIRequestFilterValidatorFactory.text("name"),
+      APIRequestFilterValidatorFactory.havingCollection("states", StateCollection.class),
+      APIRequestFilterValidatorFactory.havingCollection("nodes", NodeCollection.class) 
     );
   }
 

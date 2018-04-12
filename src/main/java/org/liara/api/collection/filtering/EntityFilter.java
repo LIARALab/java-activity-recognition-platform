@@ -3,7 +3,7 @@ package org.liara.api.collection.filtering;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 
-import org.liara.api.collection.EntityCollectionQuery;
+import org.liara.api.collection.query.EntityCollectionQuery;
 import org.springframework.lang.NonNull;
 
 public interface EntityFilter<Entity>
@@ -17,6 +17,10 @@ public interface EntityFilter<Entity>
     @NonNull final CriteriaBuilder builder,
     @NonNull final EntityCollectionQuery<Entity, Result> query
   ) {
-    return query.where(create(builder, query));
+    if (query.getRestriction() == null) {
+      return query.where(create(builder, query));
+    } else {
+      return query.where(builder.and(query.getRestriction(), create(builder, query)));
+    }
   }
 }

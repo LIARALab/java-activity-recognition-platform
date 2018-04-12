@@ -6,7 +6,7 @@ import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Order;
 
-import org.liara.api.collection.EntityCollectionQuery;
+import org.liara.api.collection.query.EntityCollectionQuery;
 import org.springframework.lang.NonNull;
 
 public class EmptyOrdering<Entity> implements Ordering<Entity>

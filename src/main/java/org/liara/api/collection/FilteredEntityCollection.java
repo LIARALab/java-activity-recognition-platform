@@ -31,6 +31,8 @@ import org.liara.api.collection.filtering.EntityFilter;
 import org.liara.api.collection.ordering.ComposedOrdering;
 import org.liara.api.collection.ordering.EmptyOrdering;
 import org.liara.api.collection.ordering.Ordering;
+import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.query.RootBasedEntityCollectionQuery;
 import org.springframework.lang.NonNull;
 
 /**

@@ -24,6 +24,34 @@ import org.springframework.lang.NonNull;
 
 public interface CollectionRequestConfiguration<Entity>
 {
+  public static <Entity> CollectionRequestConfiguration<Entity> fromClass(
+    @NonNull final Class<? extends CollectionRequestConfiguration<Entity>> clazz
+  ) {
+    try {
+      return (CollectionRequestConfiguration<Entity>) clazz.newInstance();
+    } catch (final Exception e) {
+      throw new Error(String.join("", 
+        "Unnable to instanciate the collection configuration ",
+        String.valueOf(clazz),
+        " does the class has a public constructor without parameters ?"
+      ));
+    }
+  }
+  
+  public static CollectionRequestConfiguration<?> fromRawClass(
+    @NonNull final Class<? extends CollectionRequestConfiguration<?>> clazz
+  ) {
+    try {
+      return (CollectionRequestConfiguration<?>) clazz.newInstance();
+    } catch (final Exception e) {
+      throw new Error(String.join("", 
+        "Unnable to instanciate the collection configuration ",
+        String.valueOf(clazz),
+        " does the class has a public constructor without parameters ?"
+      ));
+    }
+  }
+  
   @SuppressWarnings("unchecked")
   public static <Entity, Identifier> CollectionRequestConfiguration<Entity> getDefault (
     @NonNull final Class<?> clazz
@@ -42,6 +70,18 @@ public interface CollectionRequestConfiguration<Entity>
       }
     } else {
       return new EmptyCollectionRequestConfiguration<>();
+    }
+  }
+  
+  @SuppressWarnings("unchecked")
+  public static <Entity> Class<? extends CollectionRequestConfiguration<Entity>> getDefaultClass (
+    @NonNull final Class<?> clazz
+  ) {
+    if (clazz.isAnnotationPresent(DefaultCollectionRequestConfiguration.class)) {
+      final DefaultCollectionRequestConfiguration defaultCollection = clazz.getAnnotation(DefaultCollectionRequestConfiguration.class);
+       return (Class<? extends CollectionRequestConfiguration<Entity>>) defaultCollection.value();
+    } else {
+      return (Class<? extends CollectionRequestConfiguration<Entity>>) new EmptyCollectionRequestConfiguration<Entity>().getClass();
     }
   }
   

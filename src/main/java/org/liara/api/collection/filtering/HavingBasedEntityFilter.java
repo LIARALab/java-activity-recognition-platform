@@ -6,9 +6,10 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 
 import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.query.EntityCollectionSubQuery;
 import org.springframework.lang.NonNull;
 
-public class JoinBasedEntityFilter<Entity, Joined> implements EntityFilter<Entity>
+public class HavingBasedEntityFilter<Entity, Joined> implements EntityFilter<Entity>
 {
   @NonNull
   private final String _field;
@@ -16,7 +17,7 @@ public class JoinBasedEntityFilter<Entity, Joined> implements EntityFilter<Entit
   @NonNull
   private final EntityFilter<Joined> _filter;
   
-  public JoinBasedEntityFilter(
+  public HavingBasedEntityFilter(
     @NonNull final String field,
     @NonNull final Iterable<EntityFilter<Joined>> filters
   )
@@ -25,7 +26,7 @@ public class JoinBasedEntityFilter<Entity, Joined> implements EntityFilter<Entit
     _filter = new ComposedEntityFilter<>(filters);
   }
   
-  public JoinBasedEntityFilter(
+  public HavingBasedEntityFilter(
     @NonNull final String field,
     @NonNull final Iterator<EntityFilter<Joined>> filters
   )
@@ -34,7 +35,7 @@ public class JoinBasedEntityFilter<Entity, Joined> implements EntityFilter<Entit
     _filter = new ComposedEntityFilter<>(filters);
   }
   
-  public JoinBasedEntityFilter(
+  public HavingBasedEntityFilter(
     @NonNull final String field,
     @NonNull final EntityFilter<Joined> filter
   )
@@ -45,6 +46,12 @@ public class JoinBasedEntityFilter<Entity, Joined> implements EntityFilter<Entit
 
   @Override
   public Predicate create (@NonNull final CriteriaBuilder builder, @NonNull final EntityCollectionQuery<Entity, ?> query) {
-    return _filter.create(builder, query.joinCollection(_field));
+    final Class<Entity> entity = query.getEntity().getModel().getBindableJavaType();
+    final EntityCollectionSubQuery<Entity, ?, Entity, Entity> subQuery = query.subquery(entity, entity);
+    subQuery.select(subQuery.getEntity());
+    
+    _filter.filter(builder, subQuery.joinCollection(_field));
+
+    return query.getEntity().in(subQuery);
   }
 }

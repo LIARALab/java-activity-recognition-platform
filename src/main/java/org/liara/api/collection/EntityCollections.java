@@ -28,6 +28,8 @@ import java.util.List;
 import javax.persistence.EntityManager;
 
 import org.liara.api.collection.filtering.ComposedEntityFilter;
+import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.query.RootBasedEntityCollectionQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Component;

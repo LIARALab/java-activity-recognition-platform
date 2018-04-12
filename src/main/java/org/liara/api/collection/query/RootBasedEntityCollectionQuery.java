@@ -19,11 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.collection;
+package org.liara.api.collection.query;
 
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 
 import org.hibernate.query.criteria.internal.compile.CompilableCriteria;
 import org.springframework.lang.NonNull;
@@ -58,7 +59,7 @@ public class RootBasedEntityCollectionQuery<Entity, Result> implements EntityCol
   }
 
   @Override
-  public <Related> EntityCollectionQuery<Related, Result> joinCollection (String name) {
+  public <Related> EntityCollectionQuery<Related, Result> joinCollection (@NonNull final String name) {
     return new JoinBasedEntityCollectionQuery<>(this, _root.join(name));
   }
 
@@ -75,5 +76,26 @@ public class RootBasedEntityCollectionQuery<Entity, Result> implements EntityCol
   @Override
   public CompilableCriteria getCompilableCriteria () {
     return _compilable;
+  }
+
+  @Override
+  public <NextRelated, NextResult> EntityCollectionSubQuery<Entity, Result, NextRelated, NextResult> subquery (
+    @NonNull final Class<NextRelated> relatedClass,
+    @NonNull final Class<NextResult> resultClass
+  )
+  { 
+    final Subquery<NextResult> subquery = _query.subquery(resultClass);
+    final Root<NextRelated> root = subquery.from(relatedClass);
+        
+    final EntityCollectionSubQuery<Entity, Result, NextRelated, NextResult> query = new RootBasedEntityCollectionSubQuery<>(
+        this, subquery, root
+    );
+    
+    return query;
+  }
+
+  @Override
+  public Path<Entity> correlateEntity (@NonNull final EntityCollectionSubQuery<Entity, ?, ?, ?> subQuery) {
+    return subQuery.correlate(_root);
   }
 }

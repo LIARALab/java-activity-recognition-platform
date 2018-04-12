@@ -1,11 +1,7 @@
 package org.liara.api.request.parser.ordering;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.ordering.ComposedOrdering;
@@ -24,7 +20,7 @@ public class APIRequestJoinOrderingProcessor<Entity, Joined> implements APIReque
   private final String _alias;
   
   @NonNull
-  private final CollectionRequestConfiguration<Joined> _configuration;
+  private final Class<? extends CollectionRequestConfiguration<Joined>> _configuration;
   
   @Nullable
   private List<APIRequestOrderingProcessor<Joined>> _processors = null;
@@ -32,7 +28,7 @@ public class APIRequestJoinOrderingProcessor<Entity, Joined> implements APIReque
   public APIRequestJoinOrderingProcessor(
     @NonNull final String join, 
     @NonNull final String alias, 
-    @NonNull final CollectionRequestConfiguration<Joined> configuration
+    @NonNull final Class<? extends CollectionRequestConfiguration<Joined>> configuration
   ) {
     _join = join;
     _alias = alias;
@@ -58,7 +54,7 @@ public class APIRequestJoinOrderingProcessor<Entity, Joined> implements APIReque
 
   private List<APIRequestOrderingProcessor<Joined>> getProcessors () {
     if (_processors == null) {
-      _processors = _configuration.createOrderingProcessors();
+      _processors = CollectionRequestConfiguration.fromClass(_configuration).createOrderingProcessors();
     }
     
     return _processors;

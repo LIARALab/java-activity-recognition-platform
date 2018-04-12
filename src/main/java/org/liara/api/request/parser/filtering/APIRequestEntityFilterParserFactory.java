@@ -2,6 +2,7 @@ package org.liara.api.request.parser.filtering;
 
 import java.time.LocalDateTime;
 
+import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.criteria.SimplifiedCriteriaExpressionSelector;
 import org.liara.api.criteria.CriteriaExpressionSelector;
@@ -113,11 +114,43 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity, Joined> APIRequestEntityFilterParser<Entity> join (
+  public static <Entity, Joined> APIRequestEntityFilterParser<Entity> joinConfiguration (
     @NonNull final String parameter, 
     @NonNull final String join, 
-    @NonNull final CollectionRequestConfiguration<Joined> configuration
+    @NonNull final Class<? extends CollectionRequestConfiguration<Joined>> configuration
   ) {
     return new APIRequestJoinBasedEntityFilterParser<>(parameter, join, configuration);
+  }
+  
+  public static <Entity, Joined> APIRequestEntityFilterParser<Entity> joinCollection (
+    @NonNull final String parameter, 
+    @NonNull final String join, 
+    @NonNull final Class<? extends EntityCollection<Joined, ?>> configuration
+  ) {
+    return new APIRequestJoinBasedEntityFilterParser<>(
+        parameter, 
+        join, 
+        CollectionRequestConfiguration.getDefaultClass(configuration)
+    );
+  }
+  
+  public static <Entity, Joined> APIRequestEntityFilterParser<Entity> havingConfiguration (
+    @NonNull final String parameter, 
+    @NonNull final String join, 
+    @NonNull final Class<? extends CollectionRequestConfiguration<Joined>> configuration
+  ) {
+    return new APIRequestHavingBasedEntityFilterParser<>(parameter, join, configuration);
+  }
+  
+  public static <Entity, Joined> APIRequestEntityFilterParser<Entity> havingCollection (
+    @NonNull final String parameter, 
+    @NonNull final String join, 
+    @NonNull final Class<? extends EntityCollection<Joined, ?>> configuration
+  ) {
+    return new APIRequestHavingBasedEntityFilterParser<Entity, Joined>(
+        parameter,
+        join, 
+        CollectionRequestConfiguration.getDefaultClass(configuration)
+    );
   }
 }

@@ -30,9 +30,9 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
-import org.liara.api.collection.EntityCollectionQuery;
 import org.liara.api.collection.EntityCollections;
 import org.liara.api.collection.exception.EntityNotFoundException;
+import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.PresenceStateCollection;
 import org.liara.api.data.collection.configuration.PresenceStateCollectionRequestConfiguration;
