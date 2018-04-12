@@ -6,6 +6,7 @@ import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.criteria.SimplifiedCriteriaExpressionSelector;
 import org.liara.api.criteria.CriteriaExpressionSelector;
+import org.liara.api.criteria.CustomCollectionRelation;
 import org.liara.api.filter.parser.DateTimeFilterParser;
 import org.liara.api.filter.parser.DurationFilterParser;
 import org.liara.api.filter.parser.IntegerFilterParser;
@@ -151,6 +152,26 @@ public final class APIRequestEntityFilterParserFactory
         parameter,
         join, 
         CollectionRequestConfiguration.getDefaultClass(configuration)
+    );
+  }
+  
+  public static <Entity, Joined> APIRequestEntityFilterParser<Entity> customHavingConfiguration (
+    @NonNull final String parameter, 
+    @NonNull final Class<Joined> joined,
+    @NonNull final CustomCollectionRelation<Entity, Joined> relation,
+    @NonNull final Class<? extends CollectionRequestConfiguration<Joined>> configuration
+  ) {
+    return new APIRequestCustomHavingBasedEntityFilterParser<>(parameter, joined, relation, configuration);
+  }
+  
+  public static <Entity, Joined> APIRequestEntityFilterParser<Entity> customHavingCollection (
+    @NonNull final String parameter, 
+    @NonNull final Class<Joined> joined,
+    @NonNull final CustomCollectionRelation<Entity, Joined> relation,
+    @NonNull final Class<? extends EntityCollection<Joined, ?>> configuration
+  ) {
+    return new APIRequestCustomHavingBasedEntityFilterParser<Entity, Joined>(
+        parameter, joined, relation, CollectionRequestConfiguration.getDefaultClass(configuration)
     );
   }
 }

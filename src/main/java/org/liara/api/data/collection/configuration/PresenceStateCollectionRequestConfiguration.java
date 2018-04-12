@@ -26,6 +26,8 @@ import java.util.List;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.ordering.ComposedOrdering;
+import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.PresenceState;
 import org.liara.api.request.parser.APIRequestParser;
@@ -50,7 +52,9 @@ public final class PresenceStateCollectionRequestConfiguration implements Collec
       APIRequestEntityFilterParserFactory.datetime("end", (root) -> root.get("_end")),
       APIRequestEntityFilterParserFactory.datetime("emittionDate", (root) -> root.get("_emittionDate")),
       APIRequestEntityFilterParserFactory.duration("duration", (root) -> root.get("_milliseconds")),
-      APIRequestEntityFilterParserFactory.datetimeInRange("date", (root) -> root.get("_start"), (root) -> root.get("_end"))
+      APIRequestEntityFilterParserFactory.datetimeInRange("date", (root) -> root.get("_start"), (root) -> root.get("_end")),
+      APIRequestEntityFilterParserFactory.joinCollection("node", "_node", NodeCollection.class),
+      APIRequestEntityFilterParserFactory.joinCollection("sensor", "_sensor", SensorCollection.class)
     ));
   }
 
@@ -65,7 +69,9 @@ public final class PresenceStateCollectionRequestConfiguration implements Collec
       APIRequestFilterValidatorFactory.datetime("end"),
       APIRequestFilterValidatorFactory.datetime("emittionDate"),
       APIRequestFilterValidatorFactory.duration("duration"),
-      APIRequestFilterValidatorFactory.datetimeInRange("date")
+      APIRequestFilterValidatorFactory.datetimeInRange("date"),
+      APIRequestFilterValidatorFactory.joinCollection("node", NodeCollection.class),
+      APIRequestFilterValidatorFactory.joinCollection("sensor", SensorCollection.class)
     );
   }
 
@@ -80,7 +86,9 @@ public final class PresenceStateCollectionRequestConfiguration implements Collec
       APIRequestOrderingProcessorFactory.field("end", (root) -> root.get("_end")),
       APIRequestOrderingProcessorFactory.field("emittionDate", (root) -> root.get("_emittionDate")),
       APIRequestOrderingProcessorFactory.field("duration", (root) -> root.get("_milliseconds")),
-      APIRequestOrderingProcessorFactory.field("date", (root) -> root.get("_start"))
+      APIRequestOrderingProcessorFactory.field("date", (root) -> root.get("_start")),
+      APIRequestOrderingProcessorFactory.joinCollection("node", "_node", NodeCollection.class),
+      APIRequestOrderingProcessorFactory.joinCollection("sensor", "_sensor", SensorCollection.class)
     );
   }
 }

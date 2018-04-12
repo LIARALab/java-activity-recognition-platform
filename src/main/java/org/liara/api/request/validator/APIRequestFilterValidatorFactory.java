@@ -69,4 +69,23 @@ public final class APIRequestFilterValidatorFactory
       CollectionRequestConfiguration.getDefaultClass(configuration)
     );
   }
+  
+  public static APIRequestValidator customHavingConfiguration (
+    @NonNull final String parameter, 
+    @NonNull final Class<? extends CollectionRequestConfiguration<?>> configuration
+  ) {
+    return new APISubRequestValidator(
+      parameter, configuration
+    );
+  }
+
+  public static APIRequestValidator customHavingCollection (
+    @NonNull final String parameter, 
+    @NonNull final Class<? extends EntityCollection<?, ?>> configuration
+  ) {
+    return new APISubRequestValidator(
+      parameter, 
+      CollectionRequestConfiguration.getDefaultClass(configuration)
+    );
+  }
 }

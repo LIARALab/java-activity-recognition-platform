@@ -31,7 +31,7 @@ public class APISubRequestValidator implements APIRequestValidator
     if (subRequest.getParameterCount() > 0) {
       return new CompoundAPIRequestValidator(
         CollectionRequestConfiguration.fromRawClass(_configuration).createValidators()
-      ).validate(request);
+      ).validate(subRequest);
     } else {
       return Collections.emptyList();
     }

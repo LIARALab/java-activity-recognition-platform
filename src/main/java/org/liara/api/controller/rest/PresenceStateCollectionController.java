@@ -21,10 +21,8 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
@@ -35,7 +33,6 @@ import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.PresenceStateCollection;
-import org.liara.api.data.collection.configuration.PresenceStateCollectionRequestConfiguration;
 import org.liara.api.data.entity.BooleanState;
 import org.liara.api.data.entity.PresenceState;
 import org.liara.api.data.entity.Sensor;
@@ -81,7 +78,7 @@ public class PresenceStateCollectionController extends BaseRestController
     
     final EntityCollectionQuery<BooleanState, BooleanState> stateQuery = _collections.createQuery(BooleanState.class);
     stateQuery.where(stateQuery.joinCollection("_sensor").getEntity().in(sensors));
-    stateQuery.orderBy(_entityManager.getCriteriaBuilder().asc(stateQuery.getEntity().get("_date")));
+    stateQuery.orderBy(_entityManager.getCriteriaBuilder().asc(stateQuery.getEntity().get("_emittionDate")));
 
     return new LiaraPresenceStream(new TickEventStream(new StateTickStream(_collections.fetch(stateQuery))));
   }

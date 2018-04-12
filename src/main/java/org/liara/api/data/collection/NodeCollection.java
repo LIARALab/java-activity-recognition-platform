@@ -56,12 +56,12 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
   
   public List<Node> getAllChildren (@NonNull final Node node) {
     final TypedQuery<Node> query = getEntityManager().createQuery(
-      "SELECT child FROM Node child WHERE child._start > :start AND child._end < :end", 
+      "SELECT child FROM Node child WHERE child._setStart > :start AND child._setEnd < :end", 
       Node.class
     );
     
-    query.setParameter("start", node.getStart());
-    query.setParameter("end", node.getEnd());
+    query.setParameter("start", node.getSetStart());
+    query.setParameter("end", node.getSetEnd());
     
     return query.getResultList();
   }  
@@ -81,8 +81,8 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
         StreamSupport.stream(nodes.spliterator(), false).map(
           node -> {
             return criteriaBuilder.and(
-              criteriaBuilder.greaterThan(child.get("_start"), node.getStart()),
-              criteriaBuilder.lessThan(child.get("_end"), node.getEnd())
+              criteriaBuilder.greaterThan(child.get("_setStart"), node.getSetStart()),
+              criteriaBuilder.lessThan(child.get("_setEnd"), node.getSetEnd())
             );
           }
         ).toArray(size -> new Predicate[size])
@@ -99,8 +99,8 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
         "SELECT child",
         "FROM Node child, Node parent",
         "WHERE parent._identifier = :identifier",
-          "AND child._start > parent._start",
-          "AND child._end < parent._end" 
+          "AND child._setStart > parent._setStart",
+          "AND child._setEnd < parent._setEnd" 
       ),
       Node.class
     );

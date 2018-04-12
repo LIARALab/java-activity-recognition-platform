@@ -4,8 +4,15 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
+
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.ordering.ComposedOrdering;
+import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.query.EntityCollectionSubQuery;
+import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.Node;
 import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
@@ -15,9 +22,36 @@ import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.ordering.APIRequestOrderingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
+import org.springframework.lang.NonNull;
 
 public class NodeCollectionRequestConfiguration implements CollectionRequestConfiguration<Node>
 {
+  private void applyNodeParentsRelation (
+    @NonNull final CriteriaBuilder builder,
+    @NonNull final EntityCollectionQuery<Node, ?> master,
+    @NonNull final EntityCollectionSubQuery<Node, ?, Node, ?> slave
+  ) {
+    final Path<Node> related = master.correlateEntity(slave);
+    
+    slave.where(builder.and(
+      builder.lessThan(slave.getEntity().get("_setStart"), related.get("_setStart")),
+      builder.greaterThan(slave.getEntity().get("_setEnd"), related.get("_setEnd"))
+    ));
+  }
+  
+  private void applyNodeChildrenRelation (
+    @NonNull final CriteriaBuilder builder,
+    @NonNull final EntityCollectionQuery<Node, ?> master,
+    @NonNull final EntityCollectionSubQuery<Node, ?, Node, ?> slave
+  ) {
+    final Path<Node> related = master.correlateEntity(slave);
+    
+    slave.where(builder.and(
+      builder.greaterThan(slave.getEntity().get("_setStart"), related.get("_setStart")),
+      builder.lessThan(slave.getEntity().get("_setEnd"), related.get("_setEnd"))
+    ));
+  }
+  
   @Override
   public APIRequestEntityFilterParser<Node> createFilterParser () {
     return new APIRequestCompoundEntityFilterParser<>(Arrays.asList(
@@ -25,9 +59,16 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
       APIRequestEntityFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
       APIRequestEntityFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestEntityFilterParserFactory.integer("start", (root) -> root.get("_start")),
-      APIRequestEntityFilterParserFactory.integer("end", (root) -> root.get("_end")),
-      APIRequestEntityFilterParserFactory.text("name", (root) -> root.get("_name"))
+      APIRequestEntityFilterParserFactory.integer("setStart", (root) -> root.get("_setStart")),
+      APIRequestEntityFilterParserFactory.integer("setEnd", (root) -> root.get("_setEnd")),
+      APIRequestEntityFilterParserFactory.integer("depth", (root) -> root.get("_depth")),
+      APIRequestEntityFilterParserFactory.text("name", (root) -> root.get("_name")),
+      APIRequestEntityFilterParserFactory.customHavingCollection(
+        "parents", Node.class, this::applyNodeParentsRelation, NodeCollection.class
+      ),
+      APIRequestEntityFilterParserFactory.customHavingCollection(
+        "children", Node.class, this::applyNodeChildrenRelation, NodeCollection.class
+      )
     ));
   }
 
@@ -38,9 +79,11 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestFilterValidatorFactory.datetime("creationDate"),
       APIRequestFilterValidatorFactory.datetime("updateDate"),
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
-      APIRequestFilterValidatorFactory.integer("start"),
-      APIRequestFilterValidatorFactory.integer("end"),
-      APIRequestFilterValidatorFactory.text("name")
+      APIRequestFilterValidatorFactory.integer("setStart"),
+      APIRequestFilterValidatorFactory.integer("setEnd"),
+      APIRequestFilterValidatorFactory.integer("depth"),
+      APIRequestFilterValidatorFactory.text("name"),
+      APIRequestFilterValidatorFactory.customHavingCollection("parents", NodeCollection.class)
     );
   }
 
@@ -51,8 +94,9 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestOrderingProcessorFactory.field("creationDate", (root) -> root.get("_creationDate")),
       APIRequestOrderingProcessorFactory.field("updateDate", (root) -> root.get("_updateDate")),
       APIRequestOrderingProcessorFactory.field("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestOrderingProcessorFactory.field("start", (root) -> root.get("_start")),
-      APIRequestOrderingProcessorFactory.field("end", (root) -> root.get("_end")),
+      APIRequestOrderingProcessorFactory.field("setStart", (root) -> root.get("_setStart")),
+      APIRequestOrderingProcessorFactory.field("setEnd", (root) -> root.get("_setEnd")),
+      APIRequestOrderingProcessorFactory.field("depth", (root) -> root.get("_depth")),
       APIRequestOrderingProcessorFactory.field("name", (root) -> root.get("_name"))
     );
   }

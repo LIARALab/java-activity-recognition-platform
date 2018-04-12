@@ -26,11 +26,16 @@ import javax.persistence.Table;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 
 import org.hibernate.annotations.Formula;
+import org.hibernate.annotations.JoinColumnOrFormula;
+import org.hibernate.annotations.JoinColumnsOrFormulas;
+import org.hibernate.annotations.JoinFormula;
+import org.hibernate.annotations.Where;
 import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -45,11 +50,11 @@ public class Node extends ApplicationEntity
   @NonNull
   private String        _name;
 
-  @Column(name = "start", nullable = false, updatable = true, unique = true)
-  private int           _start;
+  @Column(name = "set_start", nullable = false, updatable = true, unique = true)
+  private int           _setStart;
 
-  @Column(name = "end", nullable = false, updatable = true, unique = true)
-  private int           _end;
+  @Column(name = "set_end", nullable = false, updatable = true, unique = true)
+  private int           _setEnd;
 
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(
@@ -62,7 +67,7 @@ public class Node extends ApplicationEntity
   @OneToMany(mappedBy="_node", cascade = CascadeType.ALL, orphanRemoval = false)
   private List<PresenceState>  _presences;
   
-  @Formula("(SELECT (COUNT(*) - 1) FROM nodes AS parent WHERE start BETWEEN parent.start AND parent.end)")
+  @Formula("(SELECT (COUNT(*) - 1) FROM nodes AS parent WHERE set_start BETWEEN parent.set_start AND parent.set_end)")
   private int _depth;
   
   public String getName () {
@@ -73,12 +78,12 @@ public class Node extends ApplicationEntity
     _name = name;
   }
   
-  public int getStart () {
-    return _start;
+  public int getSetStart () {
+    return _setStart;
   }
 
-  public int getEnd () {
-    return _end;
+  public int getSetEnd () {
+    return _setEnd;
   }
   
   public int getDepth () {

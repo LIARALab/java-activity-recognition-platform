@@ -52,6 +52,20 @@ public class LiaraPresenceStream implements PresenceStream
         }
       }
     }
+    
+    if (_next == null && !_events.hasNext() && _lastEvent != null) {
+      _next = toOccuringPresence(_lastEvent);
+      _lastEvent = null;
+    }
+  }
+
+  private PresenceState toOccuringPresence (Event event) {
+    final PresenceState result = new PresenceState();
+    result.setStart(event.getStart());
+    result.setEnd(null);
+    result.setNode(event.getSensor().getNodes().get(0));
+    result.setEmittionDate(event.getStart());
+    return result;  
   }
 
   private PresenceState toPresence (@NonNull final Event event) {

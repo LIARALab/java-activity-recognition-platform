@@ -57,17 +57,18 @@ public class PresenceState extends State
   private Node _node;
   
   @Formula("DATEDIFF(start, end) * 24 * 3600 + TIMESTAMPDIFF(MICROSECOND, start, end) / 1000")
-  private long _milliseconds;
+  private Long _milliseconds;
   
   public Duration getDuration () {
-    return Duration.between(_start, _end);
+    if (this.getEnd() == null) {
+      return null;
+    } else {
+      return Duration.between(_start, _end);
+    }
   }
   
-  public long getMilliseconds () {
+  public Long getMilliseconds () {
     return _milliseconds;
-    /*
-    final Duration duration = this.getDuration();
-    return duration.getSeconds() * 1000L + duration.getNano() / 1000000L;*/
   }
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
