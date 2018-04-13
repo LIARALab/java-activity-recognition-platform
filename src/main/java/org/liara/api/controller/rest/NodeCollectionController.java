@@ -59,8 +59,8 @@ public final class NodeCollectionController extends BaseRestController
   private NodeCollection _collection;
 
   @GetMapping("/nodes/count")
-  public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return countCollection(_collection, request);
+  public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+    return aggregate(_collection, request, this::count);
   }
 
   @GetMapping("/nodes")

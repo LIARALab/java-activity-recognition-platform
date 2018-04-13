@@ -8,15 +8,17 @@ import javax.persistence.criteria.Path;
 import org.springframework.lang.NonNull;
 
 @FunctionalInterface
-public interface SimplifiedCriteriaExpressionSelector<Value>
+public interface SimplifiedCriteriaExpressionSelector<Value> extends CriteriaExpressionSelector<Value>
 {
-  public static <Value> SimplifiedCriteriaExpressionSelector<Value> column (@NonNull final CriteriaExpressionSelector<Value> selector) {
-    return (SimplifiedCriteriaExpressionSelector<Value>) selector;
-  }
-  
   public Expression<Value> select (
+    @NonNull final Path<?> root
+  );
+  
+  public default Expression<Value> select (
     @NonNull final CriteriaBuilder builder,
     @NonNull final CriteriaQuery<?> query,
-    @NonNull final Path<?> _root
-  );
+    @NonNull final Path<?> root
+  ) {
+    return this.select(root);
+  }
 }

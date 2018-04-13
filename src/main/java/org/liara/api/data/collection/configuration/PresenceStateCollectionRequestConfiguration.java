@@ -25,15 +25,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.ordering.ComposedOrdering;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
-import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.PresenceState;
-import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
+import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.grouping.APIRequestGroupingProcessorFactory;
 import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.ordering.APIRequestOrderingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
@@ -89,6 +88,23 @@ public final class PresenceStateCollectionRequestConfiguration implements Collec
       APIRequestOrderingProcessorFactory.field("date", (root) -> root.get("_start")),
       APIRequestOrderingProcessorFactory.joinCollection("node", "_node", NodeCollection.class),
       APIRequestOrderingProcessorFactory.joinCollection("sensor", "_sensor", SensorCollection.class)
+    );
+  }
+
+  @Override
+  public List<APIRequestGroupingProcessor<PresenceState>> createGroupingProcessors () {
+    return Arrays.asList(
+      APIRequestGroupingProcessorFactory.expression("identifier", (root) -> root.get("_identifier")),
+      APIRequestGroupingProcessorFactory.expression("creationDate", (root) -> root.get("_creationDate")),
+      APIRequestGroupingProcessorFactory.expression("updateDate", (root) -> root.get("_updateDate")),
+      APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
+      APIRequestGroupingProcessorFactory.expression("start", (root) -> root.get("_start")),
+      APIRequestGroupingProcessorFactory.expression("end", (root) -> root.get("_end")),
+      APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
+      APIRequestGroupingProcessorFactory.expression("duration", (root) -> root.get("_milliseconds")),
+      APIRequestGroupingProcessorFactory.expression("date", (root) -> root.get("_start")),
+      APIRequestGroupingProcessorFactory.joinCollection("node", "_node", NodeCollection.class),
+      APIRequestGroupingProcessorFactory.joinCollection("sensor", "_sensor", SensorCollection.class)
     );
   }
 }

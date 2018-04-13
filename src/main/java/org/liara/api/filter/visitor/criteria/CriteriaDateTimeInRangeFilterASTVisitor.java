@@ -8,7 +8,7 @@ import java.util.List;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 
-import org.liara.api.criteria.SimplifiedCriteriaExpressionSelector;
+import org.liara.api.criteria.CriteriaExpressionSelector;
 import org.liara.api.date.PartialLocalDateTime;
 import org.liara.api.filter.ast.BetweenFilterNode;
 import org.liara.api.filter.ast.CommonFilterNodeType;
@@ -42,14 +42,14 @@ public class CriteriaDateTimeInRangeFilterASTVisitor<Entity> extends AnnotationB
   private CriteriaFilterASTVisitorContext<Entity> _context = null;
   
   @NonNull
-  private final SimplifiedCriteriaExpressionSelector<LocalDateTime> _start;
+  private final CriteriaExpressionSelector<LocalDateTime> _start;
   
   @NonNull
-  private final SimplifiedCriteriaExpressionSelector<LocalDateTime> _end;
+  private final CriteriaExpressionSelector<LocalDateTime> _end;
   
   public CriteriaDateTimeInRangeFilterASTVisitor(
-    @NonNull final SimplifiedCriteriaExpressionSelector<LocalDateTime> start,
-    @NonNull final SimplifiedCriteriaExpressionSelector<LocalDateTime> end
+    @NonNull final CriteriaExpressionSelector<LocalDateTime> start,
+    @NonNull final CriteriaExpressionSelector<LocalDateTime> end
   )
   {
     _start = start;
@@ -116,7 +116,7 @@ public class CriteriaDateTimeInRangeFilterASTVisitor<Entity> extends AnnotationB
   }
   
   private Predicate handleDate (
-    @NonNull final SimplifiedCriteriaExpressionSelector<LocalDateTime> dateField,
+    @NonNull final CriteriaExpressionSelector<LocalDateTime> dateField,
     @NonNull final PredicateFactory operator,
     @NonNull final PartialLocalDateTime date
   ) {

@@ -23,7 +23,6 @@ package org.liara.api.data.entity;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

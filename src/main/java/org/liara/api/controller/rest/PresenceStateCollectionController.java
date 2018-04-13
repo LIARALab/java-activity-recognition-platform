@@ -21,10 +21,15 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Path;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
@@ -46,7 +51,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-
 import io.swagger.annotations.Api;
 
 @RestController
@@ -123,8 +127,36 @@ public class PresenceStateCollectionController extends BaseRestController
   
 
   @GetMapping("/states<presence>/count")
-  public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
+  public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
-    return countCollection(_collection, request);
+    return aggregate(_collection, request, this::count);
+  }
+  
+  @GetMapping("/states<presence>/sum")
+  public ResponseEntity<Object> sum (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
+  {
+    return aggregate(_collection, request, this::sum, x -> Duration.ofMillis(x));
+  }
+  
+  @GetMapping("/states<presence>/avg")
+  public ResponseEntity<Object> avg (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
+  {
+    return aggregate(_collection, request, this::avg, x -> Duration.ofMillis(x.longValue()));
+  }
+  
+  private Expression<Long> sum (
+    @NonNull final CriteriaBuilder builder,
+    @NonNull final CriteriaQuery<?> query,
+    @NonNull final Path<?> root
+  ) {
+    return builder.sumAsLong(root.get("_milliseconds"));
+  }
+  
+  private Expression<Double> avg (
+    @NonNull final CriteriaBuilder builder,
+    @NonNull final CriteriaQuery<?> query,
+    @NonNull final Path<?> root
+  ) {
+    return builder.avg(root.get("_milliseconds"));
   }
 }

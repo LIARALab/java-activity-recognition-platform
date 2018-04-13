@@ -21,6 +21,9 @@
  ******************************************************************************/
 package org.liara.api.collection.query;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
@@ -37,6 +40,9 @@ public class JoinBasedEntityCollectionQuery<Entity, Related, Result> implements 
   
   @NonNull
   private final Join<Entity, Related>          _root;
+
+  @NonNull
+  private final Map<String, EntityCollectionQuery<?, Result>> _joins = new HashMap<>();
   
   public JoinBasedEntityCollectionQuery(
     @NonNull final EntityCollectionQuery<Entity, Result> query, 
@@ -46,9 +52,14 @@ public class JoinBasedEntityCollectionQuery<Entity, Related, Result> implements 
     _root = root;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <NextRelated> EntityCollectionQuery<NextRelated, Result> joinCollection (@NonNull final String name) {
-    return new JoinBasedEntityCollectionQuery<>(this, _root.join(name));
+    if (!_joins.containsKey(name)) {
+      _joins.put(name, new JoinBasedEntityCollectionQuery<>(this, _root.join(name)));
+    }
+    
+    return (EntityCollectionQuery<NextRelated, Result>) _joins.get(name);
   }
 
   @Override

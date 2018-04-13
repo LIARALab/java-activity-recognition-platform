@@ -58,8 +58,8 @@ public final class DoubleStateCollectionController extends BaseRestController
   private DoubleStateCollection _collection;
 
   @GetMapping("/states<double>/count")
-  public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return countCollection(_collection, request);
+  public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+    return aggregate(_collection, request, this::count);
   }
 
   @GetMapping("/states<double>")

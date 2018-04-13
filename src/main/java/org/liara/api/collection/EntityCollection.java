@@ -25,17 +25,23 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Selection;
 import javax.persistence.metamodel.EntityType;
+import javax.servlet.http.HttpServletRequest;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.collection.filtering.ComposedEntityFilter;
 import org.liara.api.collection.filtering.ASTBasedEntityFilter;
 import org.liara.api.collection.filtering.EntityFilter;
+import org.liara.api.collection.grouping.EntityGrouping;
 import org.liara.api.collection.ordering.Ordering;
 import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.criteria.CriteriaExpressionSelector;
+import org.liara.api.criteria.SimplifiedCriteriaExpressionSelector;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.lang.NonNull;
@@ -248,6 +254,40 @@ public interface EntityCollection<Entity, Identifier>
     return configuration.filterCollection(request, this);
   }
   
+
+  /**
+   * Try to order this collection with the default CollectionRequestConfiguration (if any).
+   * 
+   * @throws InvalidAPIRequestException 
+   * 
+   * @param request Request to use in order to filter this collection.
+   * @return A new collection filtered according to the given request.
+   */
+  public default EntityCollection<Entity, Identifier> order (@NonNull final APIRequest request) throws InvalidAPIRequestException {
+    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefault(this);
+    return configuration.orderCollection(request, this);
+  }
+ 
+  public default <Value> EntityCollectionQuery<Entity, Tuple> group (
+    @NonNull final EntityCollectionQuery<Entity, Tuple> query, 
+    @NonNull final APIRequest request,
+    @NonNull final CriteriaExpressionSelector<Value> selection
+  ) {
+    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefault(this);
+    final EntityGrouping<Entity> grouping = configuration.parseGrouping(request);
+    final List<Selection<?>> selections = grouping.createSelection(getCriteriaBuilder(), query);
+    
+    if (selections.size() > 0) {
+      selections.add(selection.select(getCriteriaBuilder(), query, query.getEntity()));
+      query.multiselect(selections);
+      query.groupBy(grouping.createGroupBy(getCriteriaBuilder(), query)); 
+    } else {
+      query.multiselect(selection.select(getCriteriaBuilder(), query, query.getEntity()));
+    }
+    
+    return query;
+  }
+  
   /**
    * Try to apply a request to this collection with the default CollectionRequestConfiguration (if any).
    * 
@@ -259,6 +299,18 @@ public interface EntityCollection<Entity, Identifier>
   public default EntityCollectionView<Entity, Identifier> apply (@NonNull final APIRequest request) throws InvalidAPIRequestException {
     final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefault(this);
     return configuration.applyRequest(request, this);
+  }
+  
+  /**
+   * Try to apply a request to this collection with the default CollectionRequestConfiguration (if any).
+   * 
+   * @throws InvalidAPIRequestException 
+   * 
+   * @param request Request to use in order to filter this collection.
+   * @return A new view over a collection according to the given request.
+   */
+  public default <Result> List<Result> fetch (@NonNull final EntityCollectionQuery<Entity, Result> query) {
+    return getEntityManager().createQuery(query).getResultList();
   }
   
   public Ordering<Entity> getOrdering ();

@@ -22,16 +22,19 @@
 package org.liara.api.data.collection.configuration;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.StateCollection;
+import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.State;
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
+import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
 import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.ordering.APIRequestOrderingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
@@ -75,5 +78,10 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       APIRequestOrderingProcessorFactory.field("deletionDate", (root) -> root.get("_deletionDate")),
       APIRequestOrderingProcessorFactory.field("name", (root) -> root.get("_name"))
     );
+  }
+  
+  @Override
+  public List<APIRequestGroupingProcessor<Sensor>> createGroupingProcessors () {
+    return Collections.emptyList();
   }
 }

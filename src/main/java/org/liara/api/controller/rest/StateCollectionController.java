@@ -25,10 +25,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.liara.api.collection.EntityCollections;
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.collection.StateCollection;
-import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
 import org.liara.api.data.entity.State;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,8 +58,8 @@ public final class StateCollectionController extends BaseRestController
   private StateCollection _collection;
 
   @GetMapping("/states/count")
-  public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return countCollection(_collection, request);
+  public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+    return aggregate(_collection, request, this::count);
   }
 
   @GetMapping("/states")

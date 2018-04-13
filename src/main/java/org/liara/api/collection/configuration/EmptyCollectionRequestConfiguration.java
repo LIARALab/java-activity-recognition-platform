@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
+import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
 import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
 
 public final class EmptyCollectionRequestConfiguration<Entity> implements CollectionRequestConfiguration<Entity>
@@ -16,6 +17,11 @@ public final class EmptyCollectionRequestConfiguration<Entity> implements Collec
 
   @Override
   public List<APIRequestOrderingProcessor<Entity>> createOrderingProcessors () {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public List<APIRequestGroupingProcessor<Entity>> createGroupingProcessors () {
     return Collections.emptyList();
   }
 }

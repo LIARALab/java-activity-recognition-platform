@@ -2,6 +2,7 @@ package org.liara.api.data.collection.configuration;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -18,6 +19,8 @@ import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
+import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.grouping.APIRequestGroupingProcessorFactory;
 import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.ordering.APIRequestOrderingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
@@ -98,6 +101,20 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestOrderingProcessorFactory.field("setEnd", (root) -> root.get("_setEnd")),
       APIRequestOrderingProcessorFactory.field("depth", (root) -> root.get("_depth")),
       APIRequestOrderingProcessorFactory.field("name", (root) -> root.get("_name"))
+    );
+  }
+  
+  @Override
+  public List<APIRequestGroupingProcessor<Node>> createGroupingProcessors () {
+    return Arrays.asList(
+      APIRequestGroupingProcessorFactory.expression("identifier", (root) -> root.get("_identifier")),
+      APIRequestGroupingProcessorFactory.expression("creationDate", (root) -> root.get("_creationDate")),
+      APIRequestGroupingProcessorFactory.expression("updateDate", (root) -> root.get("_updateDate")),
+      APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
+      APIRequestGroupingProcessorFactory.expression("setStart", (root) -> root.get("_setStart")),
+      APIRequestGroupingProcessorFactory.expression("setEnd", (root) -> root.get("_setEnd")),
+      APIRequestGroupingProcessorFactory.expression("depth", (root) -> root.get("_depth")),
+      APIRequestGroupingProcessorFactory.expression("name", (root) -> root.get("_name"))
     );
   }
 }

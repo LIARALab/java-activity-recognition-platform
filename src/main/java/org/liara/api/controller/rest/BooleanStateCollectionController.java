@@ -58,8 +58,8 @@ public final class BooleanStateCollectionController extends BaseRestController
   private BooleanStateCollection _collection;
 
   @GetMapping("/states<boolean>/count")
-  public long count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return countCollection(_collection, request);
+  public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+    return aggregate(_collection, request, this::count);
   }
 
   @GetMapping("/states<boolean>")

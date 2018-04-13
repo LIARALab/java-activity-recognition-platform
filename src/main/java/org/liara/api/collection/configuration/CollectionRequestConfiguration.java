@@ -10,10 +10,14 @@ import org.liara.api.collection.Cursor;
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.EntityCollectionView;
 import org.liara.api.collection.filtering.EntityFilter;
+import org.liara.api.collection.grouping.EntityGrouping;
 import org.liara.api.collection.ordering.Ordering;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.cursor.APIRequestFreeCursorParser;
+import org.liara.api.request.parser.grouping.APIRequestGroupingParser;
+import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.grouping.ComposedAPIRequestGroupingParser;
 import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.ordering.ComposedAPIRequestOrderingParser;
 import org.liara.api.request.validator.APIRequestFreeCursorValidator;
@@ -165,6 +169,10 @@ public interface CollectionRequestConfiguration<Entity>
     return createOrderingParser().parse(request);
   }
   
+  public default EntityGrouping<Entity> parseGrouping (@NonNull final APIRequest request) {
+    return createGroupingParser().parse(request);
+  }
+  
   public default void validate (@NonNull final APIRequest request) throws InvalidAPIRequestException {
     CollectionRequestConfiguration.validate(createValidators(), request);
   }
@@ -217,5 +225,16 @@ public interface CollectionRequestConfiguration<Entity>
     validators.addAll(createFilterValidators());
     
     return validators;
+  }
+  
+  public default Collection<APIRequestValidator> createGroupingValidators () {
+    return Collections.emptyList();
+  }
+
+  public List<APIRequestGroupingProcessor<Entity>> createGroupingProcessors ();
+  
+  public default APIRequestGroupingParser<Entity> createGroupingParser () {
+    System.out.println(createGroupingProcessors());
+    return new ComposedAPIRequestGroupingParser<>(createGroupingProcessors());
   }
 }

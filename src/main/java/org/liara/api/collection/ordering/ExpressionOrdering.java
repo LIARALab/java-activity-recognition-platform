@@ -8,19 +8,19 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
 
 import org.liara.api.collection.query.EntityCollectionQuery;
-import org.liara.api.criteria.CriteriaExpressionSelector;
+import org.liara.api.criteria.SimplifiedCriteriaExpressionSelector;
 import org.springframework.lang.NonNull;
 
 public final class ExpressionOrdering<Entity> implements Ordering<Entity>
 {
   @NonNull
-  private final CriteriaExpressionSelector<?> _selector;
+  private final SimplifiedCriteriaExpressionSelector<?> _selector;
   
   @NonNull
   private final OrderingDirection _orderType;
 
   public ExpressionOrdering (
-    @NonNull final CriteriaExpressionSelector<?> selector, 
+    @NonNull final SimplifiedCriteriaExpressionSelector<?> selector, 
     @NonNull final OrderingDirection orderType
   ) {
     _selector = selector;
@@ -48,7 +48,7 @@ public final class ExpressionOrdering<Entity> implements Ordering<Entity>
     return _selector.select(builder, query, query.getEntity());
   }
 
-  public CriteriaExpressionSelector<?> getSelector () {
+  public SimplifiedCriteriaExpressionSelector<?> getSelector () {
     return _selector;
   }
 

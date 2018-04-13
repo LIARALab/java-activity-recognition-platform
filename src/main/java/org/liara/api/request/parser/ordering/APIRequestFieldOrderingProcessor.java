@@ -3,7 +3,7 @@ package org.liara.api.request.parser.ordering;
 import org.liara.api.collection.ordering.ExpressionOrdering;
 import org.liara.api.collection.ordering.Ordering;
 import org.liara.api.collection.ordering.OrderingDirection;
-import org.liara.api.criteria.CriteriaExpressionSelector;
+import org.liara.api.criteria.SimplifiedCriteriaExpressionSelector;
 import org.springframework.lang.NonNull;
 
 public class APIRequestFieldOrderingProcessor<Entity> implements APIRequestOrderingProcessor<Entity>
@@ -12,11 +12,11 @@ public class APIRequestFieldOrderingProcessor<Entity> implements APIRequestOrder
   private final String _key;
   
   @NonNull
-  private final CriteriaExpressionSelector<?> _selector;
+  private final SimplifiedCriteriaExpressionSelector<?> _selector;
   
   public APIRequestFieldOrderingProcessor (
     @NonNull final String key, 
-    @NonNull final CriteriaExpressionSelector<?> selector
+    @NonNull final SimplifiedCriteriaExpressionSelector<?> selector
   ) {
     _key = key;
     _selector = selector;
