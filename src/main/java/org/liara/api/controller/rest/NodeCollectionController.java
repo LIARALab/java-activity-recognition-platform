@@ -27,12 +27,15 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.collection.NodeCollection;
-import org.liara.api.data.entity.Node;
-import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.node.NodeData;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,6 +55,11 @@ import io.swagger.annotations.ApiImplicitParams;
     consumes = "application/json",
     protocols = "http"
 )
+/**
+ * A controller for all API endpoints that read, write or update information about nodes.
+ * 
+ * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ */
 public final class NodeCollectionController extends BaseRestController
 {
   @Autowired
@@ -59,6 +67,20 @@ public final class NodeCollectionController extends BaseRestController
   private NodeCollection _collection;
 
   @GetMapping("/nodes/count")
+  /**
+   * Count all nodes in the application.
+   * 
+   * This method also allow the user to filter and group counted nodes by categories.
+   * 
+   * For more information about all allowed options, take a look to the NodeCollection request configuration
+   * class.
+   * 
+   * @param request The related HTTP request.
+   * 
+   * @return An HTTP response with the user requested data.
+   * 
+   * @throws InvalidAPIRequestException When the user request is invalid / malformed.
+   */
   public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
     return aggregate(_collection, request, this::count);
   }
@@ -95,10 +117,27 @@ public final class NodeCollectionController extends BaseRestController
       )
     }
   )
+  /**
+   * Fetch nodes from the application.
+   * 
+   * Allow the user to filter, paginate and sort returned nodes.
+   * 
+   * For more information about all allowed options, take a look to the NodeCollection request configuration
+   * class.
+   * 
+   * @param request
+   * @return
+   * @throws InvalidAPIRequestException
+   */
   public ResponseEntity<List<Node>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
   {
     return indexCollection(_collection, request);
+  }
+  
+  @PostMapping("/nodes")
+  public void create (@NonNull @RequestBody final NodeData node) {
+    System.out.println(node);
   }
 
   @GetMapping("/nodes/{identifier}")

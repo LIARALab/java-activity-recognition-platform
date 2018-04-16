@@ -1,6 +1,8 @@
-package org.liara.api.data.entity;
+package org.liara.api.data.entity.node;
 
 import java.util.Optional;
+
+import javax.validation.constraints.NotBlank;
 
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -8,6 +10,7 @@ import org.springframework.lang.Nullable;
 public class NodeData
 {
   @NonNull
+  @NotBlank
   private Optional<String> _name = Optional.empty();
   
   @NonNull

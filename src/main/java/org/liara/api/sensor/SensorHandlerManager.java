@@ -5,8 +5,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.liara.api.data.entity.Sensor;
-
+import org.liara.api.data.entity.sensor.Sensor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;

@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.liara.api.data.entity.BooleanState;
+import org.liara.api.data.entity.state.BooleanState;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 

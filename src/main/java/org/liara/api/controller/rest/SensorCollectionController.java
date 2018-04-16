@@ -36,8 +36,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.collection.SensorCollection;
-import org.liara.api.data.entity.Node;
-import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 

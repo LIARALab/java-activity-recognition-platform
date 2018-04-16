@@ -26,7 +26,7 @@ import javax.persistence.EntityManager;
 import org.liara.api.collection.CompleteEntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
-import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;

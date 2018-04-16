@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.data.entity;
+package org.liara.api.data.entity.state;
 
 import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
@@ -27,18 +27,18 @@ import javax.persistence.Table;
 import javax.persistence.Column;
 
 @Entity
-@Table(name = "states_double")
+@Table(name = "states_integer")
 @PrimaryKeyJoinColumn(name = "state_identifier")
-public class DoubleState extends State
+public class IntegerState extends State
 {
-  private double value;
+  private int value;
 
-  @Column(name = "value", updatable = true, nullable = false, unique = false)
-  public double getValue () {
+  @Column(name = "value", nullable = false, updatable = true, unique = false)
+  public int getValue () {
     return this.value;
   }
 
-  public void setValue (final double value) {
+  public void setValue (final int value) {
     this.value = value;
   }
 }

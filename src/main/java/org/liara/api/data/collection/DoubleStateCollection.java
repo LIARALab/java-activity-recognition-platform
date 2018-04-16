@@ -26,7 +26,7 @@ import java.lang.Integer;
 import javax.persistence.EntityManager;
 
 import org.liara.api.collection.CompleteEntityCollection;
-import org.liara.api.data.entity.DoubleState;
+import org.liara.api.data.entity.state.DoubleState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;

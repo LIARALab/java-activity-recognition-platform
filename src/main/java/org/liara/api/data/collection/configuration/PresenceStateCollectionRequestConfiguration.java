@@ -27,7 +27,7 @@ import java.util.List;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
-import org.liara.api.data.entity.PresenceState;
+import org.liara.api.data.entity.state.PresenceState;
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;

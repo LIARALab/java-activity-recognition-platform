@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.data.entity;
+package org.liara.api.data.entity.state;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -29,6 +29,8 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;

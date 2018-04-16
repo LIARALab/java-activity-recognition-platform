@@ -2,7 +2,7 @@ package org.liara.recognition.presence;
 
 import java.util.NoSuchElementException;
 
-import org.liara.api.data.entity.PresenceState;
+import org.liara.api.data.entity.state.PresenceState;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 

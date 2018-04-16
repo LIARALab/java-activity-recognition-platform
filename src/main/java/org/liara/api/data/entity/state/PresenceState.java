@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.data.entity;
+package org.liara.api.data.entity.state;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -32,6 +32,7 @@ import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Formula;
+import org.liara.api.data.entity.node.Node;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 

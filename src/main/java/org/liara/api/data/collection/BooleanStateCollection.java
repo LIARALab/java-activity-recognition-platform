@@ -24,7 +24,7 @@ package org.liara.api.data.collection;
 import javax.persistence.EntityManager;
 
 import org.liara.api.collection.CompleteEntityCollection;
-import org.liara.api.data.entity.BooleanState;
+import org.liara.api.data.entity.state.BooleanState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;

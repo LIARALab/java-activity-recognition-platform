@@ -14,7 +14,7 @@ import org.liara.api.collection.ordering.ComposedOrdering;
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.EntityCollectionSubQuery;
 import org.liara.api.data.collection.NodeCollection;
-import org.liara.api.data.entity.Node;
+import org.liara.api.data.entity.node.Node;
 import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
