@@ -31,6 +31,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Selection;
 import javax.persistence.metamodel.EntityType;
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.exception.EntityNotFoundException;
@@ -111,7 +112,9 @@ public interface EntityCollection<Entity, Identifier>
       )
     );
     
-    return entityManager.createQuery(criteriaQuery).getSingleResult();
+    final List<Entity> result = entityManager.createQuery(criteriaQuery).getResultList();
+    
+    return (result.size() > 0) ? result.get(0) : null; 
   }
 
   /**
@@ -155,6 +158,36 @@ public interface EntityCollection<Entity, Identifier>
     } else {
       throw new EntityNotFoundException();
     }
+  }
+  
+  /**
+   * Add an entity into this collection.
+   * 
+   * @param entity The entity to add to this collection.
+   */
+  @Transactional()
+  public default void add (@NonNull final Entity entity) {
+    getEntityManager().persist(entity);
+  }
+  
+  /**
+   * Remove an entity of this collection.
+   * 
+   * @param entity The entity to remove from this collection.
+   */
+  @Transactional()
+  public default void remove (@NonNull final Entity entity) {
+    getEntityManager().remove(entity);
+  }
+  
+  /**
+   * Update an entity of this collection.
+   * 
+   * @param entity The entity of this collection to update.
+   */
+  @Transactional()
+  public default void update (@NonNull final Entity entity) {
+    getEntityManager().merge(entity);
   }
 
   /**

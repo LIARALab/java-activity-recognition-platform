@@ -21,46 +21,74 @@
  ******************************************************************************/
 package org.liara.api.collection;
 
-import java.util.Iterator;
-
 import org.springframework.lang.NonNull;
 
 /**
- * A cursor over a collection of element.
+ * A cursor that select a range of entities in a collection.
  * 
  * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
  */
 public final class Cursor
 {
+  /**
+   * A cursor that select an entire collection of entities.
+   */
   @NonNull public static final Cursor ALL = new Cursor (0, Integer.MAX_VALUE);
+  
+  /**
+   * The default application cursor. Skip 0 entities and display 10 entities from the given collection.
+   */
   @NonNull public static final Cursor DEFAULT = new Cursor (0, 10);
+  
+  /**
+   * An empty cursor. Skip 0 entities and do not display any entities from the given collection.
+   */
   @NonNull public static final Cursor EMPTY = new Cursor (0, 0);
   
   private final int _offset;
   private final int _limit;
   
+  /**
+   * Create a new empty cursor. Skip 0 entities and do not display any entities from the given collection.
+   */
   public Cursor () {
-    this._offset = 0;
-    this._limit = 10;
-  }
-  
-  public Cursor (final int offset) {
-    this._offset = offset;
-    this._limit = 10;
-  }
-  
-  public Cursor (final int offset, final int limit) {
-    this._offset = offset;
-    this._limit = limit;
-  }
-  
-  public Cursor (@NonNull final Cursor cursor) {
-    this._offset = cursor.getOffset();
-    this._limit = cursor.getLimit();
+    _offset = 0;
+    _limit = 0;
   }
   
   /**
-   * @return The index of the first element to display.
+   * Create a cursor that skip 0 entities and limit entities to display.
+   * 
+   * @param limit Maximum number of entities to display.
+   */
+  public Cursor (final int limit) {
+    _offset = 0;
+    _limit = limit;
+  }
+  
+  /**
+   * Create a cursor that skip a given amount of entities and also limit entities to display.
+   * 
+   * @param offset Amount of entities to skip.
+   * @param limit Maximum number of entities to display.
+   */
+  public Cursor (final int offset, final int limit) {
+    _offset = offset;
+    _limit = limit;
+  }
+  
+  /**
+   * Create a copy of a given cursor.
+   * 
+   * @param cursor The cursor instance to copy.
+   */
+  public Cursor (@NonNull final Cursor cursor) {
+    _offset = cursor.getOffset();
+    _limit = cursor.getLimit();
+  }
+  
+  /**
+   * @return The amount of entities to skip.
    */
   public int getOffset () {
     return _offset;
@@ -69,7 +97,7 @@ public final class Cursor
   /**
    * Return a new cursor based on this one with a new offset value.
    * 
-   * @param offset The new offset value.
+   * @param offset The new amount of entities to skip.
    * @return An updated cursor instance with the given offset.
    */
   public Cursor setOffset (final int offset) {
@@ -77,7 +105,7 @@ public final class Cursor
   }
   
   /**
-   * @return The maximum number of element to display.
+   * @return The maximum number of entities to display.
    */
   public int getLimit () {
     return _limit;
@@ -86,7 +114,7 @@ public final class Cursor
   /**
    * Return a new cursor based on this one with a new limit value.
    * 
-   * @param limit The new limit value.
+   * @param limit The new maximum number of entities to display.
    * @return An updated cursor instance with the given limit.
    */
   public Cursor setLimit (final int limit) {
@@ -96,14 +124,23 @@ public final class Cursor
   /**
    * Return a new cursor based on this one without any limits.
    * 
-   * @return An updated cursor instance with the given limit.
+   * @return An updated cursor instance that does not limit the number of entities to display.
    */
   public Cursor unlimit () {
     return new Cursor(_offset, Integer.MAX_VALUE);
   }
   
   /**
-   * @return True if the given cursor limit its results.
+   * Return a new cursor based on this one without any skipped entities.
+   * 
+   * @return An updated cursor instance that does not skip any entities.
+   */
+  public Cursor unskip () {
+    return new Cursor(0, _limit);
+  }
+  
+  /**
+   * @return True if the given cursor limit the number of entities to display.
    */
   public boolean hasLimit () {
     return _limit != Integer.MAX_VALUE;

@@ -24,14 +24,22 @@ package org.liara.api.controller.web;
 import org.springframework.lang.NonNull;
 
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.core.annotation.Order;
-import org.liara.api.APIErrorMessage;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.Ordered;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -47,11 +55,33 @@ public final class APIExceptionHandler
   }
 
   @ExceptionHandler(EntityNotFoundException.class)
-  public ResponseEntity<APIErrorMessage> handleEntityNotFoundException (
+  public ResponseEntity<Void> handleEntityNotFoundException (
     @NonNull final EntityNotFoundException exception
   )
   {
-    return new ResponseEntity<>(new APIErrorMessage("The requested entity does not exists."), HttpStatus.NOT_FOUND);
+    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+  }
+  
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<List<Map<String, Object>>> handleException(@NonNull final MethodArgumentNotValidException exception) {
+    final List<Map<String, Object>> errors = new ArrayList<>();
+    
+    exception.getBindingResult()
+             .getFieldErrors()
+             .stream()
+             .map(fieldError -> {
+               final Map<String, Object> error = new HashMap<>();
+
+               error.put("object", fieldError.getObjectName());
+               error.put("field", fieldError.getField());
+               error.put("message", fieldError.getDefaultMessage());
+               error.put("rejected", fieldError.getRejectedValue());
+               
+               return error;
+             }).forEach(errors::add);
+                                          
+
+    return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(Exception.class)

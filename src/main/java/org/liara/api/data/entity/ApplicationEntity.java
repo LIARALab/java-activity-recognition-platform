@@ -1,6 +1,7 @@
 package org.liara.api.data.entity;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.annotation.Nullable;
 import javax.persistence.Column;
@@ -28,45 +29,45 @@ public class ApplicationEntity
   @Column(name = "created_at", nullable = false, updatable = false, unique = false)
   @ColumnDefault(value = "CURRENT_TIMESTAMP")
   @NonNull
-  private LocalDateTime _creationDate;
+  private ZonedDateTime _creationDate;
 
   @Column(name = "updated_at", nullable = false, updatable = true, unique = false)
   @ColumnDefault(value = "CURRENT_TIMESTAMP")
   @UpdateTimestamp
   @NonNull
-  private LocalDateTime _updateDate;
+  private ZonedDateTime _updateDate;
 
   @Column(name = "deleted_at", nullable = true, updatable = true, unique = false)
   @Nullable
-  private LocalDateTime _deletionDate;
+  private ZonedDateTime _deletionDate;
   
   public long getIdentifier () {
     return _identifier.longValue();
   }
   
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getCreationDate () {
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
+  public ZonedDateTime getCreationDate () {
     return _creationDate;
   }
 
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getDeletionDate () {
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
+  public ZonedDateTime getDeletionDate () {
     return _deletionDate;
   }
 
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getUpdateDate () {
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
+  public ZonedDateTime getUpdateDate () {
     return _updateDate;
   }
   
   @PrePersist
   protected void onCreate() {
-    _creationDate = LocalDateTime.now();
+    _creationDate = ZonedDateTime.now();
   }
   
   @PreUpdate
   protected void onUpdate () {
-    _updateDate = LocalDateTime.now();
+    _updateDate = ZonedDateTime.now();
   }
 
   @Override

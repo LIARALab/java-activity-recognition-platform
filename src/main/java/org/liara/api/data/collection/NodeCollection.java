@@ -31,11 +31,13 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.transaction.Transactional;
 
 import org.liara.api.collection.CompleteEntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.node.NodeModifier;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
@@ -127,5 +129,52 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
     query.where(criteriaBuilder.equal(sensor.get("_type"), type));
     
     return getEntityManager().createQuery(query).getResultList();
+  }
+  
+  @Transactional
+  public Node add (@NonNull final NodeModifier modifier) {
+    int setStart = 0;
+    int setEnd = 0;
+    
+    if (modifier.getParent().isPresent()) {
+      final Node parent = this.findById(modifier.getParent().get());
+
+      setStart = parent.getSetEnd();
+      setEnd = parent.getSetEnd() + 1;
+
+      getEntityManager().createQuery(
+        "UPDATE Node SET _setStart = _setStart + 2 WHERE _setStart > :parentSetEnd"
+      ).setParameter("parentSetEnd", parent.getSetEnd()).executeUpdate();
+      
+      getEntityManager().createQuery(
+        "UPDATE Node SET _setEnd = _setEnd + 2 WHERE _setEnd >= :parentSetEnd"
+      ).setParameter("parentSetEnd", parent.getSetEnd()).executeUpdate();
+    } else {
+      final int rootEnd = getRootSetEnd();
+      setStart = rootEnd;
+      setEnd = rootEnd + 1;
+    }
+    
+    final Node node = new Node(setStart, setEnd);
+    node.setName(modifier.getName().get());
+    
+    this.add(node);
+    
+    return node;
+  }
+  
+  public int getRootSetEnd () {
+    if (this.getSize() <= 0) {
+      return 1;
+    } else {
+      return getEntityManager().createQuery(
+        "SELECT MAX(node._setEnd) + 1 FROM Node node",
+        Integer.class
+      ).getSingleResult().intValue();
+    }
+  }
+  
+  public int getRootSetStart () {
+    return 0;
   }
 }

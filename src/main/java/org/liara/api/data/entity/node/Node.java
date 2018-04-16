@@ -48,10 +48,10 @@ public class Node extends ApplicationEntity
   @NonNull
   private String        _name;
 
-  @Column(name = "set_start", nullable = false, updatable = true, unique = true)
+  @Column(name = "set_start", nullable = true, updatable = true, unique = false)
   private int           _setStart;
 
-  @Column(name = "set_end", nullable = false, updatable = true, unique = true)
+  @Column(name = "set_end", nullable = true, updatable = true, unique = false)
   private int           _setEnd;
 
   @ManyToMany(cascade = CascadeType.ALL)
@@ -67,6 +67,18 @@ public class Node extends ApplicationEntity
   
   @Formula("(SELECT (COUNT(*) - 1) FROM nodes AS parent WHERE set_start BETWEEN parent.set_start AND parent.set_end)")
   private int _depth;
+  
+  public Node () {
+    _name = null;
+    _setStart = 0;
+    _setEnd = 0;
+  }
+  
+  public Node (final int setStart, final int setEnd) {
+    _name = null;
+    _setStart = setStart;
+    _setEnd = setEnd;
+  }
   
   public String getName () {
     return _name;

@@ -2,18 +2,20 @@ package org.liara.api.data.entity.node;
 
 import java.util.Optional;
 
-import javax.validation.constraints.NotBlank;
-
+import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-public class NodeData
+public class NodeModifier
 {
   @NonNull
-  @NotBlank
+  @Required
   private Optional<String> _name = Optional.empty();
   
   @NonNull
+  @IdentifierOfEntityInCollection(collection = NodeCollection.class)
   private Optional<Long> _parent = Optional.empty();
  
   public Optional<String> getName () {
