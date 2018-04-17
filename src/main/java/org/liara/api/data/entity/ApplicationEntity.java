@@ -1,7 +1,6 @@
 package org.liara.api.data.entity;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 
 import javax.annotation.Nullable;
 import javax.persistence.Column;
@@ -58,6 +57,20 @@ public class ApplicationEntity
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
   public ZonedDateTime getUpdateDate () {
     return _updateDate;
+  }
+  
+  /**
+   * Mark this entity as deleted. (Soft-deletion support)
+   */
+  public void delete () {
+    if (_deletionDate == null) _deletionDate = ZonedDateTime.now();
+  }
+  
+  /**
+   * Restore this entity. (Soft-deletion support)
+   */
+  public void restore () {
+    if (_deletionDate != null) _deletionDate = null;
   }
   
   @PrePersist

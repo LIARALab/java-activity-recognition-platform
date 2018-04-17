@@ -163,6 +163,52 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
     return node;
   }
   
+  /*
+  @Transactional
+  public void remove (@NonNull final Node node) {
+    node.delete();
+    
+    getEntityManager().createQuery(
+      String.join(
+        "", 
+        "UPDATE Node",
+        "SET _deletionDate = :deletionDate",
+        "WHERE _setEnd >= :parentSetEnd",
+        "  AND _setStart <= :parentSetStart",
+        "  AND _deletionDate IS NULL"
+      )
+    ).setParameter("deletionDate", node.getDeletionDate())
+     .setParameter("parentSetEnd", node.getSetEnd())
+     .setParameter("parentSetStart", node.getSetStart())
+     .executeUpdate();
+    
+    getEntityManager().createQuery(String.join(
+      "", 
+      "UPDATE Sensor",
+      "JOIN _nodes",
+      "SET _deletionDate = :deletionDate",
+      "WHERE _nodes._setEnd >= :parentSetEnd",
+      "  AND _nodes._setStart <= :parentSetStart",
+      "  AND _deletionDate IS NULL"
+    )).setParameter("deletionDate", node.getDeletionDate())
+      .setParameter("parentSetEnd", node.getSetEnd())
+      .setParameter("parentSetStart", node.getSetStart())
+      .executeUpdate();
+    
+    getEntityManager().createQuery(String.join(
+      "", 
+      "UPDATE State",
+      "JOIN _sensor._nodes AS _nodes",
+      "SET _deletionDate = :deletionDate",
+      "WHERE _nodes._setEnd >= :parentSetEnd",
+      "  AND _nodes._setStart <= :parentSetStart",
+      "  AND _deletionDate IS NULL"
+    )).setParameter("deletionDate", node.getDeletionDate())
+      .setParameter("parentSetEnd", node.getSetEnd())
+      .setParameter("parentSetStart", node.getSetStart())
+      .executeUpdate();
+  }*/
+  
   public int getRootSetEnd () {
     if (this.getSize() <= 0) {
       return 1;
