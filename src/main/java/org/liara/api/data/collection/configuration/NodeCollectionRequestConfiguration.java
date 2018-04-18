@@ -10,14 +10,14 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.ordering.ComposedOrdering;
+import org.liara.api.collection.operator.ordering.ComposedOrdering;
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.EntityCollectionSubQuery;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
-import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
+import org.liara.api.request.parser.filtering.APIRequestEntityCollectionFilteringOperatorParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
 import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
 import org.liara.api.request.parser.grouping.APIRequestGroupingProcessorFactory;
@@ -56,7 +56,7 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
   }
   
   @Override
-  public APIRequestEntityFilterParser<Node> createFilterParser () {
+  public APIRequestEntityCollectionFilteringOperatorParser<Node> createFilterParser () {
     return new APIRequestCompoundEntityFilterParser<>(Arrays.asList(
       APIRequestEntityFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
       APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),

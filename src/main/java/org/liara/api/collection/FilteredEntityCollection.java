@@ -27,10 +27,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.liara.api.collection.filtering.ComposedEntityFilter;
-import org.liara.api.collection.filtering.EntityFilter;
-import org.liara.api.collection.ordering.ComposedOrdering;
-import org.liara.api.collection.ordering.EmptyOrdering;
-import org.liara.api.collection.ordering.Ordering;
+import org.liara.api.collection.operator.IdentityOperator;
+import org.liara.api.collection.operator.EntityCollectionFilteringOperator;
+import org.liara.api.collection.operator.ordering.ComposedOrdering;
+import org.liara.api.collection.operator.ordering.Ordering;
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.RootBasedEntityCollectionQuery;
 import org.springframework.lang.NonNull;
@@ -55,7 +55,7 @@ public class FilteredEntityCollection<Entity, Identifier> implements EntityColle
    * Filter to apply to the full collection in order to get results.
    */
   @NonNull
-  private final EntityFilter<Entity> _filter;
+  private final EntityCollectionFilteringOperator<Entity> _filter;
 
   /**
    * Entity manager.
@@ -68,19 +68,19 @@ public class FilteredEntityCollection<Entity, Identifier> implements EntityColle
 
   public FilteredEntityCollection(
     @NonNull final Class<Entity> entity,
-    @NonNull final EntityFilter<Entity> filter,
+    @NonNull final EntityCollectionFilteringOperator<Entity> filter,
     @NonNull final EntityManager entityManager
   )
   {
     _entity = entity;
     _filter = filter;
     _entityManager = entityManager;
-    _ordering = new EmptyOrdering<>();
+    _ordering = new IdentityOperator<>();
   }
   
   public FilteredEntityCollection(
     @NonNull final Class<Entity> entity,
-    @NonNull final EntityFilter<Entity> filter,
+    @NonNull final EntityCollectionFilteringOperator<Entity> filter,
     @NonNull final EntityManager entityManager,
     @NonNull final Ordering<Entity> ordering
   )
@@ -115,13 +115,13 @@ public class FilteredEntityCollection<Entity, Identifier> implements EntityColle
   }
 
   @Override
-  public EntityCollection<Entity, Identifier> filter (@NonNull final EntityFilter<Entity> filter) {
+  public EntityCollection<Entity, Identifier> filter (@NonNull final EntityCollectionFilteringOperator<Entity> filter) {
     return new FilteredEntityCollection<>(getEntityClass(), new ComposedEntityFilter<>(Arrays.asList(_filter, filter)), getEntityManager());
   }
 
   @Override
   public EntityCollection<Entity, Identifier> order (@NonNull final Ordering<Entity> ordering) {
-    if (_ordering instanceof EmptyOrdering) {
+    if (_ordering instanceof IdentityOperator) {
       return new FilteredEntityCollection<>(_entity, _filter, _entityManager, ordering);
     } else {
       return new FilteredEntityCollection<>(

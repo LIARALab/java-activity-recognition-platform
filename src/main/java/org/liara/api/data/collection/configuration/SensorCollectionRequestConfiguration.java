@@ -32,7 +32,7 @@ import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
-import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
+import org.liara.api.request.parser.filtering.APIRequestEntityCollectionFilteringOperatorParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
 import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
 import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
@@ -43,7 +43,7 @@ import org.liara.api.request.validator.APIRequestValidator;
 public final class SensorCollectionRequestConfiguration implements CollectionRequestConfiguration<Sensor>
 {
   @Override
-  public APIRequestEntityFilterParser<Sensor> createFilterParser () {
+  public APIRequestEntityCollectionFilteringOperatorParser<Sensor> createFilterParser () {
     return new APIRequestCompoundEntityFilterParser<>(Arrays.asList(
       APIRequestEntityFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
       APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),

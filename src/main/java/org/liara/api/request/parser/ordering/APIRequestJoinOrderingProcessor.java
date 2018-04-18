@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.ordering.ComposedOrdering;
-import org.liara.api.collection.ordering.JoinOrdering;
-import org.liara.api.collection.ordering.Ordering;
-import org.liara.api.collection.ordering.OrderingDirection;
+import org.liara.api.collection.operator.ordering.ComposedOrdering;
+import org.liara.api.collection.operator.ordering.JoinOrdering;
+import org.liara.api.collection.operator.ordering.Ordering;
+import org.liara.api.collection.operator.ordering.OrderingDirection;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 

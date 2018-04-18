@@ -29,7 +29,7 @@ import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.state.PresenceState;
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
-import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
+import org.liara.api.request.parser.filtering.APIRequestEntityCollectionFilteringOperatorParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
 import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
 import org.liara.api.request.parser.grouping.APIRequestGroupingProcessorFactory;
@@ -41,7 +41,7 @@ import org.liara.api.request.validator.APIRequestValidator;
 public final class PresenceStateCollectionRequestConfiguration implements CollectionRequestConfiguration<PresenceState>
 {
   @Override
-  public APIRequestEntityFilterParser<PresenceState> createFilterParser () {
+  public APIRequestEntityCollectionFilteringOperatorParser<PresenceState> createFilterParser () {
     return new APIRequestCompoundEntityFilterParser<>(Arrays.asList(
       APIRequestEntityFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
       APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),

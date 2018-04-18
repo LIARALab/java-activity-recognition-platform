@@ -9,9 +9,9 @@ import java.util.List;
 import org.liara.api.collection.Cursor;
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.EntityCollectionView;
-import org.liara.api.collection.filtering.EntityFilter;
 import org.liara.api.collection.grouping.EntityGrouping;
-import org.liara.api.collection.ordering.Ordering;
+import org.liara.api.collection.operator.EntityCollectionFilteringOperator;
+import org.liara.api.collection.operator.ordering.Ordering;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.cursor.APIRequestFreeCursorParser;
@@ -116,7 +116,7 @@ public interface CollectionRequestConfiguration<Entity>
   ) throws InvalidAPIRequestException {
     validate(request);
     
-    final EntityFilter<Entity> filter = parseFilter(request);
+    final EntityCollectionFilteringOperator<Entity> filter = parseFilter(request);
     final Cursor cursor = parseCursor(request);
     final Ordering<Entity> ordering = parseOrdering(request);
     
@@ -129,7 +129,7 @@ public interface CollectionRequestConfiguration<Entity>
   ) throws InvalidAPIRequestException {
     validateFiltersAndSorts(request);
     
-    final EntityFilter<Entity> filter = parseFilter(request);
+    final EntityCollectionFilteringOperator<Entity> filter = parseFilter(request);
     
     return collection.filter(filter);
   }
@@ -151,13 +151,13 @@ public interface CollectionRequestConfiguration<Entity>
   ) throws InvalidAPIRequestException {
     validateFiltersAndSorts(request);
 
-    final EntityFilter<Entity> filter = parseFilter(request);
+    final EntityCollectionFilteringOperator<Entity> filter = parseFilter(request);
     final Ordering<Entity> ordering = parseOrdering(request);
     
     return collection.filter(filter).order(ordering);
   }
   
-  public default EntityFilter<Entity> parseFilter (@NonNull final APIRequest request) {
+  public default EntityCollectionFilteringOperator<Entity> parseFilter (@NonNull final APIRequest request) {
     return createFilterParser().parse(request);
   }
   
@@ -193,7 +193,7 @@ public interface CollectionRequestConfiguration<Entity>
     CollectionRequestConfiguration.validate(validators, request);
   }
   
-  public APIRequestParser<EntityFilter<Entity>> createFilterParser ();
+  public APIRequestParser<EntityCollectionFilteringOperator<Entity>> createFilterParser ();
   
   public default APIRequestParser<Cursor> createCursorParser () {
     return new APIRequestFreeCursorParser();

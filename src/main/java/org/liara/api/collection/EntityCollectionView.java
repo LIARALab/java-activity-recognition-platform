@@ -35,9 +35,10 @@ import org.springframework.lang.Nullable;
  * client or used for computation.
  * 
  * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * 
  * @param <Entity> Type of entity in the view.
  */
-public class EntityCollectionView<Entity, Identifier>
+public class EntityCollectionView<Entity>
 {
   /**
    * The view definition.
@@ -48,7 +49,7 @@ public class EntityCollectionView<Entity, Identifier>
    * The parent collection of this view.
    */
   @NonNull
-  private EntityCollection<Entity, Identifier> _parent;
+  private EntityCollection<Entity> _parent;
 
   /**
    * The content of this view.
@@ -61,8 +62,8 @@ public class EntityCollectionView<Entity, Identifier>
    *
    * @param parent The parent collection of this view.
    */
-  public EntityCollectionView(@NonNull final EntityCollection<Entity, Identifier> parent) {
-    this.setParentCollection(parent);
+  public EntityCollectionView(@NonNull final EntityCollection<Entity> parent) {
+    setParentCollection(parent);
     _cursor = Cursor.ALL;
     _content = null;
   }
@@ -73,8 +74,11 @@ public class EntityCollectionView<Entity, Identifier>
    * @param parent The parent collection of this view.
    * @param cursor The view definition.
    */
-  public EntityCollectionView(@NonNull final EntityCollection<Entity, Identifier> parent, @NonNull final Cursor cursor) {
-    this.setParentCollection(parent);
+  public EntityCollectionView(
+    @NonNull final EntityCollection<Entity> parent,
+    @NonNull final Cursor cursor
+  ) {
+    setParentCollection(parent);
     _cursor = cursor;
     _content = null;
   }
@@ -84,7 +88,7 @@ public class EntityCollectionView<Entity, Identifier>
    *
    * @return The parent collection of this view.
    */
-  public EntityCollection<Entity, Identifier> getParentCollection () {
+  public EntityCollection<Entity> getParentCollection () {
     return _parent;
   }
 
@@ -93,7 +97,7 @@ public class EntityCollectionView<Entity, Identifier>
    *
    * @param parent The new parent collection of this view.
    */
-  public void setParentCollection (@NonNull final EntityCollection<Entity, Identifier> parent) {
+  public void setParentCollection (@NonNull final EntityCollection<Entity> parent) {
     _parent = parent;
     _content = null;
   }

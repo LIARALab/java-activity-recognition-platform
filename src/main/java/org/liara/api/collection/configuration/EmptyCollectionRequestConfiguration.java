@@ -4,14 +4,14 @@ import java.util.Collections;
 import java.util.List;
 
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
-import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
+import org.liara.api.request.parser.filtering.APIRequestEntityCollectionFilteringOperatorParser;
 import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
 import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
 
 public final class EmptyCollectionRequestConfiguration<Entity> implements CollectionRequestConfiguration<Entity>
 {
   @Override
-  public APIRequestEntityFilterParser<Entity> createFilterParser () {
+  public APIRequestEntityCollectionFilteringOperatorParser<Entity> createFilterParser () {
     return new APIRequestCompoundEntityFilterParser<>();
   }
 

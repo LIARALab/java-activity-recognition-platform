@@ -1,7 +1,7 @@
 package org.liara.api.request.parser.ordering;
 
-import org.liara.api.collection.ordering.Ordering;
-import org.liara.api.collection.ordering.OrderingDirection;
+import org.liara.api.collection.operator.ordering.Ordering;
+import org.liara.api.collection.operator.ordering.OrderingDirection;
 import org.springframework.lang.NonNull;
 
 public interface APIRequestOrderingProcessor<Entity>

@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.liara.api.collection.ordering.ComposedOrdering;
-import org.liara.api.collection.ordering.EmptyOrdering;
-import org.liara.api.collection.ordering.Ordering;
-import org.liara.api.collection.ordering.OrderingDirection;
+import org.liara.api.collection.operator.IdentityOperator;
+import org.liara.api.collection.operator.ordering.ComposedOrdering;
+import org.liara.api.collection.operator.ordering.Ordering;
+import org.liara.api.collection.operator.ordering.OrderingDirection;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.APIRequestParameter;
 import org.springframework.lang.NonNull;
@@ -66,7 +66,7 @@ public class ComposedAPIRequestOrderingParser<Entity> implements APIRequestOrder
       
       return new ComposedOrdering<>(orderings);
     } else {
-      return new EmptyOrdering<>();
+      return new IdentityOperator<>();
     }
   }
   
