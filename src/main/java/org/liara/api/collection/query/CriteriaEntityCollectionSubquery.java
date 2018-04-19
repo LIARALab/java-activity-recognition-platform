@@ -19,7 +19,7 @@ import org.liara.api.collection.query.queried.QueriedEntity;
 import org.springframework.lang.NonNull;
 
 public class CriteriaEntityCollectionSubquery<Entity, Result> 
-       extends CriteriaEntityCollectionAbstractQuery<Entity>
+       extends CriteriaEntityCollectionAbstractQuery<Entity, Result>
        implements EntityCollectionSubquery<Entity, Result>
 {
   @NonNull
@@ -35,12 +35,12 @@ public class CriteriaEntityCollectionSubquery<Entity, Result>
   }
 
   @Override
-  public EntityCollectionQuery<Entity> orderBy (@NonNull final Order... o) {
+  public EntityCollectionQuery<Entity, Result> orderBy (@NonNull final Order... o) {
     return this;
   }
 
   @Override
-  public EntityCollectionQuery<Entity> orderBy (@NonNull final List<Order> o) {
+  public EntityCollectionQuery<Entity, Result> orderBy (@NonNull final List<Order> o) {
     return this;
   }
 
@@ -55,7 +55,7 @@ public class CriteriaEntityCollectionSubquery<Entity, Result>
   }
 
   @Override
-  public <Joined> EntityCollectionQuery<Joined> join (@NonNull final Join<Entity, Joined> join) {
+  public <Joined> EntityCollectionQuery<Joined, Result> join (@NonNull final Join<Entity, Joined> join) {
     return new CriteriaEntityCollectionSubquery<>(getManager(), _query, QueriedEntity.from(join));
   }
 
@@ -120,7 +120,16 @@ public class CriteriaEntityCollectionSubquery<Entity, Result>
   }
 
   @Override
-  public <Entity> QueriedEntity<?, Entity> correlate (@NonNull final QueriedEntity<?, Entity> entity) {
-    return entity.correlate(_query);
+  public <Related> QueriedEntity<?, Related> correlate (@NonNull final QueriedEntity<?, Related> related) {
+    return related.correlate(_query);
+  }
+  
+  /**
+   * Return the underlying subquery.
+   * 
+   * @return The underlying subquery.
+   */
+  public Subquery<Result> getSubquery () {
+    return _query;
   }
 }

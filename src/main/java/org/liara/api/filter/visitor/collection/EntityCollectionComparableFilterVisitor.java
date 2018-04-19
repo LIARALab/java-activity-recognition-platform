@@ -32,7 +32,7 @@ public class EntityCollectionComparableFilterVisitor<Entity, Value extends Compa
   private final List<Predicate> _stack = new ArrayList<>();
   
   @Nullable
-  private EntityCollectionQuery<Entity> _query = null;
+  private EntityCollectionQuery<Entity, ?> _query = null;
 
   @NonNull
   private final EntityFieldSelector<Entity, Expression<Value>> _field;
@@ -45,7 +45,7 @@ public class EntityCollectionComparableFilterVisitor<Entity, Value extends Compa
   
   @Override
   public Predicate filter (
-    @NonNull final EntityCollectionQuery<Entity> query, 
+    @NonNull final EntityCollectionQuery<Entity, ?> query, 
     @NonNull final PredicateFilterNode predicate
   ) {
     _query = query;

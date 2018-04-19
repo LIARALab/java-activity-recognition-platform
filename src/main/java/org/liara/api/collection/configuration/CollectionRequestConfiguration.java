@@ -6,12 +6,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.liara.api.collection.Cursor;
 import org.liara.api.collection.EntityCollection;
-import org.liara.api.collection.EntityCollectionView;
+import org.liara.api.collection.cursor.Cursor;
 import org.liara.api.collection.grouping.EntityGrouping;
 import org.liara.api.collection.operator.EntityCollectionFilteringOperator;
 import org.liara.api.collection.operator.ordering.Ordering;
+import org.liara.api.collection.view.EntityCollectionView;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.cursor.APIRequestFreeCursorParser;

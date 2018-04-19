@@ -29,7 +29,7 @@ public class EntityCollectionTextFilterVisitor<Entity> extends AnnotationBasedFi
   private final List<Predicate> _stack = new ArrayList<>();
   
   @Nullable
-  private EntityCollectionQuery<Entity> _query = null;
+  private EntityCollectionQuery<Entity, ?> _query = null;
 
   @NonNull
   private final EntityFieldSelector<Entity, Expression<String>> _field;
@@ -40,7 +40,7 @@ public class EntityCollectionTextFilterVisitor<Entity> extends AnnotationBasedFi
   
   @Override
   public Predicate filter (
-    @NonNull final EntityCollectionQuery<Entity> context, 
+    @NonNull final EntityCollectionQuery<Entity, ?> context, 
     @NonNull final PredicateFilterNode predicate
   ) {
     _query = context;

@@ -12,14 +12,14 @@ import javax.persistence.criteria.ParameterExpression;
 import org.liara.api.collection.query.queried.QueriedEntity;
 import org.springframework.lang.NonNull;
 
-public class CriteriaEntityCollectionQuery<Entity> extends CriteriaEntityCollectionAbstractQuery<Entity>
+public class CriteriaEntityCollectionQuery<Entity, Output> extends CriteriaEntityCollectionAbstractQuery<Entity, Output>
 {
   @NonNull 
-  private final CriteriaQuery<?> _query;
+  private final CriteriaQuery<Output> _query;
   
   public CriteriaEntityCollectionQuery (
     @NonNull final EntityManager manager,
-    @NonNull final CriteriaQuery<?> query,
+    @NonNull final CriteriaQuery<Output> query,
     @NonNull final QueriedEntity<?, Entity> entity
   ) {
     super(manager, query, entity);
@@ -27,13 +27,13 @@ public class CriteriaEntityCollectionQuery<Entity> extends CriteriaEntityCollect
   }
 
   @Override
-  public EntityCollectionQuery<Entity> orderBy (@NonNull final Order... o) {
+  public EntityCollectionQuery<Entity, Output> orderBy (@NonNull final Order... o) {
     _query.orderBy(o);
     return this;
   }
 
   @Override
-  public EntityCollectionQuery<Entity> orderBy (@NonNull final List<Order> o) {
+  public EntityCollectionQuery<Entity, Output> orderBy (@NonNull final List<Order> o) {
     _query.orderBy(o);
     return this;
   }
@@ -49,7 +49,16 @@ public class CriteriaEntityCollectionQuery<Entity> extends CriteriaEntityCollect
   }
 
   @Override
-  public <Joined> EntityCollectionQuery<Joined> join (@NonNull final Join<Entity, Joined> join) {
+  public <Joined> EntityCollectionQuery<Joined, Output> join (@NonNull final Join<Entity, Joined> join) {
     return new CriteriaEntityCollectionQuery<>(getManager(), _query, QueriedEntity.from(join));
+  }
+  
+  /**
+   * Return the underlying criteria query.
+   * 
+   * @return The underlying criteria query.
+   */
+  public CriteriaQuery<Output> getCriteriaQuery () {
+    return _query;
   }
 }

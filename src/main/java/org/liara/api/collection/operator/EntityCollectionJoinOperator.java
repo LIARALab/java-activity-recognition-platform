@@ -24,8 +24,8 @@ public class EntityCollectionJoinOperator<Entity, Joined> implements EntityColle
   }
 
   @Override
-  public void apply (@NonNull final EntityCollectionQuery<Entity> query) {
-    final EntityCollectionQuery<Joined> joinQuery = query.join(_selector.select(query));
+  public void apply (@NonNull final EntityCollectionQuery<Entity, ?> query) {
+    final EntityCollectionQuery<Joined, ?> joinQuery = query.join(_selector.select(query));
     _operator.apply(joinQuery);
   }
 }

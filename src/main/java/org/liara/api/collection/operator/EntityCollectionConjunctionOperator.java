@@ -73,12 +73,28 @@ public class EntityCollectionConjunctionOperator<Entity>
     _operators = operators;
   }
   
+  /**
+   * Create a conjunction of the given operators (Preserve the order)
+   * 
+   * @param operators Operators to conjugate.
+   */
+  public EntityCollectionConjunctionOperator (
+    @NonNull final EntityCollectionOperator<Entity> operator
+  ) {
+    if (operator instanceof EntityCollectionConjunctionOperator) {
+      final EntityCollectionConjunctionOperator<Entity> conjunction = (EntityCollectionConjunctionOperator<Entity>) operator;
+      _operators = ImmutableList.copyOf(conjunction);
+    } else {
+      _operators = ImmutableList.of(operator);
+    }
+  }
+  
   
   /**
    * @see EntityCollectionOperator#apply(EntityCollectionQuery)
    */
   @Override
-  public void apply (@NonNull final EntityCollectionQuery<Entity> query) {
+  public void apply (@NonNull final EntityCollectionQuery<Entity, ?> query) {
     for (final EntityCollectionOperator<Entity> operator : _operators) {
       operator.apply(query);
     }
@@ -99,5 +115,14 @@ public class EntityCollectionConjunctionOperator<Entity>
    */
   public List<EntityCollectionOperator<Entity>> getOperators () {
     return _operators;
+  }
+  
+  public EntityCollectionConjunctionOperator<Entity> conjugate (
+    @NonNull final EntityCollectionOperator<Entity> operator
+  ) {
+    final ImmutableList.Builder<EntityCollectionOperator<Entity>> builder = ImmutableList.builder();
+    return new EntityCollectionConjunctionOperator<>(
+      builder.addAll(_operators).add(operator).build()
+    );
   }
 }

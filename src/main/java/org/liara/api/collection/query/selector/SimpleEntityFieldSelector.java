@@ -11,7 +11,7 @@ public interface SimpleEntityFieldSelector<Entity, Selected>
   public Selected select (@NonNull final QueriedEntity<?, Entity> entity);
   
   public default Selected select (
-    @NonNull final EntityCollectionQuery<?> query,
+    @NonNull final EntityCollectionQuery<?, ?> query,
     @NonNull final QueriedEntity<?, Entity> entity
   ) {
     return select(entity);

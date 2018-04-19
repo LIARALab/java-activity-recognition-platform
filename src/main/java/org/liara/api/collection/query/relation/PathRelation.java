@@ -21,7 +21,7 @@ public class PathRelation<Base, Joined> implements EntityRelation<Base, Joined>
 
   @Override
   public void apply (
-    @NonNull final EntityCollectionQuery<Base> parent, 
+    @NonNull final EntityCollectionQuery<Base, ?> parent, 
     @NonNull final EntityCollectionSubquery<Joined, Joined> children
   ) {
     final QueriedEntity<?, Base> correlated = children.correlate(parent.getEntity());

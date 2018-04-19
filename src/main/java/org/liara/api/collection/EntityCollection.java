@@ -23,10 +23,10 @@ package org.liara.api.collection;
 
 import java.util.Optional;
 
-import javax.persistence.EntityManager;
-
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.collection.operator.EntityCollectionOperator;
+import org.liara.api.collection.transformation.EntityCollectionTransformation;
+import org.liara.api.collection.view.EntityCollectionView;
 import org.springframework.lang.NonNull;
 
 /**
@@ -36,29 +36,8 @@ import org.springframework.lang.NonNull;
  *
  * @param <Entity> Type of entity in the collection.
  */
-public interface EntityCollection<Entity>
-{
-  /**
-   * Return the type of all entities of this collection.
-   * 
-   * @return The type of all entities of this collection.
-   */
-  public Class<Entity> getEntityType ();
-  
-  /**
-   * Return the manager that manage all entities of this collection.
-   * 
-   * @return The manager that manage all entities of this collection.
-   */
-  public EntityManager getManager ();
-  
-  /**
-   * Return the size of the given collection.
-   * 
-   * @return The size of the given collection.
-   */
-  public long getSize ();
-  
+public interface EntityCollection<Entity> extends EntityCollectionView<Entity>
+{     
   /**
    * Try to find an entity of this collection by using it's identifier.
    * 
@@ -78,17 +57,6 @@ public interface EntityCollection<Entity>
   public <Identifier> Entity findByIdentifierOrFail (final Identifier identifier) throws EntityNotFoundException;
   
   /**
-   * Return an entity at the given index.
-   * 
-   * @param index Index of the entity to return.
-   * 
-   * @return The requested entity.
-   * 
-   * @throws IndexOutOfBoundsException If the given index is less than 0 or greater or equal to this collection size.
-   */
-  public Entity get (final int index) throws IndexOutOfBoundsException;
-  
-  /**
    * Return an operator to apply to a given query in order to select all entities of this collection.
    * 
    * @return An operator to apply to a given query in order to select all entities of this collection.
@@ -103,4 +71,15 @@ public interface EntityCollection<Entity>
    * @return A new updated instance of this collection.
    */
   public EntityCollection<Entity> apply (@NonNull final EntityCollectionOperator<Entity> operator);
+  
+  /**
+   * Apply a transformation to this collection and return a view that is the result of the given transformation.
+   * 
+   * @param transformation Transformation to apply to this collection.
+   * 
+   * @return A view that is the result of the given transformation over this collection.
+   */
+  public <Output> EntityCollectionView<Output> apply (
+    @NonNull final EntityCollectionTransformation<Entity, Output> transformation
+  );
 }

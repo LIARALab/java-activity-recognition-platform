@@ -1,17 +1,17 @@
 package org.liara.api.date;
 
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalField;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
 
 import org.springframework.lang.NonNull;
 
-public class PartialLocalDateTime implements TemporalAccessor, Comparable<TemporalAccessor>
+public class PartialZonedDateTime implements TemporalAccessor, Comparable<TemporalAccessor>
 {  
   @NonNull public static final ChronoField[] DATETIME_FIELDS = new ChronoField[] {
     ChronoField.YEAR,
@@ -46,16 +46,16 @@ public class PartialLocalDateTime implements TemporalAccessor, Comparable<Tempor
   
   @NonNull private final TemporalAccessor _date;
   
-  public static PartialLocalDateTime from (@NonNull final TemporalAccessor date) {
-    return new PartialLocalDateTime(date);
+  public static PartialZonedDateTime from (@NonNull final TemporalAccessor date) {
+    return new PartialZonedDateTime(date);
   }
   
-  protected PartialLocalDateTime (@NonNull final TemporalAccessor date) {
+  protected PartialZonedDateTime (@NonNull final TemporalAccessor date) {
     _date = date;
   }
   
   public static Expression<Long> select (
-    @NonNull final Expression<LocalDateTime> _path, 
+    @NonNull final Expression<ZonedDateTime> _path, 
     @NonNull final CriteriaBuilder builder,
     @NonNull final ChronoField field
   ) {
@@ -88,12 +88,12 @@ public class PartialLocalDateTime implements TemporalAccessor, Comparable<Tempor
   }
   
 
-  public Expression<LocalDateTime> mask (
-    @NonNull final Expression<LocalDateTime> _path, 
+  public Expression<ZonedDateTime> mask (
+    @NonNull final Expression<ZonedDateTime> _path, 
     @NonNull final CriteriaBuilder builder
   ) {
     return builder.function("STR_TO_DATE",
-      LocalDateTime.class, 
+      ZonedDateTime.class, 
       builder.function(
         "DATE_FORMAT", 
         String.class, 
@@ -122,8 +122,8 @@ public class PartialLocalDateTime implements TemporalAccessor, Comparable<Tempor
     return 0;
   }
   
-  public LocalDateTime toLocalDateTime () {
-    LocalDateTime result = LocalDateTime.of(1900, 1, 1, 0, 0, 0, 0);
+  public ZonedDateTime toZonedDateTime () {
+    ZonedDateTime result = ZonedDateTime.of(1900, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault());
     
     for (final ChronoField field : new ChronoField[] {
       ChronoField.YEAR,
@@ -142,7 +142,7 @@ public class PartialLocalDateTime implements TemporalAccessor, Comparable<Tempor
     return result;
   }
   
-  public boolean isCompleteLocalDateTime () {
+  public boolean isCompleteZonedDateTime () {
     for (final ChronoField field : COMPARISON_FIELDS) {
       if (!isSupported(field)) {
         return false;
@@ -183,7 +183,7 @@ public class PartialLocalDateTime implements TemporalAccessor, Comparable<Tempor
   }
   
   public boolean containsDatetime () {
-    for (final ChronoField field : PartialLocalDateTime.DATETIME_FIELDS) {
+    for (final ChronoField field : PartialZonedDateTime.DATETIME_FIELDS) {
       if (isSupported(field)) return true;
     }
     
@@ -191,7 +191,7 @@ public class PartialLocalDateTime implements TemporalAccessor, Comparable<Tempor
   }
   
   public boolean containsContext () {
-    for (final ChronoField field : PartialLocalDateTime.CONTEXT_FIELDS) {
+    for (final ChronoField field : PartialZonedDateTime.CONTEXT_FIELDS) {
       if (isSupported(field)) return true;
     }
     

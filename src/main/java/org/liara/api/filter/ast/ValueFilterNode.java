@@ -1,6 +1,6 @@
 package org.liara.api.filter.ast;
 
-import org.liara.api.date.PartialLocalDateTime;
+import org.liara.api.date.PartialZonedDateTime;
 import org.springframework.lang.NonNull;
 
 public class ValueFilterNode<Value> extends BaseFilterNode
@@ -40,8 +40,8 @@ public class ValueFilterNode<Value> extends BaseFilterNode
     return new ValueFilterNode<Double>(CommonFilterNodeType.VALUE_DOUBLE, value);
   }
   
-  public static ValueFilterNode<PartialLocalDateTime> from (@NonNull final PartialLocalDateTime value) {
-    return new ValueFilterNode<PartialLocalDateTime>(CommonFilterNodeType.VALUE_DATETIME, value);
+  public static ValueFilterNode<PartialZonedDateTime> from (@NonNull final PartialZonedDateTime value) {
+    return new ValueFilterNode<PartialZonedDateTime>(CommonFilterNodeType.VALUE_DATETIME, value);
   }
   
   public static ValueFilterNode<String> from (@NonNull final String value) {

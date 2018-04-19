@@ -8,13 +8,13 @@ import org.springframework.lang.NonNull;
 public interface EntityFieldSelector<Entity, Selected>
 {
   default public Selected select (
-    @NonNull final EntityCollectionQuery<Entity> query
+    @NonNull final EntityCollectionQuery<Entity, ?> query
   ) {
     return select(query, query.getEntity());
   }
   
   public Selected select (
-    @NonNull final EntityCollectionQuery<?> query,
+    @NonNull final EntityCollectionQuery<?, ?> query,
     @NonNull final QueriedEntity<?, Entity> entity
   );
 }

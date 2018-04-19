@@ -43,12 +43,12 @@ public final class ExpressionOrderingOperator<Entity> implements EntityCollectio
   }
 
   @Override
-  public void apply (@NonNull final EntityCollectionQuery<Entity> query) {
+  public void apply (@NonNull final EntityCollectionQuery<Entity, ?> query) {
     query.andOrderBy(createOrderingCriteria(query));
   }
 
   private Order createOrderingCriteria (
-    @NonNull final EntityCollectionQuery<Entity> query
+    @NonNull final EntityCollectionQuery<Entity, ?> query
   ) {
     final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
     

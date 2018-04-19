@@ -2,12 +2,10 @@ package org.liara.api.collection.operator;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.From;
+import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
 import org.liara.api.collection.EntityCollection;
-import org.liara.api.collection.query.CriteriaEntityCollectionQuery;
-import org.liara.api.collection.query.CriteriaEntityCollectionSubquery;
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.springframework.lang.NonNull;
 
@@ -27,7 +25,7 @@ public interface EntityCollectionOperator<Entity>
    * @param query Query to update.
    */
   public void apply (
-    @NonNull final EntityCollectionQuery<Entity> query
+    @NonNull final EntityCollectionQuery<Entity, ?> query
   );
   
   /**
@@ -40,9 +38,9 @@ public interface EntityCollectionOperator<Entity>
   default public void apply (
     @NonNull final EntityManager manager,
     @NonNull final CriteriaQuery<?> query,
-    @NonNull final From<?, Entity> entity
+    @NonNull final Root<Entity> entity
   ) {
-    apply(new CriteriaEntityCollectionQuery<>(manager, query, entity));
+    apply(EntityCollectionQuery.from(manager, query, entity));
   }
   
   /**
@@ -52,12 +50,12 @@ public interface EntityCollectionOperator<Entity>
    * @param query Query to mutate.
    * @param entity Targeted entity.
    */
-  default public void apply (
+  default public <Output> void apply (
     @NonNull final EntityManager manager,
-    @NonNull final Subquery<?> query,
-    @NonNull final From<?, Entity> entity
+    @NonNull final Subquery<Output> query,
+    @NonNull final Root<Entity> entity
   ) {
-    apply(new CriteriaEntityCollectionSubquery<>(manager, query, entity));
+    apply(EntityCollectionQuery.from(manager, query, entity));
   }
   
   /**

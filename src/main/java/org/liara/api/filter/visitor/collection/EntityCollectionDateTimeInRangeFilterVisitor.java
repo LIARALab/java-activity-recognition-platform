@@ -1,6 +1,6 @@
 package org.liara.api.filter.visitor.collection;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,7 +10,7 @@ import javax.persistence.criteria.Predicate;
 
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
-import org.liara.api.date.PartialLocalDateTime;
+import org.liara.api.date.PartialZonedDateTime;
 import org.liara.api.filter.ast.BetweenFilterNode;
 import org.liara.api.filter.ast.CommonFilterNodeType;
 import org.liara.api.filter.ast.CompositeFilterNode;
@@ -31,7 +31,7 @@ import org.springframework.lang.Nullable;
 
 public class EntityCollectionDateTimeInRangeFilterVisitor<Entity> 
        extends AnnotationBasedFilterASTVisitor 
-       implements EntityCollectionFilterVisitor<Entity, LocalDateTime>
+       implements EntityCollectionFilterVisitor<Entity, ZonedDateTime>
 {
   @FunctionalInterface
   private interface PredicateFactory {
@@ -42,17 +42,17 @@ public class EntityCollectionDateTimeInRangeFilterVisitor<Entity>
   private final List<Predicate> _stack = new ArrayList<>();
   
   @Nullable
-  private EntityCollectionQuery<Entity> _query = null;
+  private EntityCollectionQuery<Entity, ?> _query = null;
   
   @NonNull
-  private final EntityFieldSelector<Entity, Expression<LocalDateTime>> _start;
+  private final EntityFieldSelector<Entity, Expression<ZonedDateTime>> _start;
   
   @NonNull
-  private final EntityFieldSelector<Entity, Expression<LocalDateTime>> _end;
+  private final EntityFieldSelector<Entity, Expression<ZonedDateTime>> _end;
   
   public EntityCollectionDateTimeInRangeFilterVisitor(
-    @NonNull final EntityFieldSelector<Entity, Expression<LocalDateTime>> start,
-    @NonNull final EntityFieldSelector<Entity, Expression<LocalDateTime>> end
+    @NonNull final EntityFieldSelector<Entity, Expression<ZonedDateTime>> start,
+    @NonNull final EntityFieldSelector<Entity, Expression<ZonedDateTime>> end
   )
   {
     _start = start;
@@ -61,7 +61,7 @@ public class EntityCollectionDateTimeInRangeFilterVisitor<Entity>
 
   @Override
   public Predicate filter (
-    @NonNull final EntityCollectionQuery<Entity> query, 
+    @NonNull final EntityCollectionQuery<Entity, ?> query, 
     @NonNull final PredicateFilterNode predicate
   ) {
     _query = query;
@@ -91,12 +91,12 @@ public class EntityCollectionDateTimeInRangeFilterVisitor<Entity>
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.GREATHER_THAN)
-  public void visit (@NonNull final GreaterThanFilterNode<PartialLocalDateTime> predicate) {
+  public void visit (@NonNull final GreaterThanFilterNode<PartialZonedDateTime> predicate) {
     _stack.add(handleDate(_end, _query.getManager().getCriteriaBuilder()::greaterThan, predicate.getMinimum()));
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.GREATHER_THAN_OR_EQUAL_TO)
-  public void visit (@NonNull final GreaterThanOrEqualToFilterNode<PartialLocalDateTime> predicate) {
+  public void visit (@NonNull final GreaterThanOrEqualToFilterNode<PartialZonedDateTime> predicate) {
     _stack.add(handleDate(
       _end, 
       _query.getManager().getCriteriaBuilder()::greaterThanOrEqualTo, 
@@ -105,7 +105,7 @@ public class EntityCollectionDateTimeInRangeFilterVisitor<Entity>
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.LESS_THAN)
-  public void visit (@NonNull final LessThanFilterNode<PartialLocalDateTime> predicate) {
+  public void visit (@NonNull final LessThanFilterNode<PartialZonedDateTime> predicate) {
     _stack.add(handleDate(
       _start, 
       _query.getManager().getCriteriaBuilder()::lessThan, 
@@ -114,7 +114,7 @@ public class EntityCollectionDateTimeInRangeFilterVisitor<Entity>
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.LESS_THAN_OR_EQUAL_TO)
-  public void visit (@NonNull final LessThanOrEqualToFilterNode<PartialLocalDateTime> predicate) {
+  public void visit (@NonNull final LessThanOrEqualToFilterNode<PartialZonedDateTime> predicate) {
     _stack.add(handleDate(
       _start, 
       _query.getManager().getCriteriaBuilder()::lessThanOrEqualTo, 
@@ -123,7 +123,7 @@ public class EntityCollectionDateTimeInRangeFilterVisitor<Entity>
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.EQUAL_TO)
-  public void visit (@NonNull final EqualToFilterNode<PartialLocalDateTime> predicate) {
+  public void visit (@NonNull final EqualToFilterNode<PartialZonedDateTime> predicate) {
     _stack.add(_query.getManager().getCriteriaBuilder().and(
       handleDate(
         _end, 
@@ -139,12 +139,12 @@ public class EntityCollectionDateTimeInRangeFilterVisitor<Entity>
   }
   
   private Predicate handleDate (
-    @NonNull final EntityFieldSelector<Entity, Expression<LocalDateTime>> dateField,
+    @NonNull final EntityFieldSelector<Entity, Expression<ZonedDateTime>> dateField,
     @NonNull final PredicateFactory operator,
-    @NonNull final PartialLocalDateTime date
+    @NonNull final PartialZonedDateTime date
   ) {
-    if (date.isCompleteLocalDateTime()) {
-      return operator.create(dateField.select(_query), date.toLocalDateTime());
+    if (date.isCompleteZonedDateTime()) {
+      return operator.create(dateField.select(_query), date.toZonedDateTime());
     } else {
       final List<Predicate> predicates = new ArrayList<>();
       
@@ -152,17 +152,17 @@ public class EntityCollectionDateTimeInRangeFilterVisitor<Entity>
         predicates.add(
           operator.create(
             date.mask(dateField.select(_query), _query.getManager().getCriteriaBuilder()),
-            date.toLocalDateTime()
+            date.toZonedDateTime()
           )
         );
       }
       
       if (date.containsContext()) {
-        Arrays.stream(PartialLocalDateTime.CONTEXT_FIELDS)
+        Arrays.stream(PartialZonedDateTime.CONTEXT_FIELDS)
               .filter(date::isSupported)
               .map(
                 field -> operator.create(
-                   PartialLocalDateTime.select(
+                   PartialZonedDateTime.select(
                      dateField.select(_query), 
                      _query.getManager().getCriteriaBuilder(), 
                      field
@@ -177,9 +177,9 @@ public class EntityCollectionDateTimeInRangeFilterVisitor<Entity>
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.BETWEEN)
-  public void visit (@NonNull final BetweenFilterNode<PartialLocalDateTime> predicate) {
-    final PartialLocalDateTime minimum = predicate.getMinimum();
-    final PartialLocalDateTime maximum = predicate.getMaximum();
+  public void visit (@NonNull final BetweenFilterNode<PartialZonedDateTime> predicate) {
+    final PartialZonedDateTime minimum = predicate.getMinimum();
+    final PartialZonedDateTime maximum = predicate.getMaximum();
     
     _stack.add(
       _query.getManager().getCriteriaBuilder().and(

@@ -32,7 +32,7 @@ public class EntityCollectionExistsOperator<Entity, Joined> implements EntityCol
   }
 
   @Override
-  public void apply (@NonNull final EntityCollectionQuery<Entity> query) {
+  public void apply (@NonNull final EntityCollectionQuery<Entity, ?> query) {
     final EntityCollectionSubquery<Joined, Joined> subquery = query.subquery(_type, _type);
     _relation.apply(query, subquery);
     _operator.apply(subquery);

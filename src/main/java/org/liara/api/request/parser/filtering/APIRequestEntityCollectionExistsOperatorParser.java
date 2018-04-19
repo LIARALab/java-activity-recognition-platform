@@ -1,35 +1,39 @@
-package org.liara.api.request.parser.operator;
-
-import javax.persistence.criteria.Join;
+package org.liara.api.request.parser.filtering;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.collection.operator.EntityCollectionExistsOperator;
 import org.liara.api.collection.operator.EntityCollectionFilteringOperator;
-import org.liara.api.collection.operator.EntityCollectionJoinOperator;
 import org.liara.api.collection.operator.EntityCollectionOperator;
 import org.liara.api.collection.operator.IdentityOperator;
-import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.relation.EntityRelation;
 import org.liara.api.request.APIRequest;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.springframework.lang.NonNull;
 
-public class APIRequestEntityCollectionJoinOperatorParser<Entity, Joined> 
-       implements APIRequestEntityCollectionOperatorParser<Entity>
+public class      APIRequestEntityCollectionExistsOperatorParser<Entity, Joined> 
+       implements APIRequestEntityCollectionFilteringOperatorParser<Entity>
 {
   @NonNull
   private final String _field;
   
   @NonNull
-  private final EntityFieldSelector<Entity, Join<Entity, Joined>> _join;
+  private final Class<Joined> _joined;
+  
+  @NonNull
+  private final EntityRelation<Entity, Joined> _relation;
   
   @NonNull
   private final Class<? extends CollectionRequestConfiguration<Joined>> _configuration;
 
-  public APIRequestEntityCollectionJoinOperatorParser(
+  public APIRequestEntityCollectionExistsOperatorParser(
     @NonNull final String field,
-    @NonNull final EntityFieldSelector<Entity, Join<Entity, Joined>> join,
+    @NonNull final Class<Joined> joined,
+    @NonNull final EntityRelation<Entity, Joined> relation,
     @NonNull final Class<? extends CollectionRequestConfiguration<Joined>> configuration 
   ) {
     _field = field;
-    _join = join;
+    _joined = joined;
+    _relation = relation;
     _configuration = configuration;
   }
 
@@ -42,7 +46,7 @@ public class APIRequestEntityCollectionJoinOperatorParser<Entity, Joined>
         _configuration
       ).createFilterParser().parse(subRequest);
       
-      return new EntityCollectionJoinOperator<>(_join, filter);
+      return new EntityCollectionExistsOperator<>(_joined, _relation, filter);
     } else {
       return new IdentityOperator<>();
     }

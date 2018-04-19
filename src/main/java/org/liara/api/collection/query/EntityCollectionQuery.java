@@ -34,9 +34,9 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.ParameterExpression;
-import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.EntityType;
 
 import org.liara.api.collection.query.queried.QueriedEntity;
@@ -49,8 +49,40 @@ import org.springframework.lang.NonNull;
  *
  * @param <Entity> The targeted entity.
  */
-public interface EntityCollectionQuery<Entity>
+public interface EntityCollectionQuery<Entity, Output>
 {   
+  /**
+   * Wrap the given query into an EntityCollectionQuery.
+   * 
+   * @param manager
+   * @param query
+   * @param from
+   * @return
+   */
+  public static <Entity, Result> CriteriaEntityCollectionQuery<Entity, Result> from (
+    @NonNull final EntityManager manager,
+    @NonNull final CriteriaQuery<Result> query, 
+    @NonNull final Root<Entity> entity
+  ) {
+    return new CriteriaEntityCollectionQuery<>(manager, query, QueriedEntity.from(entity));
+  }
+
+  /**
+   * Wrap the given query into an EntityCollectionQuery.
+   * 
+   * @param manager
+   * @param query
+   * @param entity
+   * @return
+   */
+  public static <Entity, Result> CriteriaEntityCollectionSubquery<Entity, Result> from (
+    @NonNull final EntityManager manager, 
+    @NonNull final Subquery<Result> query, 
+    @NonNull final Root<Entity> entity
+  ) {
+    return new CriteriaEntityCollectionSubquery<>(manager, query, QueriedEntity.from(entity));
+  }
+  
   /**
    * Return the type of the queried entity.
    * 
@@ -92,7 +124,7 @@ public interface EntityCollectionQuery<Entity>
   /**
    * @see AbstractQuery#where(Expression)
    */
-  public EntityCollectionQuery<Entity> where (@NonNull final Expression<Boolean> restriction);
+  public EntityCollectionQuery<Entity, Output> where (@NonNull final Expression<Boolean> restriction);
   
   /**
    * Create an EntityCollectionQuery on the given join.
@@ -101,7 +133,7 @@ public interface EntityCollectionQuery<Entity>
    * 
    * @return An EntityCollectionQuery on the given join.
    */
-  public <Joined> EntityCollectionQuery<Joined> join (@NonNull final Join<Entity, Joined> join);
+  public <Joined> EntityCollectionQuery<Joined, Output> join (@NonNull final Join<Entity, Joined> join);
   
   /**
    * Create a subquery.
@@ -125,7 +157,7 @@ public interface EntityCollectionQuery<Entity>
    * @param restriction Restriction to chain.
    * @return The current query.
    */
-  public default EntityCollectionQuery<Entity> andWhere (@NonNull final Expression<Boolean> restriction) {
+  public default EntityCollectionQuery<Entity, Output> andWhere (@NonNull final Expression<Boolean> restriction) {
     final Predicate current = getRestriction();
     
     if (current == null) {
@@ -144,7 +176,7 @@ public interface EntityCollectionQuery<Entity>
    * @param restriction Restriction to chain.
    * @return The current query.
    */
-  public default EntityCollectionQuery<Entity> orWhere (@NonNull final Expression<Boolean> restriction) {
+  public default EntityCollectionQuery<Entity, Output> orWhere (@NonNull final Expression<Boolean> restriction) {
     final Predicate current = getRestriction();
     
     if (current == null) {
@@ -158,7 +190,7 @@ public interface EntityCollectionQuery<Entity>
   /**
    * @see AbstractQuery#where(Predicate...)
    */
-  public EntityCollectionQuery<Entity> where (@NonNull final Predicate... restrictions);
+  public EntityCollectionQuery<Entity, Output> where (@NonNull final Predicate... restrictions);
   
   /**
    * Allow to chain restrictions with a and criteria.
@@ -169,7 +201,7 @@ public interface EntityCollectionQuery<Entity>
    * @param restrictions Restrictions to chain.
    * @return The current query.
    */
-  public default EntityCollectionQuery<Entity> andWhere (@NonNull final Predicate... restrictions) {
+  public default EntityCollectionQuery<Entity, Output> andWhere (@NonNull final Predicate... restrictions) {
     final Predicate current = getRestriction();
     
     if (current == null) {
@@ -188,7 +220,7 @@ public interface EntityCollectionQuery<Entity>
    * @param restrictions Restrictions to chain.
    * @return The current query.
    */
-  public default EntityCollectionQuery<Entity> orWhere (@NonNull final Predicate... restrictions) {
+  public default EntityCollectionQuery<Entity, Output> orWhere (@NonNull final Predicate... restrictions) {
     final Predicate current = getRestriction();
     
     if (current == null) {
@@ -207,7 +239,7 @@ public interface EntityCollectionQuery<Entity>
   /**
    * @see AbstractQuery#groupBy(Expression...)
    */
-  public EntityCollectionQuery<Entity> groupBy (@NonNull final Expression<?>... grouping);
+  public EntityCollectionQuery<Entity, Output> groupBy (@NonNull final Expression<?>... grouping);
   
   /**
    * Allow you to chain group by clauses.
@@ -216,7 +248,7 @@ public interface EntityCollectionQuery<Entity>
    * 
    * @return The current query instance.
    */
-  public default EntityCollectionQuery<Entity> andGroupBy (@NonNull final Expression<?>... grouping) {
+  public default EntityCollectionQuery<Entity, Output> andGroupBy (@NonNull final Expression<?>... grouping) {
     final List<Expression<?>> groups = new ArrayList<>(getGroupList());
     groups.addAll(Arrays.asList(grouping));
     
@@ -226,7 +258,7 @@ public interface EntityCollectionQuery<Entity>
   /**
    * @see AbstractQuery#groupBy(List)
    */
-  public EntityCollectionQuery<Entity> groupBy (@NonNull final List<Expression<?>> grouping);
+  public EntityCollectionQuery<Entity, Output> groupBy (@NonNull final List<Expression<?>> grouping);
   
   /**
    * Allow you to chain group by clauses.
@@ -235,7 +267,7 @@ public interface EntityCollectionQuery<Entity>
    * 
    * @return The current query instance.
    */
-  public default EntityCollectionQuery<Entity> andGroupBy (@NonNull final List<Expression<?>> grouping) {
+  public default EntityCollectionQuery<Entity, Output> andGroupBy (@NonNull final List<Expression<?>> grouping) {
     final List<Expression<?>> groups = new ArrayList<>(getGroupList());
     groups.addAll(grouping);
     
@@ -250,7 +282,7 @@ public interface EntityCollectionQuery<Entity>
   /**
    * @see AbstractQuery#having(Expression)
    */
-  public EntityCollectionQuery<Entity> having (@NonNull final Expression<Boolean> restriction);
+  public EntityCollectionQuery<Entity, Output> having (@NonNull final Expression<Boolean> restriction);
 
   /**
    * Allows you to chain group restrictions with a and criteria.
@@ -261,7 +293,7 @@ public interface EntityCollectionQuery<Entity>
    * @param restriction Restriction to chain.
    * @return The current query.
    */
-  public default EntityCollectionQuery<Entity> andHaving (@NonNull final Expression<Boolean> restriction) {
+  public default EntityCollectionQuery<Entity, Output> andHaving (@NonNull final Expression<Boolean> restriction) {
     final Predicate current = getGroupRestriction();
     
     if (current == null) {
@@ -280,7 +312,7 @@ public interface EntityCollectionQuery<Entity>
    * @param restriction Restriction to chain.
    * @return The current query.
    */
-  public default EntityCollectionQuery<Entity> orHaving (@NonNull final Expression<Boolean> restriction) {
+  public default EntityCollectionQuery<Entity, Output> orHaving (@NonNull final Expression<Boolean> restriction) {
     final Predicate current = getGroupRestriction();
     
     if (current == null) {
@@ -294,7 +326,7 @@ public interface EntityCollectionQuery<Entity>
   /**
    * @see AbstractQuery#having(Predicate...)
    */
-  public EntityCollectionQuery<Entity> having (@NonNull final Predicate... restrictions);
+  public EntityCollectionQuery<Entity, Output> having (@NonNull final Predicate... restrictions);
 
   /**
    * Allows you to chain group restrictions with a and criteria.
@@ -305,7 +337,7 @@ public interface EntityCollectionQuery<Entity>
    * @param restrictions Restrictions to chain.
    * @return The current query.
    */
-  public default EntityCollectionQuery<Entity> andHaving (@NonNull final Predicate... restrictions) {
+  public default EntityCollectionQuery<Entity, Output> andHaving (@NonNull final Predicate... restrictions) {
     final Predicate current = getGroupRestriction();
     
     if (current == null) {
@@ -324,7 +356,7 @@ public interface EntityCollectionQuery<Entity>
    * @param restrictions Restrictions to chain.
    * @return The current query.
    */
-  public default EntityCollectionQuery<Entity> orHaving (@NonNull final Predicate... restrictions) {
+  public default EntityCollectionQuery<Entity, Output> orHaving (@NonNull final Predicate... restrictions) {
     final Predicate current = getGroupRestriction();
     
     if (current == null) {
@@ -345,7 +377,7 @@ public interface EntityCollectionQuery<Entity>
    * 
    * @see CriteriaQuery#orderBy(Order...)
    */
-  public EntityCollectionQuery<Entity> orderBy (@NonNull final Order... o);
+  public EntityCollectionQuery<Entity, Output> orderBy (@NonNull final Order... o);
   
   /**
    * Allow you to chain ordering clauses.
@@ -356,7 +388,7 @@ public interface EntityCollectionQuery<Entity>
    * 
    * @return The current query.
    */
-  public default EntityCollectionQuery<Entity> andOrderBy (@NonNull final Order... o) {
+  public default EntityCollectionQuery<Entity, Output> andOrderBy (@NonNull final Order... o) {
     final List<Order> orders = new ArrayList<>(getOrderList());
     orders.addAll(Arrays.asList(o));
     
@@ -368,7 +400,7 @@ public interface EntityCollectionQuery<Entity>
    * 
    * @see CriteriaQuery#orderBy(List)
    */
-  public EntityCollectionQuery<Entity> orderBy (@NonNull final List<Order> o);
+  public EntityCollectionQuery<Entity, Output> orderBy (@NonNull final List<Order> o);
 
   /**
    * Allow you to chain ordering clauses.
@@ -379,7 +411,7 @@ public interface EntityCollectionQuery<Entity>
    * 
    * @return The current query.
    */
-  public default EntityCollectionQuery<Entity> andOrderBy (@NonNull final List<Order> o) {
+  public default EntityCollectionQuery<Entity, Output> andOrderBy (@NonNull final List<Order> o) {
     final List<Order> orders = new ArrayList<>(getOrderList());
     orders.addAll(o);
     
@@ -394,7 +426,7 @@ public interface EntityCollectionQuery<Entity>
   /**
    * @see AbstractQuery#distinct(boolean)
    */
-  public EntityCollectionQuery<Entity> distinct (final boolean distinct);
+  public EntityCollectionQuery<Entity, Output> distinct (final boolean distinct);
 
   /**
    * @see AbstractQuery#isDistinct()

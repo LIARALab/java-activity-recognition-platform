@@ -34,8 +34,8 @@ import javax.persistence.criteria.Path;
 import javax.servlet.http.HttpServletRequest;
 
 import org.liara.api.collection.EntityCollection;
-import org.liara.api.collection.EntityCollectionView;
 import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.view.EntityCollectionView;
 import org.liara.api.criteria.CriteriaExpressionSelector;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;

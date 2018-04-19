@@ -6,5 +6,5 @@ import org.springframework.lang.NonNull;
 public class IdentityOperator<Entity> implements EntityCollectionOperator<Entity>
 {
   @Override
-  public void apply (@NonNull final EntityCollectionQuery<Entity> query) {  }
+  public void apply (@NonNull final EntityCollectionQuery<Entity, ?> query) {  }
 }

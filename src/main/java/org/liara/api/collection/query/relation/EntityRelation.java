@@ -8,7 +8,7 @@ import org.springframework.lang.NonNull;
 public interface EntityRelation<Base, Joined>
 {
   public void apply (
-    @NonNull final EntityCollectionQuery<Base> parent,
+    @NonNull final EntityCollectionQuery<Base, ?> parent,
     @NonNull final EntityCollectionSubquery<Joined, Joined> children
   );
 }

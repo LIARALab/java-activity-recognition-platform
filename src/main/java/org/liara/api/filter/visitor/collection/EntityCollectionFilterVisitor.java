@@ -9,7 +9,7 @@ import org.springframework.lang.NonNull;
 public interface EntityCollectionFilterVisitor<Entity, Value>
 {
   public Predicate filter (
-    @NonNull final EntityCollectionQuery<Entity> query, 
+    @NonNull final EntityCollectionQuery<Entity, ?> query, 
     @NonNull final PredicateFilterNode predicate
   );
 }

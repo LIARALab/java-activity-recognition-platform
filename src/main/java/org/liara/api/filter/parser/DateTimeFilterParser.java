@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.liara.api.date.PartialLocalDateTime;
+import org.liara.api.date.PartialZonedDateTime;
 import org.liara.api.filter.ast.BetweenFilterNode;
 import org.liara.api.filter.ast.ConjunctionFilterNode;
 import org.liara.api.filter.ast.DisjunctionFilterNode;
@@ -135,7 +135,7 @@ public class DateTimeFilterParser implements FilterParser
   }
 
   private PredicateFilterNode parseBetween (@NonNull final String result) {
-    final List<ValueFilterNode<PartialLocalDateTime>> dates = this.parseBetweenDates(result);
+    final List<ValueFilterNode<PartialZonedDateTime>> dates = this.parseBetweenDates(result);
 
     return new BetweenFilterNode<>(dates.get(0), dates.get(1));
   }
@@ -156,7 +156,7 @@ public class DateTimeFilterParser implements FilterParser
     return new GreaterThanFilterNode<>(parseDate(result.split("gt:")[1]));
   }
 
-  private List<ValueFilterNode<PartialLocalDateTime>> parseBetweenDates (@NonNull final String result) {
+  private List<ValueFilterNode<PartialZonedDateTime>> parseBetweenDates (@NonNull final String result) {
     final Matcher matcher = BETWEEN_PATTERN.matcher(result);
     matcher.matches();
     matcher.groupCount();
@@ -173,7 +173,7 @@ public class DateTimeFilterParser implements FilterParser
     );
   }
   
-  private ValueFilterNode<PartialLocalDateTime> parseDate (@NonNull final String result) {
+  private ValueFilterNode<PartialZonedDateTime> parseDate (@NonNull final String result) {
     final Matcher matcher = DATE_PATTERN.matcher(result);
     matcher.matches();
     matcher.groupCount();
@@ -192,10 +192,10 @@ public class DateTimeFilterParser implements FilterParser
     }
   }
 
-  private ValueFilterNode<PartialLocalDateTime> parsePartialDate (
+  private ValueFilterNode<PartialZonedDateTime> parsePartialDate (
     @NonNull final DateTimeFormatter format, 
     @NonNull final String date
   ) {    
-    return ValueFilterNode.from(format.parse(date, PartialLocalDateTime::from));
+    return ValueFilterNode.from(format.parse(date, PartialZonedDateTime::from));
   }
 }

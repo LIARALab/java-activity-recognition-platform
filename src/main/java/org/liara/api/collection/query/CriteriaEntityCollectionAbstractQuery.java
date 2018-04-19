@@ -1,13 +1,11 @@
 package org.liara.api.collection.query;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.AbstractQuery;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
@@ -16,20 +14,20 @@ import javax.persistence.metamodel.EntityType;
 import org.liara.api.collection.query.queried.QueriedEntity;
 import org.springframework.lang.NonNull;
 
-public abstract class CriteriaEntityCollectionAbstractQuery<Entity> implements EntityCollectionQuery<Entity>
+public abstract class CriteriaEntityCollectionAbstractQuery<Entity, Output> implements EntityCollectionQuery<Entity, Output>
 {
   @NonNull
   private final EntityManager _manager;
   
   @NonNull 
-  private final AbstractQuery<?> _query;
+  private final AbstractQuery<Output> _query;
   
   @NonNull
   private final QueriedEntity<?, Entity> _entity;
 
   public CriteriaEntityCollectionAbstractQuery(
     @NonNull final EntityManager manager,
-    @NonNull final AbstractQuery<?> query,
+    @NonNull final AbstractQuery<Output> query,
     @NonNull final QueriedEntity<?, Entity> entity
   )
   {
@@ -64,13 +62,13 @@ public abstract class CriteriaEntityCollectionAbstractQuery<Entity> implements E
   }
 
   @Override
-  public EntityCollectionQuery<Entity> where (@NonNull final Expression<Boolean> restriction) {
+  public EntityCollectionQuery<Entity, Output> where (@NonNull final Expression<Boolean> restriction) {
     _query.where(restriction);
     return this;
   }
 
   @Override
-  public EntityCollectionQuery<Entity> where (@NonNull final Predicate... restrictions) {
+  public EntityCollectionQuery<Entity, Output> where (@NonNull final Predicate... restrictions) {
     _query.where(restrictions);
     return this;
   }
@@ -81,13 +79,13 @@ public abstract class CriteriaEntityCollectionAbstractQuery<Entity> implements E
   }
 
   @Override
-  public EntityCollectionQuery<Entity> groupBy (@NonNull final Expression<?>... grouping) {
+  public EntityCollectionQuery<Entity, Output> groupBy (@NonNull final Expression<?>... grouping) {
     _query.groupBy(grouping);
     return this;
   }
 
   @Override
-  public EntityCollectionQuery<Entity> groupBy (@NonNull final List<Expression<?>> grouping) {
+  public EntityCollectionQuery<Entity, Output> groupBy (@NonNull final List<Expression<?>> grouping) {
     _query.groupBy(grouping);
     return this;
   }
@@ -98,13 +96,13 @@ public abstract class CriteriaEntityCollectionAbstractQuery<Entity> implements E
   }
 
   @Override
-  public EntityCollectionQuery<Entity> having (@NonNull final Expression<Boolean> restriction) {
+  public EntityCollectionQuery<Entity, Output> having (@NonNull final Expression<Boolean> restriction) {
     _query.having(restriction);
     return this;
   }
 
   @Override
-  public EntityCollectionQuery<Entity> having (@NonNull final Predicate... restrictions) {
+  public EntityCollectionQuery<Entity, Output> having (@NonNull final Predicate... restrictions) {
     _query.having(restrictions);
     return this;
   }
@@ -115,7 +113,7 @@ public abstract class CriteriaEntityCollectionAbstractQuery<Entity> implements E
   }
 
   @Override
-  public EntityCollectionQuery<Entity> distinct (final boolean distinct) {
+  public EntityCollectionQuery<Entity, Output> distinct (final boolean distinct) {
     _query.distinct(distinct);
     return this;
   }
