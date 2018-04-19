@@ -41,8 +41,10 @@ import org.liara.api.data.collection.PresenceStateCollection;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.PresenceState;
+import org.liara.api.data.entity.state.State;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.liara.recognition.presence.TickEventStream;
+import org.liara.recognition.usage.CeilActivationDetector;
 import org.liara.recognition.presence.LiaraPresenceStream;
 import org.liara.recognition.presence.StateTickStream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +110,36 @@ public class PresenceStateCollectionController extends BaseRestController
 
       _entityManager.persist(presence);
     }
+  }
+  
+  @GetMapping("/sensors/refreshTV")
+  @Transactional(rollbackOn = {Error.class, Exception.class})
+  public void refreshTV (
+    @NonNull final HttpServletRequest request
+  ) throws EntityNotFoundException, InvalidAPIRequestException
+  {
+    final Sensor sensor = _collections.createCollection(Sensor.class).findByIdOrFail(12L);
+    final Sensor next = new Sensor();
+    next.setNodes(sensor.getNodes());
+    next.setName("TV_usage");
+    next.setType("common/virtual/usage");
+    next.setValueType("presence");
+    next.setValueUnit("arbitrary");
+    next.setValueLabel("usage");
+    
+    _entityManager.persist(next);
+    
+    final CeilActivationDetector detector = new CeilActivationDetector(
+      _entityManager, next, sensor, 100
+    );
+    
+    final List<State> states = _entityManager.createQuery(
+      "SELECT state FROM State state WHERE state._sensor = :sensor ORDER BY state._emittionDate ASC",
+      State.class
+    ).setParameter("sensor", sensor)
+     .getResultList();
+    
+    states.stream().forEach(detector::onStateAddition);
   }
   
   @GetMapping("/states<presence>")

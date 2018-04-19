@@ -1,6 +1,6 @@
 package org.liara.recognition.presence;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
@@ -10,7 +10,7 @@ import org.springframework.lang.Nullable;
 public final class Tick implements Comparable<Tick>
 {
   @NonNull private final Sensor _sensor;
-  @NonNull private final LocalDateTime _date;
+  @NonNull private final ZonedDateTime _date;
   
   public Tick (@NonNull final BooleanState state) {
     _sensor = state.getSensor();
@@ -19,7 +19,7 @@ public final class Tick implements Comparable<Tick>
   
   public Tick (
     @NonNull final Sensor sensor, 
-    @NonNull final LocalDateTime date
+    @NonNull final ZonedDateTime date
   ) {
     _sensor = sensor;
     _date = date;
@@ -29,7 +29,7 @@ public final class Tick implements Comparable<Tick>
     return _sensor;
   }
   
-  public LocalDateTime getDate () {
+  public ZonedDateTime getDate () {
     return _date;
   }
   

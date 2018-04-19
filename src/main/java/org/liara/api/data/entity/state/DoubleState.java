@@ -24,6 +24,10 @@ package org.liara.api.data.entity.state;
 import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+
+import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.data.collection.configuration.DoubleStateCollectionRequestConfiguration;
+
 import javax.persistence.Column;
 
 @Entity
@@ -31,14 +35,14 @@ import javax.persistence.Column;
 @PrimaryKeyJoinColumn(name = "state_identifier")
 public class DoubleState extends State
 {
-  private double value;
-
   @Column(name = "value", updatable = true, nullable = false, unique = false)
+  private double _value;
+
   public double getValue () {
-    return this.value;
+    return _value;
   }
 
   public void setValue (final double value) {
-    this.value = value;
+    _value = value;
   }
 }

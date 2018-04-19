@@ -21,17 +21,18 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
-import java.lang.Integer;
-
 import javax.persistence.EntityManager;
 
 import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.data.collection.configuration.DoubleStateCollectionRequestConfiguration;
 import org.liara.api.data.entity.state.DoubleState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
+@DefaultCollectionRequestConfiguration(DoubleStateCollectionRequestConfiguration.class)
 public class DoubleStateCollection extends CompleteEntityCollection<DoubleState, Long>
 {
   @Autowired

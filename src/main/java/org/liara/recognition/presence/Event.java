@@ -1,7 +1,7 @@
 package org.liara.recognition.presence;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import org.liara.api.data.entity.sensor.Sensor;
 import org.springframework.lang.NonNull;
@@ -13,14 +13,14 @@ public class Event implements Comparable<Event>
   private final Sensor _sensor;
   
   @NonNull
-  private final LocalDateTime _start;
+  private final ZonedDateTime _start;
   
   @Nullable
-  private final LocalDateTime _end;
+  private final ZonedDateTime _end;
   
   public Event (
     @NonNull final Sensor sensor,
-    @NonNull final LocalDateTime start
+    @NonNull final ZonedDateTime start
   ) {
     _sensor = sensor;
     _start = start;
@@ -29,15 +29,15 @@ public class Event implements Comparable<Event>
   
   public Event (
     @NonNull final Sensor sensor,
-    @NonNull final LocalDateTime start, 
-    @Nullable final LocalDateTime end
+    @NonNull final ZonedDateTime start, 
+    @Nullable final ZonedDateTime end
   ) {
     _sensor = sensor;
     _start = start;
     _end = end;
   }
   
-  public LocalDateTime getStart () {
+  public ZonedDateTime getStart () {
     return _start;
   }
   
@@ -49,7 +49,7 @@ public class Event implements Comparable<Event>
     return !isOccuring();
   }
   
-  public LocalDateTime getEnd () {
+  public ZonedDateTime getEnd () {
     return _end;
   }
   
@@ -57,11 +57,11 @@ public class Event implements Comparable<Event>
     return _sensor;
   }
 
-  public Event setEnd (@Nullable final LocalDateTime end) {
+  public Event setEnd (@Nullable final ZonedDateTime end) {
     return new Event(_sensor, _start, end);
   }
 
-  public Event setStart (@NonNull final LocalDateTime start) {
+  public Event setStart (@NonNull final ZonedDateTime start) {
     return new Event(_sensor, start, _end);
   }
 

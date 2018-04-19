@@ -22,7 +22,7 @@
 package org.liara.api.data.entity.state;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -46,11 +46,11 @@ public class PresenceState extends State
 {  
   @Column(name = "start", nullable = false, updatable = true, unique = false)
   @NonNull
-  private LocalDateTime _start;
+  private ZonedDateTime _start;
 
   @Column(name = "end", nullable = true, updatable = true, unique = false)
   @Nullable
-  private LocalDateTime _end;
+  private ZonedDateTime _end;
   
   @ManyToOne(optional = false)
   @JoinColumn(name = "node_identifier", nullable = false, unique = false, updatable = true)
@@ -72,7 +72,7 @@ public class PresenceState extends State
   }
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getEnd () {
+  public ZonedDateTime getEnd () {
     return _end;
   }
 
@@ -86,7 +86,7 @@ public class PresenceState extends State
   }
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getStart () {
+  public ZonedDateTime getStart () {
     return _start;
   }
   
@@ -98,7 +98,7 @@ public class PresenceState extends State
     }
   }
 
-  public void setEnd (@NonNull final LocalDateTime end) {
+  public void setEnd (@NonNull final ZonedDateTime end) {
     _end = end;
   }
 
@@ -106,7 +106,7 @@ public class PresenceState extends State
     _node = node;
   }
 
-  public void setStart (@NonNull final LocalDateTime start) {
+  public void setStart (@NonNull final ZonedDateTime start) {
     _start = start;
   }
 }

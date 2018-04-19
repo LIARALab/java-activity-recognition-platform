@@ -36,7 +36,7 @@ import org.springframework.lang.NonNull;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "states")
@@ -44,14 +44,14 @@ import java.time.LocalDateTime;
 public class State extends ApplicationEntity
 {
   @Column(name = "emitted_at", nullable = false, updatable = true, unique = false)
-  private LocalDateTime _emittionDate;
+  private ZonedDateTime _emittionDate;
   
   @ManyToOne(optional = false)
   @JoinColumn(name = "sensor_identifier", nullable = false, unique = false, updatable = true)
   private Sensor _sensor;
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
-  public LocalDateTime getEmittionDate () {
+  public ZonedDateTime getEmittionDate () {
     return _emittionDate;
   }
   
@@ -68,7 +68,7 @@ public class State extends ApplicationEntity
     return _sensor.getIdentifier();
   }
 
-  public void setEmittionDate (@NonNull final LocalDateTime emittionDate) {
+  public void setEmittionDate (@NonNull final ZonedDateTime emittionDate) {
     _emittionDate = emittionDate;
   }
 }

@@ -2,8 +2,8 @@ package org.liara.api.request.validator;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.data.collection.StateCollection;
 import org.liara.api.filter.validator.DateTimeFilterValidator;
+import org.liara.api.filter.validator.DoubleFilterValidator;
 import org.liara.api.filter.validator.DurationFilterValidator;
 import org.liara.api.filter.validator.IntegerFilterValidator;
 import org.liara.api.filter.validator.TextFilterValidator;
@@ -13,6 +13,10 @@ public final class APIRequestFilterValidatorFactory
 {
   public static APIRequestFilterValidator integer (@NonNull final String parameter) {
     return new APIRequestFilterValidator(parameter, new IntegerFilterValidator());
+  }
+  
+  public static APIRequestFilterValidator realDouble (@NonNull final String parameter) {
+    return new APIRequestFilterValidator(parameter, new DoubleFilterValidator());
   }
   
   public static APIRequestFilterValidator datetime (@NonNull final String parameter) {

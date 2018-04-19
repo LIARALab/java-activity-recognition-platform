@@ -10,6 +10,7 @@ import org.liara.api.criteria.CustomCollectionRelation;
 import org.liara.api.filter.parser.DateTimeFilterParser;
 import org.liara.api.filter.parser.DurationFilterParser;
 import org.liara.api.filter.parser.IntegerFilterParser;
+import org.liara.api.filter.parser.DoubleFilterParser;
 import org.liara.api.filter.parser.TextFilterParser;
 import org.liara.api.filter.visitor.criteria.CriteriaDateTimeFilterASTVisitor;
 import org.liara.api.filter.visitor.criteria.CriteriaDateTimeInRangeFilterASTVisitor;
@@ -34,6 +35,24 @@ public final class APIRequestEntityFilterParserFactory
         parameter,
         new IntegerFilterParser(), 
         new CriteriaComparableFilterASTVisitor<Entity, Integer>(selector)
+    );
+  }
+  
+  public static <Entity> APIRequestEntityFilterParser<Entity> realDouble (
+    @NonNull final String parameter, 
+    @NonNull final SimplifiedCriteriaExpressionSelector<Double> selector
+  ) {
+    return APIRequestEntityFilterParserFactory.realDouble(parameter, (CriteriaExpressionSelector<Double>) selector);
+  }
+  
+  public static <Entity> APIRequestEntityFilterParser<Entity> realDouble (
+    @NonNull final String parameter, 
+    @NonNull final CriteriaExpressionSelector<Double> selector
+  ) {
+    return new APIRequestASTBasedEntityFilterParser<Entity, Double>(
+        parameter,
+        new DoubleFilterParser(), 
+        new CriteriaComparableFilterASTVisitor<Entity, Double>(selector)
     );
   }
   

@@ -40,8 +40,8 @@ public class ApplicationEntity
   @Nullable
   private ZonedDateTime _deletionDate;
   
-  public long getIdentifier () {
-    return _identifier.longValue();
+  public Long getIdentifier () {
+    return _identifier;
   }
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
@@ -87,7 +87,7 @@ public class ApplicationEntity
   public int hashCode () {
     final int prime = 31;
     int result = 1;
-    result = prime * result + (int) getIdentifier();
+    result = prime * result + ((getIdentifier() == null) ? 0 : getIdentifier().intValue());
     return result;
   }
 
@@ -97,7 +97,7 @@ public class ApplicationEntity
     if (obj == null) return false;
     if (getClass() != obj.getClass()) return false;
     ApplicationEntity other = (ApplicationEntity) obj;
-    if (getIdentifier() != other.getIdentifier()) return false;
+    if (getIdentifier() == null || !getIdentifier().equals(other.getIdentifier())) return false;
     return true;
   }
 }

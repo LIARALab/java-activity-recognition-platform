@@ -37,6 +37,7 @@ import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -78,18 +79,34 @@ public class Sensor extends ApplicationEntity
   public String getIpv4Address () {
     return _ipv4Address;
   }
+  
+  public void setIpv4Address (@NonNull final String ipv4Address) {
+    _ipv4Address = ipv4Address;
+  }
 
   public String getIpv6Address () {
     return _ipv6Address;
+  }
+
+  public void setIpv6Address (@NonNull final String ipv6Address) {
+    _ipv6Address = ipv6Address;
   }
 
   public String getName () {
     return _name;
   }
 
+  public void setName (@NonNull final String name) {
+    _name = name;
+  }
+
   @JsonIgnore
   public List<Node> getNodes () {
     return _nodes;
+  }
+  
+  public void setNodes (@NonNull final List<Node> nodes) {
+    _nodes = new ArrayList<>(nodes);
   }
 
   @JsonIgnore
@@ -100,28 +117,32 @@ public class Sensor extends ApplicationEntity
   public String getType () {
     return _type;
   }
+  
+  public void setType (@NonNull final String type) {
+    _type = type;
+  }
 
   public String getValueType () {
     return _valueType;
+  }
+  
+  public void setValueType (@NonNull final String valueType) {
+    _valueType = valueType;
   }
 
   public String getValueUnit () {
     return _valueUnit;
   }
+  
+  public void setValueUnit (@NonNull final String valueUnit) {
+    _valueUnit = valueUnit;
+  }
 
   public String getValueLabel () {
     return _valueLabel;
   }
-
-  public void setIpv4Address (@NonNull final String ipv4Address) {
-    _ipv4Address = ipv4Address;
-  }
-
-  public void setIpv6Address (@NonNull final String ipv6Address) {
-    _ipv6Address = ipv6Address;
-  }
-
-  public void setName (@NonNull final String name) {
-    _name = name;
+  
+  public void setValueLabel (@NonNull final String valueLabel) {
+    _valueLabel = valueLabel;
   }
 }
