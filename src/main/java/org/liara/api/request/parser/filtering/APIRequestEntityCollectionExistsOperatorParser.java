@@ -7,7 +7,6 @@ import org.liara.api.collection.operator.EntityCollectionOperator;
 import org.liara.api.collection.operator.IdentityOperator;
 import org.liara.api.collection.query.relation.EntityRelation;
 import org.liara.api.request.APIRequest;
-import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.springframework.lang.NonNull;
 
 public class      APIRequestEntityCollectionExistsOperatorParser<Entity, Joined> 
