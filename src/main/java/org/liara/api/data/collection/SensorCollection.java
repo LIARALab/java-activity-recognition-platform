@@ -23,7 +23,7 @@ package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.BaseEntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
 import org.liara.api.data.entity.sensor.Sensor;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @DefaultCollectionRequestConfiguration(SensorCollectionRequestConfiguration.class)
-public class SensorCollection extends CompleteEntityCollection<Sensor, Long>
+public class SensorCollection extends BaseEntityCollection<Sensor>
 { 
   @Autowired
   public SensorCollection (

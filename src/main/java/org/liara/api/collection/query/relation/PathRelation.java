@@ -8,14 +8,24 @@ import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.EntityCollectionSubquery;
 import org.liara.api.collection.query.queried.QueriedEntity;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.springframework.lang.NonNull;
 
-public class PathRelation<Base, Joined> implements EntityRelation<Base, Joined>
+public class      PathRelation<Base, Joined> 
+       implements EntityRelation<Base, Joined>
 {
   @NonNull
   private final EntityFieldSelector<Base, Path<? extends Collection<Joined>>> _selector;
 
-  public PathRelation(@NonNull final EntityFieldSelector<Base, Path<? extends Collection<Joined>>> selector) {
+  public PathRelation (
+    @NonNull final EntityFieldSelector<Base, Path<? extends Collection<Joined>>> selector
+  ) {
+    _selector = selector;
+  }
+  
+  public PathRelation (
+    @NonNull final SimpleEntityFieldSelector<Base, Path<? extends Collection<Joined>>> selector
+  ) {
     _selector = selector;
   }
 

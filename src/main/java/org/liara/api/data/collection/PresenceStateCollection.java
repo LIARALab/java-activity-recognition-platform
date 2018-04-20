@@ -21,31 +21,24 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
-import java.time.Duration;
-
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.BaseEntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.data.collection.configuration.PresenceStateCollectionRequestConfiguration;
 import org.liara.api.data.entity.state.PresenceState;
-import org.liara.api.request.APIRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
 @DefaultCollectionRequestConfiguration(PresenceStateCollectionRequestConfiguration.class)
-public class PresenceStateCollection extends CompleteEntityCollection<PresenceState, Long>
+public class PresenceStateCollection extends BaseEntityCollection<PresenceState>
 {
   @Autowired
   public PresenceStateCollection (
     @NonNull final EntityManager entityManager
   ) {
     super(PresenceState.class, entityManager);
-  }
-  
-  public Duration sum (@NonNull final APIRequest request) {
-    return null;
   }
 }

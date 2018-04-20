@@ -1,18 +1,16 @@
-package org.liara.api.request.parser.filtering;
+package org.liara.api.request.parser.operator;
 
 import javax.persistence.criteria.Join;
 
-import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.operator.EntityCollectionFilteringOperator;
 import org.liara.api.collection.operator.EntityCollectionJoinOperator;
 import org.liara.api.collection.operator.EntityCollectionOperator;
-import org.liara.api.collection.operator.IdentityOperator;
+import org.liara.api.collection.operator.EntityCollectionIdentityOperator;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.request.APIRequest;
 import org.springframework.lang.NonNull;
 
-public class APIRequestEntityCollectionJoinOperatorParser<Entity, Joined> 
-       implements APIRequestEntityCollectionFilteringOperatorParser<Entity>
+public class      APIRequestEntityCollectionJoinOperatorParser<Entity, Joined> 
+       implements APIRequestEntityCollectionOperatorParser<Entity>
 {
   @NonNull
   private final String _field;
@@ -21,16 +19,16 @@ public class APIRequestEntityCollectionJoinOperatorParser<Entity, Joined>
   private final EntityFieldSelector<Entity, Join<Entity, Joined>> _join;
   
   @NonNull
-  private final Class<? extends CollectionRequestConfiguration<Joined>> _configuration;
+  private final APIRequestEntityCollectionOperatorParser<Joined> _joinParser;
 
   public APIRequestEntityCollectionJoinOperatorParser (
     @NonNull final String field,
     @NonNull final EntityFieldSelector<Entity, Join<Entity, Joined>> join,
-    @NonNull final Class<? extends CollectionRequestConfiguration<Joined>> configuration 
+    @NonNull final APIRequestEntityCollectionOperatorParser<Joined> joinParser 
   ) {
     _field = field;
     _join = join;
-    _configuration = configuration;
+    _joinParser = joinParser;
   }
 
   @Override
@@ -38,13 +36,12 @@ public class APIRequestEntityCollectionJoinOperatorParser<Entity, Joined>
     final APIRequest subRequest = request.subRequest(_field);
     
     if (subRequest.getParameterCount() > 0) {
-      final EntityCollectionFilteringOperator<Joined> filter = CollectionRequestConfiguration.fromClass(
-        _configuration
-      ).createFilterParser().parse(subRequest);
-      
-      return new EntityCollectionJoinOperator<>(_join, filter);
+      return new EntityCollectionJoinOperator<>(
+          _join,
+          _joinParser.parse(subRequest)
+      );
     } else {
-      return new IdentityOperator<>();
+      return new EntityCollectionIdentityOperator<>();
     }
   }
 }

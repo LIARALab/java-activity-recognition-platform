@@ -26,33 +26,56 @@ import java.util.Collections;
 import java.util.List;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.collection.query.relation.PathRelation;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
-import org.liara.api.request.parser.filtering.APIRequestEntityCollectionFilteringOperatorParser;
-import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
-import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
-import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
-import org.liara.api.request.parser.ordering.APIRequestOrderingProcessorFactory;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
+import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessorFactory;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 
 public final class SensorCollectionRequestConfiguration implements CollectionRequestConfiguration<Sensor>
 {
   @Override
-  public APIRequestEntityCollectionFilteringOperatorParser<Sensor> createFilterParser () {
-    return new APIRequestCompoundEntityFilterParser<>(Arrays.asList(
-      APIRequestEntityFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
-      APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
-      APIRequestEntityFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
-      APIRequestEntityFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestEntityFilterParserFactory.text("name", (root) -> root.get("_name")),
-      APIRequestEntityFilterParserFactory.havingCollection("states", "_states", StateCollection.class),
-      APIRequestEntityFilterParserFactory.havingCollection("nodes", "_nodes", NodeCollection.class)
-    ));
+  public APIRequestEntityCollectionOperatorParser<Sensor> createFilterParser () {
+    return new APIRequestEntityCollectionConjunctionOperatorParser<>(
+      Arrays.asList(
+        APIRequestEntityFilterParserFactory.integer(
+          "identifier", (root) -> root.get("_identifier")
+        ),
+        APIRequestEntityFilterParserFactory.datetime(
+          "creationDate", (root) -> root.get("_creationDate")
+        ),
+        APIRequestEntityFilterParserFactory.datetime(
+          "updateDate", (root) -> root.get("_updateDate")
+        ),
+        APIRequestEntityFilterParserFactory.datetime(
+          "deletionDate", (root) -> root.get("_deletionDate")
+        ),
+        APIRequestEntityFilterParserFactory.text(
+          "name", (root) -> root.get("_name")
+        ),
+        APIRequestEntityFilterParserFactory.existsCollection(
+          "states", 
+          State.class,
+          new PathRelation<Sensor, State>(root -> root.get("_states")), 
+          StateCollection.class
+        ),
+        APIRequestEntityFilterParserFactory.existsCollection(
+          "nodes", 
+          Node.class,
+          new PathRelation<Sensor, Node>(root -> root.get("_nodes")), 
+          NodeCollection.class
+        )
+      )
+    );
   }
 
   @Override
@@ -64,19 +87,29 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       APIRequestFilterValidatorFactory.datetime("updateDate"),
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
       APIRequestFilterValidatorFactory.text("name"),
-      APIRequestFilterValidatorFactory.havingCollection("states", StateCollection.class),
-      APIRequestFilterValidatorFactory.havingCollection("nodes", NodeCollection.class) 
+      APIRequestFilterValidatorFactory.includeCollection("states", StateCollection.class),
+      APIRequestFilterValidatorFactory.includeCollection("nodes", NodeCollection.class) 
     );
   }
 
   @Override
   public List<APIRequestOrderingProcessor<Sensor>> createOrderingProcessors () {
     return Arrays.asList(
-      APIRequestOrderingProcessorFactory.field("identifier", (root) -> root.get("_identifier")),
-      APIRequestOrderingProcessorFactory.field("creationDate", (root) -> root.get("_creationDate")),
-      APIRequestOrderingProcessorFactory.field("updateDate", (root) -> root.get("_updateDate")),
-      APIRequestOrderingProcessorFactory.field("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestOrderingProcessorFactory.field("name", (root) -> root.get("_name"))
+      APIRequestOrderingProcessorFactory.field(
+        "identifier", (root) -> root.get("_identifier")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "creationDate", (root) -> root.get("_creationDate")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "updateDate", (root) -> root.get("_updateDate")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "deletionDate", (root) -> root.get("_deletionDate")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "name", (root) -> root.get("_name")
+      )
     );
   }
   

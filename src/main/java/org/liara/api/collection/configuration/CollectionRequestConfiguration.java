@@ -9,17 +9,20 @@ import java.util.List;
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.cursor.Cursor;
 import org.liara.api.collection.grouping.EntityGrouping;
-import org.liara.api.collection.operator.EntityCollectionFilteringOperator;
-import org.liara.api.collection.operator.ordering.Ordering;
-import org.liara.api.collection.view.EntityCollectionView;
+import org.liara.api.collection.operator.EntityCollectionOperator;
+import org.liara.api.collection.transformation.EntityCollectionCompoundTransformation;
+import org.liara.api.collection.transformation.EntityCollectionCursorTransformation;
+import org.liara.api.collection.transformation.EntityCollectionOperatorTransformation;
+import org.liara.api.collection.transformation.EntityCollectionTransformation;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.cursor.APIRequestFreeCursorParser;
-import org.liara.api.request.parser.grouping.APIRequestGroupingParser;
-import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
-import org.liara.api.request.parser.grouping.ComposedAPIRequestGroupingParser;
-import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
-import org.liara.api.request.parser.ordering.ComposedAPIRequestOrderingParser;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.operator.ordering.ComposedAPIRequestOrderingParser;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingParser;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.transformation.grouping.ComposedAPIRequestGroupingParser;
 import org.liara.api.request.validator.APIRequestFreeCursorValidator;
 import org.liara.api.request.validator.APIRequestValidator;
 import org.liara.api.request.validator.error.APIRequestError;
@@ -89,8 +92,8 @@ public interface CollectionRequestConfiguration<Entity>
     }
   }
   
-  public static <Entity, Identifier> CollectionRequestConfiguration<Entity> getDefault (
-    @NonNull final EntityCollection<Entity, Identifier> collection
+  public static <Entity> CollectionRequestConfiguration<Entity> getDefault (
+    @NonNull final EntityCollection<Entity> collection
   ) {
     return getDefault(collection.getClass());
   }
@@ -110,62 +113,36 @@ public interface CollectionRequestConfiguration<Entity>
     }
   }
   
-  public default <Identifier> EntityCollectionView<Entity, Identifier> applyRequest (
-    @NonNull final APIRequest request,
-    @NonNull final EntityCollection<Entity, Identifier> collection
+  public default <Identifier> EntityCollectionTransformation<Entity, Entity> getRequestTransformation (
+    @NonNull final APIRequest request
   ) throws InvalidAPIRequestException {
     validate(request);
     
-    final EntityCollectionFilteringOperator<Entity> filter = parseFilter(request);
-    final Cursor cursor = parseCursor(request);
-    final Ordering<Entity> ordering = parseOrdering(request);
+    final EntityCollectionOperator<Entity> filter = parseFilter(request);
+    final EntityCollectionOperator<Entity> ordering = parseOrdering(request);
+    final EntityCollectionTransformation<Entity, Entity> cursor = parseCursor(request);
     
-    return collection.filter(filter).order(ordering).getView(cursor);
+    return new EntityCollectionCompoundTransformation<>(Arrays.asList(
+      new EntityCollectionOperatorTransformation<>(ordering.apply(filter)),
+      cursor
+    ));
   }
   
-  public default <Identifier> EntityCollection<Entity, Identifier> filterCollection (
-    @NonNull final APIRequest request,
-    @NonNull final EntityCollection<Entity, Identifier> collection
-  ) throws InvalidAPIRequestException {
-    validateFiltersAndSorts(request);
-    
-    final EntityCollectionFilteringOperator<Entity> filter = parseFilter(request);
-    
-    return collection.filter(filter);
-  }
-  
-  public default <Identifier> EntityCollection<Entity, Identifier> orderCollection (
-    @NonNull final APIRequest request,
-    @NonNull final EntityCollection<Entity, Identifier> collection
-  ) throws InvalidAPIRequestException {
-    validateFiltersAndSorts(request);
-    
-    final Ordering<Entity> ordering = parseOrdering(request);
-    
-    return collection.order(ordering);
-  }
-  
-  public default <Identifier> EntityCollection<Entity, Identifier> filterAndOrderCollection (
-    @NonNull final APIRequest request,
-    @NonNull final EntityCollection<Entity, Identifier> collection
-  ) throws InvalidAPIRequestException {
-    validateFiltersAndSorts(request);
-
-    final EntityCollectionFilteringOperator<Entity> filter = parseFilter(request);
-    final Ordering<Entity> ordering = parseOrdering(request);
-    
-    return collection.filter(filter).order(ordering);
-  }
-  
-  public default EntityCollectionFilteringOperator<Entity> parseFilter (@NonNull final APIRequest request) {
+  public default EntityCollectionOperator<Entity> parseFilter (
+    @NonNull final APIRequest request
+  ) {
     return createFilterParser().parse(request);
   }
   
-  public default Cursor parseCursor (@NonNull final APIRequest request) {
-    return createCursorParser().parse(request);
+  public default EntityCollectionTransformation<Entity, Entity> parseCursor (
+    @NonNull final APIRequest request
+  ) {
+    return new EntityCollectionCursorTransformation<>(createCursorParser().parse(request));
   }
   
-  public default Ordering<Entity> parseOrdering (@NonNull final APIRequest request) {
+  public default EntityCollectionOperator<Entity> parseOrdering (
+    @NonNull final APIRequest request
+  ) {
     return createOrderingParser().parse(request);
   }
   
@@ -193,13 +170,13 @@ public interface CollectionRequestConfiguration<Entity>
     CollectionRequestConfiguration.validate(validators, request);
   }
   
-  public APIRequestParser<EntityCollectionFilteringOperator<Entity>> createFilterParser ();
+  public APIRequestEntityCollectionOperatorParser<Entity> createFilterParser ();
   
   public default APIRequestParser<Cursor> createCursorParser () {
     return new APIRequestFreeCursorParser();
   }
   
-  public default APIRequestParser<Ordering<Entity>> createOrderingParser () {
+  public default APIRequestEntityCollectionOperatorParser<Entity> createOrderingParser () {
     return new ComposedAPIRequestOrderingParser<>(createOrderingProcessors());
   }
   
@@ -234,7 +211,6 @@ public interface CollectionRequestConfiguration<Entity>
   public List<APIRequestGroupingProcessor<Entity>> createGroupingProcessors ();
   
   public default APIRequestGroupingParser<Entity> createGroupingParser () {
-    System.out.println(createGroupingProcessors());
     return new ComposedAPIRequestGroupingParser<>(createGroupingProcessors());
   }
 }

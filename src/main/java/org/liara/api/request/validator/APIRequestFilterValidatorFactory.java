@@ -31,7 +31,7 @@ public final class APIRequestFilterValidatorFactory
     return new APIRequestFilterValidator(parameter, new TextFilterValidator());
   }
   
-  public static APIRequestValidator joinConfiguration (
+  public static APIRequestValidator includeConfiguration (
     @NonNull final String parameter, 
     @NonNull final Class<? extends CollectionRequestConfiguration<?>> configuration
   ) {
@@ -41,47 +41,9 @@ public final class APIRequestFilterValidatorFactory
     );
   }
   
-  public static APIRequestValidator joinCollection (
+  public static APIRequestValidator includeCollection (
     @NonNull final String parameter, 
-    @NonNull final Class<? extends EntityCollection<?, ?>> configuration
-  ) {
-    return new APISubRequestValidator(
-      parameter, 
-      CollectionRequestConfiguration.getDefaultClass(configuration)
-    );
-  }
-  
-  public static APIRequestValidator havingConfiguration (
-    @NonNull final String parameter, 
-    @NonNull final Class<? extends CollectionRequestConfiguration<?>> configuration
-  ) {
-    return new APISubRequestValidator(
-      parameter, configuration
-    );
-  }
-
-  public static APIRequestValidator havingCollection (
-    @NonNull final String parameter, 
-    @NonNull final Class<? extends EntityCollection<?, ?>> configuration
-  ) {
-    return new APISubRequestValidator(
-      parameter, 
-      CollectionRequestConfiguration.getDefaultClass(configuration)
-    );
-  }
-  
-  public static APIRequestValidator customHavingConfiguration (
-    @NonNull final String parameter, 
-    @NonNull final Class<? extends CollectionRequestConfiguration<?>> configuration
-  ) {
-    return new APISubRequestValidator(
-      parameter, configuration
-    );
-  }
-
-  public static APIRequestValidator customHavingCollection (
-    @NonNull final String parameter, 
-    @NonNull final Class<? extends EntityCollection<?, ?>> configuration
+    @NonNull final Class<? extends EntityCollection<?>> configuration
   ) {
     return new APISubRequestValidator(
       parameter, 

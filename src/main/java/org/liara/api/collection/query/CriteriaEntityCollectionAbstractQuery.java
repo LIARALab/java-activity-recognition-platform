@@ -1,17 +1,21 @@
 package org.liara.api.collection.query;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.AbstractQuery;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 import javax.persistence.metamodel.EntityType;
 
 import org.liara.api.collection.query.queried.QueriedEntity;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.springframework.lang.NonNull;
 
 public abstract class CriteriaEntityCollectionAbstractQuery<Entity, Output> implements EntityCollectionQuery<Entity, Output>
@@ -24,6 +28,12 @@ public abstract class CriteriaEntityCollectionAbstractQuery<Entity, Output> impl
   
   @NonNull
   private final QueriedEntity<?, Entity> _entity;
+  
+  @NonNull
+  private final Map<
+    EntityFieldSelector<Entity, ?>,
+    EntityCollectionQuery<?, Output>
+  > _joins = new HashMap<>();
 
   public CriteriaEntityCollectionAbstractQuery(
     @NonNull final EntityManager manager,
@@ -136,5 +146,17 @@ public abstract class CriteriaEntityCollectionAbstractQuery<Entity, Output> impl
         subquery,
         QueriedEntity.from(from)
     );
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public <Joined> EntityCollectionQuery<Joined, Output> join (
+    @NonNull final EntityFieldSelector<Entity, Join<Entity, Joined>> join
+  ) {
+    if (!_joins.containsKey(join)) {
+      _joins.put(join, join(join.select(this)));
+    }
+    
+    return (EntityCollectionQuery<Joined, Output>) _joins.get(join);
   }
 }

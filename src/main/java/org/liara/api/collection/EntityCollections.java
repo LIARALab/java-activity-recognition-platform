@@ -23,11 +23,9 @@ package org.liara.api.collection;
 
 import org.springframework.lang.NonNull;
 
-import java.util.List;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.query.EntityCollectionQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Component;
@@ -62,75 +60,8 @@ public class EntityCollections
    * @param entity Entity type of the collection to return.
    * @return A complete entity collection.
    */
-  public <Entity> EntityCollection<Entity, Long> createCollection (@NonNull final Class<Entity> entity) {
-    return new CompleteEntityCollection<>(entity, _entityManager);
-  }
-
-  /**
-   * Create and return a filtered entity collection.
-   *
-   * @param entity Entity type of the collection to return.
-   * @param specification Specification that all entity must match in order to be in the filtered collection.
-   * @return A filtered entity collection.
-   */
-  public <Entity> EntityCollection<Entity, Long> createCollection (
-    @NonNull final Class<Entity> entity, 
-    @NonNull final ComposedEntityFilter<Entity> filter
-  ) {
-    return new BaseEntityCollection<Entity, Long>(entity, filter, _entityManager);
-  }
-  
-  /**
-   * Create and return a raw entity collection query.
-   * 
-   * @param entity Type of entity targeted by the returned query.
-   * 
-   * @return A raw entity collection query.
-   */
-  public <Entity> EntityCollectionQuery<Entity, Entity> createQuery (
-    @NonNull final Class<Entity> entity
-  ) {
-    return new RootBasedEntityCollectionQuery<>(
-        _entityManager.getCriteriaBuilder().createQuery(entity), 
-        entity
-    );
-  }
-  
-  /**
-   * Create and return a raw entity collection query.
-   * 
-   * @param entity Type of entity targeted by the returned query.
-   * 
-   * @return A raw entity collection query.
-   */
-  public <Entity, ReturnType> EntityCollectionQuery<Entity, ReturnType> createQuery (
-    @NonNull final Class<Entity> entity,
-    @NonNull final Class<ReturnType> returnType
-  ) {
-    return new RootBasedEntityCollectionQuery<>(
-        _entityManager.getCriteriaBuilder().createQuery(returnType), 
-        entity
-    );
-  }
-  
-  /**
-   * Search all results of the given entity collection query into the application database and return them.
-   * 
-   * @param query A query to execute.
-   * @return All results returned by the given entity collection query.
-   */
-  public <T> List<T> fetch (@NonNull final EntityCollectionQuery<?, T> query) {
-    return this._entityManager.createQuery(query).getResultList();
-  }
-  
-  /**
-   * Search all results of the given entity collection query into the application database and return the first one.
-   * 
-   * @param query A query to execute.
-   * @return The first result returned by the given entity collection query.
-   */
-  public <T> T first (@NonNull final EntityCollectionQuery<?, T> query) {
-    return this._entityManager.createQuery(query).getSingleResult();
+  public <Entity> EntityCollection<Entity> createCollection (@NonNull final Class<Entity> entity) {
+    return new BaseEntityCollection<>(entity, _entityManager);
   }
   
   /**

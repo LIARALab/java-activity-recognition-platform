@@ -1,4 +1,4 @@
-package org.liara.api.request.parser.ordering;
+package org.liara.api.request.parser.operator.ordering;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,18 +8,20 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.liara.api.collection.operator.IdentityOperator;
-import org.liara.api.collection.operator.ordering.ComposedOrdering;
-import org.liara.api.collection.operator.ordering.Ordering;
-import org.liara.api.collection.operator.ordering.OrderingDirection;
+import org.liara.api.collection.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.operator.EntityCollectionIdentityOperator;
+import org.liara.api.collection.operator.EntityCollectionOperator;
+import org.liara.api.collection.operator.EntityCollectionOrderingOperator;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.APIRequestParameter;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.springframework.lang.NonNull;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
-public class ComposedAPIRequestOrderingParser<Entity> implements APIRequestOrderingParser<Entity>
+public class      ComposedAPIRequestOrderingParser<Entity> 
+       implements APIRequestEntityCollectionOperatorParser<Entity>
 {
   @NonNull
   public static final Pattern ORDERING_PATTERN = Pattern.compile("((.*?)\\:(asc|desc))");
@@ -49,14 +51,19 @@ public class ComposedAPIRequestOrderingParser<Entity> implements APIRequestOrder
   }
   
   @Override
-  public Ordering<Entity> parse (@NonNull final APIRequest request) {
+  public EntityCollectionOperator<Entity> parse (@NonNull final APIRequest request) {
     if (request.contains("orderBy")) {
       final List<String[]> orderingRequest = parseOrderBy(request);
-      final List<Ordering<Entity>> orderings = new ArrayList<>();
+      final List<EntityCollectionOperator<Entity>> orderings = new ArrayList<>();
       
       for (final String[] pair : orderingRequest) {
         final String key = pair[0];
-        final OrderingDirection direction = (pair[1].equals("asc")) ? OrderingDirection.ASC : OrderingDirection.DESC;
+        
+        final EntityCollectionOrderingOperator.Direction direction = (
+            pair[1].equals("asc")
+        ) ? EntityCollectionOrderingOperator.Direction.ASC 
+          : EntityCollectionOrderingOperator.Direction.DESC;
+        
         for (final APIRequestOrderingProcessor<Entity> parser : _parsers) {
           if (parser.hableToProcess(key, direction)) {
             orderings.add(parser.process(key, direction));
@@ -64,9 +71,9 @@ public class ComposedAPIRequestOrderingParser<Entity> implements APIRequestOrder
         }
       }
       
-      return new ComposedOrdering<>(orderings);
+      return new EntityCollectionConjunctionOperator<>(orderings);
     } else {
-      return new IdentityOperator<>();
+      return new EntityCollectionIdentityOperator<>();
     }
   }
   

@@ -33,8 +33,9 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 
-import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.BaseEntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.node.NodeModifier;
@@ -47,7 +48,7 @@ import com.google.common.collect.Iterables;
 
 @Component
 @DefaultCollectionRequestConfiguration(NodeCollectionRequestConfiguration.class)
-public class NodeCollection extends CompleteEntityCollection<Node, Long>
+public class NodeCollection extends BaseEntityCollection<Node>
 {     
   @Autowired
   public NodeCollection (
@@ -57,7 +58,7 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
   }
   
   public List<Node> getAllChildren (@NonNull final Node node) {
-    final TypedQuery<Node> query = getEntityManager().createQuery(
+    final TypedQuery<Node> query = getManager().createQuery(
       "SELECT child FROM Node child WHERE child._setStart > :start AND child._setEnd < :end", 
       Node.class
     );
@@ -73,7 +74,7 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
   }
   
   public List<Node> getAllChildren (@NonNull final Iterable<Node> nodes) {
-    final CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
+    final CriteriaBuilder criteriaBuilder = getManager().getCriteriaBuilder();
     final CriteriaQuery<Node> query = criteriaBuilder.createQuery(Node.class);
     
     final Root<Node> child = query.from(Node.class);
@@ -91,11 +92,11 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
       )  
     );
     
-    return getEntityManager().createQuery(query).getResultList();
+    return getManager().createQuery(query).getResultList();
   }
   
   public List<Node> getAllChildren (@NonNull final long identifier) {
-    final TypedQuery<Node> query = getEntityManager().createQuery(
+    final TypedQuery<Node> query = getManager().createQuery(
       String.join(
         " ", 
         "SELECT child",
@@ -118,7 +119,7 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
    * @return
    */
   public List<Sensor> getAllSensors (@NonNull final Iterable<Node> parents, @NonNull final String type) {
-    final CriteriaBuilder criteriaBuilder = getEntityManager().getCriteriaBuilder();
+    final CriteriaBuilder criteriaBuilder = getManager().getCriteriaBuilder();
     final CriteriaQuery<Sensor> query = criteriaBuilder.createQuery(Sensor.class);
     final List<Node> nodes = this.getAllChildren(parents);
     Iterables.addAll(nodes, parents);
@@ -128,25 +129,25 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
     query.where(sensor.join("_nodes").in(nodes));
     query.where(criteriaBuilder.equal(sensor.get("_type"), type));
     
-    return getEntityManager().createQuery(query).getResultList();
+    return getManager().createQuery(query).getResultList();
   }
   
   @Transactional
-  public Node add (@NonNull final NodeModifier modifier) {
+  public Node add (@NonNull final NodeModifier modifier) throws EntityNotFoundException {
     int setStart = 0;
     int setEnd = 0;
     
     if (modifier.getParent().isPresent()) {
-      final Node parent = this.findById(modifier.getParent().get());
+      final Node parent = findByIdentifierOrFail(modifier.getParent().get());
 
       setStart = parent.getSetEnd();
       setEnd = parent.getSetEnd() + 1;
 
-      getEntityManager().createQuery(
+      getManager().createQuery(
         "UPDATE Node SET _setStart = _setStart + 2 WHERE _setStart > :parentSetEnd"
       ).setParameter("parentSetEnd", parent.getSetEnd()).executeUpdate();
       
-      getEntityManager().createQuery(
+      getManager().createQuery(
         "UPDATE Node SET _setEnd = _setEnd + 2 WHERE _setEnd >= :parentSetEnd"
       ).setParameter("parentSetEnd", parent.getSetEnd()).executeUpdate();
     } else {
@@ -158,7 +159,7 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
     final Node node = new Node(setStart, setEnd);
     node.setName(modifier.getName().get());
     
-    this.add(node);
+    //this.add(node);
     
     return node;
   }
@@ -213,7 +214,7 @@ public class NodeCollection extends CompleteEntityCollection<Node, Long>
     if (this.getSize() <= 0) {
       return 1;
     } else {
-      return getEntityManager().createQuery(
+      return getManager().createQuery(
         "SELECT MAX(node._setEnd) + 1 FROM Node node",
         Integer.class
       ).getSingleResult().intValue();

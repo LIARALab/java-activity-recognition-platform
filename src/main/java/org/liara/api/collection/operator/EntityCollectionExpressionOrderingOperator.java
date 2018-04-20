@@ -8,7 +8,7 @@ import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.springframework.lang.NonNull;
 
-public final class ExpressionOrderingOperator<Entity> implements EntityCollectionOrderingOperator<Entity>
+public final class EntityCollectionExpressionOrderingOperator<Entity> implements EntityCollectionOrderingOperator<Entity>
 {
   @NonNull
   private final EntityFieldSelector<Entity, Expression<?>> _selector;
@@ -21,7 +21,7 @@ public final class ExpressionOrderingOperator<Entity> implements EntityCollectio
    * 
    * @param selector A selector that select an expression from an entity.
    */
-  public ExpressionOrderingOperator (
+  public EntityCollectionExpressionOrderingOperator (
     @NonNull final EntityFieldSelector<Entity, Expression<?>> selector
   ) {
     _selector = selector;
@@ -34,7 +34,7 @@ public final class ExpressionOrderingOperator<Entity> implements EntityCollectio
    * @param selector A selector that select an expression from an entity.
    * @param orderType The order of the ordering for the given selector.
    */
-  public ExpressionOrderingOperator (
+  public EntityCollectionExpressionOrderingOperator (
     @NonNull final EntityFieldSelector<Entity, Expression<?>> selector, 
     @NonNull final EntityCollectionOrderingOperator.Direction orderType
   ) {
@@ -65,19 +65,19 @@ public final class ExpressionOrderingOperator<Entity> implements EntityCollectio
     return _selector;
   }
   
-  public ExpressionOrderingOperator<Entity> setSelector (
+  public EntityCollectionExpressionOrderingOperator<Entity> setSelector (
     @NonNull final EntityFieldSelector<Entity, Expression<?>> selector
   ) {
-    return new ExpressionOrderingOperator<>(selector, _orderType);
+    return new EntityCollectionExpressionOrderingOperator<>(selector, _orderType);
   }
 
   public EntityCollectionOrderingOperator.Direction getDirection () {
     return _orderType;
   }
 
-  public ExpressionOrderingOperator<Entity> setDirection (
+  public EntityCollectionExpressionOrderingOperator<Entity> setDirection (
     @NonNull final EntityCollectionOrderingOperator.Direction direction
   ) {
-    return new ExpressionOrderingOperator<>(_selector, direction);
+    return new EntityCollectionExpressionOrderingOperator<>(_selector, direction);
   }
 }

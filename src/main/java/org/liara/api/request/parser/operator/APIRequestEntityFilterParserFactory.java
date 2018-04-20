@@ -1,6 +1,5 @@
-package org.liara.api.request.parser.filtering;
+package org.liara.api.request.parser.operator;
 
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 
 import javax.persistence.criteria.Expression;
@@ -8,6 +7,7 @@ import javax.persistence.criteria.Join;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.collection.query.relation.EntityRelation;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.filter.interpretor.DatetimeFilterInterpretor;
@@ -15,19 +15,11 @@ import org.liara.api.filter.interpretor.DatetimeInRangeFilterInterpretor;
 import org.liara.api.filter.interpretor.IntegerFilterInterpretor;
 import org.liara.api.filter.interpretor.LongFilterInterpretor;
 import org.liara.api.filter.interpretor.TextFilterInterpretor;
-import org.liara.api.filter.parser.DateTimeFilterParser;
-import org.liara.api.filter.parser.DurationFilterParser;
-import org.liara.api.filter.parser.IntegerFilterParser;
-import org.liara.api.filter.parser.TextFilterParser;
-import org.liara.api.filter.visitor.collection.EntityCollectionComparableFilterVisitor;
-import org.liara.api.filter.visitor.collection.EntityCollectionDateTimeFilterVisitor;
-import org.liara.api.filter.visitor.collection.EntityCollectionDateTimeInRangeFilterVisitor;
-import org.liara.api.filter.visitor.collection.EntityCollectionTextFilterVisitor;
 import org.springframework.lang.NonNull;
 
 public final class APIRequestEntityFilterParserFactory
 {
-  public static <Entity> APIRequestEntityCollectionFilteringOperatorParser<Entity> integer (
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> integer (
     @NonNull final String parameter, 
     @NonNull final SimpleEntityFieldSelector<Entity, Expression<Integer>> selector
   ) {
@@ -36,7 +28,7 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity> APIRequestEntityCollectionFilteringOperatorParser<Entity> integer (
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> integer (
     @NonNull final String parameter, 
     @NonNull final EntityFieldSelector<Entity, Expression<Integer>> selector
   ) {
@@ -45,7 +37,7 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity> APIRequestEntityCollectionFilteringOperatorParser<Entity> datetime (
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> datetime (
     @NonNull final String parameter, 
     @NonNull final SimpleEntityFieldSelector<Entity, Expression<ZonedDateTime>> selector
   ) {
@@ -54,7 +46,7 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity> APIRequestEntityCollectionFilteringOperatorParser<Entity> datetime (
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> datetime (
     @NonNull final String parameter, 
     @NonNull final EntityFieldSelector<Entity, Expression<ZonedDateTime>> selector
   ) {
@@ -64,7 +56,7 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity> APIRequestEntityCollectionFilteringOperatorParser<Entity> datetimeInRange (
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> datetimeInRange (
     @NonNull final String parameter, 
     @NonNull final SimpleEntityFieldSelector<Entity, Expression<ZonedDateTime>> start,
     @NonNull final SimpleEntityFieldSelector<Entity, Expression<ZonedDateTime>> end
@@ -76,7 +68,7 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity> APIRequestEntityCollectionFilteringOperatorParser<Entity> datetimeInRange (
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> datetimeInRange (
     @NonNull final String parameter, 
     @NonNull final EntityFieldSelector<Entity, Expression<ZonedDateTime>> start,
     @NonNull final EntityFieldSelector<Entity, Expression<ZonedDateTime>> end
@@ -87,7 +79,7 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity> APIRequestEntityCollectionFilteringOperatorParser<Entity> duration (
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> duration (
     @NonNull final String parameter, 
     @NonNull final SimpleEntityFieldSelector<Entity, Expression<Long>> selector
   ) {
@@ -96,7 +88,7 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity> APIRequestEntityCollectionFilteringOperatorParser<Entity> duration (
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> duration (
     @NonNull final String parameter, 
     @NonNull final EntityFieldSelector<Entity, Expression<Long>> selector
   ) {
@@ -106,7 +98,7 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity> APIRequestEntityCollectionFilteringOperatorParser<Entity> text (
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> text (
     @NonNull final String parameter, 
     @NonNull final SimpleEntityFieldSelector<Entity, Expression<String>> selector
   ) {
@@ -115,7 +107,7 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity> APIRequestEntityCollectionFilteringOperatorParser<Entity> text (
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> text (
     @NonNull final String parameter, 
     @NonNull final EntityFieldSelector<Entity, Expression<String>> selector
   ) {
@@ -125,7 +117,28 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity, Joined> APIRequestEntityCollectionFilteringOperatorParser<Entity> joinConfiguration (
+  public static <Entity, Joined> APIRequestEntityCollectionOperatorParser<Entity> joinCollection (
+    @NonNull final String parameter, 
+    @NonNull final SimpleEntityFieldSelector<Entity, Join<Entity, Joined>> join, 
+    @NonNull final Class<? extends EntityCollection<Joined>> collection
+  ) {
+
+    return joinConfiguration(
+      parameter, 
+      (EntityFieldSelector<Entity, Join<Entity, Joined>>) join, 
+      CollectionRequestConfiguration.getDefaultClass(collection)
+    );
+  }
+  
+  public static <Entity, Joined> APIRequestEntityCollectionOperatorParser<Entity> joinCollection (
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector<Entity, Join<Entity, Joined>> join, 
+    @NonNull final Class<? extends EntityCollection<Joined>> collection
+  ) {
+    return joinConfiguration(parameter, join, CollectionRequestConfiguration.getDefaultClass(collection));
+  }
+  
+  public static <Entity, Joined> APIRequestEntityCollectionOperatorParser<Entity> joinConfiguration (
     @NonNull final String parameter, 
     @NonNull final SimpleEntityFieldSelector<Entity, Join<Entity, Joined>> join, 
     @NonNull final Class<? extends CollectionRequestConfiguration<Joined>> configuration
@@ -135,51 +148,38 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity, Joined> APIRequestEntityCollectionFilteringOperatorParser<Entity> joinConfiguration (
+  public static <Entity, Joined> APIRequestEntityCollectionOperatorParser<Entity> joinConfiguration (
     @NonNull final String parameter, 
     @NonNull final EntityFieldSelector<Entity, Join<Entity, Joined>> join, 
     @NonNull final Class<? extends CollectionRequestConfiguration<Joined>> configuration
   ) {
-    return new APIRequestEntityCollectionJoinOperatorParser<Entity, Joined>(parameter, join, configuration);
-  }
-  
-  public static <Entity, Joined> APIRequestEntityCollectionFilteringOperatorParser<Entity> havingConfiguration (
-    @NonNull final String parameter, 
-    @NonNull final String join, 
-    @NonNull final Class<? extends CollectionRequestConfiguration<Joined>> configuration
-  ) {
-    return new APIRequestHavingBasedEntityFilterParser<>(parameter, join, configuration);
-  }
-  
-  public static <Entity, Joined> APIRequestEntityCollectionFilteringOperatorParser<Entity> havingCollection (
-    @NonNull final String parameter, 
-    @NonNull final String join, 
-    @NonNull final Class<? extends EntityCollection<Joined, ?>> configuration
-  ) {
-    return new APIRequestHavingBasedEntityFilterParser<Entity, Joined>(
-        parameter,
-        join, 
-        CollectionRequestConfiguration.getDefaultClass(configuration)
+    return new APIRequestEntityCollectionJoinOperatorParser<Entity, Joined>(
+        parameter, join, 
+        new APIRequestConfigurationBasedFilteringOperatorParser<>(configuration)
     );
   }
   
-  public static <Entity, Joined> APIRequestEntityCollectionFilteringOperatorParser<Entity> customHavingConfiguration (
+  public static <Entity, Joined> APIRequestEntityCollectionOperatorParser<Entity> existsConfiguration (
     @NonNull final String parameter, 
     @NonNull final Class<Joined> joined,
-    @NonNull final CustomCollectionRelation<Entity, Joined> relation,
+    @NonNull final EntityRelation<Entity, Joined> relation, 
     @NonNull final Class<? extends CollectionRequestConfiguration<Joined>> configuration
   ) {
-    return new APIRequestCustomHavingBasedEntityFilterParser<>(parameter, joined, relation, configuration);
+    return new APIRequestEntityCollectionExistsOperatorParser<>(
+        parameter, joined, relation,
+        new APIRequestConfigurationBasedFilteringOperatorParser<>(configuration)
+    );
   }
   
-  public static <Entity, Joined> APIRequestEntityCollectionFilteringOperatorParser<Entity> customHavingCollection (
+  public static <Entity, Joined> APIRequestEntityCollectionOperatorParser<Entity> existsCollection (
     @NonNull final String parameter, 
     @NonNull final Class<Joined> joined,
-    @NonNull final CustomCollectionRelation<Entity, Joined> relation,
-    @NonNull final Class<? extends EntityCollection<Joined, ?>> configuration
+    @NonNull final EntityRelation<Entity, Joined> relation, 
+    @NonNull final Class<? extends EntityCollection<Joined>> collection
   ) {
-    return new APIRequestCustomHavingBasedEntityFilterParser<Entity, Joined>(
-        parameter, joined, relation, CollectionRequestConfiguration.getDefaultClass(configuration)
+    return existsConfiguration(
+        parameter, joined, relation,
+        CollectionRequestConfiguration.getDefaultClass(collection)
     );
   }
 }

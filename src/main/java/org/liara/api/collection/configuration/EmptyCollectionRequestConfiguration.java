@@ -5,8 +5,8 @@ import java.util.List;
 
 import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
 import org.liara.api.request.parser.filtering.APIRequestEntityCollectionFilteringOperatorParser;
-import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
-import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
 
 public final class EmptyCollectionRequestConfiguration<Entity> implements CollectionRequestConfiguration<Entity>
 {

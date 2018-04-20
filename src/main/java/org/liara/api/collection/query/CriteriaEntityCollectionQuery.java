@@ -50,7 +50,9 @@ public class CriteriaEntityCollectionQuery<Entity, Output> extends CriteriaEntit
 
   @Override
   public <Joined> EntityCollectionQuery<Joined, Output> join (@NonNull final Join<Entity, Joined> join) {
-    return new CriteriaEntityCollectionQuery<>(getManager(), _query, QueriedEntity.from(join));
+    return new CriteriaEntityCollectionQuery<>(
+        getManager(), _query, QueriedEntity.from(join)
+    );
   }
   
   /**

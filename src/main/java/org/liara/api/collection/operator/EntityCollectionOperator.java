@@ -1,5 +1,7 @@
 package org.liara.api.collection.operator;
 
+import java.util.Arrays;
+
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
@@ -63,9 +65,23 @@ public interface EntityCollectionOperator<Entity>
    * 
    * @param collection Collection to mutate.
    */
-  default public void apply (
+  default EntityCollection<Entity> apply (
     @NonNull final EntityCollection<Entity> collection
   ) {
-    collection.apply(this);
+    return collection.apply(this);
+  }
+  
+  /**
+   * Create an operator that apply the given operator and then apply the current operator on a collection.
+   * 
+   * @param operator Operator to conjugate.
+   * @return An operator that apply the given operator and then apply the current operator on a collection.
+   */
+  default EntityCollectionOperator<Entity> apply (
+    @NonNull final EntityCollectionOperator<Entity> operator
+  ) {
+    return new EntityCollectionConjunctionOperator<>(Arrays.asList(
+      this, operator
+    ));
   }
 }

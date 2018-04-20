@@ -23,7 +23,7 @@ package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.BaseEntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
 import org.liara.api.data.entity.state.State;
@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @DefaultCollectionRequestConfiguration(StateCollectionRequestConfiguration.class)
-public class StateCollection extends CompleteEntityCollection<State, Long>
+public class StateCollection extends BaseEntityCollection<State>
 {
   @Autowired
   public StateCollection(@NonNull final EntityManager entityManager) {
