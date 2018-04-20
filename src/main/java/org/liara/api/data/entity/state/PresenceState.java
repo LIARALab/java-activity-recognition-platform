@@ -109,4 +109,59 @@ public class PresenceState extends State
   public void setStart (@NonNull final ZonedDateTime start) {
     _start = start;
   }
+
+  @Override
+  public String toString () {
+    StringBuilder builder = new StringBuilder();
+    builder.append("PresenceState [");
+    if (getIdentifier() != null) {
+      builder.append("getIdentifier()=");
+      builder.append(getIdentifier());
+      builder.append(", ");
+    }
+    if (getEmittionDate() != null) {
+      builder.append("getEmittionDate()=");
+      builder.append(getEmittionDate());
+      builder.append(", ");
+    }
+    builder.append("getSensorIdentifier()=");
+    builder.append(getSensorIdentifier());
+    builder.append(", ");
+    if (getCreationDate() != null) {
+      builder.append("getCreationDate()=");
+      builder.append(getCreationDate());
+      builder.append(", ");
+    }
+    if (getDeletionDate() != null) {
+      builder.append("getDeletionDate()=");
+      builder.append(getDeletionDate());
+      builder.append(", ");
+    }
+    if (getUpdateDate() != null) {
+      builder.append("getUpdateDate()=");
+      builder.append(getUpdateDate());
+      builder.append(", ");
+    }
+    if (_start != null) {
+      builder.append("_start=");
+      builder.append(_start);
+      builder.append(", ");
+    }
+    if (_end != null) {
+      builder.append("_end=");
+      builder.append(_end);
+      builder.append(", ");
+    }
+    if (_milliseconds != null) {
+      builder.append("_milliseconds=");
+      builder.append(_milliseconds);
+      builder.append(", ");
+    }
+    if (getNodeIdentifier() != null) {
+      builder.append("getNodeIdentifier()=");
+      builder.append(getNodeIdentifier());
+    }
+    builder.append("]");
+    return builder.toString();
+  }
 }

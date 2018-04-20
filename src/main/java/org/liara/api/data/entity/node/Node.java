@@ -22,6 +22,7 @@
 package org.liara.api.data.entity.node;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Table;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -54,7 +55,7 @@ public class Node extends ApplicationEntity
   @Column(name = "set_end", nullable = true, updatable = true, unique = false)
   private int           _setEnd;
 
-  @ManyToMany(cascade = CascadeType.ALL)
+  @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinTable(
       name = "sensors_by_nodes",
       joinColumns = @JoinColumn(name = "node_identifier"),
@@ -62,7 +63,7 @@ public class Node extends ApplicationEntity
   )
   private List<Sensor>  _sensors;
   
-  @OneToMany(mappedBy="_node", cascade = CascadeType.ALL, orphanRemoval = false)
+  @OneToMany(mappedBy="_node", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
   private List<PresenceState>  _presences;
   
   @Formula("(SELECT (COUNT(*) - 1) FROM nodes AS parent WHERE set_start BETWEEN parent.set_start AND parent.set_end)")

@@ -25,9 +25,6 @@ import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
-import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
-import org.liara.api.data.collection.configuration.DoubleStateCollectionRequestConfiguration;
-
 import javax.persistence.Column;
 
 @Entity
@@ -44,5 +41,43 @@ public class DoubleState extends State
 
   public void setValue (final double value) {
     _value = value;
+  }
+
+  @Override
+  public String toString () {
+    StringBuilder builder = new StringBuilder();
+    builder.append("DoubleState [");
+    if (getIdentifier() != null) {
+      builder.append("getIdentifier()=");
+      builder.append(getIdentifier());
+      builder.append(", ");
+    }
+    builder.append("getSensorIdentifier()=");
+    builder.append(getSensorIdentifier());
+    builder.append(", ");
+    if (getEmittionDate() != null) {
+      builder.append("getEmittionDate()=");
+      builder.append(getEmittionDate());
+      builder.append(", ");
+    }
+    if (getCreationDate() != null) {
+      builder.append("getCreationDate()=");
+      builder.append(getCreationDate());
+      builder.append(", ");
+    }
+    if (getDeletionDate() != null) {
+      builder.append("getDeletionDate()=");
+      builder.append(getDeletionDate());
+      builder.append(", ");
+    }
+    if (getUpdateDate() != null) {
+      builder.append("getUpdateDate()=");
+      builder.append(getUpdateDate());
+      builder.append(", ");
+    }
+    builder.append("_value=");
+    builder.append(_value);
+    builder.append("]");
+    return builder.toString();
   }
 }

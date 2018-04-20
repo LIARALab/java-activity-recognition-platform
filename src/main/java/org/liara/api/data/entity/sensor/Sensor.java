@@ -22,6 +22,7 @@
 package org.liara.api.data.entity.sensor;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Table;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
@@ -65,10 +66,15 @@ public class Sensor extends ApplicationEntity
   @Column(name = "ipv6_address", nullable = true, updatable = true, unique = false)
   private String        _ipv6Address;
 
-  @OneToMany(mappedBy="_sensor", cascade = CascadeType.ALL, orphanRemoval = false)
+  @OneToMany(
+    mappedBy="_sensor", 
+    cascade = CascadeType.ALL, 
+    orphanRemoval = false,
+    fetch = FetchType.LAZY
+  )
   private List<State>   _states;
 
-  @ManyToMany()
+  @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(
       name = "sensors_by_nodes",
       joinColumns = @JoinColumn(name = "sensor_identifier", nullable = false, updatable = true, unique = false),

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
+import javax.persistence.FlushModeType;
+import javax.persistence.LockModeType;
 
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.DoubleState;
@@ -82,10 +84,10 @@ public class CeilActivationDetector
     final double lastValue = _last.getValue();
     final double nextValue = state.getValue();
     
-    if (lastValue <= _ceil && nextValue >= _ceil) {
+    if (lastValue <= _ceil && nextValue > _ceil) {
       onActivation(state.getEmittionDate());
-    } else if (lastValue >= _ceil && nextValue <= _ceil) {
-      onDeactivation(state.getEmittionDate());
+    } else if (lastValue >= _ceil && nextValue < _ceil) {
+      onDeactivation(_last.getEmittionDate());
     }
     
     _last = state;
@@ -126,6 +128,7 @@ public class CeilActivationDetector
     @NonNull final DoubleState start,
     @NonNull final DoubleState end
   ) {
+    System.out.println("REPLAYING...");
     final List<DoubleState> states = _manager.createQuery(
       String.join(
         " ",
@@ -143,16 +146,53 @@ public class CeilActivationDetector
     for (final DoubleState state : states) {
       onTargetStateAddition(state);
     }
+    System.out.println("DONE");
   }
 
   private void backtrack (
     @NonNull final DoubleState target
   ) {
+    // System.out.println("/-------------------------------------");
+ // System.out.println("BACKTRACKING FROM " + _last);
+ // System.out.println("               TO " + target);
+ // System.out.println("     LAST EMITTED " + _lastEmittion);
+ // System.out.println("   INVALID STATES " + _invalidStates.size());
+ // System.out.println(" - Deleting invalid emitted states...");
     deleteInvalidStates(target);
+ // System.out.println(" - Refreshing invalid states stack...");
     refreshInvalidStates(target);
+ // System.out.println(" - Refreshing last emitted...");
     refreshLastEmitted(target);
+ // System.out.println(" - Refreshing last tick...");
+    refreshLastTick(target);
+ // System.out.println("   BACKTRACKED TO " + target);
+ // System.out.println("             LAST " + _last);
+ // System.out.println("     LAST EMITTED " + _lastEmittion);
+ // System.out.println("   INVALID STATES " + _invalidStates.size());
+ // System.out.println("/-------------------------------------");
+  }
+
+  private void refreshLastTick (@NonNull final DoubleState target) {
+    final List<DoubleState> last = _manager.createQuery(
+      String.join(
+        " ",
+        "SELECT state",
+        "FROM DoubleState state",
+        "WHERE state._sensor = :observed",
+        "  AND state._deletionDate IS NULL",
+        "  AND state._emittionDate < :limitDate",
+        "ORDER BY state._emittionDate DESC"
+      ), DoubleState.class
+    ).setParameter("observed", _target)
+     .setParameter("limitDate", target.getEmittionDate())
+     .setMaxResults(1)
+     .getResultList();
     
-    _last = target;
+    if (last.size() > 0) {
+      _last = last.get(0);
+    } else {
+      _last = null;
+    }
   }
 
   private void refreshLastEmitted (@NonNull final DoubleState target) {
@@ -173,7 +213,9 @@ public class CeilActivationDetector
       _lastEmittion = lastEmitted.get(0);
       final ZonedDateTime invalidDate = target.getEmittionDate();
       
-      if (
+      if (_lastEmittion.getEnd() != null && _lastEmittion.getEnd().isBefore(invalidDate)) {
+        _lastEmittion = null;
+      } else if (
           _lastEmittion.getEnd() != null && (
             _lastEmittion.getEnd().isAfter(invalidDate) ||
             _lastEmittion.getEnd().isEqual(invalidDate)
@@ -181,16 +223,18 @@ public class CeilActivationDetector
       ) {
         _lastEmittion.setEnd(null);
         _lastEmittion.setEmittionDate(_lastEmittion.getStart());
-      }
-      
-      if (
-        _lastEmittion.getStart().isAfter(invalidDate) ||
-        _lastEmittion.getStart().isEqual(invalidDate)
-      ) {
-        _lastEmittion.delete();
-        _manager.merge(_lastEmittion);
-        _invalidStates.add(0, _lastEmittion);
-        _lastEmittion = null;
+        
+        if (
+            _lastEmittion.getStart().isAfter(invalidDate) ||
+            _lastEmittion.getStart().isEqual(invalidDate)
+          ) {
+            _lastEmittion.delete();
+            _invalidStates.add(0, _lastEmittion);
+            _manager.merge(_lastEmittion);
+            _lastEmittion = null;
+        } else {
+          _manager.merge(_lastEmittion);
+        }
       }
     } else {
       _lastEmittion = null;
@@ -214,15 +258,17 @@ public class CeilActivationDetector
   }
 
   private void deleteInvalidStates (@NonNull final DoubleState target) {
-    _manager.createQuery(String.join(
+    _manager.flush();
+    _manager.clear();
+    _manager.createNativeQuery(String.join(
       " ",
-      "UPDATE PresenceState",
-      "SET _deletionDate = :deletionDate",
-      "WHERE _sensor = :target",
-      "  AND _emittionDate > :invalidationStart"
+      "UPDATE states",
+      "SET deleted_at = :deletionDate",
+      "WHERE sensor_identifier = :target",
+      "  AND emitted_at > :invalidationDate"
     )).setParameter("deletionDate", ZonedDateTime.now())
-      .setParameter("target", _sensor)
-      .setParameter("invalidationStart", target.getEmittionDate())
+      .setParameter("target", _sensor.getIdentifier())
+      .setParameter("invalidationDate", target.getEmittionDate())
       .executeUpdate();
   }
 
