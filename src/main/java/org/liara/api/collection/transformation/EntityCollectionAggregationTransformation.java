@@ -8,7 +8,7 @@ import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.springframework.lang.NonNull;
 
 public class      EntityCollectionAggregationTransformation<Input, Output>
-       implements EntityCollectionTransformation<Input, Output>
+       implements Transformation<Input, Output>
 {
   @NonNull
   private final EntityFieldSelector<Input, Expression<Output>> _selector;

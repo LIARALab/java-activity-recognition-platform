@@ -18,7 +18,7 @@ import org.liara.api.collection.query.queried.QueriedEntity;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.springframework.lang.NonNull;
 
-public abstract class CriteriaEntityCollectionAbstractQuery<Entity, Output> implements EntityCollectionQuery<Entity, Output>
+public abstract class AbstractEntityCollectionQuery<Entity, Output> implements EntityCollectionQuery<Entity, Output>
 {
   @NonNull
   private final EntityManager _manager;
@@ -35,7 +35,7 @@ public abstract class CriteriaEntityCollectionAbstractQuery<Entity, Output> impl
     EntityCollectionQuery<?, Output>
   > _joins = new HashMap<>();
 
-  public CriteriaEntityCollectionAbstractQuery(
+  public AbstractEntityCollectionQuery(
     @NonNull final EntityManager manager,
     @NonNull final AbstractQuery<Output> query,
     @NonNull final QueriedEntity<?, Entity> entity
@@ -141,7 +141,7 @@ public abstract class CriteriaEntityCollectionAbstractQuery<Entity, Output> impl
     final Subquery<Result> subquery = _query.subquery(result);
     final Root<Joined> from = subquery.from(joined);
     
-    return new CriteriaEntityCollectionSubquery<Joined, Result>(
+    return new EntityCollectionSubquery<Joined, Result>(
         getManager(),
         subquery,
         QueriedEntity.from(from)

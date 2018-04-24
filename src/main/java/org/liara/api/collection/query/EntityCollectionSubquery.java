@@ -18,14 +18,14 @@ import javax.persistence.criteria.Subquery;
 import org.liara.api.collection.query.queried.QueriedEntity;
 import org.springframework.lang.NonNull;
 
-public class CriteriaEntityCollectionSubquery<Entity, Result> 
-       extends CriteriaEntityCollectionAbstractQuery<Entity, Result>
-       implements EntityCollectionSubquery<Entity, Result>
+public class      EntityCollectionSubquery<Entity, Result> 
+       extends    AbstractEntityCollectionQuery<Entity, Result>
+       implements Expression<Result>
 {
   @NonNull
   private final Subquery<Result> _query;
   
-  public CriteriaEntityCollectionSubquery(
+  public EntityCollectionSubquery(
     @NonNull final EntityManager manager, 
     @NonNull final Subquery<Result> query, 
     @NonNull final QueriedEntity<?, Entity> entity
@@ -56,7 +56,7 @@ public class CriteriaEntityCollectionSubquery<Entity, Result>
 
   @Override
   public <Joined> EntityCollectionQuery<Joined, Result> join (@NonNull final Join<Entity, Joined> join) {
-    return new CriteriaEntityCollectionSubquery<>(getManager(), _query, QueriedEntity.from(join));
+    return new EntityCollectionSubquery<>(getManager(), _query, QueriedEntity.from(join));
   }
 
   @Override
@@ -119,7 +119,6 @@ public class CriteriaEntityCollectionSubquery<Entity, Result>
     return _query.getAlias();
   }
 
-  @Override
   public <Related> QueriedEntity<?, Related> correlate (@NonNull final QueriedEntity<?, Related> related) {
     return related.correlate(_query);
   }

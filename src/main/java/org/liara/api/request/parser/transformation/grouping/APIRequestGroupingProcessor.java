@@ -2,12 +2,12 @@ package org.liara.api.request.parser.transformation.grouping;
 
 import javax.persistence.Tuple;
 
-import org.liara.api.collection.transformation.EntityCollectionTransformation;
+import org.liara.api.collection.transformation.Transformation;
 import org.springframework.lang.NonNull;
 
 public interface APIRequestGroupingProcessor<Entity>
 {
-  public EntityCollectionTransformation<Entity, Tuple> process (
+  public Transformation<Entity, Tuple> process (
     @NonNull final String key
   );
   

@@ -13,7 +13,7 @@ import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.springframework.lang.NonNull;
 
 public class      EntityCollectionGroupAggregationTransformation<Input>
-       implements EntityCollectionTransformation<Input, Tuple>
+       implements Transformation<Input, Tuple>
 {
   @NonNull
   private final EntityFieldSelector<Input, Expression<?>> _selector;

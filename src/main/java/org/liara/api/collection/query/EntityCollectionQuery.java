@@ -60,12 +60,12 @@ public interface EntityCollectionQuery<Entity, Output>
    * @param from
    * @return
    */
-  public static <Entity, Result> CriteriaEntityCollectionQuery<Entity, Result> from (
+  public static <Entity, Result> EntityCollectionMainQuery<Entity, Result> from (
     @NonNull final EntityManager manager,
     @NonNull final CriteriaQuery<Result> query, 
     @NonNull final Root<Entity> entity
   ) {
-    return new CriteriaEntityCollectionQuery<>(manager, query, QueriedEntity.from(entity));
+    return new EntityCollectionMainQuery<>(manager, query, QueriedEntity.from(entity));
   }
 
   /**
@@ -76,12 +76,12 @@ public interface EntityCollectionQuery<Entity, Output>
    * @param entity
    * @return
    */
-  public static <Entity, Result> CriteriaEntityCollectionSubquery<Entity, Result> from (
+  public static <Entity, Result> EntityCollectionSubquery<Entity, Result> from (
     @NonNull final EntityManager manager, 
     @NonNull final Subquery<Result> query, 
     @NonNull final Root<Entity> entity
   ) {
-    return new CriteriaEntityCollectionSubquery<>(manager, query, QueriedEntity.from(entity));
+    return new EntityCollectionSubquery<>(manager, query, QueriedEntity.from(entity));
   }
   
   /**

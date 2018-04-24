@@ -96,7 +96,7 @@ public final class PresenceStateCollectionRequestConfiguration implements Collec
   }
 
   @Override
-  public List<APIRequestValidator> createFilterValidators () {
+  public List<APIRequestValidator> createFilteringValidators () {
     return Arrays.asList(
       APIRequestFilterValidatorFactory.integer("identifier"),
       APIRequestFilterValidatorFactory.datetime("creationDate"),

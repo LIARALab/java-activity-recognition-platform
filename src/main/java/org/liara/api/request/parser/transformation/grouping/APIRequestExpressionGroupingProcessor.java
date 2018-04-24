@@ -6,7 +6,9 @@ import javax.persistence.criteria.Expression;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.collection.transformation.EntityCollectionGroupTransformation;
-import org.liara.api.collection.transformation.EntityCollectionTransformation;
+import org.liara.api.collection.transformation.Transformation;
+import org.liara.api.collection.view.EntityCollectionQueryBasedView;
+import org.liara.api.collection.view.View;
 import org.springframework.lang.NonNull;
 
 public class      APIRequestExpressionGroupingProcessor<Entity> 
@@ -35,7 +37,7 @@ public class      APIRequestExpressionGroupingProcessor<Entity>
   }
 
   @Override
-  public EntityCollectionTransformation<Entity, Tuple> process (
+  public Transformation<EntityCollectionQueryBasedView<Entity>, View<Tuple>> process (
     @NonNull final String key
   ) {
     return new EntityCollectionGroupTransformation<>(_selector);

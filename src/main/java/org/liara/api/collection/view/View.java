@@ -21,63 +21,33 @@
  ******************************************************************************/
 package org.liara.api.collection.view;
 
-import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaQuery;
+import org.liara.api.collection.transformation.Transformation;
+import org.springframework.lang.NonNull;
 
 /**
- * A view over an entity collection.
+ * A view over some datas.
  * 
  * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
- * @param <Entity> Type of entity stored into the view.
+ * @param <Result> Result returned by this view.
  */
-public interface EntityCollectionView<Entity>
+public interface View<Result>
 {
   /**
-   * Return the stored entity type.
-   * 
-   * @return The stored entity type.
-   */
-  public Class<Entity> getEntityType ();
-  
-  /**
-   * Return the content of this view.
+   * Return the content of this view as a single result.
    *
-   * @return The content of this view.
+   * @return The content of this view as a single result.
    */
-  public List<Entity> get ();
+  public Result get ();
   
   /**
-   * Return an element of this view.
-   *
-   * @param index Index of the element of this view to fetch.
-   *
-   * @return The requested element of this view.
+   * Apply a transformation to this view and return a view that is the result of the given transformation.
    * 
-   * @throws IndexOutOfBoundsException when the index is less than 0 or greather or equal to the size of this view.
-   */
-  public Entity get (final int index) throws IndexOutOfBoundsException;
- 
-  /**
-   * Return the manager of all entities of this view.
+   * @param transformation Transformation to apply to this collection.
    * 
-   * @return The manager of all entities of this view.
+   * @return A view that is the result of the given transformation applied to this view.
    */
-  public EntityManager getManager ();
-  
-  /**
-   * Create and return a query that select the content of this view.
-   * 
-   * @return A query that select the content of this view.
-   */
-  public CriteriaQuery<Entity> createQuery ();
-  
-  /**
-   * Return the size of this view.
-   * 
-   * @return The size of this view.
-   */
-  public long getSize ();
+  public default <OutputEntity, Output extends View<OutputEntity>> Output apply (
+    @NonNull final Transformation<View<Result>, Output> transformation
+  ) { return transformation.apply(this); }
 }

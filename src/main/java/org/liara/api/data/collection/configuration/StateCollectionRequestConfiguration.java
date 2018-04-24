@@ -75,7 +75,7 @@ public final class StateCollectionRequestConfiguration implements CollectionRequ
   }
 
   @Override
-  public List<APIRequestValidator> createFilterValidators () {
+  public List<APIRequestValidator> createFilteringValidators () {
     return Arrays.asList(
       APIRequestFilterValidatorFactory.integer("identifier"),
       APIRequestFilterValidatorFactory.datetime("creationDate"),

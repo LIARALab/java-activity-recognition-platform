@@ -25,17 +25,16 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.metamodel.EntityType;
 
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.collection.operator.EntityCollectionConjunctionOperator;
 import org.liara.api.collection.operator.EntityCollectionOperator;
-import org.liara.api.collection.query.CriteriaEntityCollectionQuery;
+import org.liara.api.collection.query.EntityCollectionMainQuery;
 import org.liara.api.collection.query.EntityCollectionQuery;
-import org.liara.api.collection.transformation.EntityCollectionTransformation;
-import org.liara.api.collection.view.BaseEntityCollectionView;
-import org.liara.api.collection.view.EntityCollectionView;
+import org.liara.api.collection.view.AbstractEntityCollectionQueryBasedView;
 import org.springframework.lang.NonNull;
 
 /**
@@ -46,8 +45,8 @@ import org.springframework.lang.NonNull;
  * @param <Entity> Type of entity in the collection.
  * @param <Identifier> Identifier type used for indexing the given entity type.
  */
-public class BaseEntityCollection<Entity> 
-       extends BaseEntityCollectionView<Entity>
+public class      BaseEntityCollection<Entity> 
+       extends    AbstractEntityCollectionQueryBasedView<Entity, Entity, List<Entity>>
        implements EntityCollection<Entity>
 {
   /**
@@ -78,7 +77,7 @@ public class BaseEntityCollection<Entity>
   public BaseEntityCollection (
     @NonNull final EntityCollection<Entity> collection
   ) {
-    super (collection.getManager(), collection.getEntityType());
+    super(collection);
     _operator = new EntityCollectionConjunctionOperator<>(collection.getOperator());
   }
   
@@ -92,53 +91,38 @@ public class BaseEntityCollection<Entity>
     @NonNull final EntityCollection<Entity> collection,
     @NonNull final EntityCollectionConjunctionOperator<Entity> operator
   ) {
-    super (collection.getManager(), collection.getEntityType());
+    super(collection);
     _operator = operator;
   }
 
-  /**
-   * Create and return a collection query that select all entities of this collection and 
-   * return a result of a given type.
-   * 
-   * @param result The result type of the query.
-   * 
-   * @return A collection query that select all entities of this collection and return a result of a given type.
-   */
-  public <Result> CriteriaEntityCollectionQuery<Entity, Result> createCollectionQuery (
+  @Override
+  public <Result> EntityCollectionMainQuery<Entity, Result> createCollectionQuery (
     @NonNull final Class<Result> result
   ) {
     final CriteriaQuery<Result> query = getManager().getCriteriaBuilder().createQuery(result);
-    final CriteriaEntityCollectionQuery<Entity, Result> collectionQuery = EntityCollectionQuery.from(
-      getManager(), query, query.from(getEntityType())
+    final EntityCollectionMainQuery<Entity, Result> collectionQuery = EntityCollectionQuery.from(
+      getManager(), query, query.from(getQueryResultType())
     );
     
     _operator.apply(collectionQuery);
     
-    return collectionQuery;
-  }
-  
-  /**
-   * Create an return a collection query that select all entities of this collection and return them.
-   * 
-   * @return A collection query that select all entities of this collection and return them.
-   */
-  public CriteriaEntityCollectionQuery<Entity, Entity> createCollectionQuery () {
-    final CriteriaEntityCollectionQuery<Entity, Entity> collectionQuery = createCollectionQuery(getEntityType());
-    
-    collectionQuery.getCriteriaQuery().select(collectionQuery.getEntity());
+    if (result.isAssignableFrom(getQueryResultType())) {
+      collectionQuery.getCriteriaQuery()
+                     .select(collectionQuery.getEntity().as(result));
+    }
     
     return collectionQuery;
   }
   
   @Override
-  public CriteriaQuery<Entity> createQuery () {
-    return createCollectionQuery().getCriteriaQuery();
+  public TypedQuery<Entity> createTypedQuery () {
+    return getManager().createQuery(createCollectionQuery().getCriteriaQuery());
   }
 
   @Override
   public <Identifier> Optional<Entity> findByIdentifier (@NonNull final Identifier identifier) {
-    final CriteriaEntityCollectionQuery<Entity, Entity> query = createCollectionQuery();
-    final EntityType<Entity> entityType = getManager().getMetamodel().entity(getEntityType());
+    final EntityCollectionMainQuery<Entity, Entity> query = createCollectionQuery();
+    final EntityType<Entity> entityType = getManager().getMetamodel().entity(getQueryResultType());
     
     query.andWhere(getManager().getCriteriaBuilder().equal(
       query.getEntity().get(entityType.getId(identifier.getClass())), 
@@ -179,10 +163,7 @@ public class BaseEntityCollection<Entity>
   }
 
   @Override
-  public <Output> EntityCollectionView<Output> apply (
-    @NonNull final EntityCollectionTransformation<Entity, Output> transformation
-  ) {
-    // TODO Auto-generated method stub
-    return null;
+  public List<Entity> get () {
+    return createTypedQuery().getResultList();
   }
 }

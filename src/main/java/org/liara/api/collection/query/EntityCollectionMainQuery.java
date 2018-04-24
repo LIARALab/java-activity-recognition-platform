@@ -12,12 +12,12 @@ import javax.persistence.criteria.ParameterExpression;
 import org.liara.api.collection.query.queried.QueriedEntity;
 import org.springframework.lang.NonNull;
 
-public class CriteriaEntityCollectionQuery<Entity, Output> extends CriteriaEntityCollectionAbstractQuery<Entity, Output>
+public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCollectionQuery<Entity, Output>
 {
   @NonNull 
   private final CriteriaQuery<Output> _query;
   
-  public CriteriaEntityCollectionQuery (
+  public EntityCollectionMainQuery (
     @NonNull final EntityManager manager,
     @NonNull final CriteriaQuery<Output> query,
     @NonNull final QueriedEntity<?, Entity> entity
@@ -50,7 +50,7 @@ public class CriteriaEntityCollectionQuery<Entity, Output> extends CriteriaEntit
 
   @Override
   public <Joined> EntityCollectionQuery<Joined, Output> join (@NonNull final Join<Entity, Joined> join) {
-    return new CriteriaEntityCollectionQuery<>(
+    return new EntityCollectionMainQuery<>(
         getManager(), _query, QueriedEntity.from(join)
     );
   }

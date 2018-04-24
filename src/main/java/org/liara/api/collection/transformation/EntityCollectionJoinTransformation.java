@@ -9,17 +9,17 @@ import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.springframework.lang.NonNull;
 
 public class EntityCollectionJoinTransformation<Entity, Joined, Output>
-       implements EntityCollectionTransformation<Entity, Output>
+       implements Transformation<Entity, Output>
 {
   @NonNull
   private final EntityFieldSelector<Entity, Join<Entity, Joined>> _join;
   
   @NonNull
-  private final EntityCollectionTransformation<Joined, Output> _transformation;
+  private final Transformation<Joined, Output> _transformation;
   
   public EntityCollectionJoinTransformation(
     @NonNull final EntityFieldSelector<Entity, Join<Entity, Joined>> join,
-    @NonNull final EntityCollectionTransformation<Joined, Output> transformation
+    @NonNull final Transformation<Joined, Output> transformation
   ) {
     _join = join;
     _transformation = transformation;

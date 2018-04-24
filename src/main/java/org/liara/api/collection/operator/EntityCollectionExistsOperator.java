@@ -1,9 +1,5 @@
 package org.liara.api.collection.operator;
 
-import java.util.Collection;
-
-import javax.persistence.criteria.Path;
-
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.EntityCollectionSubquery;
 import org.liara.api.collection.query.relation.EntityRelation;
@@ -36,5 +32,11 @@ public class EntityCollectionExistsOperator<Entity, Joined> implements EntityCol
     final EntityCollectionSubquery<Joined, Joined> subquery = query.subquery(_type, _type);
     _relation.apply(query, subquery);
     _operator.apply(subquery);
+    
+    query.andWhere(
+      query.getManager()
+           .getCriteriaBuilder()
+           .exists(subquery.getSubquery())
+    );
   }
 }

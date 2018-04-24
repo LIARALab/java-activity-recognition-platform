@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.query.EntityCollectionQuery;
-import org.liara.api.collection.view.EntityCollectionView;
+import org.liara.api.collection.view.View;
 import org.liara.api.criteria.CriteriaExpressionSelector;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
@@ -50,7 +50,7 @@ public class BaseRestController
     @NonNull final HttpServletRequest request
   ) throws InvalidAPIRequestException {
     final APIRequest apiRequest = APIRequest.from(request);
-    final EntityCollectionView<Entity, Identifier> view = collection.apply(apiRequest);
+    final View<Entity, Identifier> view = collection.apply(apiRequest);
 
     if (view.isComplete()) {
       return new ResponseEntity<>(view.getContent(), HttpStatus.OK);

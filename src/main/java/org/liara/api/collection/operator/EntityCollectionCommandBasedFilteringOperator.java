@@ -7,7 +7,8 @@ import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.filter.interpretor.FilterInterpretor;
 import org.springframework.lang.NonNull;
 
-public class EntityCollectionCommandBasedFilteringOperator<Entity, Field> implements EntityCollectionFilteringOperator<Entity>
+public class      EntityCollectionCommandBasedFilteringOperator<Entity, Field> 
+       implements EntityCollectionOperator<Entity>
 {  
   @NonNull
   private final String[] _commands;

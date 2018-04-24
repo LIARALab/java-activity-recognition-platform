@@ -10,7 +10,7 @@ import org.liara.api.collection.grouping.ComposedGrouping;
 import org.liara.api.collection.grouping.EntityGrouping;
 import org.liara.api.collection.grouping.JoinGrouping;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
-import org.liara.api.collection.transformation.EntityCollectionTransformation;
+import org.liara.api.collection.transformation.Transformation;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -37,7 +37,7 @@ public class      APIRequestJoinGroupingProcessor<Entity, Joined>
   }
 
   @Override
-  public EntityCollectionTransformation<Entity, Tuple> process (
+  public Transformation<Entity, Tuple> process (
     @NonNull final String key
   ) {
     return _processor.process(key.substring(_parameter.length() + 1));

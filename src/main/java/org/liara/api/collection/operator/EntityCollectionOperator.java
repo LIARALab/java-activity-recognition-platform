@@ -9,6 +9,7 @@ import javax.persistence.criteria.Subquery;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.transformation.Transformation;
 import org.springframework.lang.NonNull;
 
 /**
@@ -19,7 +20,11 @@ import org.springframework.lang.NonNull;
  * @param <Entity> Entity targeted by this operation.
  */
 @FunctionalInterface
-public interface EntityCollectionOperator<Entity>
+public interface EntityCollectionOperator<Entity> 
+       extends   Transformation<
+                   EntityCollection<Entity>, 
+                   EntityCollection<Entity>
+                 >
 {
   /**
    * Apply the current operator to the given query.

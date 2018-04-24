@@ -21,12 +21,12 @@
  ******************************************************************************/
 package org.liara.api.collection;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.collection.operator.EntityCollectionOperator;
-import org.liara.api.collection.transformation.EntityCollectionTransformation;
-import org.liara.api.collection.view.EntityCollectionView;
+import org.liara.api.collection.view.EntityCollectionQueryBasedView;
 import org.springframework.lang.NonNull;
 
 /**
@@ -36,7 +36,8 @@ import org.springframework.lang.NonNull;
  *
  * @param <Entity> Type of entity in the collection.
  */
-public interface EntityCollection<Entity> extends EntityCollectionView<Entity>
+public interface EntityCollection<Entity> 
+       extends   EntityCollectionQueryBasedView<Entity, Entity, List<Entity>>
 {     
   /**
    * Try to find an entity of this collection by using it's identifier.
@@ -55,7 +56,7 @@ public interface EntityCollection<Entity> extends EntityCollectionView<Entity>
    * @throws EntityNotFoundException If the requested entity does not exists in this collection.
    */
   public <Identifier> Entity findByIdentifierOrFail (final Identifier identifier) throws EntityNotFoundException;
-  
+
   /**
    * Return an operator to apply to a given query in order to select all entities of this collection.
    * 
@@ -71,15 +72,4 @@ public interface EntityCollection<Entity> extends EntityCollectionView<Entity>
    * @return A new updated instance of this collection.
    */
   public EntityCollection<Entity> apply (@NonNull final EntityCollectionOperator<Entity> operator);
-  
-  /**
-   * Apply a transformation to this collection and return a view that is the result of the given transformation.
-   * 
-   * @param transformation Transformation to apply to this collection.
-   * 
-   * @return A view that is the result of the given transformation over this collection.
-   */
-  public <Output> EntityCollectionView<Output> apply (
-    @NonNull final EntityCollectionTransformation<Entity, Output> transformation
-  );
 }
