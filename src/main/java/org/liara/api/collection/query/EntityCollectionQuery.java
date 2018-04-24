@@ -41,6 +41,7 @@ import javax.persistence.metamodel.EntityType;
 
 import org.liara.api.collection.query.queried.QueriedEntity;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.springframework.lang.NonNull;
 
 /**
@@ -144,6 +145,15 @@ public interface EntityCollectionQuery<Entity, Output>
    * @return An EntityCollectionQuery on the given join.
    */
   public <Joined> EntityCollectionQuery<Joined, Output> join (@NonNull final EntityFieldSelector<Entity, Join<Entity, Joined>> join);
+  
+  /**
+   * Create an EntityCollectionQuery on the given join.
+   * 
+   * @param join Join to apply.
+   * 
+   * @return An EntityCollectionQuery on the given join.
+   */
+  public <Joined> EntityCollectionQuery<Joined, Output> join (@NonNull final SimpleEntityFieldSelector<Entity, Join<Entity, Joined>> join);
   
   /**
    * Create a subquery.

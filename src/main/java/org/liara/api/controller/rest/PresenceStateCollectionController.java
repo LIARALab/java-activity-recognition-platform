@@ -29,15 +29,21 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Path;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
-import org.liara.api.collection.EntityCollections;
 import org.liara.api.collection.EntityNotFoundException;
+import org.liara.api.collection.query.EntityCollectionMainQuery;
 import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
+import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
+import org.liara.api.data.collection.BooleanStateCollection;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.PresenceStateCollection;
+import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.PresenceState;
@@ -69,22 +75,28 @@ public class PresenceStateCollectionController extends BaseRestController
   private EntityManager _entityManager;
   
   @Autowired
-  private EntityCollections _collections;
+  private PresenceStateCollection _collection;
   
   @Autowired
   private NodeCollection _nodes;
   
   @Autowired
-  private PresenceStateCollection _collection;
+  private BooleanStateCollection _booleans;
+  
+  @Autowired
+  private SensorCollection _sensors;
   
   private Iterator<PresenceState> presences (@NonNull final Sensor sensor) throws EntityNotFoundException {
     final List<Sensor> sensors = _nodes.getAllSensors(sensor.getNodes(), "common/native/motion");
     
-    final EntityCollectionQuery<BooleanState, BooleanState> stateQuery = _collections.createQuery(BooleanState.class);
-    stateQuery.where(stateQuery.joinCollection("_sensor").getEntity().in(sensors));
+    final EntityCollectionMainQuery<BooleanState, BooleanState> stateQuery = _booleans.createCollectionQuery(BooleanState.class);
+    stateQuery.getCriteriaQuery().select(stateQuery.getEntity());
+    stateQuery.where(stateQuery.join(root -> root.join("_sensor")).getEntity().in(sensors));
     stateQuery.orderBy(_entityManager.getCriteriaBuilder().asc(stateQuery.getEntity().get("_emittionDate")));
 
-    return new LiaraPresenceStream(new TickEventStream(new StateTickStream(_collections.fetch(stateQuery))));
+    return new LiaraPresenceStream(new TickEventStream(new StateTickStream(
+      stateQuery.getManager().createQuery(stateQuery.getCriteriaQuery()).getResultList()
+    )));
   }
   
   @GetMapping("/sensors/{identifier}/refresh")
@@ -94,7 +106,7 @@ public class PresenceStateCollectionController extends BaseRestController
     @PathVariable final long identifier
   ) throws EntityNotFoundException, InvalidAPIRequestException
   {
-    final Sensor sensor = _collections.createCollection(Sensor.class).findByIdOrFail(identifier);
+    final Sensor sensor = _sensors.findByIdentifierOrFail(identifier);
     
     if (!sensor.getType().equals("common/virtual/presence")) {
       throw new Error("Not a presence sensor.");
@@ -129,19 +141,23 @@ public class PresenceStateCollectionController extends BaseRestController
   @GetMapping("/states<presence>/count")
   public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
-    return aggregate(_collection, request, this::count);
+    return aggregate(
+      _collection, request, 
+      EntityCountAggregationTransformation.create()
+    );
   }
   
+  /*
   @GetMapping("/states<presence>/sum")
   public ResponseEntity<Object> sum (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
-    return aggregate(_collection, request, this::sum, x -> Duration.ofMillis(x));
+    return aggregate(_collection, request, this::sum, Duration::ofMillis);
   }
   
   @GetMapping("/states<presence>/avg")
   public ResponseEntity<Object> avg (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
-    return aggregate(_collection, request, this::avg, x -> Duration.ofMillis(x.longValue()));
+    return aggregate(_collection, request, this::avg, Duration::ofMillis);
   }
   
   private Expression<Long> sum (
@@ -159,4 +175,5 @@ public class PresenceStateCollectionController extends BaseRestController
   ) {
     return builder.avg(root.get("_milliseconds"));
   }
+  */
 }

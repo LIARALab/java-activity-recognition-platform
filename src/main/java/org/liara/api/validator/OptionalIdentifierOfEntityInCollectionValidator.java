@@ -15,7 +15,7 @@ public class OptionalIdentifierOfEntityInCollectionValidator implements Constrai
   @Autowired
   private ApplicationContext _context;
   
-  private Class<? extends EntityCollection<?, Long>> _collection;
+  private Class<? extends EntityCollection<?>> _collection;
 
   @Override
   public void initialize (@NonNull final IdentifierOfEntityInCollection constraintAnnotation) {
@@ -30,8 +30,8 @@ public class OptionalIdentifierOfEntityInCollectionValidator implements Constrai
     if (value == null) {
       return true;
     } else {
-      final EntityCollection<?, Long> collection = _context.getBean(_collection);
-      return collection.findById(value) != null;
+      final EntityCollection<?> collection = _context.getBean(_collection);
+      return collection.findByIdentifier(value) != null;
     }
   }
 }

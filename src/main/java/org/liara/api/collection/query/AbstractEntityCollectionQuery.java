@@ -16,6 +16,7 @@ import javax.persistence.metamodel.EntityType;
 
 import org.liara.api.collection.query.queried.QueriedEntity;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.springframework.lang.NonNull;
 
 public abstract class AbstractEntityCollectionQuery<Entity, Output> implements EntityCollectionQuery<Entity, Output>
@@ -158,5 +159,12 @@ public abstract class AbstractEntityCollectionQuery<Entity, Output> implements E
     }
     
     return (EntityCollectionQuery<Joined, Output>) _joins.get(join);
+  }
+  
+  @Override
+  public <Joined> EntityCollectionQuery<Joined, Output> join (
+    @NonNull final SimpleEntityFieldSelector<Entity, Join<Entity, Joined>> join
+  ) {
+    return join((EntityFieldSelector<Entity, Join<Entity, Joined>>) join);
   }
 }

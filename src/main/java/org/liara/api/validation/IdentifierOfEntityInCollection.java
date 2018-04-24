@@ -32,5 +32,5 @@ public @interface IdentifierOfEntityInCollection
   
   public Class<? extends Payload>[] payload () default {};
   
-  public Class<? extends EntityCollection<?, Long>> collection ();
+  public Class<? extends EntityCollection<?>> collection ();
 }

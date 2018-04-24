@@ -6,9 +6,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.transformation.cursor.Cursor;
 import org.liara.api.collection.transformation.cursor.CursorTransformation;
+import org.liara.api.collection.transformation.grouping.EntityCollectionGroupTransformation;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.collection.transformation.Transformation;
 import org.liara.api.collection.view.cursor.CursorView;
@@ -19,6 +22,7 @@ import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorP
 import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.operator.ordering.ComposedAPIRequestOrderingParser;
 import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.transformation.grouping.ComposedAPIRequestGroupingParser;
 import org.liara.api.request.validator.APIRequestFreeCursorValidator;
 import org.liara.api.request.validator.APIRequestValidator;
 import org.liara.api.request.validator.error.APIRequestError;
@@ -129,6 +133,15 @@ public interface CollectionRequestConfiguration<Entity>
     final EntityCollectionOperator<Entity> ordering = createOrderingParser().parse(request);
     
     return filter.apply(ordering);
+  }
+  
+
+  public default EntityCollectionGroupTransformation<Entity> getGrouping (
+    @NonNull final APIRequest request
+  ) {
+    return new ComposedAPIRequestGroupingParser<>(
+      createGroupingProcessors()
+    ).parse(request);
   }
   
   public default void validate (@NonNull final APIRequest request) throws InvalidAPIRequestException {

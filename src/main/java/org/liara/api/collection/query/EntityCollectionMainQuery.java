@@ -11,6 +11,7 @@ import javax.persistence.criteria.ParameterExpression;
 
 import org.liara.api.collection.query.queried.QueriedEntity;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.springframework.lang.NonNull;
 
 public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCollectionQuery<Entity, Output>
@@ -61,6 +62,13 @@ public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCol
     @NonNull final EntityFieldSelector<Entity, Join<Entity, Joined>> join
   ) {
     return (EntityCollectionMainQuery<Joined, Output>) super.join(join);
+  }
+
+  @Override
+  public <Joined> EntityCollectionMainQuery<Joined, Output> join (
+    @NonNull final SimpleEntityFieldSelector<Entity, Join<Entity, Joined>> join
+  ) {
+    return join((EntityFieldSelector<Entity, Join<Entity, Joined>>) join);
   }
   
   /**

@@ -17,7 +17,7 @@ public class IdentifierOfEntityInCollectionValidator implements ConstraintValida
   @Autowired
   private ApplicationContext _context;
   
-  private Class<? extends EntityCollection<?, Long>> _collection;
+  private Class<? extends EntityCollection<?>> _collection;
 
   @Override
   public void initialize (@NonNull final IdentifierOfEntityInCollection constraintAnnotation) {
@@ -30,8 +30,8 @@ public class IdentifierOfEntityInCollectionValidator implements ConstraintValida
     @NonNull final ConstraintValidatorContext context
   ) {
     if (value.isPresent()) {
-      final EntityCollection<?, Long> collection = _context.getBean(_collection);
-      return collection.findById(value.get()) != null;
+      final EntityCollection<?> collection = _context.getBean(_collection);
+      return collection.findByIdentifier(value.get()).isPresent();
     } else {
       return true;
     }

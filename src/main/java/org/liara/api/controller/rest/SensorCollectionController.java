@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.liara.api.collection.EntityNotFoundException;
+import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
@@ -73,7 +74,10 @@ public final class SensorCollectionController extends BaseRestController
     }
   )
   public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return aggregate(_collection, request, this::count);
+    return aggregate(
+      _collection, request, 
+      EntityCountAggregationTransformation.create()
+    );
   }
 
   @GetMapping("/sensors")

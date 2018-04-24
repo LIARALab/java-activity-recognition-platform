@@ -21,23 +21,17 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-import javax.persistence.Tuple;
-import javax.persistence.TupleElement;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
 import javax.servlet.http.HttpServletRequest;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.query.EntityCollectionQuery;
-import org.liara.api.collection.transformation.Transformation;
-import org.liara.api.collection.view.View;
+import org.liara.api.collection.transformation.aggregation.EntityAggregationTransformation;
+import org.liara.api.collection.transformation.grouping.EntityCollectionGroupTransformation;
+import org.liara.api.collection.view.EntityCollectionAggregation;
+import org.liara.api.collection.view.MapView;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.http.HttpStatus;
@@ -64,66 +58,40 @@ public class BaseRestController
     }
   }
   
-  public <Entity, Identifier, Value> ResponseEntity<Object> aggregate (
-    @NonNull final EntityCollection<Entity, Identifier> collection,
+  public <Entity, AggregationType> ResponseEntity<Object> aggregate (
+    @NonNull final EntityCollection<Entity> collection,
     @NonNull final HttpServletRequest request,
-    @NonNull final CriteriaExpressionSelector<Value> aggregation
-  )
-    throws InvalidAPIRequestException
-  {
+    @NonNull final EntityAggregationTransformation<Entity, AggregationType> aggregation
+  ) throws InvalidAPIRequestException {
     return aggregate(collection, request, aggregation, x -> x);
   }
 
-  @SuppressWarnings("unchecked")
-  public <Entity, Identifier, Value, Cast> ResponseEntity<Object> aggregate (
-    @NonNull final EntityCollection<Entity, Identifier> collection,
+  public <Entity, AggregationType, Cast> ResponseEntity<Object> aggregate (
+    @NonNull final EntityCollection<Entity> collection,
     @NonNull final HttpServletRequest request,
-    @NonNull final CriteriaExpressionSelector<Value> aggregation,
-    @NonNull final Function<Value, Cast> cast
+    @NonNull final EntityAggregationTransformation<Entity, AggregationType> aggregation,
+    @NonNull final Function<AggregationType, Cast> cast
   )
     throws InvalidAPIRequestException
   {
     final APIRequest apiRequest = APIRequest.from(request);
-    final EntityCollection<Entity, Identifier> filtered = collection.filter(apiRequest).order(apiRequest);
-  
-    final EntityCollectionQuery<Entity, Tuple> query = filtered.createCollectionQuery(Tuple.class);
-    collection.group(query, apiRequest, aggregation);
-    final List<Tuple> tuples = filtered.fetch(query);
-    final List<Object[]> result = new ArrayList<>();
+    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefaultConfigurationOf(collection);
     
-    if (tuples.size() == 1 && tuples.get(0).getElements().size() == 1) {
-      return new ResponseEntity<Object>(
-        cast.apply((Value) tuples.get(0).get(0)), 
+    final EntityCollection<Entity> filtered = configuration.getOperator(apiRequest).apply(collection);
+    final EntityCollectionAggregation<Entity, AggregationType> aggregationResult = aggregation.apply(filtered);
+    
+    final EntityCollectionGroupTransformation<Entity> groups = configuration.getGrouping(apiRequest);
+    
+    if (groups == null) {
+      return new ResponseEntity<>(
+        aggregationResult.get(), 
+        HttpStatus.OK
+      );
+    } else {      
+      return new ResponseEntity<>(
+        MapView.apply(groups.apply(aggregationResult)).get(), 
         HttpStatus.OK
       );
     }
-    
-    for (final Tuple tuple : tuples) {
-      final List<TupleElement<?>> elements = tuple.getElements();
-      final Object key;
-      
-      if (elements.size() == 2) {
-        key = tuple.get(0);
-      } else {
-        final List<Object> keyList = new ArrayList<>();
-        for (int index = 0; index < elements.size() - 1; ++index) {
-          keyList.add(tuple.get(index));
-        }
-        key = keyList;
-      }
-      
-      result.add(new Object[] {
-        key, 
-        cast.apply((Value) tuple.get(elements.size() - 1))
-      });
-    }
-    
-    return new ResponseEntity<Object>(result, HttpStatus.OK);
   }
-  
-  protected Expression<Long> count (
-    @NonNull final CriteriaBuilder builder,
-    @NonNull final CriteriaQuery<?> query,
-    @NonNull final Path<?> root
-  ) { return builder.count(root); }
 }

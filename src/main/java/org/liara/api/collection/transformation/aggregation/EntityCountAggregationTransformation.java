@@ -8,6 +8,10 @@ import org.springframework.lang.NonNull;
 public class EntityCountAggregationTransformation<Entity>
        implements EntityAggregationTransformation<Entity, Long>
 {
+  public static <Entity> EntityCountAggregationTransformation<Entity> create () {
+    return new EntityCountAggregationTransformation<>();
+  }
+  
   @Override
   public Class<Long> getAggregationType () {
     return Long.class;
