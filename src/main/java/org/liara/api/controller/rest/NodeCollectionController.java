@@ -28,7 +28,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
-import org.liara.api.collection.exception.EntityNotFoundException;
+import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.node.NodeModifier;
@@ -156,12 +156,12 @@ public final class NodeCollectionController extends BaseRestController
 
   @GetMapping("/nodes/{identifier}")
   public Node get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdOrFail(identifier);
+    return _collection.findByIdentifierOrFail(identifier);
   }
 
   @GetMapping("/nodes/{identifier}/sensors")
   public List<Sensor> getSensors (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdOrFail(identifier).getSensors();
+    return _collection.findByIdentifierOrFail(identifier).getSensors();
   }
 
   @GetMapping("/nodes/{identifier}/children")

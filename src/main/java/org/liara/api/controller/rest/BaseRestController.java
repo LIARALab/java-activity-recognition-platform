@@ -34,9 +34,10 @@ import javax.persistence.criteria.Path;
 import javax.servlet.http.HttpServletRequest;
 
 import org.liara.api.collection.EntityCollection;
+import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.transformation.Transformation;
 import org.liara.api.collection.view.View;
-import org.liara.api.criteria.CriteriaExpressionSelector;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.http.HttpStatus;
@@ -45,17 +46,21 @@ import org.springframework.lang.NonNull;
 
 public class BaseRestController
 {
-  public <Entity, Identifier> ResponseEntity<List<Entity>> indexCollection (
-    @NonNull final EntityCollection<Entity, Identifier> collection, 
+  public <Entity> ResponseEntity<List<Entity>> indexCollection (
+    @NonNull final EntityCollection<Entity> collection, 
     @NonNull final HttpServletRequest request
   ) throws InvalidAPIRequestException {
     final APIRequest apiRequest = APIRequest.from(request);
-    final View<Entity, Identifier> view = collection.apply(apiRequest);
-
-    if (view.isComplete()) {
-      return new ResponseEntity<>(view.getContent(), HttpStatus.OK);
+    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefaultConfigurationOf(collection);
+    final EntityCollection<Entity> fullCollection = configuration.getOperator(apiRequest).apply(collection);
+    final List<Entity> content = configuration.getCursor(apiRequest)
+                                              .apply(fullCollection)
+                                              .get();
+    
+    if (content.size() >= fullCollection.getSize()) {
+      return new ResponseEntity<>(content, HttpStatus.OK);
     } else {
-      return new ResponseEntity<>(view.getContent(), HttpStatus.PARTIAL_CONTENT);
+      return new ResponseEntity<>(content, HttpStatus.PARTIAL_CONTENT);
     }
   }
   

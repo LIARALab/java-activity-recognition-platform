@@ -10,6 +10,7 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.ParameterExpression;
 
 import org.liara.api.collection.query.queried.QueriedEntity;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.springframework.lang.NonNull;
 
 public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCollectionQuery<Entity, Output>
@@ -49,10 +50,17 @@ public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCol
   }
 
   @Override
-  public <Joined> EntityCollectionQuery<Joined, Output> join (@NonNull final Join<Entity, Joined> join) {
+  public <Joined> EntityCollectionMainQuery<Joined, Output> join (@NonNull final Join<Entity, Joined> join) {
     return new EntityCollectionMainQuery<>(
         getManager(), _query, QueriedEntity.from(join)
     );
+  }
+  
+  @Override
+  public <Joined> EntityCollectionMainQuery<Joined, Output> join (
+    @NonNull final EntityFieldSelector<Entity, Join<Entity, Joined>> join
+  ) {
+    return (EntityCollectionMainQuery<Joined, Output>) super.join(join);
   }
   
   /**

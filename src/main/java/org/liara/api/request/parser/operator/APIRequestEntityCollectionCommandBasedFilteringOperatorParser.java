@@ -1,9 +1,9 @@
 package org.liara.api.request.parser.operator;
 
-import org.liara.api.collection.operator.EntityCollectionCommandBasedFilteringOperator;
-import org.liara.api.collection.operator.EntityCollectionFilteringOperator;
-import org.liara.api.collection.operator.EntityCollectionIdentityOperator;
-import org.liara.api.collection.operator.EntityCollectionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionFilteringOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionIdentityOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.collection.transformation.operator.filtering.EntityCollectionCommandBasedFilteringOperator;
 import org.liara.api.filter.interpretor.FilterInterpretor;
 import org.liara.api.request.APIRequest;
 import org.springframework.lang.NonNull;

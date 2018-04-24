@@ -23,17 +23,17 @@ package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.BaseEntityCollection;
+import org.liara.api.collection.EntityCollection;
 import org.liara.api.data.entity.state.DoubleState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DoubleStateCollection extends BaseEntityCollection<DoubleState>
+public class DoubleStateCollection extends EntityCollection<DoubleState>
 {
   @Autowired
   public DoubleStateCollection(@NonNull final EntityManager entityManager) {
-    super(DoubleState.class, entityManager);
+    super(entityManager, DoubleState.class);
   }
 }

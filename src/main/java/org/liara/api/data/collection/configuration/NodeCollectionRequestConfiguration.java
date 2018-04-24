@@ -2,23 +2,23 @@ package org.liara.api.data.collection.configuration;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.EntityCollectionSubquery;
-import org.liara.api.collection.query.relation.EntityRelation;;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.node.Node;
-import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessorFactory;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 import org.springframework.lang.NonNull;
@@ -90,7 +90,7 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
   }
 
   @Override
-  public Collection<APIRequestValidator> createFilterValidators () {
+  public Collection<APIRequestValidator> createFilteringValidators () {
     return Arrays.asList(
       APIRequestFilterValidatorFactory.integer("identifier"),
       APIRequestFilterValidatorFactory.datetime("creationDate"),

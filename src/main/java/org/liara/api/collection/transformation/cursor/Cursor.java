@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.collection.cursor;
+package org.liara.api.collection.transformation.cursor;
 
 import org.springframework.lang.NonNull;
 

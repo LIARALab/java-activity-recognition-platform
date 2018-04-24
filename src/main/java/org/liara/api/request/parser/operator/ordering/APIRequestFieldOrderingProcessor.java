@@ -2,10 +2,10 @@ package org.liara.api.request.parser.operator.ordering;
 
 import javax.persistence.criteria.Expression;
 
-import org.liara.api.collection.operator.EntityCollectionOperator;
-import org.liara.api.collection.operator.EntityCollectionOrderingOperator;
-import org.liara.api.collection.operator.EntityCollectionExpressionOrderingOperator;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.collection.transformation.operator.ordering.EntityCollectionExpressionOrderingOperator;
+import org.liara.api.collection.transformation.operator.ordering.EntityCollectionOrderingOperator;
 import org.springframework.lang.NonNull;
 
 public class      APIRequestFieldOrderingProcessor<Entity> 

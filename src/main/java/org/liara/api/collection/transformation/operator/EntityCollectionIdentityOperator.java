@@ -1,4 +1,4 @@
-package org.liara.api.collection.operator;
+package org.liara.api.collection.transformation.operator;
 
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.springframework.lang.NonNull;

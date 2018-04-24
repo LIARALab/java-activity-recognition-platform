@@ -1,4 +1,4 @@
-package org.liara.api.collection.operator;
+package org.liara.api.collection.transformation.operator.ordering;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;

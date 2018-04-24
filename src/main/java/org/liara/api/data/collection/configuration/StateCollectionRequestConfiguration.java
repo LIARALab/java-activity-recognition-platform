@@ -28,7 +28,6 @@ import java.util.List;
 import javax.persistence.criteria.Join;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.sensor.Sensor;

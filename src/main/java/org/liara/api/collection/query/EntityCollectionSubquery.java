@@ -16,6 +16,7 @@ import javax.persistence.criteria.Selection;
 import javax.persistence.criteria.Subquery;
 
 import org.liara.api.collection.query.queried.QueriedEntity;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.springframework.lang.NonNull;
 
 public class      EntityCollectionSubquery<Entity, Result> 
@@ -55,8 +56,15 @@ public class      EntityCollectionSubquery<Entity, Result>
   }
 
   @Override
-  public <Joined> EntityCollectionQuery<Joined, Result> join (@NonNull final Join<Entity, Joined> join) {
+  public <Joined> EntityCollectionSubquery<Joined, Result> join (@NonNull final Join<Entity, Joined> join) {
     return new EntityCollectionSubquery<>(getManager(), _query, QueriedEntity.from(join));
+  }
+  
+  @Override
+  public <Joined> EntityCollectionSubquery<Joined, Result> join (
+    @NonNull final EntityFieldSelector<Entity, Join<Entity, Joined>> join
+  ) {
+    return (EntityCollectionSubquery<Joined, Result>) super.join(join);
   }
 
   @Override

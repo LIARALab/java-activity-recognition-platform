@@ -33,9 +33,9 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.transaction.Transactional;
 
-import org.liara.api.collection.BaseEntityCollection;
+import org.liara.api.collection.EntityCollection;
+import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
-import org.liara.api.collection.exception.EntityNotFoundException;
 import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.node.NodeModifier;
@@ -48,13 +48,13 @@ import com.google.common.collect.Iterables;
 
 @Component
 @DefaultCollectionRequestConfiguration(NodeCollectionRequestConfiguration.class)
-public class NodeCollection extends BaseEntityCollection<Node>
+public class NodeCollection extends EntityCollection<Node>
 {     
   @Autowired
   public NodeCollection (
     @NonNull final EntityManager entityManager
   ) {
-    super(Node.class, entityManager);
+    super(entityManager, Node.class);
   }
   
   public List<Node> getAllChildren (@NonNull final Node node) {

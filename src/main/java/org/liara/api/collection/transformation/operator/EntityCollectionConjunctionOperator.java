@@ -1,4 +1,4 @@
-package org.liara.api.collection.operator;
+package org.liara.api.collection.transformation.operator;
 
 import java.util.Iterator;
 import java.util.List;

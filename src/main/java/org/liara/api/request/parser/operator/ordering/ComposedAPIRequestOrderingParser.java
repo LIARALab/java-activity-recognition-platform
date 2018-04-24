@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.liara.api.collection.operator.EntityCollectionConjunctionOperator;
-import org.liara.api.collection.operator.EntityCollectionIdentityOperator;
-import org.liara.api.collection.operator.EntityCollectionOperator;
-import org.liara.api.collection.operator.EntityCollectionOrderingOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionIdentityOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.collection.transformation.operator.ordering.EntityCollectionOrderingOperator;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.APIRequestParameter;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;

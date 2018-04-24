@@ -7,12 +7,11 @@ import java.util.Collections;
 import java.util.List;
 
 import org.liara.api.collection.EntityCollection;
-import org.liara.api.collection.cursor.Cursor;
-import org.liara.api.collection.operator.EntityCollectionOperator;
-import org.liara.api.collection.transformation.TransformationConjunction;
-import org.liara.api.collection.transformation.CursorTransformation;
+import org.liara.api.collection.transformation.cursor.Cursor;
+import org.liara.api.collection.transformation.cursor.CursorTransformation;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.collection.transformation.Transformation;
-import org.liara.api.collection.view.View;
+import org.liara.api.collection.view.cursor.CursorView;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.cursor.APIRequestFreeCursorParser;
@@ -20,7 +19,6 @@ import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorP
 import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.operator.ordering.ComposedAPIRequestOrderingParser;
 import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
-import org.liara.api.request.parser.transformation.grouping.ComposedAPIRequestGroupingParser;
 import org.liara.api.request.validator.APIRequestFreeCursorValidator;
 import org.liara.api.request.validator.APIRequestValidator;
 import org.liara.api.request.validator.error.APIRequestError;
@@ -57,8 +55,15 @@ public interface CollectionRequestConfiguration<Entity>
     }
   }
   
+  /**
+   * Return the default configuration declared for a given collection type.
+   * 
+   * @param clazz A collection type.
+   * 
+   * @return The default configuration declared for the given collection type.
+   */
   @SuppressWarnings("unchecked")
-  public static <Entity, Identifier> CollectionRequestConfiguration<Entity> getDefault (
+  public static <Entity> CollectionRequestConfiguration<Entity> getDefaultConfigurationOf (
     @NonNull final Class<?> clazz
   ) {
     if (clazz.isAnnotationPresent(DefaultCollectionRequestConfiguration.class)) {
@@ -90,10 +95,10 @@ public interface CollectionRequestConfiguration<Entity>
     }
   }
   
-  public static <Entity> CollectionRequestConfiguration<Entity> getDefault (
+  public static <Entity> CollectionRequestConfiguration<Entity> getDefaultConfigurationOf (
     @NonNull final EntityCollection<Entity> collection
   ) {
-    return getDefault(collection.getClass());
+    return getDefaultConfigurationOf(collection.getClass());
   }
   
   public static void validate (
@@ -111,23 +116,28 @@ public interface CollectionRequestConfiguration<Entity>
     }
   }
   
-  public default Transformation<
-    EntityCollection<Entity>, 
-    View<Entity>
-  > getTransformation (
+  public default CursorTransformation getCursor (
     @NonNull final APIRequest request
   ) throws InvalidAPIRequestException {
-    validate(request);
-    
+    return CursorTransformation.from(createCursorParser().parse(request));
+  }
+  
+  public default EntityCollectionOperator<Entity> getOperator (
+    @NonNull final APIRequest request
+  ) {
     final EntityCollectionOperator<Entity> filter = createFilterParser().parse(request);
     final EntityCollectionOperator<Entity> ordering = createOrderingParser().parse(request);
-    final CursorTransformation<Entity> cursor = new CursorTransformation<>(createCursorParser().parse(request));
     
-    return cursor.apply(filter.apply(ordering));
+    return filter.apply(ordering);
   }
   
   public default void validate (@NonNull final APIRequest request) throws InvalidAPIRequestException {
-    CollectionRequestConfiguration.validate(createValidators(), request);
+    final List<APIRequestValidator> validators = new ArrayList<>();
+    validators.addAll(createFilteringValidators());
+    validators.addAll(createOrderingValidators());
+    validators.addAll(createCursorValidators());
+    
+    CollectionRequestConfiguration.validate(validators, request);
   }
   
   public APIRequestEntityCollectionOperatorParser<Entity> createFilterParser ();
@@ -141,6 +151,8 @@ public interface CollectionRequestConfiguration<Entity>
   }
   
   public List<APIRequestOrderingProcessor<Entity>> createOrderingProcessors ();
+  
+  public List<APIRequestGroupingProcessor<Entity>> createGroupingProcessors ();
 
   public default Collection<APIRequestValidator> createCursorValidators () {
     return Arrays.asList(new APIRequestFreeCursorValidator ());

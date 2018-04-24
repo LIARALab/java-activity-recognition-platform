@@ -1,14 +1,11 @@
 package org.liara.api.request.parser.transformation.grouping;
 
-import javax.persistence.Tuple;
 import javax.persistence.criteria.Expression;
 
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
-import org.liara.api.collection.transformation.EntityCollectionGroupTransformation;
-import org.liara.api.collection.transformation.Transformation;
-import org.liara.api.collection.view.EntityCollectionQueryBasedView;
-import org.liara.api.collection.view.View;
+import org.liara.api.collection.transformation.grouping.EntityCollectionFieldGroupingTransformation;
+import org.liara.api.collection.transformation.grouping.EntityCollectionGroupTransformation;
 import org.springframework.lang.NonNull;
 
 public class      APIRequestExpressionGroupingProcessor<Entity> 
@@ -37,10 +34,10 @@ public class      APIRequestExpressionGroupingProcessor<Entity>
   }
 
   @Override
-  public Transformation<EntityCollectionQueryBasedView<Entity>, View<Tuple>> process (
+  public EntityCollectionGroupTransformation<Entity> process (
     @NonNull final String key
   ) {
-    return new EntityCollectionGroupTransformation<>(_selector);
+    return new EntityCollectionFieldGroupingTransformation<>(_selector);
   }
 
   @Override

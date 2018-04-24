@@ -23,17 +23,17 @@ package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.BaseEntityCollection;
+import org.liara.api.collection.EntityCollection;
 import org.liara.api.data.entity.state.BooleanState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BooleanStateCollection extends BaseEntityCollection<BooleanState>
+public class BooleanStateCollection extends EntityCollection<BooleanState>
 {
   @Autowired
   public BooleanStateCollection(@NonNull final EntityManager entityManager) {
-    super(BooleanState.class, entityManager);
+    super(entityManager, BooleanState.class);
   }
 }

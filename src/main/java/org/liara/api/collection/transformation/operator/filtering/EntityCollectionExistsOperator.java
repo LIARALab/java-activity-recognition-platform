@@ -1,8 +1,9 @@
-package org.liara.api.collection.operator;
+package org.liara.api.collection.transformation.operator.filtering;
 
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.EntityCollectionSubquery;
 import org.liara.api.collection.query.relation.EntityRelation;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.springframework.lang.NonNull;
 
 public class EntityCollectionExistsOperator<Entity, Joined> implements EntityCollectionOperator<Entity>

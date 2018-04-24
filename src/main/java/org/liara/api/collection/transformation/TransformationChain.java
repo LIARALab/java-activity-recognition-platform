@@ -10,34 +10,48 @@ public class      TransformationChain<
                   >
        implements Transformation<Input, Output>
 {
+  /**
+   * Chain two transformation into one transformation.
+   * 
+   * @param innerTransformation The transformation to apply directly on the given input view.
+   * @param outerTransformation The transformation to apply directly over the intermediate result view.
+   * 
+   * @return A chain transformation that apply both transformations and return the result of the chain.
+   */
   public static <
     Input extends View<?>, 
     Chain extends View<?>, 
     Output extends View<?>
   > TransformationChain<Input, Chain, Output> chain (
-    @NonNull final Transformation<Input, Chain> up,
-    @NonNull final Transformation<Chain, Output> down
+    @NonNull final Transformation<Input, Chain> innerTransformation,
+    @NonNull final Transformation<Chain, Output> outerTransformation
   ) {
-    return new TransformationChain<>(up, down);
+    return new TransformationChain<>(innerTransformation, outerTransformation);
   }
 
   @NonNull
-  private final Transformation<Input, Chain> _upTransformation;
+  private final Transformation<Input, Chain> _innerTransformation;
   
   @NonNull
-  private final Transformation<Chain, Output> _downTransformation;
+  private final Transformation<Chain, Output> _outerTransformation;
 
+  /**
+   * Create a new transformation that is the result of a chain of two transformation.
+   * 
+   * @param innerTransformation The transformation to apply directly on the given input view.
+   * @param outerTransformation The transformation to apply directly over the intermediate result view.
+   */
   public TransformationChain(
-    @NonNull final Transformation<Input, Chain> upTransformation,
-    @NonNull final Transformation<Chain, Output> downTransformation
+    @NonNull final Transformation<Input, Chain> innerTransformation,
+    @NonNull final Transformation<Chain, Output> outerTransformation
   )
   {
-    _upTransformation = upTransformation;
-    _downTransformation = downTransformation;
+    _outerTransformation = outerTransformation;
+    _innerTransformation = innerTransformation;
   }
 
   @Override
   public Output apply (@NonNull final Input input) {
-    return _downTransformation.apply(_upTransformation.apply(input));
+    return _outerTransformation.apply(_innerTransformation.apply(input));
   }
 }

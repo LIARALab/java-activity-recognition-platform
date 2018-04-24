@@ -3,9 +3,9 @@ package org.liara.api.request.parser.operator.ordering;
 import java.util.List;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.operator.EntityCollectionIdentityOperator;
-import org.liara.api.collection.operator.EntityCollectionOperator;
-import org.liara.api.collection.operator.EntityCollectionOrderingOperator.Direction;
+import org.liara.api.collection.transformation.operator.EntityCollectionIdentityOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.collection.transformation.operator.ordering.EntityCollectionOrderingOperator.Direction;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 

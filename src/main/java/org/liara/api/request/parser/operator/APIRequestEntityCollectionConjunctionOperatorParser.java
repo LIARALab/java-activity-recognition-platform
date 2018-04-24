@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import org.liara.api.collection.operator.EntityCollectionConjunctionOperator;
-import org.liara.api.collection.operator.EntityCollectionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.request.APIRequest;
 import org.springframework.lang.NonNull;
 

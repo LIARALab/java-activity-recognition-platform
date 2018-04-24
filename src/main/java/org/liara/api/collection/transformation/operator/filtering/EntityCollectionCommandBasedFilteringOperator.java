@@ -1,9 +1,10 @@
-package org.liara.api.collection.operator;
+package org.liara.api.collection.transformation.operator.filtering;
 
 import java.util.Arrays;
 import javax.persistence.criteria.Predicate;
 
 import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.filter.interpretor.FilterInterpretor;
 import org.springframework.lang.NonNull;
 

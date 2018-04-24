@@ -23,7 +23,7 @@ package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.BaseEntityCollection;
+import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.data.collection.configuration.PresenceStateCollectionRequestConfiguration;
 import org.liara.api.data.entity.state.PresenceState;
@@ -33,12 +33,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @DefaultCollectionRequestConfiguration(PresenceStateCollectionRequestConfiguration.class)
-public class PresenceStateCollection extends BaseEntityCollection<PresenceState>
+public class PresenceStateCollection extends EntityCollection<PresenceState>
 {
   @Autowired
   public PresenceStateCollection (
     @NonNull final EntityManager entityManager
   ) {
-    super(PresenceState.class, entityManager);
+    super(entityManager, PresenceState.class);
   }
 }

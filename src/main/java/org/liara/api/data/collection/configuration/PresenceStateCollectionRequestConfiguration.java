@@ -162,9 +162,8 @@ public final class PresenceStateCollectionRequestConfiguration implements Collec
       APIRequestGroupingProcessorFactory.expression("end", (root) -> root.get("_end")),
       APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
       APIRequestGroupingProcessorFactory.expression("duration", (root) -> root.get("_milliseconds")),
-      APIRequestGroupingProcessorFactory.expression("date", (root) -> root.get("_start")),
-      APIRequestGroupingProcessorFactory.joinCollection("node", "_node", NodeCollection.class),
-      APIRequestGroupingProcessorFactory.joinCollection("sensor", "_sensor", SensorCollection.class)
+      APIRequestGroupingProcessorFactory.joinCollection("node", _nodeJoin, NodeCollection.class),
+      APIRequestGroupingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
     );
   }
 }

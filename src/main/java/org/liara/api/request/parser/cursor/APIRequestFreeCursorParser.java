@@ -15,7 +15,7 @@
  */
 package org.liara.api.request.parser.cursor;
 
-import org.liara.api.collection.cursor.Cursor;
+import org.liara.api.collection.transformation.cursor.Cursor;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.parser.APIRequestParser;
 import org.springframework.lang.NonNull;

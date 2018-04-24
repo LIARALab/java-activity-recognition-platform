@@ -25,7 +25,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.liara.api.collection.exception.EntityNotFoundException;
+import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
@@ -102,6 +102,6 @@ public final class StateCollectionController extends BaseRestController
 
   @GetMapping("/states/{identifier}")
   public State get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdOrFail(identifier);
+    return _collection.findByIdentifierOrFail(identifier);
   }
 }

@@ -23,17 +23,17 @@ package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.BaseEntityCollection;
+import org.liara.api.collection.EntityCollection;
 import org.liara.api.data.entity.state.IntegerState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class IntegerStateCollection extends BaseEntityCollection<IntegerState>
+public class IntegerStateCollection extends EntityCollection<IntegerState>
 {
   @Autowired
   public IntegerStateCollection(@NonNull final EntityManager entityManager) {
-    super(IntegerState.class, entityManager);
+    super(entityManager, IntegerState.class);
   }
 }

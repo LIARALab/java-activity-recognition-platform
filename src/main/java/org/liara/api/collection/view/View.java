@@ -40,14 +40,9 @@ public interface View<Result>
    */
   public Result get ();
   
-  /**
-   * Apply a transformation to this view and return a view that is the result of the given transformation.
-   * 
-   * @param transformation Transformation to apply to this collection.
-   * 
-   * @return A view that is the result of the given transformation applied to this view.
-   */
-  public default <OutputEntity, Output extends View<OutputEntity>> Output apply (
+  public default <Output extends View<?>> Output apply (
     @NonNull final Transformation<View<Result>, Output> transformation
-  ) { return transformation.apply(this); }
+  ) {
+    return transformation.apply(this);
+  }
 }

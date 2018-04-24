@@ -34,7 +34,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 import org.liara.api.collection.EntityCollections;
-import org.liara.api.collection.exception.EntityNotFoundException;
+import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.PresenceStateCollection;
@@ -122,7 +122,7 @@ public class PresenceStateCollectionController extends BaseRestController
     @PathVariable final long identifier
   ) throws EntityNotFoundException
   {
-    return _collection.findByIdOrFail(identifier);
+    return _collection.findByIdentifierOrFail(identifier);
   }
   
 
