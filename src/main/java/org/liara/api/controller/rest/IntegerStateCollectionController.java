@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.liara.api.collection.EntityCollections;
-import org.liara.api.collection.exception.EntityNotFoundException;
+import org.liara.api.collection.EntityNotFoundException;
+import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
 import org.liara.api.data.collection.IntegerStateCollection;
 import org.liara.api.data.entity.state.IntegerState;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
@@ -60,7 +60,10 @@ public final class IntegerStateCollectionController extends BaseRestController
 
   @GetMapping("/states<int>/count")
   public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return aggregate(_collection, request, this::count);
+    return aggregate(
+      _collection, request, 
+      EntityCountAggregationTransformation.create()
+    );
   }
 
   @GetMapping("/states<int>")
@@ -103,6 +106,6 @@ public final class IntegerStateCollectionController extends BaseRestController
 
   @GetMapping("/states<int>/{identifier}")
   public IntegerState get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdOrFail(identifier);
+    return _collection.findByIdentifierOrFail(identifier);
   }
 }

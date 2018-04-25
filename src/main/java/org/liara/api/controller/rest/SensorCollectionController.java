@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,7 +34,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import org.liara.api.collection.exception.EntityNotFoundException;
+import org.liara.api.collection.EntityNotFoundException;
+import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
@@ -73,7 +74,10 @@ public final class SensorCollectionController extends BaseRestController
     }
   )
   public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return aggregate(_collection, request, this::count);
+    return aggregate(
+      _collection, request, 
+      EntityCountAggregationTransformation.create()
+    );
   }
 
   @GetMapping("/sensors")
@@ -124,11 +128,11 @@ public final class SensorCollectionController extends BaseRestController
 
   @GetMapping("/sensors/{identifier}")
   public Sensor get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdOrFail(identifier);
+    return _collection.findByIdentifierOrFail(identifier);
   }
 
   @GetMapping("/sensors/{identifier}/nodes")
   public List<Node> getNodes (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdOrFail(identifier).getNodes();
+    return _collection.findByIdentifierOrFail(identifier).getNodes();
   }
 }

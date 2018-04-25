@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.FlushModeType;
-import javax.persistence.LockModeType;
 
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.DoubleState;

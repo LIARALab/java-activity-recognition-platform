@@ -1,5 +1,26 @@
+/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
 /**
- * Copyright 2018 Cédric DEMONGIVERT
+ * Copyright 2018 Cedric DEMONGIVERT
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
@@ -21,7 +42,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.liara.api.date.PartialLocalDateTime;
+import org.liara.api.date.PartialZonedDateTime;
 import org.liara.api.filter.ast.BetweenFilterNode;
 import org.liara.api.filter.ast.ConjunctionFilterNode;
 import org.liara.api.filter.ast.DisjunctionFilterNode;
@@ -36,7 +57,7 @@ import org.liara.api.filter.ast.ValueFilterNode;
 import org.springframework.lang.NonNull;
 
 /**
- * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  *
  */
 public class DateTimeFilterParser implements FilterParser
@@ -135,7 +156,7 @@ public class DateTimeFilterParser implements FilterParser
   }
 
   private PredicateFilterNode parseBetween (@NonNull final String result) {
-    final List<ValueFilterNode<PartialLocalDateTime>> dates = this.parseBetweenDates(result);
+    final List<ValueFilterNode<PartialZonedDateTime>> dates = this.parseBetweenDates(result);
 
     return new BetweenFilterNode<>(dates.get(0), dates.get(1));
   }
@@ -156,7 +177,7 @@ public class DateTimeFilterParser implements FilterParser
     return new GreaterThanFilterNode<>(parseDate(result.split("gt:")[1]));
   }
 
-  private List<ValueFilterNode<PartialLocalDateTime>> parseBetweenDates (@NonNull final String result) {
+  private List<ValueFilterNode<PartialZonedDateTime>> parseBetweenDates (@NonNull final String result) {
     final Matcher matcher = BETWEEN_PATTERN.matcher(result);
     matcher.matches();
     matcher.groupCount();
@@ -173,7 +194,7 @@ public class DateTimeFilterParser implements FilterParser
     );
   }
   
-  private ValueFilterNode<PartialLocalDateTime> parseDate (@NonNull final String result) {
+  private ValueFilterNode<PartialZonedDateTime> parseDate (@NonNull final String result) {
     final Matcher matcher = DATE_PATTERN.matcher(result);
     matcher.matches();
     matcher.groupCount();
@@ -192,10 +213,10 @@ public class DateTimeFilterParser implements FilterParser
     }
   }
 
-  private ValueFilterNode<PartialLocalDateTime> parsePartialDate (
+  private ValueFilterNode<PartialZonedDateTime> parsePartialDate (
     @NonNull final DateTimeFormatter format, 
     @NonNull final String date
   ) {    
-    return ValueFilterNode.from(format.parse(date, PartialLocalDateTime::from));
+    return ValueFilterNode.from(format.parse(date, PartialZonedDateTime::from));
   }
 }

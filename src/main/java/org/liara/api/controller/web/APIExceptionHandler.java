@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.liara.api.collection.exception.EntityNotFoundException;
+import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.core.Ordered;
@@ -85,7 +85,13 @@ public final class APIExceptionHandler
   }
 
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<Exception> handleException (@NonNull final Exception exception) {
-    return new ResponseEntity<>(exception, HttpStatus.INTERNAL_SERVER_ERROR);
+  public ResponseEntity<Map<String, Object>> handleException (@NonNull final Exception exception) {
+    final Map<String, Object> result = new HashMap<>();
+    result.put("exception", exception.getClass());
+    result.put("localizedMessage", exception.getLocalizedMessage());
+    result.put("message", exception.getMessage());
+    result.put("stackTrace", exception.getStackTrace());
+    result.put("cause", exception.getCause());
+    return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }

@@ -22,38 +22,47 @@
 package org.liara.api.data.collection.configuration;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
+import javax.persistence.criteria.Join;
+
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.PresenceState;
-import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
-import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
-import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
-import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
-import org.liara.api.request.parser.grouping.APIRequestGroupingProcessorFactory;
-import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
-import org.liara.api.request.parser.ordering.APIRequestOrderingProcessorFactory;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
+import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessorFactory;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
+import org.springframework.lang.NonNull;
 
 public final class DoubleStateCollectionRequestConfiguration implements CollectionRequestConfiguration<PresenceState>
 {
+  @NonNull
+  private final SimpleEntityFieldSelector<PresenceState, Join<PresenceState, Sensor>> _sensorJoin = root -> root.join("_sensor");
+  
   @Override
-  public APIRequestEntityFilterParser<PresenceState> createFilterParser () {
-    return new APIRequestCompoundEntityFilterParser<>(Arrays.asList(
-      APIRequestEntityFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
+  public APIRequestEntityCollectionOperatorParser<PresenceState> createFilterParser () {
+    return new APIRequestEntityCollectionConjunctionOperatorParser<>(Arrays.asList(
+      APIRequestEntityFilterParserFactory.integerValue("identifier", (root) -> root.get("_identifier")),
       APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
       APIRequestEntityFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
       APIRequestEntityFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
       APIRequestEntityFilterParserFactory.datetime("emittionDate", (root) -> root.get("_emittionDate")),
-      APIRequestEntityFilterParserFactory.realDouble("value", (root) -> root.get("_value")),
-      APIRequestEntityFilterParserFactory.joinCollection("sensor", "_sensor", SensorCollection.class)
+      APIRequestEntityFilterParserFactory.doubleValue("value", (root) -> root.get("_value")),
+      APIRequestEntityFilterParserFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
     ));
   }
 
   @Override
-  public List<APIRequestValidator> createFilterValidators () {
+  public Collection<APIRequestValidator> createFilteringValidators () {
     return Arrays.asList(
       APIRequestFilterValidatorFactory.integer("identifier"),
       APIRequestFilterValidatorFactory.datetime("creationDate"),
@@ -61,7 +70,7 @@ public final class DoubleStateCollectionRequestConfiguration implements Collecti
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
       APIRequestFilterValidatorFactory.datetime("emittionDate"),
       APIRequestFilterValidatorFactory.realDouble("value"),
-      APIRequestFilterValidatorFactory.joinCollection("sensor", SensorCollection.class)
+      APIRequestFilterValidatorFactory.includeCollection("sensor", SensorCollection.class)
     );
   }
 
@@ -74,7 +83,7 @@ public final class DoubleStateCollectionRequestConfiguration implements Collecti
       APIRequestOrderingProcessorFactory.field("deletionDate", (root) -> root.get("_deletionDate")),
       APIRequestOrderingProcessorFactory.field("emittionDate", (root) -> root.get("_emittionDate")),
       APIRequestOrderingProcessorFactory.field("value", (root) -> root.get("_value")),
-      APIRequestOrderingProcessorFactory.joinCollection("sensor", "_sensor", SensorCollection.class)
+      APIRequestOrderingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
     );
   }
 
@@ -87,7 +96,7 @@ public final class DoubleStateCollectionRequestConfiguration implements Collecti
       APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
       APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
       APIRequestGroupingProcessorFactory.expression("value", (root) -> root.get("_value")),
-      APIRequestGroupingProcessorFactory.joinCollection("sensor", "_sensor", SensorCollection.class)
+      APIRequestGroupingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
     );
   }
 }

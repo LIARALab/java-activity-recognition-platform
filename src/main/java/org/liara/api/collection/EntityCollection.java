@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,330 +21,258 @@
  ******************************************************************************/
 package org.liara.api.collection;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Tuple;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Selection;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.metamodel.EntityType;
-import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 
-import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.exception.EntityNotFoundException;
-import org.liara.api.collection.filtering.ComposedEntityFilter;
-import org.liara.api.collection.filtering.ASTBasedEntityFilter;
-import org.liara.api.collection.filtering.EntityFilter;
-import org.liara.api.collection.grouping.EntityGrouping;
-import org.liara.api.collection.ordering.Ordering;
+import org.liara.api.collection.query.EntityCollectionMainQuery;
 import org.liara.api.collection.query.EntityCollectionQuery;
-import org.liara.api.criteria.CriteriaExpressionSelector;
-import org.liara.api.criteria.SimplifiedCriteriaExpressionSelector;
-import org.liara.api.request.APIRequest;
-import org.liara.api.request.validator.error.InvalidAPIRequestException;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.collection.view.View;
 import org.springframework.lang.NonNull;
 
 /**
- * A collection of entity in the API.
- * 
- * Expose common requests and help you to construct more advanced research.
+ * A collection of entity.
  *
- * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  *
  * @param <Entity> Type of entity in the collection.
- * @param <Identifier> Identifier type used for indexing the given entity type.
  */
-public interface EntityCollection<Entity, Identifier>
-{
+public class EntityCollection<Entity>
+       implements View<List<Entity>>
+{ 
   /**
-   * Return the size of the collection.
-   *
-   * @return The size of the collection.
+   * Manager related to this collection.
    */
-  public default long getSize () {
-    final EntityManager entityManager = this.getEntityManager();
-    final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-    final EntityCollectionQuery<Entity, Long> query = this.createCollectionQuery(Long.class);
+  @NonNull
+  private final EntityManager _manager;
+  
+  /**
+   * Type of entity selected by this collection.
+   */
+  @NonNull
+  private final Class<Entity> _contentType;
+  
+  /**
+   * Operator to apply to a query in order to select the collection content.
+   */
+  @NonNull
+  private final EntityCollectionConjunctionOperator<Entity> _operator;
+  
+  /**
+   * Create a collection for a given type and a given manager.
+   * 
+   * @param entity Entity type to store.
+   * @param entityManager Entity Manager that manage the given type.
+   */
+  public EntityCollection (
+    @NonNull final EntityManager manager,
+    @NonNull final Class<Entity> entity
+  ) {
+    _manager = manager;
+    _contentType = entity;
+    _operator = new EntityCollectionConjunctionOperator<>();
+  }
+  
+  /**
+   * Create a copy of another collection.
+   * 
+   * @param collection Collection to copy.
+   */
+  public EntityCollection (
+    @NonNull final EntityCollection<Entity> collection
+  ) {
+    _manager = collection.getManager();
+    _contentType = collection.getEntityType();
+    _operator = new EntityCollectionConjunctionOperator<>(collection.getOperator());
+  }
+  
+  /**
+   * Create a copy of another collection and change the collection operator.
+   * 
+   * @param collection Collection to copy.
+   * @param operator New operator to apply.
+   */
+  public EntityCollection (
+    @NonNull final EntityCollection<Entity> collection,
+    @NonNull final EntityCollectionConjunctionOperator<Entity> operator
+  ) {
+    _manager = collection.getManager();
+    _contentType = collection.getEntityType();
+    _operator = operator;
+  }
+  
+  /**
+   * Try to find an entity of this collection by using it's identifier.
+   * 
+   * @param identifier Identifier of the entity to find.
+   * @return An optional value with the fetched entity if exists or empty otherwise.
+   */
+  public <Identifier> Optional<Entity> findByIdentifier (
+    @NonNull final Identifier identifier
+  ) {
+    final EntityCollectionMainQuery<Entity, Entity> query = createCollectionQuery(getEntityType());
+    query.getCriteriaQuery().select(query.getEntity());
     
-    query.select(criteriaBuilder.count(query.getEntity()));
-    return entityManager.createQuery(query).getSingleResult();
-  }
-
-  /**
-   * Return a view of this collection.
-   *
-   * @param cursor Cursor used in order to define the view.
-   *
-   * @return A view of this collection.
-   */
-  public default EntityCollectionView<Entity, Identifier> getView (@NonNull final Cursor cursor) {
-    return new EntityCollectionView<>(this, cursor);
-  }
-
-  /**
-   * Return the content of this collection.
-   *
-   * @return The content of this collection.
-   */
-  public default List<Entity> getContent () {
-    return this.createQuery().getResultList();
-  }
-
-  /**
-   * Try to find an entity of the collection.
-   *
-   * @param identifier Identifier of the entity to get.
-   */
-  public default Entity findById (@NonNull final Identifier identifier) {
-    final EntityManager entityManager = this.getEntityManager();
-    final CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-    final EntityType<Entity> entityType = entityManager.getMetamodel().entity(this.getEntityClass());
-
-    final EntityCollectionQuery<Entity, Entity> criteriaQuery = this.createCollectionQuery();
+    final EntityType<Entity> entityType = getManager().getMetamodel().entity(getEntityType());
     
-    criteriaQuery.where(
-      criteriaBuilder.equal(
-        criteriaQuery.getEntity().get(entityType.getId(identifier.getClass())),
-        identifier
-      )
+    query.andWhere(getManager().getCriteriaBuilder().equal(
+      query.getEntity().get(entityType.getId(identifier.getClass())), 
+      identifier
+    ));
+    
+    final List<Entity> resultList = getManager().createQuery(query.getCriteriaQuery())
+                                                .getResultList();
+    
+    if (resultList.size() <= 0) {
+      return Optional.empty();
+    } else {
+      return Optional.of(resultList.get(0));
+    }
+  }
+  
+  /**
+   * Try to find an entity of this collection by using it's identifier.
+   * 
+   * @param identifier Identifier of the entity to find.
+   * @return An optional value with the fetched entity if exists or empty otherwise.
+   * 
+   * @throws EntityNotFoundException If the requested entity does not exists in this collection.
+   */
+  public <Identifier> Entity findByIdentifierOrFail (
+    @NonNull final Identifier identifier
+  ) throws EntityNotFoundException {
+    final Optional<Entity> entity = findByIdentifier(identifier);
+    
+    if (entity.isPresent()) {
+      return entity.get();
+    } else {
+      throw new EntityNotFoundException();
+    }
+  }
+
+  /**
+   * Return an operator to apply to a given query in order to select all entities of this collection.
+   * 
+   * @return An operator to apply to a given query in order to select all entities of this collection.
+   */
+  public EntityCollectionOperator<Entity> getOperator ()  {
+    return _operator;
+  }
+  
+  /**
+   * Apply an operator to this collection and return a new updated instance of this collection.
+   * 
+   * @param operator Operator to apply to this collection.
+   * 
+   * @return A new updated instance of this collection.
+   */
+  public EntityCollection<Entity> apply (
+    @NonNull final EntityCollectionOperator<Entity> operator
+  ) {
+    return new EntityCollection<>(this, _operator.conjugate(operator));
+  }
+  
+  /**
+   * Create a collection query that select all entities of this collection and return a result of a given type.
+   * 
+   * @param result Result type of the query.
+   * 
+   * @return A filtered query that select all entities of this collection and return a result of a given type.
+   */
+  public <Result> EntityCollectionMainQuery<Entity, Result> createCollectionQuery (
+    @NonNull final Class<Result> result
+  ) {
+    final CriteriaQuery<Result> query = getManager().getCriteriaBuilder().createQuery(result);
+    final EntityCollectionMainQuery<Entity, Result> collectionQuery = EntityCollectionQuery.from(
+      _manager, query, query.from(getEntityType())
     );
     
-    final List<Entity> result = entityManager.createQuery(criteriaQuery).getResultList();
+    _operator.apply(collectionQuery);
     
-    return (result.size() > 0) ? result.get(0) : null; 
+    return collectionQuery;
+  }
+  
+  /**
+   * Alias of createCollectionQuery(getEntityType()).
+   * 
+   * @return A filtered query that select all entities of this collection and return a result of a given type.
+   */
+  public EntityCollectionMainQuery<Entity, Entity> createCollectionQuery () {
+    return createCollectionQuery(getEntityType());
+  }
+  
+  /**
+   * Return the number of elements selected by this collection.
+   * 
+   * @return The number of elements selected by this collection.
+   */
+  public long getSize () {
+    final EntityCollectionMainQuery<Entity, Long> query = createCollectionQuery(Long.class);
+    query.getCriteriaQuery().select(_manager.getCriteriaBuilder().count(query.getEntity()));
+    
+    return _manager.createQuery(query.getCriteriaQuery()).getSingleResult().longValue();
   }
 
+  @Override
+  public List<Entity> get () {
+    final EntityCollectionMainQuery<Entity, Entity> query = createCollectionQuery(getEntityType());
+    query.getCriteriaQuery().select(query.getEntity());
+    
+    return _manager.createQuery(query.getCriteriaQuery()).getResultList();
+  }
+  
   /**
-   * Try to find an entity of the collection.
-   *
-   * @throws EntityNotFoundException 
+   * Return an element of this collection.
    * 
-   * @param identifier Identifier of the entity to get.
+   * @param index Index of the element to retrieve, starting at 0.
+   * 
+   * @return The element at the given index.
+   * 
+   * @throws IndexOutOfBoundsException If the index is less than 0 or greather or equal to the collection size.
    */
-  public default Entity findByIdOrFail (@NonNull final Identifier identifier) throws EntityNotFoundException {
-    final Entity entity = this.findById(identifier);
-
-    if (entity != null) {
-      return entity;
+  public Entity get (final long index) throws IndexOutOfBoundsException {
+    if (index < 0) {
+      throw new IndexOutOfBoundsException("Invalid index : the given number is less than 0.");
     } else {
-      throw new EntityNotFoundException();
+      final long size = getSize();
+      
+      if (index >= size) {
+        throw new IndexOutOfBoundsException("Invalid index : the given number is greather than or equal to" + size + ".");
+      }
+      
+      final EntityCollectionMainQuery<Entity, Entity> query = createCollectionQuery(getEntityType());
+      query.getCriteriaQuery().select(query.getEntity());
+      
+      /**
+       * @todo Check long limit.
+       */
+      return _manager.createQuery(query.getCriteriaQuery())
+                     .setMaxResults(1)
+                     .setFirstResult((int) index)
+                     .getSingleResult();
     }
   }
-
+  
   /**
-   * Return an entity of the collection.
-   *
-   * @param index Position of the entity to return in this collection.
-   */
-  public default Entity get (final int index) {
-    return this.createQuery().setFirstResult(index).setMaxResults(1).getSingleResult();
-  }
-
-  /**
-   * Return an entity of the collection.
-   *
-   * @throws EntityNotFoundException 
+   * Return this collection's related manager.
    * 
-   * @param index Position of the entity to return in this collection.
+   * @return This collection's related manager.
    */
-  public default Entity getOrFail (final int index) throws EntityNotFoundException {
-    final Entity entity = this.get(index);
-    
-    if (entity != null) {
-      return entity;
-    } else {
-      throw new EntityNotFoundException();
-    }
+  public EntityManager getManager () {
+    return _manager;
   }
   
   /**
-   * Add an entity into this collection.
+   * Return the content type of this collection.
    * 
-   * @param entity The entity to add to this collection.
+   * @return The content type of this collection.
    */
-  @Transactional()
-  public default void add (@NonNull final Entity entity) {
-    getEntityManager().persist(entity);
+  public Class<Entity> getEntityType () {
+    return _contentType;
   }
-  
-  /**
-   * Remove an entity of this collection.
-   * 
-   * @param entity The entity to remove from this collection.
-   */
-  @Transactional()
-  public default void remove (@NonNull final Entity entity) {
-    getEntityManager().remove(entity);
-  }
-  
-  /**
-   * Update an entity of this collection.
-   * 
-   * @param entity The entity of this collection to update.
-   */
-  @Transactional()
-  public default void update (@NonNull final Entity entity) {
-    getEntityManager().merge(entity);
-  }
-
-  /**
-   * Return a query over this collection.
-   *
-   * @return A query over this collection.
-   */
-  public default TypedQuery<Entity> createQuery () {
-    return this.getEntityManager().createQuery(this.createCollectionQuery());
-  }
-
-  /**
-   * Return a criteria query over this collection.
-   *
-   * A criteria query can be muted.
-   *
-   * @return A criteria query over this collection.
-   */
-  public default EntityCollectionQuery<Entity, Entity> createCollectionQuery () {
-    final EntityCollectionQuery<Entity, Entity> query = this.createCollectionQuery(this.getEntityClass());
-    query.select(query.getEntity());
-    getOrdering().order(getCriteriaBuilder(), query);
-    return query;
-  }
-
-  /**
-   * Return a criteria query over this collection with a custom return type.
-   *
-   * A criteria query can be muted.
-   *
-   * @param clazz The custom return type of the query.
-   *
-   * @return A criteria query over this collection with a custom return type.
-   */
-  public <U> EntityCollectionQuery<Entity, U> createCollectionQuery (@NonNull final Class<U> clazz);
-  
-  /**
-   * Return the entity manager that manage this collection.
-   * 
-   * @return The entity manager that manage this collection.
-   */
-  public EntityManager getEntityManager ();
-  
-  /**
-   * An helper method in order to retrieve only the criteria builder of this collection.
-   * 
-   * @return The criteria builder of this collection.
-   */
-  public default CriteriaBuilder getCriteriaBuilder () {
-    return this.getEntityManager().getCriteriaBuilder();
-  }
-  
-  /**
-   * Return the class of entities stored in this collection.
-   * 
-   * @return The class of entities stored in this collection.
-   */
-  public Class<Entity> getEntityClass();
-  
-  /**
-   * An helper class for retrieving type of entities stored into this collection.
-   * 
-   * @return The stored entities type.
-   */
-  public default EntityType<Entity> getEntityType() {
-    return this.getEntityManager().getMetamodel().entity(this.getEntityClass());
-  }
-  
-  /**
-   * Return a new filtered collection based on this one.
-   * 
-   * @param filter Filter to apply.
-   * @return A new filtered collection based on this one.
-   */
-  public EntityCollection<Entity, Identifier> order (@NonNull final Ordering<Entity> ordering);
-
-  /**
-   * Return a new filtered collection based on this one.
-   * 
-   * @param filter Filter to apply.
-   * @return A new filtered collection based on this one.
-   */
-  public default EntityCollection<Entity, Identifier> filter (@NonNull final EntityFilter<Entity> filter) {
-    return new FilteredEntityCollection<>(getEntityClass(), filter, getEntityManager());
-  }
-  
-  /**
-   * Try to filter this collection with the default CollectionRequestConfiguration (if any).
-   * 
-   * @throws InvalidAPIRequestException 
-   * 
-   * @param request Request to use in order to filter this collection.
-   * @return A new collection filtered according to the given request.
-   */
-  public default EntityCollection<Entity, Identifier> filter (@NonNull final APIRequest request) throws InvalidAPIRequestException {
-    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefault(this);
-    return configuration.filterCollection(request, this);
-  }
-  
-
-  /**
-   * Try to order this collection with the default CollectionRequestConfiguration (if any).
-   * 
-   * @throws InvalidAPIRequestException 
-   * 
-   * @param request Request to use in order to filter this collection.
-   * @return A new collection filtered according to the given request.
-   */
-  public default EntityCollection<Entity, Identifier> order (@NonNull final APIRequest request) throws InvalidAPIRequestException {
-    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefault(this);
-    return configuration.orderCollection(request, this);
-  }
- 
-  public default <Value> EntityCollectionQuery<Entity, Tuple> group (
-    @NonNull final EntityCollectionQuery<Entity, Tuple> query, 
-    @NonNull final APIRequest request,
-    @NonNull final CriteriaExpressionSelector<Value> selection
-  ) {
-    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefault(this);
-    final EntityGrouping<Entity> grouping = configuration.parseGrouping(request);
-    final List<Selection<?>> selections = grouping.createSelection(getCriteriaBuilder(), query);
-    
-    if (selections.size() > 0) {
-      selections.add(selection.select(getCriteriaBuilder(), query, query.getEntity()));
-      query.multiselect(selections);
-      query.groupBy(grouping.createGroupBy(getCriteriaBuilder(), query)); 
-    } else {
-      query.multiselect(selection.select(getCriteriaBuilder(), query, query.getEntity()));
-    }
-    
-    return query;
-  }
-  
-  /**
-   * Try to apply a request to this collection with the default CollectionRequestConfiguration (if any).
-   * 
-   * @throws InvalidAPIRequestException 
-   * 
-   * @param request Request to use in order to filter this collection.
-   * @return A new view over a collection according to the given request.
-   */
-  public default EntityCollectionView<Entity, Identifier> apply (@NonNull final APIRequest request) throws InvalidAPIRequestException {
-    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefault(this);
-    return configuration.applyRequest(request, this);
-  }
-  
-  /**
-   * Try to apply a request to this collection with the default CollectionRequestConfiguration (if any).
-   * 
-   * @throws InvalidAPIRequestException 
-   * 
-   * @param request Request to use in order to filter this collection.
-   * @return A new view over a collection according to the given request.
-   */
-  public default <Result> List<Result> fetch (@NonNull final EntityCollectionQuery<Entity, Result> query) {
-    return getEntityManager().createQuery(query).getResultList();
-  }
-  
-  public Ordering<Entity> getOrdering ();
 }

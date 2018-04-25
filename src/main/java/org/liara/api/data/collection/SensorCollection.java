@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@ package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
 import org.liara.api.data.entity.sensor.Sensor;
@@ -34,12 +34,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @DefaultCollectionRequestConfiguration(SensorCollectionRequestConfiguration.class)
-public class SensorCollection extends CompleteEntityCollection<Sensor, Long>
+public class SensorCollection extends EntityCollection<Sensor>
 { 
   @Autowired
   public SensorCollection (
     @NonNull final EntityManager entityManager
   ) {
-    super(Sensor.class, entityManager);
+    super(entityManager, Sensor.class);
   }
 }

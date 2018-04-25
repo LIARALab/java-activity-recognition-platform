@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@ package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
 import org.liara.api.data.entity.state.State;
@@ -33,10 +33,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 @DefaultCollectionRequestConfiguration(StateCollectionRequestConfiguration.class)
-public class StateCollection extends CompleteEntityCollection<State, Long>
+public class StateCollection extends EntityCollection<State>
 {
   @Autowired
   public StateCollection(@NonNull final EntityManager entityManager) {
-    super(State.class, entityManager);
+    super(entityManager, State.class);
   }
 }

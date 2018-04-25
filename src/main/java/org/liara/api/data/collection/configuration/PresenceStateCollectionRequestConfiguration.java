@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,41 +24,77 @@ package org.liara.api.data.collection.configuration;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.persistence.criteria.Join;
+
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.PresenceState;
-import org.liara.api.request.parser.filtering.APIRequestCompoundEntityFilterParser;
-import org.liara.api.request.parser.filtering.APIRequestEntityFilterParser;
-import org.liara.api.request.parser.filtering.APIRequestEntityFilterParserFactory;
-import org.liara.api.request.parser.grouping.APIRequestGroupingProcessor;
-import org.liara.api.request.parser.grouping.APIRequestGroupingProcessorFactory;
-import org.liara.api.request.parser.ordering.APIRequestOrderingProcessor;
-import org.liara.api.request.parser.ordering.APIRequestOrderingProcessorFactory;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
+import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessorFactory;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
+import org.springframework.lang.NonNull;
 
 public final class PresenceStateCollectionRequestConfiguration implements CollectionRequestConfiguration<PresenceState>
 {
+  @NonNull
+  private final SimpleEntityFieldSelector<PresenceState, Join<PresenceState, Node>> _nodeJoin = root -> root.join("_node");
+  
+  @NonNull
+  private final SimpleEntityFieldSelector<PresenceState, Join<PresenceState, Sensor>> _sensorJoin = root -> root.join("_sensor");
+  
   @Override
-  public APIRequestEntityFilterParser<PresenceState> createFilterParser () {
-    return new APIRequestCompoundEntityFilterParser<>(Arrays.asList(
-      APIRequestEntityFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
-      APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
-      APIRequestEntityFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
-      APIRequestEntityFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestEntityFilterParserFactory.datetime("start", (root) -> root.get("_start")),
-      APIRequestEntityFilterParserFactory.datetime("end", (root) -> root.get("_end")),
-      APIRequestEntityFilterParserFactory.datetime("emittionDate", (root) -> root.get("_emittionDate")),
-      APIRequestEntityFilterParserFactory.duration("duration", (root) -> root.get("_milliseconds")),
-      APIRequestEntityFilterParserFactory.datetimeInRange("date", (root) -> root.get("_start"), (root) -> root.get("_end")),
-      APIRequestEntityFilterParserFactory.joinCollection("node", "_node", NodeCollection.class),
-      APIRequestEntityFilterParserFactory.joinCollection("sensor", "_sensor", SensorCollection.class)
-    ));
+  public APIRequestEntityCollectionOperatorParser<PresenceState> createFilterParser () {
+    return new APIRequestEntityCollectionConjunctionOperatorParser<>(
+      Arrays.asList(
+        APIRequestEntityFilterParserFactory.integerValue(
+          "identifier", (root) -> root.get("_identifier")
+        ),
+        APIRequestEntityFilterParserFactory.datetime(
+          "creationDate", (root) -> root.get("_creationDate")
+        ),
+        APIRequestEntityFilterParserFactory.datetime(
+          "updateDate", (root) -> root.get("_updateDate")
+        ),
+        APIRequestEntityFilterParserFactory.datetime(
+          "deletionDate", (root) -> root.get("_deletionDate")
+        ),
+        APIRequestEntityFilterParserFactory.datetime(
+          "start", (root) -> root.get("_start")
+        ),
+        APIRequestEntityFilterParserFactory.datetime(
+          "end", (root) -> root.get("_end")
+        ),
+        APIRequestEntityFilterParserFactory.datetime(
+          "emittionDate", (root) -> root.get("_emittionDate")
+        ),
+        APIRequestEntityFilterParserFactory.duration(
+          "duration", (root) -> root.get("_milliseconds")
+        ),
+        APIRequestEntityFilterParserFactory.datetimeInRange(
+          "date", (root) -> root.get("_start"), (root) -> root.get("_end")
+        ),
+        APIRequestEntityFilterParserFactory.joinCollection(
+          "node", _nodeJoin, NodeCollection.class
+        ),
+        APIRequestEntityFilterParserFactory.joinCollection(
+          "sensor", _sensorJoin, SensorCollection.class
+        )
+     )
+    );
   }
 
   @Override
-  public List<APIRequestValidator> createFilterValidators () {
+  public List<APIRequestValidator> createFilteringValidators () {
     return Arrays.asList(
       APIRequestFilterValidatorFactory.integer("identifier"),
       APIRequestFilterValidatorFactory.datetime("creationDate"),
@@ -69,25 +105,47 @@ public final class PresenceStateCollectionRequestConfiguration implements Collec
       APIRequestFilterValidatorFactory.datetime("emittionDate"),
       APIRequestFilterValidatorFactory.duration("duration"),
       APIRequestFilterValidatorFactory.datetimeInRange("date"),
-      APIRequestFilterValidatorFactory.joinCollection("node", NodeCollection.class),
-      APIRequestFilterValidatorFactory.joinCollection("sensor", SensorCollection.class)
+      APIRequestFilterValidatorFactory.includeCollection("node", NodeCollection.class),
+      APIRequestFilterValidatorFactory.includeCollection("sensor", SensorCollection.class)
     );
   }
 
   @Override
   public List<APIRequestOrderingProcessor<PresenceState>> createOrderingProcessors () {
     return Arrays.asList(
-      APIRequestOrderingProcessorFactory.field("identifier", (root) -> root.get("_identifier")),
-      APIRequestOrderingProcessorFactory.field("creationDate", (root) -> root.get("_creationDate")),
-      APIRequestOrderingProcessorFactory.field("updateDate", (root) -> root.get("_updateDate")),
-      APIRequestOrderingProcessorFactory.field("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestOrderingProcessorFactory.field("start", (root) -> root.get("_start")),
-      APIRequestOrderingProcessorFactory.field("end", (root) -> root.get("_end")),
-      APIRequestOrderingProcessorFactory.field("emittionDate", (root) -> root.get("_emittionDate")),
-      APIRequestOrderingProcessorFactory.field("duration", (root) -> root.get("_milliseconds")),
-      APIRequestOrderingProcessorFactory.field("date", (root) -> root.get("_start")),
-      APIRequestOrderingProcessorFactory.joinCollection("node", "_node", NodeCollection.class),
-      APIRequestOrderingProcessorFactory.joinCollection("sensor", "_sensor", SensorCollection.class)
+      APIRequestOrderingProcessorFactory.field(
+        "identifier", (root) -> root.get("_identifier")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "creationDate", (root) -> root.get("_creationDate")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "updateDate", (root) -> root.get("_updateDate")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "deletionDate", (root) -> root.get("_deletionDate")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "start", (root) -> root.get("_start")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "end", (root) -> root.get("_end")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "emittionDate", (root) -> root.get("_emittionDate")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "duration", (root) -> root.get("_milliseconds")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "date", (root) -> root.get("_start")
+      ),
+      APIRequestOrderingProcessorFactory.joinCollection(
+        "node", _nodeJoin, NodeCollection.class
+      ),
+      APIRequestOrderingProcessorFactory.joinCollection(
+        "sensor", _sensorJoin, SensorCollection.class
+      )
     );
   }
 
@@ -102,9 +160,8 @@ public final class PresenceStateCollectionRequestConfiguration implements Collec
       APIRequestGroupingProcessorFactory.expression("end", (root) -> root.get("_end")),
       APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
       APIRequestGroupingProcessorFactory.expression("duration", (root) -> root.get("_milliseconds")),
-      APIRequestGroupingProcessorFactory.expression("date", (root) -> root.get("_start")),
-      APIRequestGroupingProcessorFactory.joinCollection("node", "_node", NodeCollection.class),
-      APIRequestGroupingProcessorFactory.joinCollection("sensor", "_sensor", SensorCollection.class)
+      APIRequestGroupingProcessorFactory.joinCollection("node", _nodeJoin, NodeCollection.class),
+      APIRequestGroupingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
     );
   }
 }

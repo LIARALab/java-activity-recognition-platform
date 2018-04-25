@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,17 @@ package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.EntityCollection;
 import org.liara.api.data.entity.state.BooleanState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BooleanStateCollection extends CompleteEntityCollection<BooleanState, Long>
+public class BooleanStateCollection extends EntityCollection<BooleanState>
 {
   @Autowired
   public BooleanStateCollection(@NonNull final EntityManager entityManager) {
-    super(BooleanState.class, entityManager);
+    super(entityManager, BooleanState.class);
   }
 }

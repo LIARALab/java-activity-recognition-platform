@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,17 @@ package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.collection.CompleteEntityCollection;
+import org.liara.api.collection.EntityCollection;
 import org.liara.api.data.entity.state.IntegerState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class IntegerStateCollection extends CompleteEntityCollection<IntegerState, Long>
+public class IntegerStateCollection extends EntityCollection<IntegerState>
 {
   @Autowired
   public IntegerStateCollection(@NonNull final EntityManager entityManager) {
-    super(IntegerState.class, entityManager);
+    super(entityManager, IntegerState.class);
   }
 }

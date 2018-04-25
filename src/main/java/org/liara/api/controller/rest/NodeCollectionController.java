@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,31 +21,23 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
 
-import org.liara.api.collection.exception.EntityNotFoundException;
+import org.liara.api.collection.EntityNotFoundException;
+import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.node.NodeModifier;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.lang.NonNull;
-import org.springframework.util.MultiValueMap;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -64,7 +56,7 @@ import io.swagger.annotations.ApiImplicitParams;
 /**
  * A controller for all API endpoints that read, write or update information about nodes.
  * 
- * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  */
 public final class NodeCollectionController extends BaseRestController
 {
@@ -88,7 +80,10 @@ public final class NodeCollectionController extends BaseRestController
    */
   @GetMapping("/nodes/count")
   public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return aggregate(_collection, request, this::count);
+    return aggregate(
+      _collection, request, 
+      EntityCountAggregationTransformation.create()
+    );
   }
 
   /**
@@ -141,6 +136,7 @@ public final class NodeCollectionController extends BaseRestController
     return indexCollection(_collection, request);
   }
   
+  /*
   @PostMapping("/nodes")
   public ResponseEntity<Void> create (
     @NonNull final HttpServletRequest request,
@@ -153,15 +149,16 @@ public final class NodeCollectionController extends BaseRestController
     
     return new ResponseEntity<>(headers, HttpStatus.CREATED);
   }
+  */
 
   @GetMapping("/nodes/{identifier}")
   public Node get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdOrFail(identifier);
+    return _collection.findByIdentifierOrFail(identifier);
   }
 
   @GetMapping("/nodes/{identifier}/sensors")
   public List<Sensor> getSensors (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdOrFail(identifier).getSensors();
+    return _collection.findByIdentifierOrFail(identifier).getSensors();
   }
 
   @GetMapping("/nodes/{identifier}/children")
