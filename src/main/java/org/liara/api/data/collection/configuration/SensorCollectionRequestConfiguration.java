@@ -38,6 +38,7 @@ import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory
 import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessorFactory;
 import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 
@@ -62,6 +63,11 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
         APIRequestEntityFilterParserFactory.text(
           "name", (root) -> root.get("_name")
         ),
+        APIRequestEntityFilterParserFactory.text("type", (root) -> root.get("_type")),
+        APIRequestEntityFilterParserFactory.text("valueType", (root) -> root.get("_valueType")),
+        APIRequestEntityFilterParserFactory.text("valueLabel", (root) -> root.get("_valueLabel")),
+        APIRequestEntityFilterParserFactory.text("valueUnit", (root) -> root.get("_valueUnit")),
+        APIRequestEntityFilterParserFactory.text("ipv4Address", (root) -> root.get("_ipv4Address")),
         APIRequestEntityFilterParserFactory.existsCollection(
           "states", 
           State.class,
@@ -109,12 +115,38 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       ),
       APIRequestOrderingProcessorFactory.field(
         "name", (root) -> root.get("_name")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "type", (root) -> root.get("_type")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "valueType", (root) -> root.get("_valueType")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "valueLabel", (root) -> root.get("_valueLabel")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "valueUnit", (root) -> root.get("_valueUnit")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "ipv4Address", (root) -> root.get("_ipv4Address")
       )
     );
   }
   
   @Override
   public List<APIRequestGroupingProcessor<Sensor>> createGroupingProcessors () {
-    return Collections.emptyList();
+    return Arrays.asList(
+      APIRequestGroupingProcessorFactory.expression("identifier", (root) -> root.get("_identifier")),
+      APIRequestGroupingProcessorFactory.expression("creationDate", (root) -> root.get("_creationDate")),
+      APIRequestGroupingProcessorFactory.expression("updateDate", (root) -> root.get("_updateDate")),
+      APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
+      APIRequestGroupingProcessorFactory.expression("name", (root) -> root.get("_name")),
+      APIRequestGroupingProcessorFactory.expression("type", (root) -> root.get("_type")),
+      APIRequestGroupingProcessorFactory.expression("valueType", (root) -> root.get("_valueType")),
+      APIRequestGroupingProcessorFactory.expression("valueLabel", (root) -> root.get("_valueLabel")),
+      APIRequestGroupingProcessorFactory.expression("valueUnit", (root) -> root.get("_valueUnit")),
+      APIRequestGroupingProcessorFactory.expression("ipv4Address", (root) -> root.get("_ipv4Address"))
+    );
   }
 }

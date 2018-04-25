@@ -53,7 +53,7 @@ public class MapView implements View<List<Object[]>>
       final List<Object> keys = new ArrayList<>(elements.size());
       
       for (final TupleElement<?> element : elements) {
-        if (element.getAlias().startsWith("key_")) {
+        if (element.getAlias() != null && element.getAlias().startsWith("key_")) {
           keys.add(tuple.get(element));
         } else {
           values.add(tuple.get(element));
