@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.query.relation.PathRelation;
+import org.liara.api.collection.query.relation.JoinRelation;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.entity.node.Node;
@@ -65,13 +65,13 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
         APIRequestEntityFilterParserFactory.existsCollection(
           "states", 
           State.class,
-          new PathRelation<Sensor, State>(root -> root.get("_states")), 
+          new JoinRelation<Sensor, State>(root -> root.join("_states")), 
           StateCollection.class
         ),
         APIRequestEntityFilterParserFactory.existsCollection(
           "nodes", 
           Node.class,
-          new PathRelation<Sensor, Node>(root -> root.get("_nodes")), 
+          new JoinRelation<Sensor, Node>(root -> root.join("_nodes")), 
           NodeCollection.class
         )
       )

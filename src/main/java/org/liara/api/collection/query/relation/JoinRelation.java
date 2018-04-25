@@ -21,9 +21,7 @@
  ******************************************************************************/
 package org.liara.api.collection.query.relation;
 
-import java.util.Collection;
-
-import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Join;
 
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.EntityCollectionSubquery;
@@ -32,20 +30,20 @@ import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.springframework.lang.NonNull;
 
-public class      PathRelation<Base, Joined> 
+public class      JoinRelation<Base, Joined> 
        implements EntityRelation<Base, Joined>
 {
   @NonNull
-  private final EntityFieldSelector<Base, Path<? extends Collection<Joined>>> _selector;
+  private final EntityFieldSelector<Base, Join<Base, Joined>> _selector;
 
-  public PathRelation (
-    @NonNull final EntityFieldSelector<Base, Path<? extends Collection<Joined>>> selector
+  public JoinRelation (
+    @NonNull final EntityFieldSelector<Base, Join<Base, Joined>> selector
   ) {
     _selector = selector;
   }
   
-  public PathRelation (
-    @NonNull final SimpleEntityFieldSelector<Base, Path<? extends Collection<Joined>>> selector
+  public JoinRelation (
+    @NonNull final SimpleEntityFieldSelector<Base, Join<Base, Joined>> selector
   ) {
     _selector = selector;
   }
@@ -56,7 +54,7 @@ public class      PathRelation<Base, Joined>
     @NonNull final EntityCollectionSubquery<Joined, Joined> children
   ) {
     final QueriedEntity<?, Base> correlated = children.correlate(parent.getEntity());
-    final Path<? extends Collection<Joined>> collection = _selector.select(children, correlated);
+    final Join<Base, Joined> collection = _selector.select(children, correlated);
     
     children.andWhere(children.getEntity().in(collection));
   }

@@ -28,12 +28,17 @@ import java.util.List;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CollectionJoin;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.ListJoin;
+import javax.persistence.criteria.MapJoin;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
+import javax.persistence.criteria.SetJoin;
 import javax.persistence.criteria.Subquery;
 
 import org.liara.api.collection.query.queried.QueriedEntity;
@@ -160,6 +165,30 @@ public class      EntityCollectionSubquery<Entity, Result>
     return related.correlate(_query);
   }
   
+  public <Y> Root<Y> correlate (@NonNull final Root<Y> parentRoot) {
+    return _query.correlate(parentRoot);
+  }
+
+  public <X, Y> Join<X, Y> correlate (@NonNull final Join<X, Y> parentJoin) {
+    return _query.correlate(parentJoin);
+  }
+
+  public <X, Y> CollectionJoin<X, Y> correlate (@NonNull final CollectionJoin<X, Y> parentCollection) {
+    return _query.correlate(parentCollection);
+  }
+
+  public <X, Y> SetJoin<X, Y> correlate (@NonNull final SetJoin<X, Y> parentSet) {
+    return _query.correlate(parentSet);
+  }
+
+  public <X, Y> ListJoin<X, Y> correlate (@NonNull final ListJoin<X, Y> parentList) {
+    return _query.correlate(parentList);
+  }
+
+  public <X, K, V> MapJoin<X, K, V> correlate (@NonNull final MapJoin<X, K, V> parentMap) {
+    return _query.correlate(parentMap);
+  }
+
   /**
    * Return the underlying subquery.
    * 

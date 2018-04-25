@@ -21,14 +21,9 @@
  ******************************************************************************/
 package org.liara.api.collection.query.queried;
 
-import java.util.List;
-
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
 
-import org.hibernate.query.criteria.internal.Renderable;
-import org.hibernate.query.criteria.internal.ValueHandlerFactory.ValueHandler;
-import org.hibernate.query.criteria.internal.compile.RenderingContext;
 import org.springframework.lang.NonNull;
 
 public class RootBasedQueriedEntity<Entity> extends FromBasedQueriedEntity<Entity, Entity>

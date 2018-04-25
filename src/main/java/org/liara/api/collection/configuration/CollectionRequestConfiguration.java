@@ -27,19 +27,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.transformation.cursor.Cursor;
 import org.liara.api.collection.transformation.cursor.CursorTransformation;
 import org.liara.api.collection.transformation.grouping.EntityCollectionGroupTransformation;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
-import org.liara.api.collection.transformation.Transformation;
-import org.liara.api.collection.view.cursor.CursorView;
 import org.liara.api.request.APIRequest;
 import org.liara.api.request.parser.APIRequestParser;
 import org.liara.api.request.parser.cursor.APIRequestFreeCursorParser;
-import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.operator.ordering.ComposedAPIRequestOrderingParser;
