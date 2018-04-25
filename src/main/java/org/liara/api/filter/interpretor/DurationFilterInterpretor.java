@@ -24,17 +24,17 @@ package org.liara.api.filter.interpretor;
 import javax.persistence.criteria.Expression;
 
 import org.liara.api.collection.query.selector.EntityFieldSelector;
-import org.liara.api.filter.parser.IntegerFilterParser;
+import org.liara.api.filter.parser.DurationFilterParser;
 import org.liara.api.filter.visitor.collection.EntityCollectionComparableFilterVisitor;
 import org.springframework.lang.NonNull;
 
-public class LongFilterInterpretor<Entity> extends BaseFilterInterpretor<Entity, Long>
+public class DurationFilterInterpretor<Entity> extends BaseFilterInterpretor<Entity, Long>
 {
-  public LongFilterInterpretor (
+  public DurationFilterInterpretor (
     @NonNull final EntityFieldSelector<Entity, Expression<Long>> field
   ) {
     super(
-      new IntegerFilterParser(),
+      new DurationFilterParser(),
       new EntityCollectionComparableFilterVisitor<>(field)
     );
   }

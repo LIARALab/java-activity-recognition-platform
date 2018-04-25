@@ -35,7 +35,7 @@ import org.liara.api.filter.interpretor.DatetimeFilterInterpretor;
 import org.liara.api.filter.interpretor.DatetimeInRangeFilterInterpretor;
 import org.liara.api.filter.interpretor.DoubleFilterInterpretor;
 import org.liara.api.filter.interpretor.IntegerFilterInterpretor;
-import org.liara.api.filter.interpretor.LongFilterInterpretor;
+import org.liara.api.filter.interpretor.DurationFilterInterpretor;
 import org.liara.api.filter.interpretor.TextFilterInterpretor;
 import org.springframework.lang.NonNull;
 
@@ -134,7 +134,7 @@ public final class APIRequestEntityFilterParserFactory
   ) {
     return new APIRequestEntityCollectionCommandBasedFilteringOperatorParser<Entity, Long>(
         parameter,
-        new LongFilterInterpretor<>(selector)
+        new DurationFilterInterpretor<>(selector)
     );
   }
   
