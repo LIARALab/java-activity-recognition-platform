@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -106,6 +106,6 @@ public final class DoubleStateCollectionController extends BaseRestController
 
   @GetMapping("/states<double>/{identifier}")
   public DoubleState get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdOrFail(identifier);
+    return _collection.findByIdentifierOrFail(identifier);
   }
 }

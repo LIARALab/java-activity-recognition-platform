@@ -1,3 +1,24 @@
+/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
 package org.liara.api.collection.query.queried;
 
 import java.util.Collection;
@@ -25,6 +46,10 @@ import javax.persistence.metamodel.PluralAttribute;
 import javax.persistence.metamodel.SetAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 
+import org.hibernate.query.criteria.internal.Renderable;
+import org.hibernate.query.criteria.internal.SelectionImplementor;
+import org.hibernate.query.criteria.internal.ValueHandlerFactory.ValueHandler;
+import org.hibernate.query.criteria.internal.compile.RenderingContext;
 import org.springframework.lang.NonNull;
 
 public abstract class FromBasedQueriedEntity<Base, Entity> implements QueriedEntity<Base, Entity>
@@ -282,5 +307,24 @@ public abstract class FromBasedQueriedEntity<Base, Entity> implements QueriedEnt
   @Override
   public <X, K, V> MapJoin<X, K, V> joinMap (@NonNull final String attributeName, @NonNull final JoinType jt) {
     return _from.joinMap(attributeName, jt);
+  }
+
+  @Override
+  public String render (@NonNull final RenderingContext renderingContext) {
+    return ((Renderable) _from).render(renderingContext);
+  }
+
+  @SuppressWarnings({
+    "unchecked", "rawtypes"
+  })
+  @Override
+  public List<ValueHandler> getValueHandlers () {
+    return ((SelectionImplementor<Entity>) _from).getValueHandlers();
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public ValueHandler<Entity> getValueHandler () {
+    return ((SelectionImplementor<Entity>) _from).getValueHandler();
   }
 }

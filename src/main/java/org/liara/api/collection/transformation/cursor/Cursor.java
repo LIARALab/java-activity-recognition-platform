@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@ import org.springframework.lang.NonNull;
 /**
  * A cursor that select a range of entities in a collection.
  * 
- * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  */
 public final class Cursor
 {

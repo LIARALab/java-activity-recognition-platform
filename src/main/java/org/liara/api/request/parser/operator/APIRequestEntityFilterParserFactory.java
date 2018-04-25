@@ -1,3 +1,24 @@
+/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
 package org.liara.api.request.parser.operator;
 
 import java.time.ZonedDateTime;
@@ -123,10 +144,10 @@ public final class APIRequestEntityFilterParserFactory
     @NonNull final Class<? extends EntityCollection<Joined>> collection
   ) {
 
-    return joinConfiguration(
+    return joinCollection(
       parameter, 
       (EntityFieldSelector<Entity, Join<Entity, Joined>>) join, 
-      CollectionRequestConfiguration.getDefaultClass(collection)
+      collection
     );
   }
   
@@ -135,7 +156,12 @@ public final class APIRequestEntityFilterParserFactory
     @NonNull final EntityFieldSelector<Entity, Join<Entity, Joined>> join, 
     @NonNull final Class<? extends EntityCollection<Joined>> collection
   ) {
-    return joinConfiguration(parameter, join, CollectionRequestConfiguration.getDefaultClass(collection));
+    return new APIRequestEntityCollectionJoinOperatorParser<Entity, Joined>(
+        parameter, join, 
+        new APIRequestConfigurationBasedFilteringOperatorParser<Joined>(
+          CollectionRequestConfiguration.getDefaultClass(collection)
+        )
+    );
   }
   
   public static <Entity, Joined> APIRequestEntityCollectionOperatorParser<Entity> joinConfiguration (
@@ -177,9 +203,11 @@ public final class APIRequestEntityFilterParserFactory
     @NonNull final EntityRelation<Entity, Joined> relation, 
     @NonNull final Class<? extends EntityCollection<Joined>> collection
   ) {
-    return existsConfiguration(
+    return new APIRequestEntityCollectionExistsOperatorParser<Entity, Joined>(
         parameter, joined, relation,
-        CollectionRequestConfiguration.getDefaultClass(collection)
+        new APIRequestConfigurationBasedFilteringOperatorParser<Joined>(
+          CollectionRequestConfiguration.getDefaultClass(collection)
+        )
     );
   }
 }

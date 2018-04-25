@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +27,7 @@ import java.util.List;
 import javax.persistence.criteria.Join;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
-import org.liara.api.collection.query.selector.SingletonFieldSelector;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.node.Node;
