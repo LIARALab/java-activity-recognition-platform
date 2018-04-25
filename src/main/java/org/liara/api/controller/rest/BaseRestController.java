@@ -22,12 +22,12 @@
 package org.liara.api.controller.rest;
 
 import java.util.List;
-import java.util.function.Function;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.collection.transformation.MapValueTransformation;
 import org.liara.api.collection.transformation.aggregation.EntityAggregationTransformation;
 import org.liara.api.collection.transformation.grouping.EntityCollectionGroupTransformation;
 import org.liara.api.collection.view.EntityCollectionAggregation;
@@ -63,14 +63,14 @@ public class BaseRestController
     @NonNull final HttpServletRequest request,
     @NonNull final EntityAggregationTransformation<Entity, AggregationType> aggregation
   ) throws InvalidAPIRequestException {
-    return aggregate(collection, request, aggregation, x -> x);
+    return aggregate(collection, request, aggregation, MapValueTransformation.identity());
   }
 
   public <Entity, AggregationType, Cast> ResponseEntity<Object> aggregate (
     @NonNull final EntityCollection<Entity> collection,
     @NonNull final HttpServletRequest request,
     @NonNull final EntityAggregationTransformation<Entity, AggregationType> aggregation,
-    @NonNull final Function<AggregationType, Cast> cast
+    @NonNull final MapValueTransformation<AggregationType, Cast> cast
   )
     throws InvalidAPIRequestException
   {
@@ -84,12 +84,12 @@ public class BaseRestController
     
     if (groups == null) {
       return new ResponseEntity<>(
-        aggregationResult.get(), 
+        cast.apply(aggregationResult).get(), 
         HttpStatus.OK
       );
     } else {      
       return new ResponseEntity<>(
-        MapView.apply(groups.apply(aggregationResult)).get(), 
+        cast.apply(MapView.apply(groups.apply(aggregationResult))).get(), 
         HttpStatus.OK
       );
     }
