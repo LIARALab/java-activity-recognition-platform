@@ -24,6 +24,8 @@ package org.liara.api.data.collection;
 import javax.persistence.EntityManager;
 
 import org.liara.api.collection.EntityCollection;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.entity.state.BooleanState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
@@ -35,5 +37,19 @@ public class BooleanStateCollection extends EntityCollection<BooleanState>
   @Autowired
   public BooleanStateCollection(@NonNull final EntityManager entityManager) {
     super(entityManager, BooleanState.class);
+  }
+  
+  public BooleanStateCollection (
+    @NonNull final BooleanStateCollection toCopy  
+  ) { super(toCopy); }
+  
+  public BooleanStateCollection (
+    @NonNull final BooleanStateCollection collection,
+    @NonNull final EntityCollectionConjunctionOperator<BooleanState> operator
+  ) { super(collection, operator); }
+
+  @Override
+  public BooleanStateCollection apply (@NonNull final EntityCollectionOperator<BooleanState> operator) {
+    return new BooleanStateCollection(this, getOperator().conjugate(operator));
   }
 }

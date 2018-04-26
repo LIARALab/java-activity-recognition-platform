@@ -8,7 +8,7 @@ import javax.persistence.EntityManager;
 
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.DoubleState;
-import org.liara.api.data.entity.state.PresenceState;
+import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.State;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -31,10 +31,10 @@ public class CeilActivationDetector
   private DoubleState _last = null;
   
   @Nullable
-  private PresenceState _lastEmittion = null;
+  private ActivationState _lastEmittion = null;
   
   @NonNull
-  private final List<PresenceState> _invalidStates = new ArrayList<>();
+  private final List<ActivationState> _invalidStates = new ArrayList<>();
   
   public CeilActivationDetector (
     @NonNull final EntityManager manager,
@@ -112,13 +112,13 @@ public class CeilActivationDetector
     }
   }
   
-  private PresenceState next () {
+  private ActivationState next () {
     if (_invalidStates.size() > 0) {
-      final PresenceState next = _invalidStates.remove(0);
+      final ActivationState next = _invalidStates.remove(0);
       next.restore();
       return next;
     } else {
-      return new PresenceState();
+      return new ActivationState();
     }
   }
 
@@ -194,7 +194,7 @@ public class CeilActivationDetector
   }
 
   private void refreshLastEmitted (@NonNull final DoubleState target) {
-    final List<PresenceState> lastEmitted = _manager.createQuery(
+    final List<ActivationState> lastEmitted = _manager.createQuery(
       String.join(
         " ", 
         "SELECT presenceState",
@@ -202,7 +202,7 @@ public class CeilActivationDetector
         "WHERE presenceState._sensor = :target",
         "  AND presenceState._deletionDate IS NULL",
         "ORDER BY presenceState._emittionDate DESC"
-      ), PresenceState.class
+      ), ActivationState.class
     ).setParameter("target", _sensor)
      .setMaxResults(1)
      .getResultList();
@@ -249,7 +249,7 @@ public class CeilActivationDetector
           "FROM PresenceState presenceState",
           "WHERE presenceState._sensor = :target",
           "  AND presenceState._deletionDate IS NOT NULL"
-        ), PresenceState.class
+        ), ActivationState.class
       ).setParameter("target", _sensor)
        .getResultList()
     );
@@ -270,7 +270,7 @@ public class CeilActivationDetector
       .executeUpdate();
   }
 
-  public PresenceState getLastEmittion () {
+  public ActivationState getLastEmittion () {
     return _lastEmittion;
   }
 }

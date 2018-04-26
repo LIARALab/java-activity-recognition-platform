@@ -25,12 +25,14 @@ import javax.persistence.EntityManager;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
+import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
-
 
 @Component
 @DefaultCollectionRequestConfiguration(SensorCollectionRequestConfiguration.class)
@@ -39,7 +41,24 @@ public class SensorCollection extends EntityCollection<Sensor>
   @Autowired
   public SensorCollection (
     @NonNull final EntityManager entityManager
-  ) {
-    super(entityManager, Sensor.class);
+  ) { super(entityManager, Sensor.class); }
+  
+  public SensorCollection (
+    @NonNull final SensorCollection toCopy  
+  ) { super(toCopy); }
+  
+  public SensorCollection (
+    @NonNull final SensorCollection collection,
+    @NonNull final EntityCollectionConjunctionOperator<Sensor> operator
+  ) { super(collection, operator); }
+  
+  @Override
+  public SensorCollection apply (@NonNull final EntityCollectionOperator<Sensor> operator) {
+    return new SensorCollection(this, getOperator().conjugate(operator));
+  }
+  
+  public SensorCollection of (@NonNull final Node node) {
+    final EntityCollectionOperator<Sensor> operator = query -> query.andWhere(query.getEntity().in(node.getSensors()));
+    return apply(operator);
   }
 }

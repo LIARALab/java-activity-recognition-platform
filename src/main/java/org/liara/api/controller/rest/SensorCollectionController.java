@@ -33,15 +33,20 @@ import org.springframework.lang.NonNull;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
+import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
+import org.liara.api.validation.IdentifierOfEntityInCollection;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @RestController
@@ -59,6 +64,10 @@ public final class SensorCollectionController extends BaseRestController
   @Autowired
   @NonNull
   private SensorCollection _collection;
+  
+  @Autowired
+  @NonNull
+  private NodeCollection _nodes;
 
   @GetMapping("/sensors/count")
   @ApiImplicitParams(
@@ -130,9 +139,54 @@ public final class SensorCollectionController extends BaseRestController
   public Sensor get (@PathVariable final long identifier) throws EntityNotFoundException {
     return _collection.findByIdentifierOrFail(identifier);
   }
+  
+  @PostMapping("/sensors/{identifier}/nodes")
+  public ResponseEntity<Void> attach (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long sensorIdentifier,
+    @RequestBody @IdentifierOfEntityInCollection(collection = NodeCollection.class) final long nodeIdentifier
+  ) throws EntityNotFoundException {
+    final Sensor sensor = _collection.findByIdentifierOrFail(sensorIdentifier);
+    final Node node = _nodes.findByIdentifierOrFail(nodeIdentifier);
+    
+    if (sensor.getNodes().contains(node)) {
+      return new ResponseEntity<>(HttpStatus.OK);
+    } else {
+      sensor.getNodes().add(node);
+      _collection.getManager().merge(sensor);
+      
+      final HttpHeaders headers = new HttpHeaders();
+      headers.add("Location", request.getRequestURI() + "/" + node.getIdentifier());
+      
+      return new ResponseEntity<>(headers, HttpStatus.CREATED);
+    }
+  }
 
   @GetMapping("/sensors/{identifier}/nodes")
-  public List<Node> getNodes (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdentifierOrFail(identifier).getNodes();
+  public ResponseEntity<List<Node>> getNodes (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+    final Sensor sensor = _collection.findByIdentifierOrFail(identifier);
+    
+    return indexCollection(_nodes.of(sensor), request);
+  }
+  
+  @GetMapping("/sensors/{identifier}/nodes/count")
+  public ResponseEntity<Object> countNodes (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+    final Sensor sensor = _collection.findByIdentifierOrFail(identifier);
+    return aggregate(_nodes.of(sensor), request, new EntityCountAggregationTransformation<Node>());
+  }
+  
+  @GetMapping("/sensors/{sensorIdentifier}/nodes/{nodeIdentifier}")
+  public Node getNode (
+    @PathVariable final long sensorIdentifier,
+    @PathVariable final long nodeIdentifier
+  ) throws EntityNotFoundException {
+    final Sensor sensor = _collection.findByIdentifierOrFail(sensorIdentifier);    
+    return _nodes.of(sensor).findByIdentifierOrFail(nodeIdentifier);
   }
 }

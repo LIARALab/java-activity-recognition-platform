@@ -24,6 +24,8 @@ package org.liara.api.data.collection;
 import javax.persistence.EntityManager;
 
 import org.liara.api.collection.EntityCollection;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.entity.state.IntegerState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
@@ -35,5 +37,19 @@ public class IntegerStateCollection extends EntityCollection<IntegerState>
   @Autowired
   public IntegerStateCollection(@NonNull final EntityManager entityManager) {
     super(entityManager, IntegerState.class);
+  }
+
+  public IntegerStateCollection (
+    @NonNull final IntegerStateCollection toCopy  
+  ) { super(toCopy); }
+  
+  public IntegerStateCollection (
+    @NonNull final IntegerStateCollection collection,
+    @NonNull final EntityCollectionConjunctionOperator<IntegerState> operator
+  ) { super(collection, operator); }
+  
+  @Override
+  public IntegerStateCollection apply (@NonNull final EntityCollectionOperator<IntegerState> operator) {
+    return new IntegerStateCollection(this, getOperator().conjugate(operator));
   }
 }

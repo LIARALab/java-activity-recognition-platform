@@ -23,7 +23,7 @@ package org.liara.recognition.presence;
 
 import java.util.NoSuchElementException;
 
-import org.liara.api.data.entity.state.PresenceState;
+import org.liara.api.data.entity.state.ActivationState;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -36,7 +36,7 @@ public class LiaraPresenceStream implements PresenceStream
   private Event _lastEvent = null;
   
   @Nullable
-  private PresenceState _next = null;
+  private ActivationState _next = null;
   
   public LiaraPresenceStream (@NonNull final EventStream events) {
     _events = events;
@@ -49,11 +49,11 @@ public class LiaraPresenceStream implements PresenceStream
   }
 
   @Override
-  public PresenceState next () {
+  public ActivationState next () {
     update();
     if (_next == null) throw new NoSuchElementException();
     
-    final PresenceState result = _next;
+    final ActivationState result = _next;
     _next = null;
     return result;
   }
@@ -80,8 +80,8 @@ public class LiaraPresenceStream implements PresenceStream
     }
   }
 
-  private PresenceState toOccuringPresence (Event event) {
-    final PresenceState result = new PresenceState();
+  private ActivationState toOccuringPresence (Event event) {
+    final ActivationState result = new ActivationState();
     result.setStart(event.getStart());
     result.setEnd(null);
     result.setNode(event.getSensor().getNodes().get(0));
@@ -89,8 +89,8 @@ public class LiaraPresenceStream implements PresenceStream
     return result;  
   }
 
-  private PresenceState toPresence (@NonNull final Event event) {
-    final PresenceState result = new PresenceState();
+  private ActivationState toPresence (@NonNull final Event event) {
+    final ActivationState result = new ActivationState();
     result.setStart(event.getStart());
     result.setEnd(event.getEnd());
     result.setNode(event.getSensor().getNodes().get(0));

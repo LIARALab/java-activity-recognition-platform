@@ -34,7 +34,7 @@ import javax.persistence.Column;
 import org.hibernate.annotations.Formula;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.state.PresenceState;
+import org.liara.api.data.entity.state.ActivationState;
 import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -48,6 +48,10 @@ public class Node extends ApplicationEntity
   @Column(name = "name", nullable = false, updatable = true, unique = false)
   @NonNull
   private String        _name;
+  
+  @Column(name="type", nullable = false, updatable = true, unique = false)
+  @NonNull
+  private String _type;
 
   @Column(name = "set_start", nullable = true, updatable = true, unique = false)
   private int           _setStart;
@@ -64,7 +68,7 @@ public class Node extends ApplicationEntity
   private List<Sensor>  _sensors;
   
   @OneToMany(mappedBy="_node", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
-  private List<PresenceState>  _presences;
+  private List<ActivationState>  _presences;
   
   @Formula("(SELECT (COUNT(*) - 1) FROM nodes AS parent WHERE set_start BETWEEN parent.set_start AND parent.set_end)")
   private int _depth;
@@ -79,6 +83,14 @@ public class Node extends ApplicationEntity
     _name = null;
     _setStart = setStart;
     _setEnd = setEnd;
+  }
+  
+  public String getType () {
+    return _type;
+  }
+  
+  public void setType (@NonNull final String type) {
+    _type = type;
   }
   
   public String getName () {

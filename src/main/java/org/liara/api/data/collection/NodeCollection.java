@@ -36,10 +36,14 @@ import javax.transaction.Transactional;
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.collection.query.queried.QueriedEntity;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.node.NodeModifier;
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.IntegerState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -53,9 +57,16 @@ public class NodeCollection extends EntityCollection<Node>
   @Autowired
   public NodeCollection (
     @NonNull final EntityManager entityManager
-  ) {
-    super(entityManager, Node.class);
-  }
+  ) { super(entityManager, Node.class); }
+
+  public NodeCollection (
+    @NonNull final NodeCollection toCopy  
+  ) { super(toCopy); }
+  
+  public NodeCollection (
+    @NonNull final NodeCollection collection,
+    @NonNull final EntityCollectionConjunctionOperator<Node> operator
+  ) { super(collection, operator); }
   
   public List<Node> getAllChildren (@NonNull final Node node) {
     final TypedQuery<Node> query = getManager().createQuery(
@@ -133,7 +144,7 @@ public class NodeCollection extends EntityCollection<Node>
   }
   
   @Transactional
-  public Node add (@NonNull final NodeModifier modifier) throws EntityNotFoundException {
+  public Node create (@NonNull final NodeModifier modifier) throws EntityNotFoundException {
     int setStart = 0;
     int setEnd = 0;
     
@@ -158,8 +169,9 @@ public class NodeCollection extends EntityCollection<Node>
     
     final Node node = new Node(setStart, setEnd);
     node.setName(modifier.getName().get());
+    node.setType(modifier.getType().get());
     
-    //this.add(node);
+    getManager().persist(node);
     
     return node;
   }
@@ -223,5 +235,36 @@ public class NodeCollection extends EntityCollection<Node>
   
   public int getRootSetStart () {
     return 0;
+  }
+  
+  public NodeCollection of (@NonNull final Sensor sensor) {
+    final EntityCollectionOperator<Node> operator = query -> query.andWhere(query.getEntity().in(sensor.getNodes()));
+    return apply(operator);
+  }
+  
+  public NodeCollection deepChildrenOf (@NonNull final Node node) {
+    final EntityCollectionOperator<Node> operator = query -> {
+      final QueriedEntity<?, Node> queried = query.getEntity();
+      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
+      query.andWhere(builder.greaterThan(queried.get("_setStart"), node.getSetStart()));
+      query.andWhere(builder.lessThan(queried.get("_setEnd"), node.getSetEnd()));
+    };
+    
+    return apply(operator);
+  }
+  
+  public NodeCollection directChildrenOf (@NonNull final Node node) {
+    final EntityCollectionOperator<Node> operator = query -> {
+      final QueriedEntity<?, Node> queried = query.getEntity();
+      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
+      query.andWhere(builder.equal(queried.get("_depth"), node.getDepth() + 1));
+    };
+    
+    return deepChildrenOf(node).apply(operator);
+  }
+  
+  @Override
+  public NodeCollection apply (@NonNull final EntityCollectionOperator<Node> operator) {
+    return new NodeCollection(this, getOperator().conjugate(operator));
   }
 }

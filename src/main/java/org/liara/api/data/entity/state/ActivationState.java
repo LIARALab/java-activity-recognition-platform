@@ -42,7 +42,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "states_presence")
 @PrimaryKeyJoinColumn(name = "state_identifier")
-public class PresenceState extends State
+public class ActivationState extends State
 {  
   @Column(name = "start", nullable = false, updatable = true, unique = false)
   @NonNull
@@ -90,7 +90,7 @@ public class PresenceState extends State
     return _start;
   }
   
-  public void merge (@NonNull final PresenceState other) {
+  public void merge (@NonNull final ActivationState other) {
     if (_start.compareTo(other.getStart()) <= 0) {
       _end = other.getEnd();
     } else {

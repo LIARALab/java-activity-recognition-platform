@@ -23,7 +23,7 @@ package org.liara.recognition.presence;
 
 import java.util.Iterator;
 
-import org.liara.api.data.entity.state.PresenceState;
+import org.liara.api.data.entity.state.ActivationState;
 
-public interface PresenceStream extends Iterator<PresenceState>
+public interface PresenceStream extends Iterator<ActivationState>
 { }

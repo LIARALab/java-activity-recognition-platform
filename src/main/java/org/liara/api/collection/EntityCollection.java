@@ -88,7 +88,7 @@ public class EntityCollection<Entity>
   ) {
     _manager = collection.getManager();
     _contentType = collection.getEntityType();
-    _operator = new EntityCollectionConjunctionOperator<>(collection.getOperator());
+    _operator = new EntityCollectionConjunctionOperator<>(collection.getOperator().iterator());
   }
   
   /**
@@ -160,7 +160,7 @@ public class EntityCollection<Entity>
    * 
    * @return An operator to apply to a given query in order to select all entities of this collection.
    */
-  public EntityCollectionOperator<Entity> getOperator ()  {
+  public EntityCollectionConjunctionOperator<Entity> getOperator ()  {
     return _operator;
   }
   

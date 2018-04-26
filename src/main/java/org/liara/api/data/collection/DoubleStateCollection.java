@@ -24,8 +24,11 @@ package org.liara.api.data.collection;
 import javax.persistence.EntityManager;
 
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.DoubleStateCollectionRequestConfiguration;
 import org.liara.api.collection.EntityCollection;
+import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.DoubleState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
@@ -38,5 +41,19 @@ public class DoubleStateCollection extends EntityCollection<DoubleState>
   @Autowired
   public DoubleStateCollection(@NonNull final EntityManager entityManager) {
     super(entityManager, DoubleState.class);
+  }
+
+  public DoubleStateCollection (
+    @NonNull final DoubleStateCollection toCopy  
+  ) { super(toCopy); }
+  
+  public DoubleStateCollection (
+    @NonNull final DoubleStateCollection collection,
+    @NonNull final EntityCollectionConjunctionOperator<DoubleState> operator
+  ) { super(collection, operator); }
+  
+  @Override
+  public DoubleStateCollection apply (@NonNull final EntityCollectionOperator<DoubleState> operator) {
+    return new DoubleStateCollection(this, getOperator().conjugate(operator));
   }
 }

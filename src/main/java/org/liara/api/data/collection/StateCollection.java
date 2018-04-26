@@ -25,7 +25,10 @@ import javax.persistence.EntityManager;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.State;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
@@ -38,5 +41,19 @@ public class StateCollection extends EntityCollection<State>
   @Autowired
   public StateCollection(@NonNull final EntityManager entityManager) {
     super(entityManager, State.class);
+  }
+  
+  public StateCollection (
+    @NonNull final StateCollection toCopy  
+  ) { super(toCopy); }
+  
+  public StateCollection (
+    @NonNull final StateCollection collection,
+    @NonNull final EntityCollectionConjunctionOperator<State> operator
+  ) { super(collection, operator); }
+  
+  @Override
+  public StateCollection apply (@NonNull final EntityCollectionOperator<State> operator) {
+    return new StateCollection(this, getOperator().conjugate(operator));
   }
 }

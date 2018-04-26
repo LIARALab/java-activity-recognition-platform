@@ -25,20 +25,34 @@ import javax.persistence.EntityManager;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.PresenceStateCollectionRequestConfiguration;
-import org.liara.api.data.entity.state.PresenceState;
+import org.liara.api.data.entity.state.ActivationState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
 @DefaultCollectionRequestConfiguration(PresenceStateCollectionRequestConfiguration.class)
-public class PresenceStateCollection extends EntityCollection<PresenceState>
+public class ActivationStateCollection extends EntityCollection<ActivationState>
 {
   @Autowired
-  public PresenceStateCollection (
+  public ActivationStateCollection (
     @NonNull final EntityManager entityManager
-  ) {
-    super(entityManager, PresenceState.class);
+  ) { super(entityManager, ActivationState.class); }
+  
+  public ActivationStateCollection (
+    @NonNull final ActivationStateCollection toCopy  
+  ) { super(toCopy); }
+  
+  public ActivationStateCollection (
+    @NonNull final ActivationStateCollection collection,
+    @NonNull final EntityCollectionConjunctionOperator<ActivationState> operator
+  ) { super(collection, operator); }
+
+  @Override
+  public ActivationStateCollection apply (@NonNull final EntityCollectionOperator<ActivationState> operator) {
+    return new ActivationStateCollection(this, getOperator().conjugate(operator));
   }
 }

@@ -37,11 +37,11 @@ import org.liara.api.collection.transformation.aggregation.EntityCountAggregatio
 import org.liara.api.collection.transformation.aggregation.ExpressionAggregationTransformation;
 import org.liara.api.data.collection.BooleanStateCollection;
 import org.liara.api.data.collection.NodeCollection;
-import org.liara.api.data.collection.PresenceStateCollection;
+import org.liara.api.data.collection.ActivationStateCollection;
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
-import org.liara.api.data.entity.state.PresenceState;
+import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.liara.recognition.presence.TickEventStream;
@@ -72,7 +72,7 @@ public class PresenceStateCollectionController extends BaseRestController
   private EntityManager _entityManager;
   
   @Autowired
-  private PresenceStateCollection _collection;
+  private ActivationStateCollection _collection;
   
   @Autowired
   private NodeCollection _nodes;
@@ -83,7 +83,7 @@ public class PresenceStateCollectionController extends BaseRestController
   @Autowired
   private SensorCollection _sensors;
   
-  private Iterator<PresenceState> presences (@NonNull final Sensor sensor) throws EntityNotFoundException {
+  private Iterator<ActivationState> presences (@NonNull final Sensor sensor) throws EntityNotFoundException {
     final List<Sensor> sensors = _nodes.getAllSensors(sensor.getNodes(), "common/native/motion");
     
     final EntityCollectionMainQuery<BooleanState, BooleanState> stateQuery = _booleans.createCollectionQuery(BooleanState.class);
@@ -109,10 +109,10 @@ public class PresenceStateCollectionController extends BaseRestController
       throw new Error("Not a presence sensor.");
     }
     
-    final Iterator<PresenceState> presences = this.presences(sensor);
+    final Iterator<ActivationState> presences = this.presences(sensor);
     
     while (presences.hasNext()) {
-      final PresenceState presence = presences.next();
+      final ActivationState presence = presences.next();
       presence.setSensor(sensor);
 
       _entityManager.persist(presence);
@@ -207,21 +207,21 @@ public class PresenceStateCollectionController extends BaseRestController
       unorderedDetector.onStateAddition(states.get(index));
     }
     
-    final List<PresenceState> orderedResult = _entityManager.createQuery(
+    final List<ActivationState> orderedResult = _entityManager.createQuery(
       "SELECT state FROM PresenceState state WHERE state._sensor = :sensor AND state._deletionDate IS NULL ORDER BY state._emittionDate ASC",
-      PresenceState.class
+      ActivationState.class
     ).setParameter("sensor", ordered)
      .getResultList();
     
-    final List<PresenceState> unorderedResult = _entityManager.createQuery(
+    final List<ActivationState> unorderedResult = _entityManager.createQuery(
       "SELECT state FROM PresenceState state WHERE state._sensor = :sensor AND state._deletionDate IS NULL ORDER BY state._emittionDate ASC",
-      PresenceState.class
+      ActivationState.class
     ).setParameter("sensor", unordered)
      .getResultList();
     
     for (int index = 0; index < orderedResult.size(); ++index) {
-      final PresenceState orderedState = orderedResult.get(index);
-      final PresenceState unorderedState = unorderedResult.get(index);
+      final ActivationState orderedState = orderedResult.get(index);
+      final ActivationState unorderedState = unorderedResult.get(index);
       
       if (
           !orderedState.getStart().equals(unorderedState.getStart()) ||
@@ -237,13 +237,13 @@ public class PresenceStateCollectionController extends BaseRestController
   }
   
   @GetMapping("/states<presence>")
-  public ResponseEntity<List<PresenceState>> index (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
+  public ResponseEntity<List<ActivationState>> index (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
     return indexCollection(_collection, request);
   }
   
   @GetMapping("/states<presence>/{identifier}")
-  public PresenceState index (
+  public ActivationState index (
     @NonNull final HttpServletRequest request,
     @PathVariable final long identifier
   ) throws EntityNotFoundException

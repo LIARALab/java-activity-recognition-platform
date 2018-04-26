@@ -28,16 +28,24 @@ import javax.servlet.http.HttpServletRequest;
 import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
 import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.node.NodeModifier;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
+import org.liara.api.validation.RestGroup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.lang.NonNull;
+import org.springframework.validation.annotation.Validated;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -63,6 +71,10 @@ public final class NodeCollectionController extends BaseRestController
   @Autowired
   @NonNull
   private NodeCollection _collection;
+  
+  @Autowired
+  @NonNull
+  private SensorCollection _sensors;
 
   /**
    * Count all nodes in the application.
@@ -136,20 +148,18 @@ public final class NodeCollectionController extends BaseRestController
     return indexCollection(_collection, request);
   }
   
-  /*
   @PostMapping("/nodes")
   public ResponseEntity<Void> create (
     @NonNull final HttpServletRequest request,
-    @NonNull @Valid @RequestBody final NodeModifier node
-  ) {
-    final Node added = _collection.add(node);
+    @NonNull @Validated(RestGroup.EntityCreation.class) @RequestBody final NodeModifier node
+  ) throws EntityNotFoundException {
+    final Node added = _collection.create(node);
     
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Location", request.getRequestURI() + "/" + added.getIdentifier());
     
     return new ResponseEntity<>(headers, HttpStatus.CREATED);
   }
-  */
 
   @GetMapping("/nodes/{identifier}")
   public Node get (@PathVariable final long identifier) throws EntityNotFoundException {
@@ -157,12 +167,30 @@ public final class NodeCollectionController extends BaseRestController
   }
 
   @GetMapping("/nodes/{identifier}/sensors")
-  public List<Sensor> getSensors (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdentifierOrFail(identifier).getSensors();
+  public ResponseEntity<List<Sensor>> getSensors (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+    final Node node = _collection.findByIdentifierOrFail(identifier);
+
+    return indexCollection(_sensors.of(node), request);
   }
 
   @GetMapping("/nodes/{identifier}/children")
-  public List<Node> getChildren (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.getAllChildren(identifier);
+  public ResponseEntity<List<Node>> getDirectChildren (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+    final Node node = _collection.findByIdentifierOrFail(identifier);
+    return indexCollection(_collection.directChildrenOf(node), request);
+  }
+  
+  @GetMapping("/nodes/{identifier}/allChildren")
+  public ResponseEntity<List<Node>> getDeepChildren (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+    final Node node = _collection.findByIdentifierOrFail(identifier);
+    return indexCollection(_collection.deepChildrenOf(node), request);
   }
 }
