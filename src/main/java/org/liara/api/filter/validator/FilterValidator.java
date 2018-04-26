@@ -27,5 +27,9 @@ import org.springframework.lang.NonNull;
 
 public interface FilterValidator
 {
+  public default String getBestMatchPattern () {
+    return "^.*?$";
+  }
+  
   public List<String> validate (@NonNull final String filter);
 }

@@ -25,6 +25,7 @@ import javax.persistence.criteria.Expression;
 
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.filter.parser.DurationFilterParser;
+import org.liara.api.filter.validator.DurationFilterValidator;
 import org.liara.api.filter.visitor.collection.EntityCollectionComparableFilterVisitor;
 import org.springframework.lang.NonNull;
 
@@ -34,6 +35,7 @@ public class DurationFilterInterpretor<Entity> extends BaseFilterInterpretor<Ent
     @NonNull final EntityFieldSelector<Entity, Expression<Long>> field
   ) {
     super(
+      new DurationFilterValidator(),
       new DurationFilterParser(),
       new EntityCollectionComparableFilterVisitor<>(field)
     );

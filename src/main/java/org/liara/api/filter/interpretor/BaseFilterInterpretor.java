@@ -25,11 +25,15 @@ import javax.persistence.criteria.Predicate;
 
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.filter.parser.FilterParser;
+import org.liara.api.filter.validator.FilterValidator;
 import org.liara.api.filter.visitor.collection.EntityCollectionFilterVisitor;
 import org.springframework.lang.NonNull;
 
 public class BaseFilterInterpretor<Entity, Field> implements FilterInterpretor<Entity, Field>
 {
+  @NonNull
+  private final FilterValidator _validator;
+  
   @NonNull
   private final FilterParser _parser;
   
@@ -37,9 +41,11 @@ public class BaseFilterInterpretor<Entity, Field> implements FilterInterpretor<E
   private final EntityCollectionFilterVisitor<Entity, Field> _visitor;
   
   public BaseFilterInterpretor(
+    @NonNull final FilterValidator validator,
     @NonNull final FilterParser parser, 
     @NonNull final EntityCollectionFilterVisitor<Entity, Field> visitor
   ) {
+    _validator = validator;
     _parser = parser;
     _visitor = visitor;
   }
@@ -60,5 +66,10 @@ public class BaseFilterInterpretor<Entity, Field> implements FilterInterpretor<E
     @NonNull final EntityCollectionQuery<Entity, ?> query
   ) {
     return _visitor.filter(query, _parser.parse(filter));
+  }
+
+  @Override
+  public FilterValidator getValidator () {
+    return _validator;
   }
 }

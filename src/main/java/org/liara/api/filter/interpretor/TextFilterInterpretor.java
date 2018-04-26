@@ -25,6 +25,7 @@ import javax.persistence.criteria.Expression;
 
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.filter.parser.TextFilterParser;
+import org.liara.api.filter.validator.TextFilterValidator;
 import org.liara.api.filter.visitor.collection.EntityCollectionTextFilterVisitor;
 import org.springframework.lang.NonNull;
 
@@ -34,6 +35,7 @@ public class TextFilterInterpretor<Entity> extends BaseFilterInterpretor<Entity,
     @NonNull final EntityFieldSelector<Entity, Expression<String>> field
   ) {
     super(
+      new TextFilterValidator(),
       new TextFilterParser(),
       new EntityCollectionTextFilterVisitor<>(field)
     );

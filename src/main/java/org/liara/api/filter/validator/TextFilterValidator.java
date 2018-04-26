@@ -39,6 +39,11 @@ public class TextFilterValidator implements FilterValidator
   public static final Pattern FILTER_PATTERN      = Pattern.compile(
     String.join("", "^", "(", PREDICATE_PATTERN.pattern(), ")", "((", PREDICATE_PATTERN.pattern(), "))*", "$")
   );
+  
+  @Override
+  public String getBestMatchPattern () {
+    return FILTER_PATTERN.pattern();
+  }
 
   public List<String> validate (@NonNull final String value)
   {

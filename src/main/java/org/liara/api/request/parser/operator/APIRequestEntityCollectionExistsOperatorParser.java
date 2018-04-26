@@ -21,15 +21,22 @@
  ******************************************************************************/
 package org.liara.api.request.parser.operator;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.liara.api.collection.query.relation.EntityRelation;
 import org.liara.api.collection.transformation.operator.EntityCollectionIdentityOperator;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.collection.transformation.operator.filtering.EntityCollectionExistsOperator;
 import org.liara.api.request.APIRequest;
+import org.liara.api.request.parser.APIDocumentedRequestParser;
 import org.springframework.lang.NonNull;
 
+import springfox.documentation.service.Parameter;
+
 public class      APIRequestEntityCollectionExistsOperatorParser<Entity, Joined> 
-       implements APIRequestEntityCollectionOperatorParser<Entity>
+       implements APIRequestEntityCollectionOperatorParser<Entity>, APIDocumentedRequestParser
 {
   @NonNull
   private final String _field;
@@ -68,5 +75,21 @@ public class      APIRequestEntityCollectionExistsOperatorParser<Entity, Joined>
     } else {
       return new EntityCollectionIdentityOperator<>();
     }
+  }
+
+  @Override
+  public String getName () {
+    return _field;
+  }
+
+  @Override
+  public List<Parameter> getHandledParametersDocumentation (@NonNull final List<APIDocumentedRequestParser> parents) {
+    if (_joinParser instanceof APIDocumentedRequestParser) {
+      final List<APIDocumentedRequestParser> nextParents = new ArrayList<>(parents);
+      nextParents.add(this);
+      return ((APIDocumentedRequestParser) _joinParser).getHandledParametersDocumentation(nextParents);
+    }
+    
+    return Collections.emptyList();
   }
 }

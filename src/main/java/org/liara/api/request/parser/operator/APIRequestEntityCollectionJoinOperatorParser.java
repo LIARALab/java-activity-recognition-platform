@@ -21,6 +21,10 @@
  ******************************************************************************/
 package org.liara.api.request.parser.operator;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import javax.persistence.criteria.Join;
 
 import org.liara.api.collection.query.selector.EntityFieldSelector;
@@ -28,10 +32,13 @@ import org.liara.api.collection.transformation.operator.EntityCollectionIdentity
 import org.liara.api.collection.transformation.operator.EntityCollectionJoinOperator;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.request.APIRequest;
+import org.liara.api.request.parser.APIDocumentedRequestParser;
 import org.springframework.lang.NonNull;
 
+import springfox.documentation.service.Parameter;
+
 public class      APIRequestEntityCollectionJoinOperatorParser<Entity, Joined> 
-       implements APIRequestEntityCollectionOperatorParser<Entity>
+       implements APIRequestEntityCollectionOperatorParser<Entity>, APIDocumentedRequestParser
 {
   @NonNull
   private final String _field;
@@ -53,6 +60,11 @@ public class      APIRequestEntityCollectionJoinOperatorParser<Entity, Joined>
   }
 
   @Override
+  public String getName () {
+    return _field;
+  }
+
+  @Override
   public EntityCollectionOperator<Entity> parse (@NonNull final APIRequest request) {
     final APIRequest subRequest = request.subRequest(_field);
     
@@ -64,5 +76,16 @@ public class      APIRequestEntityCollectionJoinOperatorParser<Entity, Joined>
     } else {
       return new EntityCollectionIdentityOperator<>();
     }
+  }
+
+  @Override
+  public List<Parameter> getHandledParametersDocumentation (@NonNull final List<APIDocumentedRequestParser> parents) {
+    if (_joinParser instanceof APIDocumentedRequestParser) {
+      final List<APIDocumentedRequestParser> nextParents = new ArrayList<>(parents);
+      nextParents.add(this);
+      return ((APIDocumentedRequestParser) _joinParser).getHandledParametersDocumentation(nextParents);
+    }
+    
+    return Collections.emptyList();
   }
 }

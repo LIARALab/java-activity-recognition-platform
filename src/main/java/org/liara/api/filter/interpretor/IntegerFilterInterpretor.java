@@ -25,6 +25,7 @@ import javax.persistence.criteria.Expression;
 
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.filter.parser.IntegerFilterParser;
+import org.liara.api.filter.validator.IntegerFilterValidator;
 import org.liara.api.filter.visitor.collection.EntityCollectionComparableFilterVisitor;
 import org.springframework.lang.NonNull;
 
@@ -34,6 +35,7 @@ public class IntegerFilterInterpretor<Entity> extends BaseFilterInterpretor<Enti
     @NonNull final EntityFieldSelector<Entity, Expression<Integer>> field
   ) {
     super(
+      new IntegerFilterValidator(),
       new IntegerFilterParser(),
       new EntityCollectionComparableFilterVisitor<>(field)
     );

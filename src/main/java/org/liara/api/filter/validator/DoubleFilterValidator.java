@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2018 Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * Copyright (C) 2018 Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,6 +44,11 @@ public class DoubleFilterValidator implements FilterValidator
   public static final Pattern FILTER_PATTERN      = Pattern.compile(
     String.join("", "^", "(", CONJUNCTION_PATTERN.pattern(), ")", "(;(", CONJUNCTION_PATTERN.pattern(), "))*", "$")
   );
+
+  @Override
+  public String getBestMatchPattern () {
+    return FILTER_PATTERN.pattern();
+  }
 
   public List<String> validate (@NonNull final String value)
   {

@@ -36,10 +36,20 @@
  */
 package org.liara.api.request.parser.cursor;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.liara.api.collection.transformation.cursor.Cursor;
 import org.liara.api.request.APIRequest;
+import org.liara.api.request.parser.APIDocumentedRequestParser;
 import org.liara.api.request.parser.APIRequestParser;
 import org.springframework.lang.NonNull;
+
+import com.fasterxml.classmate.TypeResolver;
+
+import springfox.documentation.builders.ParameterBuilder;
+import springfox.documentation.schema.ModelRef;
+import springfox.documentation.service.Parameter;
 
 /**
  * A parser that takes a "first" or "all" parameter and an "after" parameter and
@@ -50,7 +60,7 @@ import org.springframework.lang.NonNull;
  * 
  * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  */
-public class APIRequestFreeCursorParser implements APIRequestParser<Cursor>
+public class APIRequestFreeCursorParser implements APIRequestParser<Cursor>, APIDocumentedRequestParser
 {
   /**
    * @see org.domus.api.request.parser.APIRequestParser#parse(org.domus.api.request.APIRequest);
@@ -77,4 +87,52 @@ public class APIRequestFreeCursorParser implements APIRequestParser<Cursor>
     return new Cursor(offset, limit);
   }
 
+  @Override
+  public List<Parameter> getHandledParametersDocumentation (@NonNull final List<APIDocumentedRequestParser> parents) {
+    final TypeResolver resolver = new TypeResolver();
+    
+    return Arrays.asList(
+      new ParameterBuilder()
+        .name("first")
+        .allowMultiple(false)
+        .required(false)
+        .defaultValue("10")
+        .type(resolver.resolve(Long.class))
+        .parameterType("query")
+        .pattern("^\\d+$")
+        .modelRef(new ModelRef("long"))
+        .description(String.join("", 
+          "Maximum number of elements to display. Must be a positive ",
+          "integer and can't be used in conjunction with \"all\"."
+         ))
+        .build(),
+      new ParameterBuilder()
+        .name("all")
+        .allowMultiple(false)
+        .required(false)
+        .defaultValue("false")
+        .type(resolver.resolve(Boolean.class))
+        .modelRef(new ModelRef("boolean"))
+        .parameterType("query")
+        .pattern("^(true|false|0|1)$")
+        .description(String.join("", 
+          "Display all remaining elements. Can't be used in conjunction",
+          "with \"first\"."
+         ))
+        .build(),
+      new ParameterBuilder()
+        .name("after")
+        .allowMultiple(false)
+        .required(false)
+        .defaultValue("0")
+        .type(resolver.resolve(Long.class))
+        .modelRef(new ModelRef("long"))
+        .parameterType("query")
+        .pattern("^\\d+$")
+        .description(String.join("", 
+          "Number of elements to skip."
+         ))
+        .build()
+    );
+  }
 }

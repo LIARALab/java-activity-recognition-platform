@@ -39,10 +39,13 @@ import org.liara.api.data.collection.BooleanStateCollection;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.ActivationStateCollection;
 import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.collection.configuration.PresenceStateCollectionRequestConfiguration;
+import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.documentation.ParametersFromConfiguration;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.liara.recognition.presence.TickEventStream;
 import org.liara.recognition.usage.CeilActivationDetector;
@@ -237,6 +240,10 @@ public class PresenceStateCollectionController extends BaseRestController
   }
   
   @GetMapping("/states<presence>")
+  @ParametersFromConfiguration(
+    value = PresenceStateCollectionRequestConfiguration.class,
+    groupable = false
+  )
   public ResponseEntity<List<ActivationState>> index (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
     return indexCollection(_collection, request);
@@ -253,6 +260,10 @@ public class PresenceStateCollectionController extends BaseRestController
   
 
   @GetMapping("/states<presence>/count")
+  @ParametersFromConfiguration(
+    value = PresenceStateCollectionRequestConfiguration.class,
+    orderable = false
+  )
   public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
     return aggregate(
@@ -262,6 +273,10 @@ public class PresenceStateCollectionController extends BaseRestController
   }
   
   @GetMapping("/states<presence>/sum")
+  @ParametersFromConfiguration(
+    value = PresenceStateCollectionRequestConfiguration.class,
+    orderable = false
+  )
   public ResponseEntity<Object> sum (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
     return aggregate(
@@ -276,6 +291,10 @@ public class PresenceStateCollectionController extends BaseRestController
   }
   
   @GetMapping("/states<presence>/avg")
+  @ParametersFromConfiguration(
+    value = PresenceStateCollectionRequestConfiguration.class,
+    orderable = false
+  )
   public ResponseEntity<Object> avg (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
     return aggregate(

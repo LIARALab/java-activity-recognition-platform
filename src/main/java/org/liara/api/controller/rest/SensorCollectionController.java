@@ -40,8 +40,11 @@ import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
+import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.documentation.ParametersFromConfiguration;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.liara.api.validation.IdentifierOfEntityInCollection;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,17 +73,9 @@ public final class SensorCollectionController extends BaseRestController
   private NodeCollection _nodes;
 
   @GetMapping("/sensors/count")
-  @ApiImplicitParams(
-    {
-      @ApiImplicitParam(
-        name = "identifier",
-        value = "Accepted identifier(s). An integer filter, see the integer filter grammar #here.",
-        required = false,
-        allowMultiple = true,
-        dataType = "string",
-        paramType = "query"
-      )
-    }
+  @ParametersFromConfiguration(
+    value = SensorCollectionRequestConfiguration.class,
+    orderable = false
   )
   public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
     return aggregate(
@@ -90,44 +85,9 @@ public final class SensorCollectionController extends BaseRestController
   }
 
   @GetMapping("/sensors")
-  @ApiImplicitParams(
-    {
-      @ApiImplicitParam(
-          name = "first",
-          value = "Maximum number of elements to display. Must be a positive integer and can't be used in conjunction with \"all\".",
-          required = false,
-          allowMultiple = false,
-          defaultValue = "10",
-          dataType = "unsigned int",
-          paramType = "query"
-      ),
-      @ApiImplicitParam(
-          name = "all",
-          value = "Display all remaining elements. Can't be used in conjunction with \"first\".",
-          required = false,
-          allowMultiple = false,
-          defaultValue = "false",
-          dataType = "boolean",
-          paramType = "query"
-      ),
-      @ApiImplicitParam(
-          name = "after",
-          value = "Number of elements to skip.",
-          required = false,
-          allowMultiple = false,
-          defaultValue = "0",
-          dataType = "unsigned int",
-          paramType = "query"
-      ),
-      @ApiImplicitParam(
-        name = "identifier",
-        value = "Accepted identifier(s). An integer filter, see the integer filter grammar #here.",
-        required = false,
-        allowMultiple = true,
-        dataType = "string",
-        paramType = "query"
-    )
-    }
+  @ParametersFromConfiguration(
+    value = SensorCollectionRequestConfiguration.class,
+    groupable = false
   )
   public ResponseEntity<List<Sensor>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException
@@ -163,6 +123,10 @@ public final class SensorCollectionController extends BaseRestController
   }
 
   @GetMapping("/sensors/{identifier}/nodes")
+  @ParametersFromConfiguration(
+    value = NodeCollectionRequestConfiguration.class,
+    groupable = false
+  )
   public ResponseEntity<List<Node>> getNodes (
     @NonNull final HttpServletRequest request,
     @PathVariable final long identifier
@@ -173,6 +137,10 @@ public final class SensorCollectionController extends BaseRestController
   }
   
   @GetMapping("/sensors/{identifier}/nodes/count")
+  @ParametersFromConfiguration(
+    value = NodeCollectionRequestConfiguration.class,
+    orderable = false
+  )
   public ResponseEntity<Object> countNodes (
     @NonNull final HttpServletRequest request,
     @PathVariable final long identifier

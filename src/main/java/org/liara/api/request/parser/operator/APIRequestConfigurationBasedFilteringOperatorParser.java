@@ -21,13 +21,21 @@
  ******************************************************************************/
 package org.liara.api.request.parser.operator;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.request.APIRequest;
+import org.liara.api.request.parser.APIDocumentedRequestParser;
+import org.liara.api.request.parser.APIRequestParser;
 import org.springframework.lang.NonNull;
 
+import springfox.documentation.service.Parameter;
+
 public class      APIRequestConfigurationBasedFilteringOperatorParser<Entity>
-       implements APIRequestEntityCollectionOperatorParser<Entity>
+       implements APIRequestEntityCollectionOperatorParser<Entity>, APIDocumentedRequestParser
 {
   @NonNull
   private final CollectionRequestConfiguration<Entity> _configuration;
@@ -47,5 +55,29 @@ public class      APIRequestConfigurationBasedFilteringOperatorParser<Entity>
   @Override
   public EntityCollectionOperator<Entity> parse (@NonNull final APIRequest request) {
     return _configuration.createFilterParser().parse(request);
+  }
+
+  @Override
+  public List<Parameter> getHandledParametersDocumentation (@NonNull final List<APIDocumentedRequestParser> parents) {    
+    // recursive exclusion
+    for (final APIDocumentedRequestParser parent : parents) {
+      if (parent instanceof APIRequestConfigurationBasedFilteringOperatorParser) {
+        final APIRequestConfigurationBasedFilteringOperatorParser<?> parser = (APIRequestConfigurationBasedFilteringOperatorParser<?>) parent;
+        if (parser._configuration.getClass().equals(_configuration.getClass())) {
+          return Collections.emptyList();
+        }
+      }
+    }
+
+    final APIRequestParser<?> filterParser = _configuration.createFilterParser();
+    
+    if (filterParser instanceof APIDocumentedRequestParser) {
+      final List<APIDocumentedRequestParser> nextParents = new ArrayList<>(parents);
+      nextParents.add(this);
+      
+      return ((APIDocumentedRequestParser) filterParser).getHandledParametersDocumentation(nextParents);
+    }
+    
+    return Collections.emptyList();
   }
 }

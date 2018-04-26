@@ -21,15 +21,25 @@
  ******************************************************************************/
 package org.liara.api.request.parser.operator;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.liara.api.collection.transformation.operator.EntityCollectionIdentityOperator;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.collection.transformation.operator.filtering.EntityCollectionCommandBasedFilteringOperator;
 import org.liara.api.filter.interpretor.FilterInterpretor;
 import org.liara.api.request.APIRequest;
+import org.liara.api.request.parser.APIDocumentedRequestParser;
 import org.springframework.lang.NonNull;
 
+import com.fasterxml.classmate.TypeResolver;
+
+import springfox.documentation.builders.ParameterBuilder;
+import springfox.documentation.schema.ModelRef;
+import springfox.documentation.service.Parameter;
+
 public class      APIRequestEntityCollectionCommandBasedFilteringOperatorParser<Entity, Field> 
-       implements APIRequestEntityCollectionOperatorParser<Entity>
+       implements APIRequestEntityCollectionOperatorParser<Entity>, APIDocumentedRequestParser
 {
   @NonNull
   private final String _parameter;
@@ -55,5 +65,33 @@ public class      APIRequestEntityCollectionCommandBasedFilteringOperatorParser<
     } else {
       return new EntityCollectionIdentityOperator<>();
     }
+  }
+
+  @Override
+  public List<Parameter> getHandledParametersDocumentation (@NonNull final List<APIDocumentedRequestParser> parents) {
+    String fieldName = this.getFullName(parents);
+    
+    if (fieldName.length() > 0) {
+      fieldName += "." + _parameter;
+    } else {
+      fieldName = _parameter;
+    }
+    
+    return Arrays.asList(
+      new ParameterBuilder()
+      .name(fieldName)
+      .allowMultiple(true)
+      .required(false)
+      .type(new TypeResolver().resolve(String.class))
+      .modelRef(new ModelRef("string"))
+      .parameterType("query")
+      .pattern(_interpretor.getValidator().getBestMatchPattern())
+      .description(String.join("", 
+        "Filter the field ", fieldName, " by using a filtering command.",
+        " Refer to the documentation of the class ", 
+        _interpretor.getValidator().getClass().toString(),
+        " for more information about the command structure."
+       )).build()
+    );
   }
 }

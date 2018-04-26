@@ -45,6 +45,11 @@ public class DurationFilterValidator implements FilterValidator
     String.join("", "^", "(", CONJUNCTION_PATTERN.pattern(), ")", "(;(", CONJUNCTION_PATTERN.pattern(), "))*", "$")
   );
 
+  @Override
+  public String getBestMatchPattern () {
+    return FILTER_PATTERN.pattern();
+  }
+
   public List<String> validate (@NonNull final String value)
   {
     if (!FILTER_PATTERN.matcher(value).find()) {

@@ -28,7 +28,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
 import org.liara.api.data.collection.StateCollection;
+import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
+import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.documentation.ParametersFromConfiguration;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -59,6 +62,10 @@ public final class StateCollectionController extends BaseRestController
   private StateCollection _collection;
 
   @GetMapping("/states/count")
+  @ParametersFromConfiguration(
+    value = StateCollectionRequestConfiguration.class,
+    orderable = false
+  )
   public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
     return aggregate(
       _collection, request, 
@@ -67,36 +74,9 @@ public final class StateCollectionController extends BaseRestController
   }
 
   @GetMapping("/states")
-  @ApiImplicitParams(
-    {
-      @ApiImplicitParam(
-          name = "first",
-          value = "Maximum number of elements to display. Must be a positive integer and can't be used in conjunction with \"all\".",
-          required = false,
-          allowMultiple = false,
-          defaultValue = "10",
-          dataType = "unsigned int",
-          paramType = "query"
-      ),
-      @ApiImplicitParam(
-          name = "all",
-          value = "Display all remaining elements. Can't be used in conjunction with \"first\".",
-          required = false,
-          allowMultiple = false,
-          defaultValue = "false",
-          dataType = "boolean",
-          paramType = "query"
-      ),
-      @ApiImplicitParam(
-          name = "after",
-          value = "Number of elements to skip.",
-          required = false,
-          allowMultiple = false,
-          defaultValue = "0",
-          dataType = "unsigned int",
-          paramType = "query"
-      )
-    }
+  @ParametersFromConfiguration(
+    value = StateCollectionRequestConfiguration.class,
+    groupable = false
   )
   public ResponseEntity<List<State>> index (@NonNull final HttpServletRequest request)
     throws InvalidAPIRequestException

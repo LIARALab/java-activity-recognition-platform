@@ -39,6 +39,7 @@ import org.liara.api.request.parser.cursor.APIRequestFreeCursorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.operator.ordering.ComposedAPIRequestOrderingParser;
+import org.liara.api.request.parser.transformation.APIRequestEntityCollectionTransformationParser;
 import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
 import org.liara.api.request.parser.transformation.grouping.ComposedAPIRequestGroupingParser;
 import org.liara.api.request.validator.APIRequestFreeCursorValidator;
@@ -158,9 +159,7 @@ public interface CollectionRequestConfiguration<Entity>
   public default EntityCollectionGroupTransformation<Entity> getGrouping (
     @NonNull final APIRequest request
   ) {
-    return new ComposedAPIRequestGroupingParser<>(
-      createGroupingProcessors()
-    ).parse(request);
+    return createGroupingParser().parse(request);
   }
   
   public default void validate (@NonNull final APIRequest request) throws InvalidAPIRequestException {
@@ -183,6 +182,12 @@ public interface CollectionRequestConfiguration<Entity>
   }
   
   public List<APIRequestOrderingProcessor<Entity>> createOrderingProcessors ();
+  
+  public default APIRequestParser<EntityCollectionGroupTransformation<Entity>> createGroupingParser () {
+    return new ComposedAPIRequestGroupingParser<>(
+        createGroupingProcessors()
+    );
+  }
   
   public List<APIRequestGroupingProcessor<Entity>> createGroupingProcessors ();
 

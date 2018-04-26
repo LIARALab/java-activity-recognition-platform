@@ -25,6 +25,7 @@ import javax.persistence.criteria.Expression;
 
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.filter.parser.DoubleFilterParser;
+import org.liara.api.filter.validator.DoubleFilterValidator;
 import org.liara.api.filter.visitor.collection.EntityCollectionComparableFilterVisitor;
 import org.springframework.lang.NonNull;
 
@@ -34,6 +35,7 @@ public class DoubleFilterInterpretor<Entity> extends BaseFilterInterpretor<Entit
     @NonNull final EntityFieldSelector<Entity, Expression<Double>> field
   ) {
     super(
+      new DoubleFilterValidator(),
       new DoubleFilterParser(),
       new EntityCollectionComparableFilterVisitor<>(field)
     );

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Cédric DEMONGIVERT
+ * Copyright 2018 Cedric DEMONGIVERT
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
  * files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
@@ -33,7 +33,7 @@ import org.liara.api.filter.ast.ValueFilterNode;
 import org.springframework.lang.NonNull;
 
 /**
- * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  *
  */
 public class DoubleFilterParser implements FilterParser

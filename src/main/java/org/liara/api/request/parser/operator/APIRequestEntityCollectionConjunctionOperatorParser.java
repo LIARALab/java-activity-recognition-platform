@@ -24,18 +24,23 @@ package org.liara.api.request.parser.operator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.request.APIRequest;
+import org.liara.api.request.parser.APIDocumentedRequestParser;
+import org.liara.api.request.parser.APIRequestParser;
 import org.springframework.lang.NonNull;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
+import springfox.documentation.service.Parameter;
+
 public class APIRequestEntityCollectionConjunctionOperatorParser<Entity>
-  implements APIRequestEntityCollectionOperatorParser<Entity>
+  implements APIRequestEntityCollectionOperatorParser<Entity>, APIDocumentedRequestParser
 {
   @NonNull
   private final List<APIRequestEntityCollectionOperatorParser<Entity>> _parsers = new ArrayList<>();
@@ -67,5 +72,20 @@ public class APIRequestEntityCollectionConjunctionOperatorParser<Entity>
               .map(x -> x.parse(request))
               .iterator()
     );
+  }
+
+  @Override
+  public List<Parameter> getHandledParametersDocumentation (@NonNull final List<APIDocumentedRequestParser> parents) {
+    final List<Parameter> result = new LinkedList<>();
+    final List<APIDocumentedRequestParser> nextParents = new ArrayList<>(parents);
+    nextParents.add(this);
+    
+    for (final APIRequestEntityCollectionOperatorParser<Entity> parser : _parsers) {
+      if (parser instanceof APIDocumentedRequestParser) {
+        result.addAll(((APIDocumentedRequestParser) parser).getHandledParametersDocumentation(nextParents));
+      }
+    }
+    
+    return result;
   }
 }
