@@ -46,39 +46,39 @@ import io.swagger.annotations.Api;
 @RestController
 @Api(
     tags = {
-      "states<presence>"
+      "states<use>"
     },
     description = "",
     produces = "application/json",
     consumes = "application/json",
     protocols = "http"
 )
-public class PresenceStateCollectionController extends BaseRestController
+public class UseStateCollectionController extends BaseRestController
 {  
   @Autowired
   private ActivationStateCollection _collection;
   
-  @GetMapping("/states<presence>")
+  @GetMapping("/states<use>")
   @ParametersFromConfiguration(
     value = ActivationStateCollectionRequestConfiguration.class,
     groupable = false
   )
   public ResponseEntity<List<ActivationState>> index (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
-    return indexCollection(_collection.presences(), request);
+    return indexCollection(_collection.uses(), request);
   }
   
-  @GetMapping("/states<presence>/{identifier}")
+  @GetMapping("/states<use>/{identifier}")
   public ActivationState index (
     @NonNull final HttpServletRequest request,
     @PathVariable final long identifier
   ) throws EntityNotFoundException
   {
-    return _collection.presences().findByIdentifierOrFail(identifier);
+    return _collection.uses().findByIdentifierOrFail(identifier);
   }
   
 
-  @GetMapping("/states<presence>/count")
+  @GetMapping("/states<use>/count")
   @ParametersFromConfiguration(
     value = ActivationStateCollectionRequestConfiguration.class,
     orderable = false
@@ -86,12 +86,12 @@ public class PresenceStateCollectionController extends BaseRestController
   public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
     return aggregate(
-      _collection.presences(), request, 
+      _collection.uses(), request, 
       EntityCountAggregationTransformation.create()
     );
   }
   
-  @GetMapping("/states<presence>/sum")
+  @GetMapping("/states<use>/sum")
   @ParametersFromConfiguration(
     value = ActivationStateCollectionRequestConfiguration.class,
     orderable = false
@@ -99,7 +99,7 @@ public class PresenceStateCollectionController extends BaseRestController
   public ResponseEntity<Object> sum (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
     return aggregate(
-      _collection.presences(), request, 
+      _collection.uses(), request, 
       new ExpressionAggregationTransformation<>(
         (query, entity) -> {
           return query.getManager().getCriteriaBuilder().sumAsLong(entity.get("_milliseconds"));
@@ -109,7 +109,7 @@ public class PresenceStateCollectionController extends BaseRestController
     );
   }
   
-  @GetMapping("/states<presence>/avg")
+  @GetMapping("/states<use>/avg")
   @ParametersFromConfiguration(
     value = ActivationStateCollectionRequestConfiguration.class,
     orderable = false
@@ -117,7 +117,7 @@ public class PresenceStateCollectionController extends BaseRestController
   public ResponseEntity<Object> avg (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException
   {
     return aggregate(
-      _collection.presences(), request, 
+      _collection.uses(), request, 
       new ExpressionAggregationTransformation<>(
         (query, entity) -> {
           return query.getManager().getCriteriaBuilder().avg(entity.get("_milliseconds"));

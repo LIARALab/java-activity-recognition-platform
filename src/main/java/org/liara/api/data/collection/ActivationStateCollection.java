@@ -22,19 +22,20 @@
 package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
-import org.liara.api.data.collection.configuration.PresenceStateCollectionRequestConfiguration;
+import org.liara.api.data.collection.configuration.ActivationStateCollectionRequestConfiguration;
 import org.liara.api.data.entity.state.ActivationState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component
-@DefaultCollectionRequestConfiguration(PresenceStateCollectionRequestConfiguration.class)
+@DefaultCollectionRequestConfiguration(ActivationStateCollectionRequestConfiguration.class)
 public class ActivationStateCollection extends EntityCollection<ActivationState>
 {
   @Autowired
@@ -54,5 +55,45 @@ public class ActivationStateCollection extends EntityCollection<ActivationState>
   @Override
   public ActivationStateCollection apply (@NonNull final EntityCollectionOperator<ActivationState> operator) {
     return new ActivationStateCollection(this, getOperator().conjugate(operator));
+  }
+  
+  public ActivationStateCollection presences () {
+    final EntityCollectionOperator<ActivationState> operator = query -> {
+      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
+      query.andWhere(
+        builder.or(
+          builder.like(
+            query.getEntity().join("_node").get("_type"),
+            "common/room/%"
+          ),
+          builder.equal(
+            query.getEntity().join("_node").get("_type"),
+            "common/room"
+          )
+        )
+      );
+    };
+    
+    return apply(operator);
+  }
+  
+  public ActivationStateCollection uses () {
+    final EntityCollectionOperator<ActivationState> operator = query -> {
+      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
+      query.andWhere(
+        builder.or(
+          builder.like(
+            query.getEntity().join("_node").get("_type"),
+            "common/furniture/%"
+          ),
+          builder.equal(
+            query.getEntity().join("_node").get("_type"),
+            "common/furniture"
+          )
+        )
+      );
+    };
+    
+    return apply(operator);
   }
 }

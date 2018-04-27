@@ -100,6 +100,9 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
         APIRequestEntityFilterParserFactory.text(
           "name", (root) -> root.get("_name")
         ),
+        APIRequestEntityFilterParserFactory.text(
+          "type", (root) -> root.get("_type")
+        ),
         APIRequestEntityFilterParserFactory.existsCollection(
           "parents", Node.class, this::nodeParentsRelation, NodeCollection.class
         ),
@@ -121,6 +124,7 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestFilterValidatorFactory.integer("setEnd"),
       APIRequestFilterValidatorFactory.integer("depth"),
       APIRequestFilterValidatorFactory.text("name"),
+      APIRequestFilterValidatorFactory.text("type"),
       APIRequestFilterValidatorFactory.includeCollection("parents", NodeCollection.class)
     );
   }
@@ -135,7 +139,8 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestOrderingProcessorFactory.field("setStart", (root) -> root.get("_setStart")),
       APIRequestOrderingProcessorFactory.field("setEnd", (root) -> root.get("_setEnd")),
       APIRequestOrderingProcessorFactory.field("depth", (root) -> root.get("_depth")),
-      APIRequestOrderingProcessorFactory.field("name", (root) -> root.get("_name"))
+      APIRequestOrderingProcessorFactory.field("name", (root) -> root.get("_name")),
+      APIRequestOrderingProcessorFactory.field("type", (root) -> root.get("_type"))
     );
   }
   
@@ -149,7 +154,8 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestGroupingProcessorFactory.expression("setStart", (root) -> root.get("_setStart")),
       APIRequestGroupingProcessorFactory.expression("setEnd", (root) -> root.get("_setEnd")),
       APIRequestGroupingProcessorFactory.expression("depth", (root) -> root.get("_depth")),
-      APIRequestGroupingProcessorFactory.expression("name", (root) -> root.get("_name"))
+      APIRequestGroupingProcessorFactory.expression("name", (root) -> root.get("_name")),
+      APIRequestGroupingProcessorFactory.expression("type", (root) -> root.get("_type"))
     );
   }
 }

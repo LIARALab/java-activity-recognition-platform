@@ -44,7 +44,7 @@ import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 import org.springframework.lang.NonNull;
 
-public final class PresenceStateCollectionRequestConfiguration implements CollectionRequestConfiguration<ActivationState>
+public final class ActivationStateCollectionRequestConfiguration implements CollectionRequestConfiguration<ActivationState>
 {
   @NonNull
   private final SimpleEntityFieldSelector<ActivationState, Join<ActivationState, Node>> _nodeJoin = root -> root.join("_node");
