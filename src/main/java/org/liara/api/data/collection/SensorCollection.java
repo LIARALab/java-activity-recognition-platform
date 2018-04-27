@@ -21,7 +21,11 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
+import java.util.Collection;
+
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Join;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
@@ -57,8 +61,36 @@ public class SensorCollection extends EntityCollection<Sensor>
     return new SensorCollection(this, getOperator().conjugate(operator));
   }
   
-  public SensorCollection of (@NonNull final Node node) {
+  public SensorCollection in (@NonNull final Node node) {
     final EntityCollectionOperator<Sensor> operator = query -> query.andWhere(query.getEntity().in(node.getSensors()));
+    return apply(operator);
+  }
+
+  public SensorCollection deepIn (@NonNull final Node node) {
+    final EntityCollectionOperator<Sensor> operator = query -> {
+      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
+      final Join<Sensor, Node> join = query.getEntity().join("_node");
+      query.andWhere(builder.greaterThanOrEqualTo(join.get("_setStart"), node.getSetStart()));
+      query.andWhere(builder.lessThanOrEqualTo(join.get("_setEnd"), node.getSetEnd()));
+    };
+    
+    return apply(operator);
+  }
+  
+  public SensorCollection ofType (@NonNull final String type) {
+    final EntityCollectionOperator<Sensor> operator = query -> {
+      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
+      query.andWhere(builder.equal(query.getEntity().get("_type"), type));
+    };
+    
+    return apply(operator);
+  }
+  
+  public SensorCollection ofType (@NonNull final Collection<String> types) {
+    final EntityCollectionOperator<Sensor> operator = query -> {
+      query.andWhere(query.getEntity().get("_type").in(types));
+    };
+    
     return apply(operator);
   }
 }

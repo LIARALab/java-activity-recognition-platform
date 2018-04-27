@@ -22,15 +22,18 @@
 package org.liara.api.data.collection.configuration;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+
+import javax.persistence.criteria.Join;
 
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.query.relation.JoinRelation;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
@@ -41,9 +44,13 @@ import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingPr
 import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
+import org.springframework.lang.NonNull;
 
 public final class SensorCollectionRequestConfiguration implements CollectionRequestConfiguration<Sensor>
 {
+  @NonNull
+  private final SimpleEntityFieldSelector<Sensor, Join<Sensor, Node>> _nodeJoin = root -> root.join("_node");
+  
   @Override
   public APIRequestEntityCollectionOperatorParser<Sensor> createFilterParser () {
     return new APIRequestEntityCollectionConjunctionOperatorParser<>(
@@ -74,10 +81,9 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
           new JoinRelation<Sensor, State>(root -> root.join("_states")), 
           StateCollection.class
         ),
-        APIRequestEntityFilterParserFactory.existsCollection(
-          "nodes", 
-          Node.class,
-          new JoinRelation<Sensor, Node>(root -> root.join("_nodes")), 
+        APIRequestEntityFilterParserFactory.joinCollection(
+          "node",
+          _nodeJoin, 
           NodeCollection.class
         )
       )
@@ -94,7 +100,7 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
       APIRequestFilterValidatorFactory.text("name"),
       APIRequestFilterValidatorFactory.includeCollection("states", StateCollection.class),
-      APIRequestFilterValidatorFactory.includeCollection("nodes", NodeCollection.class) 
+      APIRequestFilterValidatorFactory.includeCollection("node", NodeCollection.class) 
     );
   }
 
@@ -130,6 +136,9 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       ),
       APIRequestOrderingProcessorFactory.field(
         "ipv4Address", (root) -> root.get("_ipv4Address")
+      ),
+      APIRequestOrderingProcessorFactory.joinCollection(
+        "node", _nodeJoin, NodeCollection.class
       )
     );
   }
@@ -146,7 +155,10 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       APIRequestGroupingProcessorFactory.expression("valueType", (root) -> root.get("_valueType")),
       APIRequestGroupingProcessorFactory.expression("valueLabel", (root) -> root.get("_valueLabel")),
       APIRequestGroupingProcessorFactory.expression("valueUnit", (root) -> root.get("_valueUnit")),
-      APIRequestGroupingProcessorFactory.expression("ipv4Address", (root) -> root.get("_ipv4Address"))
+      APIRequestGroupingProcessorFactory.expression("ipv4Address", (root) -> root.get("_ipv4Address")),
+      APIRequestGroupingProcessorFactory.joinCollection(
+        "node", _nodeJoin, NodeCollection.class
+      )
     );
   }
 }

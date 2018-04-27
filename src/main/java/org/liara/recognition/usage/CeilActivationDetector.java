@@ -106,7 +106,7 @@ public class CeilActivationDetector
       _lastEmittion.setStart(emittionDate);
       _lastEmittion.setEnd(null);
       _lastEmittion.setSensor(_sensor);
-      _lastEmittion.setNode(_sensor.getNodes().get(0));
+      _lastEmittion.setNode(_sensor.getNode());
       if (_lastEmittion.getIdentifier() != null) _manager.merge(_lastEmittion);
       else _manager.persist(_lastEmittion);
     }

@@ -457,6 +457,4 @@ public interface EntityCollectionQuery<Entity, Output>
    * @see AbstractQuery#getParameters()
    */
   public Set<ParameterExpression<?>> getParameters ();
-  
-  
 }

@@ -41,7 +41,7 @@ import org.liara.api.collection.transformation.operator.EntityCollectionConjunct
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.node.NodeModifier;
+import org.liara.api.data.entity.node.NodeCreationSchema;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.IntegerState;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,85 +143,6 @@ public class NodeCollection extends EntityCollection<Node>
     return getManager().createQuery(query).getResultList();
   }
   
-  @Transactional
-  public Node create (@NonNull final NodeModifier modifier) throws EntityNotFoundException {
-    int setStart = 0;
-    int setEnd = 0;
-    
-    if (modifier.getParent().isPresent()) {
-      final Node parent = findByIdentifierOrFail(modifier.getParent().get());
-
-      setStart = parent.getSetEnd();
-      setEnd = parent.getSetEnd() + 1;
-
-      getManager().createQuery(
-        "UPDATE Node SET _setStart = _setStart + 2 WHERE _setStart > :parentSetEnd"
-      ).setParameter("parentSetEnd", parent.getSetEnd()).executeUpdate();
-      
-      getManager().createQuery(
-        "UPDATE Node SET _setEnd = _setEnd + 2 WHERE _setEnd >= :parentSetEnd"
-      ).setParameter("parentSetEnd", parent.getSetEnd()).executeUpdate();
-    } else {
-      final int rootEnd = getRootSetEnd();
-      setStart = rootEnd;
-      setEnd = rootEnd + 1;
-    }
-    
-    final Node node = new Node(setStart, setEnd);
-    node.setName(modifier.getName().get());
-    node.setType(modifier.getType().get());
-    
-    getManager().persist(node);
-    
-    return node;
-  }
-  
-  /*
-  @Transactional
-  public void remove (@NonNull final Node node) {
-    node.delete();
-    
-    getEntityManager().createQuery(
-      String.join(
-        "", 
-        "UPDATE Node",
-        "SET _deletionDate = :deletionDate",
-        "WHERE _setEnd >= :parentSetEnd",
-        "  AND _setStart <= :parentSetStart",
-        "  AND _deletionDate IS NULL"
-      )
-    ).setParameter("deletionDate", node.getDeletionDate())
-     .setParameter("parentSetEnd", node.getSetEnd())
-     .setParameter("parentSetStart", node.getSetStart())
-     .executeUpdate();
-    
-    getEntityManager().createQuery(String.join(
-      "", 
-      "UPDATE Sensor",
-      "JOIN _nodes",
-      "SET _deletionDate = :deletionDate",
-      "WHERE _nodes._setEnd >= :parentSetEnd",
-      "  AND _nodes._setStart <= :parentSetStart",
-      "  AND _deletionDate IS NULL"
-    )).setParameter("deletionDate", node.getDeletionDate())
-      .setParameter("parentSetEnd", node.getSetEnd())
-      .setParameter("parentSetStart", node.getSetStart())
-      .executeUpdate();
-    
-    getEntityManager().createQuery(String.join(
-      "", 
-      "UPDATE State",
-      "JOIN _sensor._nodes AS _nodes",
-      "SET _deletionDate = :deletionDate",
-      "WHERE _nodes._setEnd >= :parentSetEnd",
-      "  AND _nodes._setStart <= :parentSetStart",
-      "  AND _deletionDate IS NULL"
-    )).setParameter("deletionDate", node.getDeletionDate())
-      .setParameter("parentSetEnd", node.getSetEnd())
-      .setParameter("parentSetStart", node.getSetStart())
-      .executeUpdate();
-  }*/
-  
   public int getRootSetEnd () {
     if (this.getSize() <= 0) {
       return 1;
@@ -235,11 +156,6 @@ public class NodeCollection extends EntityCollection<Node>
   
   public int getRootSetStart () {
     return 0;
-  }
-  
-  public NodeCollection of (@NonNull final Sensor sensor) {
-    final EntityCollectionOperator<Node> operator = query -> query.andWhere(query.getEntity().in(sensor.getNodes()));
-    return apply(operator);
   }
   
   public NodeCollection deepChildrenOf (@NonNull final Node node) {

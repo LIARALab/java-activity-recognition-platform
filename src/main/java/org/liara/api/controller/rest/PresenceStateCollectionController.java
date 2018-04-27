@@ -22,7 +22,6 @@
 package org.liara.api.controller.rest;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,19 +35,15 @@ import org.liara.api.collection.transformation.MapValueTransformation;
 import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
 import org.liara.api.collection.transformation.aggregation.ExpressionAggregationTransformation;
 import org.liara.api.data.collection.BooleanStateCollection;
-import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.ActivationStateCollection;
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.collection.configuration.PresenceStateCollectionRequestConfiguration;
-import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.ActivationState;
-import org.liara.api.data.entity.state.State;
 import org.liara.api.documentation.ParametersFromConfiguration;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.liara.recognition.presence.TickEventStream;
-import org.liara.recognition.usage.CeilActivationDetector;
 import org.liara.recognition.presence.LiaraPresenceStream;
 import org.liara.recognition.presence.StateTickStream;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,16 +73,13 @@ public class PresenceStateCollectionController extends BaseRestController
   private ActivationStateCollection _collection;
   
   @Autowired
-  private NodeCollection _nodes;
-  
-  @Autowired
   private BooleanStateCollection _booleans;
   
   @Autowired
   private SensorCollection _sensors;
   
   private Iterator<ActivationState> presences (@NonNull final Sensor sensor) throws EntityNotFoundException {
-    final List<Sensor> sensors = _nodes.getAllSensors(sensor.getNodes(), "common/native/motion");
+    final List<Sensor> sensors = _sensors.deepIn(sensor.getNode()).ofType("common/native/motion").get();
     
     final EntityCollectionMainQuery<BooleanState, BooleanState> stateQuery = _booleans.createCollectionQuery(BooleanState.class);
     stateQuery.getCriteriaQuery().select(stateQuery.getEntity());
@@ -119,123 +111,6 @@ public class PresenceStateCollectionController extends BaseRestController
       presence.setSensor(sensor);
 
       _entityManager.persist(presence);
-    }
-  }
-  
-  @GetMapping("/sensors/refreshTV")
-  @Transactional(rollbackOn = {Error.class, Exception.class})
-  public void refreshTV (
-    @NonNull final HttpServletRequest request
-  ) throws EntityNotFoundException, InvalidAPIRequestException
-  {
-    final Sensor sensor = _sensors.findByIdentifierOrFail(12L);
-    final Sensor next = new Sensor();
-    next.setNodes(sensor.getNodes());
-    next.setName("TV_usage");
-    next.setType("common/virtual/usage");
-    next.setValueType("presence");
-    next.setValueUnit("arbitrary");
-    next.setValueLabel("usage");
-    
-    _entityManager.persist(next);
-    
-    final CeilActivationDetector detector = new CeilActivationDetector(
-      _entityManager, next, sensor, 100
-    );
-    
-    final List<State> states = _entityManager.createQuery(
-      "SELECT state FROM State state WHERE state._sensor = :sensor ORDER BY state._emittionDate ASC",
-      State.class
-    ).setParameter("sensor", sensor)
-     .getResultList();
-    
-    states.stream().forEach(detector::onStateAddition);
-  }
-  
-
-  @GetMapping("/sensors/testTV")
-  @Transactional(rollbackOn = {Error.class, Exception.class})
-  public void testTV (
-    @NonNull final HttpServletRequest request
-  ) throws EntityNotFoundException, InvalidAPIRequestException
-  {
-    final Sensor sensor = _sensors.findByIdentifierOrFail(12L);
-    
-    final Sensor ordered = new Sensor();
-    ordered.setNodes(sensor.getNodes());
-    ordered.setName("TV_usage");
-    ordered.setType("common/virtual/usage");
-    ordered.setValueType("presence");
-    ordered.setValueUnit("arbitrary");
-    ordered.setValueLabel("usage");
-    
-    final Sensor unordered = new Sensor();
-    unordered.setNodes(sensor.getNodes());
-    unordered.setName("TV_usage");
-    unordered.setType("common/virtual/usage");
-    unordered.setValueType("presence");
-    unordered.setValueUnit("arbitrary");
-    unordered.setValueLabel("usage");
-    
-    _entityManager.persist(ordered);
-    _entityManager.persist(unordered);
-    
-    final CeilActivationDetector orderedDetector = new CeilActivationDetector(
-      _entityManager, ordered, sensor, 100
-    );
-    
-    final CeilActivationDetector unorderedDetector = new CeilActivationDetector(
-      _entityManager, unordered, sensor, 100
-    );
-    
-    final List<State> states = _entityManager.createQuery(
-      String.join(
-        " ", 
-        "SELECT state",
-        "FROM State state",
-        "WHERE state._sensor = :sensor",
-        "  AND state._emittionDate BETWEEN '2017-12-01 00:00:00.000' AND '2017-12-02 00:00:00.000'",
-        "ORDER BY state._emittionDate ASC"
-      ),
-      State.class
-    ).setParameter("sensor", sensor)
-     .getResultList();
-    
-    states.stream().forEach(orderedDetector::onStateAddition);
-    
-    Collections.shuffle(states);
-    
-    for (int index = 0; index < states.size(); ++index) {
-      System.out.println("" + ((index / (double) states.size()) * 100f) + "%");
-      unorderedDetector.onStateAddition(states.get(index));
-    }
-    
-    final List<ActivationState> orderedResult = _entityManager.createQuery(
-      "SELECT state FROM PresenceState state WHERE state._sensor = :sensor AND state._deletionDate IS NULL ORDER BY state._emittionDate ASC",
-      ActivationState.class
-    ).setParameter("sensor", ordered)
-     .getResultList();
-    
-    final List<ActivationState> unorderedResult = _entityManager.createQuery(
-      "SELECT state FROM PresenceState state WHERE state._sensor = :sensor AND state._deletionDate IS NULL ORDER BY state._emittionDate ASC",
-      ActivationState.class
-    ).setParameter("sensor", unordered)
-     .getResultList();
-    
-    for (int index = 0; index < orderedResult.size(); ++index) {
-      final ActivationState orderedState = orderedResult.get(index);
-      final ActivationState unorderedState = unorderedResult.get(index);
-      
-      if (
-          !orderedState.getStart().equals(unorderedState.getStart()) ||
-          (orderedState.getEnd() == null && unorderedState.getEnd() != null) ||
-          (orderedState.getEnd() != null && !orderedState.getEnd().equals(unorderedState.getEnd())) ||
-          (!orderedState.getEmittionDate().equals(unorderedState.getEmittionDate()))
-      ) {
-        System.out.println("Invalid states :");
-        System.out.println(" --> " + orderedState.getStart() + " - " + orderedState.getEnd() + " emitted at " + orderedState.getEmittionDate());
-        System.out.println(" --> " + unorderedState.getStart() + " - " + unorderedState.getEnd() + " emitted at " + unorderedState.getEmittionDate());
-      }
     }
   }
   

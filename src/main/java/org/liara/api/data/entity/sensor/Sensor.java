@@ -25,8 +25,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Table;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -38,7 +37,6 @@ import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -74,13 +72,22 @@ public class Sensor extends ApplicationEntity
   )
   private List<State>   _states;
 
-  @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(
-      name = "sensors_by_nodes",
-      joinColumns = @JoinColumn(name = "sensor_identifier", nullable = false, updatable = true, unique = false),
-      inverseJoinColumns = @JoinColumn(name = "node_identifier", nullable = false, updatable = true, unique = false)
-  )
-  private List<Node>    _nodes;
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "node_identifier", nullable = false, unique = false, updatable = false)
+  private Node    _node;
+  
+  public Sensor () { }
+  
+  public Sensor (@NonNull final SensorCreationSchema schema) {
+    _name = schema.getName().get();
+    _type = schema.getType().get();
+    _valueType = schema.getValueType().get();
+    _valueUnit = schema.getValueUnit().orElse("no-unit");
+    _valueLabel = schema.getValueLabel().orElse("no-unit");
+    _ipv4Address = schema.getIpv4Address().orElse(null);
+    _ipv6Address = schema.getIpv6Address().orElse(null);
+    _node = schema.getParent();
+  }
 
   public String getIpv4Address () {
     return _ipv4Address;
@@ -107,12 +114,12 @@ public class Sensor extends ApplicationEntity
   }
 
   @JsonIgnore
-  public List<Node> getNodes () {
-    return _nodes;
+  public Node getNode () {
+    return _node;
   }
   
-  public void setNodes (@NonNull final List<Node> nodes) {
-    _nodes = new ArrayList<>(nodes);
+  public Long getNodeIdentifier () {
+    return _node.getIdentifier();
   }
 
   @JsonIgnore

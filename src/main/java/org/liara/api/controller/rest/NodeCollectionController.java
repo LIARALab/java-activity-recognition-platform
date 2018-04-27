@@ -24,6 +24,7 @@ package org.liara.api.controller.rest;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
@@ -32,7 +33,7 @@ import org.liara.api.data.collection.configuration.SensorCollectionRequestConfig
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.node.NodeModifier;
+import org.liara.api.data.entity.node.NodeCreationSchema;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.documentation.ParametersFromConfiguration;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
@@ -129,12 +130,12 @@ public final class NodeCollectionController extends BaseRestController
   @PostMapping("/nodes")
   public ResponseEntity<Void> create (
     @NonNull final HttpServletRequest request,
-    @NonNull @Validated(RestGroup.EntityCreation.class) @RequestBody final NodeModifier node
+    @NonNull @Valid @RequestBody final NodeCreationSchema nodeCreationSchema
   ) throws EntityNotFoundException {
-    final Node added = _collection.create(node);
+    final Node created = nodeCreationSchema.build();
     
     final HttpHeaders headers = new HttpHeaders();
-    headers.add("Location", request.getRequestURI() + "/" + added.getIdentifier());
+    headers.add("Location", request.getRequestURI() + "/" + created.getIdentifier());
     
     return new ResponseEntity<>(headers, HttpStatus.CREATED);
   }
@@ -155,7 +156,7 @@ public final class NodeCollectionController extends BaseRestController
   ) throws EntityNotFoundException, InvalidAPIRequestException {
     final Node node = _collection.findByIdentifierOrFail(identifier);
 
-    return indexCollection(_sensors.of(node), request);
+    return indexCollection(_sensors.in(node), request);
   }
   
   @GetMapping("/nodes/{identifier}/sensors/count")
@@ -168,7 +169,7 @@ public final class NodeCollectionController extends BaseRestController
     @PathVariable final long identifier
   ) throws EntityNotFoundException, InvalidAPIRequestException {
     final Node node = _collection.findByIdentifierOrFail(identifier);
-    return aggregate(_sensors.of(node), request, new EntityCountAggregationTransformation<>());
+    return aggregate(_sensors.in(node), request, new EntityCountAggregationTransformation<>());
   }
   
   @GetMapping("/nodes/{nodeIdentifier}/sensors/{sensorIdentifier}")
@@ -179,7 +180,45 @@ public final class NodeCollectionController extends BaseRestController
   ) throws EntityNotFoundException, InvalidAPIRequestException {
     final Node node = _collection.findByIdentifierOrFail(nodeIdentifier);
 
-    return _sensors.of(node).findByIdentifierOrFail(sensorIdentifier);
+    return _sensors.in(node).findByIdentifierOrFail(sensorIdentifier);
+  }
+
+  @GetMapping("/nodes/{identifier}/deepSensors")
+  @ParametersFromConfiguration(
+    value = SensorCollectionRequestConfiguration.class,
+    groupable = false
+  )
+  public ResponseEntity<List<Sensor>> getDeepSensors (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+    final Node node = _collection.findByIdentifierOrFail(identifier);
+
+    return indexCollection(_sensors.deepIn(node), request);
+  }
+  
+  @GetMapping("/nodes/{identifier}/deepSensors/count")
+  @ParametersFromConfiguration(
+    value = SensorCollectionRequestConfiguration.class,
+    orderable = false
+  )
+  public ResponseEntity<Object> countDeepSensors (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+    final Node node = _collection.findByIdentifierOrFail(identifier);
+    return aggregate(_sensors.deepIn(node), request, new EntityCountAggregationTransformation<>());
+  }
+  
+  @GetMapping("/nodes/{nodeIdentifier}/deepSensors/{sensorIdentifier}")
+  public Sensor getDeepSensor (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long nodeIdentifier,
+    @PathVariable final long sensorIdentifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+    final Node node = _collection.findByIdentifierOrFail(nodeIdentifier);
+
+    return _sensors.deepIn(node).findByIdentifierOrFail(sensorIdentifier);
   }
 
   @GetMapping("/nodes/{identifier}/children")
