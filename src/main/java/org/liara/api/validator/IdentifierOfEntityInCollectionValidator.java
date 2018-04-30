@@ -21,8 +21,6 @@
  ******************************************************************************/
 package org.liara.api.validator;
 
-import java.util.Optional;
-
 import javax.annotation.Nullable;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
@@ -33,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
 
-public class IdentifierOfEntityInCollectionValidator implements ConstraintValidator<IdentifierOfEntityInCollection, Optional<Long>>
+public class IdentifierOfEntityInCollectionValidator implements ConstraintValidator<IdentifierOfEntityInCollection, Long>
 {
   @Autowired
   private ApplicationContext _context;
@@ -47,14 +45,14 @@ public class IdentifierOfEntityInCollectionValidator implements ConstraintValida
 
   @Override
   public boolean isValid (
-    @Nullable final Optional<Long> value, 
+    @Nullable final Long value, 
     @NonNull final ConstraintValidatorContext context
   ) {
-    if (value.isPresent()) {
-      final EntityCollection<?> collection = _context.getBean(_collection);
-      return collection.findByIdentifier(value.get()).isPresent();
-    } else {
+    if (value == null) {
       return true;
+    } else {
+      final EntityCollection<?> collection = _context.getBean(_collection);
+      return collection.findByIdentifier(value).isPresent();
     }
   }
 }

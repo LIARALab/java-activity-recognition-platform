@@ -29,10 +29,13 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Convert;
 
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.database.SensorConfigurationConverter;
+import org.liara.recognition.sensor.SensorConfiguration;
 import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -76,17 +79,22 @@ public class Sensor extends ApplicationEntity
   @JoinColumn(name = "node_identifier", nullable = false, unique = false, updatable = false)
   private Node    _node;
   
+  @Convert(converter = SensorConfigurationConverter.class)
+  @Column(name = "configuration", nullable = false, updatable = false, unique = false)
+  private SensorConfiguration _configuration;
+  
   public Sensor () { }
   
   public Sensor (@NonNull final SensorCreationSchema schema) {
-    _name = schema.getName().get();
-    _type = schema.getType().get();
-    _valueType = schema.getValueType().get();
-    _valueUnit = schema.getValueUnit().orElse("no-unit");
-    _valueLabel = schema.getValueLabel().orElse("no-unit");
-    _ipv4Address = schema.getIpv4Address().orElse(null);
-    _ipv6Address = schema.getIpv6Address().orElse(null);
+    _name = schema.getName();
+    _type = schema.getType();
+    _valueType = schema.getValueType();
+    _valueUnit = schema.getOptionalValueUnit().orElse("no-unit");
+    _valueLabel = schema.getOptionalValueLabel().orElse("no-unit");
+    _ipv4Address = schema.getIpv4Address();
+    _ipv6Address = schema.getIpv6Address();
     _node = schema.getParent();
+    _configuration = schema.getConfiguration();
   }
 
   public String getIpv4Address () {
@@ -157,5 +165,9 @@ public class Sensor extends ApplicationEntity
   
   public void setValueLabel (@NonNull final String valueLabel) {
     _valueLabel = valueLabel;
+  }
+  
+  public SensorConfiguration getConfiguration () {
+    return _configuration;
   }
 }

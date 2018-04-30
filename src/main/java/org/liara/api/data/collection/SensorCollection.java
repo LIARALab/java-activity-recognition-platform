@@ -22,6 +22,7 @@
 package org.liara.api.data.collection;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -34,6 +35,7 @@ import org.liara.api.collection.transformation.operator.EntityCollectionOperator
 import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.recognition.sensor.common.NativeSensor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -77,18 +79,23 @@ public class SensorCollection extends EntityCollection<Sensor>
     return apply(operator);
   }
   
-  public SensorCollection ofType (@NonNull final String type) {
+  public SensorCollection ofType (@NonNull final Class<?> type) {
     final EntityCollectionOperator<Sensor> operator = query -> {
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
-      query.andWhere(builder.equal(query.getEntity().get("_type"), type));
+      query.andWhere(builder.equal(query.getEntity().get("_type"), type.toString()));
     };
     
     return apply(operator);
   }
   
-  public SensorCollection ofType (@NonNull final Collection<String> types) {
+  public SensorCollection ofType (@NonNull final Collection<Class<?>> types) {
     final EntityCollectionOperator<Sensor> operator = query -> {
-      query.andWhere(query.getEntity().get("_type").in(types));
+      query.andWhere(
+        query.getEntity().get("_type").in(
+          types.stream().map(Class::toString)
+                        .collect(Collectors.toList())
+        )
+      );
     };
     
     return apply(operator);

@@ -19,16 +19,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api;
+package org.liara.api.validation;
 
-import org.hibernate.dialect.MySQL5Dialect;
-import org.hibernate.dialect.function.SQLFunctionTemplate;
-import org.hibernate.type.IntegerType;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-public class DatabaseDialect extends MySQL5Dialect {
-  public DatabaseDialect() {
-      super();
-      registerKeyword("microsecond");
-      registerFunction("regexp", new SQLFunctionTemplate(IntegerType.INSTANCE, "?1 REGEXP ?2"));
-  }
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import javax.validation.Constraint;
+import javax.validation.Payload;
+
+import org.liara.api.validator.OptionalSensorTypeValidator;
+import org.liara.api.validator.StringSensorTypeValidator;
+
+@Retention(RUNTIME)
+@Target({ TYPE, FIELD, METHOD, PARAMETER})
+@Documented
+@Constraint(validatedBy = { 
+  StringSensorTypeValidator.class,
+  OptionalSensorTypeValidator.class
+})
+public @interface SensorType
+{
+  public String message () default "The given value is nor a valid native sensor type, nor a valid virtual sensor type.";
+
+  public Class<?>[] groups () default {};
+  
+  public Class<? extends Payload>[] payload () default {};
 }

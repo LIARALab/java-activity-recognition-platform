@@ -31,12 +31,16 @@ import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.validation.IdentifierOfEntityInCollection;
 import org.liara.api.validation.Required;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
+@Component
+@Scope("prototype")
 public final class NodeCreationSchema
 {
   @NonNull

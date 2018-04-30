@@ -24,14 +24,20 @@ package org.liara.api.controller.rest;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import io.swagger.annotations.Api;
 
 import org.springframework.lang.NonNull;
-
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
 import org.liara.api.data.collection.NodeCollection;
@@ -39,9 +45,12 @@ import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.sensor.SensorCreationSchema;
 import org.liara.api.documentation.ParametersFromConfiguration;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 @RestController
@@ -54,7 +63,7 @@ import org.springframework.http.ResponseEntity;
     consumes = "application/json",
     protocols = "http"
 )
-public final class SensorCollectionController extends BaseRestController
+public class SensorCollectionController extends BaseRestController
 {
   @Autowired
   @NonNull
@@ -75,16 +84,33 @@ public final class SensorCollectionController extends BaseRestController
       EntityCountAggregationTransformation.create()
     );
   }
+  
 
   @GetMapping("/sensors")
   @ParametersFromConfiguration(
     value = SensorCollectionRequestConfiguration.class,
     groupable = false
   )
-  public ResponseEntity<List<Sensor>> index (@NonNull final HttpServletRequest request)
-    throws InvalidAPIRequestException
-  {
+  public ResponseEntity<List<Sensor>> index (
+    @NonNull final HttpServletRequest request
+  ) throws InvalidAPIRequestException {
     return indexCollection(_collection, request);
+  }
+
+  @PostMapping("/sensors")
+  @Transactional
+  public ResponseEntity<Void> create (
+    @NonNull final HttpServletRequest request,
+    @NonNull @Valid @RequestBody final SensorCreationSchema schema
+  ) throws JsonProcessingException {
+    final Sensor sensor = new Sensor(schema);
+    
+    _collection.getManager().persist(sensor);
+    
+    final HttpHeaders headers = new HttpHeaders();
+    headers.add("Location", request.getRequestURI() + "/" + sensor.getIdentifier());
+    
+    return new ResponseEntity<>(headers, HttpStatus.CREATED);
   }
 
   @GetMapping("/sensors/{identifier}")

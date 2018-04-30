@@ -27,34 +27,32 @@ import javax.annotation.Nullable;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-import org.liara.api.collection.EntityCollection;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.liara.api.validation.SensorType;
+import org.liara.recognition.sensor.VirtualSensorHandler;
+import org.liara.recognition.sensor.common.NativeSensor;
 import org.springframework.lang.NonNull;
 
-public class OptionalIdentifierOfEntityInCollectionValidator implements ConstraintValidator<IdentifierOfEntityInCollection, Optional<Long>>
+public class OptionalSensorTypeValidator implements ConstraintValidator<SensorType, Optional<String>>
 {
-  @Autowired
-  private ApplicationContext _context;
-  
-  private Class<? extends EntityCollection<?>> _collection;
-
   @Override
-  public void initialize (@NonNull final IdentifierOfEntityInCollection constraintAnnotation) {
-    _collection = constraintAnnotation.collection();
+  public void initialize (@NonNull final SensorType constraintAnnotation) {
   }
 
   @Override
   public boolean isValid (
-    @Nullable final Optional<Long> value, 
+    @Nullable final Optional<String> value, 
     @NonNull final ConstraintValidatorContext context
   ) {
-    if (value.isPresent()) {
-      final EntityCollection<?> collection = _context.getBean(_collection);
-      return collection.findByIdentifier(value.get()) != null;
-    } else {
+    if (value == null || !value.isPresent() || value.get().trim().equals("")) {
       return true;
+    } else {
+      try {
+        final Class<?> type = Class.forName(value.get());
+        
+        return NativeSensor.class.isAssignableFrom(type) || VirtualSensorHandler.class.isAssignableFrom(type);
+      } catch (final ClassNotFoundException exception) {
+        return false;
+      }
     }
   }
 }
