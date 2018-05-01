@@ -50,7 +50,7 @@ public class State extends ApplicationEntity
   @JoinColumn(name = "sensor_identifier", nullable = false, unique = false, updatable = true)
   private Sensor _sensor;
   
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
   public ZonedDateTime getEmittionDate () {
     return _emittionDate;
   }

@@ -27,7 +27,10 @@ import org.liara.api.configuration.SwaggerConfiguration;
 import org.liara.api.recognition.sensor.VirtualSensorManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication
 @Import(
@@ -40,5 +43,19 @@ public class Application
   public static void main (String[] args) {
     final ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
     context.getBean(VirtualSensorManager.class).start();
+  }
+  
+  @Bean
+  public WebMvcConfigurer corsConfigurer() {
+      return new WebMvcConfigurer () {
+          @Override
+          public void addCorsMappings(CorsRegistry registry) {
+              registry.addMapping("/**")
+                      .allowedOrigins("*")
+                      .allowedHeaders("*")
+                      .allowCredentials(true)
+                      .allowedMethods("*");
+          }
+      };
   }
 }
