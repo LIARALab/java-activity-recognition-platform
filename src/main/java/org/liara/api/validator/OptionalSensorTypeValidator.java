@@ -27,9 +27,9 @@ import javax.annotation.Nullable;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+import org.liara.api.recognition.sensor.VirtualSensorHandler;
+import org.liara.api.recognition.sensor.common.NativeSensor;
 import org.liara.api.validation.SensorType;
-import org.liara.recognition.sensor.VirtualSensorHandler;
-import org.liara.recognition.sensor.common.NativeSensor;
 import org.springframework.lang.NonNull;
 
 public class OptionalSensorTypeValidator implements ConstraintValidator<SensorType, Optional<String>>

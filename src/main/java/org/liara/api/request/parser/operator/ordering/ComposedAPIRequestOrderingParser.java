@@ -67,7 +67,7 @@ public class      ComposedAPIRequestOrderingParser<Entity>
     Iterators.addAll(_parsers, parsers);
   }
   
-  public ComposedAPIRequestOrderingParser (@NonNull final APIRequestOrderingProcessor<Entity>... parsers) {
+  public ComposedAPIRequestOrderingParser (@NonNull final APIRequestOrderingProcessor<Entity>[] parsers) {
     _parsers.addAll(Arrays.asList(parsers));
   }
   

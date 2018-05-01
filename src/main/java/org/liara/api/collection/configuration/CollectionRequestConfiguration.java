@@ -39,7 +39,6 @@ import org.liara.api.request.parser.cursor.APIRequestFreeCursorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.operator.ordering.ComposedAPIRequestOrderingParser;
-import org.liara.api.request.parser.transformation.APIRequestEntityCollectionTransformationParser;
 import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
 import org.liara.api.request.parser.transformation.grouping.ComposedAPIRequestGroupingParser;
 import org.liara.api.request.validator.APIRequestFreeCursorValidator;

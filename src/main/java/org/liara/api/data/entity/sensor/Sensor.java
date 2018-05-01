@@ -35,7 +35,9 @@ import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.database.SensorConfigurationConverter;
-import org.liara.recognition.sensor.SensorConfiguration;
+import org.liara.api.recognition.sensor.SensorConfiguration;
+import org.liara.api.recognition.sensor.VirtualSensorHandler;
+import org.liara.api.recognition.sensor.common.NativeSensor;
 import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -44,7 +46,9 @@ import java.util.List;
 
 @Entity
 @Table(name = "sensors")
-public class Sensor extends ApplicationEntity
+public class      Sensor 
+       extends    ApplicationEntity
+       implements Cloneable
 {
   @Column(name = "name", nullable = false, updatable = true, unique = false)
   private String        _name;
@@ -96,6 +100,18 @@ public class Sensor extends ApplicationEntity
     _node = schema.getParent();
     _configuration = schema.getConfiguration();
   }
+  
+  public Sensor (@NonNull final Sensor toCopy) {
+    _name = toCopy.getName();
+    _type = toCopy.getType();
+    _valueType = toCopy.getValueType();
+    _valueUnit = toCopy.getValueUnit();
+    _valueLabel = toCopy.getValueLabel();
+    _ipv4Address = toCopy.getIpv4Address();
+    _ipv6Address = toCopy.getIpv6Address();
+    _configuration = toCopy.getConfiguration().clone();
+    _node = toCopy.getNode(); /** @TODO ~~~~~~~ */
+  }
 
   public String getIpv4Address () {
     return _ipv4Address;
@@ -139,6 +155,23 @@ public class Sensor extends ApplicationEntity
     return _type;
   }
   
+  @JsonIgnore
+  public Class<?> getTypeClass () {
+    try {
+      return Class.forName(_type);
+    } catch (final ClassNotFoundException exception) {
+      throw new Error("Invalid sensor type " + _type + ", no class found for the given type.");
+    }
+  }
+  
+  public boolean isVirtual () {
+    return VirtualSensorHandler.class.isAssignableFrom(getTypeClass());
+  }
+  
+  public boolean isNative () {
+    return NativeSensor.class.isAssignableFrom(getTypeClass());
+  }
+  
   public void setType (@NonNull final String type) {
     _type = type;
   }
@@ -169,5 +202,10 @@ public class Sensor extends ApplicationEntity
   
   public SensorConfiguration getConfiguration () {
     return _configuration;
+  }
+
+  @Override
+  public Sensor clone () {
+    return new Sensor(this);
   }
 }

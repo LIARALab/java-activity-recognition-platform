@@ -22,9 +22,13 @@
 package org.liara.api.data.collection;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
@@ -55,5 +59,23 @@ public class StateCollection extends EntityCollection<State>
   @Override
   public StateCollection apply (@NonNull final EntityCollectionOperator<State> operator) {
     return new StateCollection(this, getOperator().conjugate(operator));
+  }
+  
+  public StateCollection of (@NonNull final Sensor sensor) {
+    final EntityCollectionOperator<State> operator = query -> query.andWhere(query.getEntity().get("_sensor").in(sensor));
+    return apply(operator);
+  }
+  
+  public StateCollection orderedAscBy (@NonNull final SimpleEntityFieldSelector<State, Expression<?>> field) {
+    return orderedAscBy((EntityFieldSelector<State, Expression<?>>) field);
+  }
+  
+  public StateCollection orderedAscBy (@NonNull final EntityFieldSelector<State, Expression<?>> field) {
+    final EntityCollectionOperator<State> operator = query -> {
+      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
+      query.andOrderBy(builder.asc(field.select(query)));
+    };
+    
+    return apply(operator);
   }
 }

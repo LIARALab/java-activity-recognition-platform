@@ -41,8 +41,6 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.validation.constraints.Pattern.Flag;
-
 import org.liara.api.filter.ast.BetweenFilterNode;
 import org.liara.api.filter.ast.ConjunctionFilterNode;
 import org.liara.api.filter.ast.DisjunctionFilterNode;

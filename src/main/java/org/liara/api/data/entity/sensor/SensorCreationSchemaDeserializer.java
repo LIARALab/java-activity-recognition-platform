@@ -2,8 +2,8 @@ package org.liara.api.data.entity.sensor;
 
 import java.io.IOException;
 
-import org.liara.recognition.sensor.SensorConfiguration;
-import org.liara.recognition.sensor.UseSensorConfigurationOfType;
+import org.liara.api.recognition.sensor.SensorConfiguration;
+import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jackson.JsonComponent;
 import org.springframework.context.ApplicationContext;

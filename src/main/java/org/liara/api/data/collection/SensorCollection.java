@@ -35,7 +35,6 @@ import org.liara.api.collection.transformation.operator.EntityCollectionOperator
 import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.recognition.sensor.common.NativeSensor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;

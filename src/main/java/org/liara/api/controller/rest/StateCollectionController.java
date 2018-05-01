@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
 import org.liara.api.data.collection.StateCollection;
-import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
 import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.documentation.ParametersFromConfiguration;
@@ -42,8 +41,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.lang.NonNull;
 
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 
 @RestController
 @Api(

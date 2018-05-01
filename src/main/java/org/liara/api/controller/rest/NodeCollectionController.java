@@ -37,7 +37,6 @@ import org.liara.api.data.entity.node.NodeCreationSchema;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.documentation.ParametersFromConfiguration;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
-import org.liara.api.validation.RestGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -49,7 +48,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.lang.NonNull;
-import org.springframework.validation.annotation.Validated;
 
 import io.swagger.annotations.Api;
 

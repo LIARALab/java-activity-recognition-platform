@@ -33,7 +33,6 @@ import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;

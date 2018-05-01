@@ -28,7 +28,6 @@ import org.liara.api.collection.transformation.operator.EntityCollectionConjunct
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.DoubleStateCollectionRequestConfiguration;
 import org.liara.api.collection.EntityCollection;
-import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.DoubleState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;

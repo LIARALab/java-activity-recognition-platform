@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import javax.persistence.AttributeConverter;
 
-import org.liara.recognition.sensor.SensorConfiguration;
+import org.liara.api.recognition.sensor.SensorConfiguration;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 

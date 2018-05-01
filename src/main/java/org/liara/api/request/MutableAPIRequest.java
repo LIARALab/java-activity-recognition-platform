@@ -22,7 +22,6 @@
 package org.liara.api.request;
 
 import java.lang.Iterable;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;

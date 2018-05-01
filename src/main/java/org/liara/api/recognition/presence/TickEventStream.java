@@ -19,62 +19,61 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.filter.ast;
+package org.liara.api.recognition.presence;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
-import com.google.common.collect.ImmutableList;
-
-public class BaseCompositeFilterNode<Child extends FilterNode> extends BaseFilterNode implements CompositeFilterNode<Child>
+public class TickEventStream implements EventStream
 {
   @NonNull
-  private final List<Child> _nodes;
+  private final TickStream _ticks;
   
-  public BaseCompositeFilterNode(
-    @NonNull final FilterNodeType type, 
-    @NonNull final Iterable<Child> nodes
-  ) {
-    super(type);
-    _nodes = ImmutableList.copyOf(nodes);
-  }
+  @Nullable
+  private Event _next = null;
   
-  public BaseCompositeFilterNode(
-    @NonNull final FilterNodeType type, 
-    @NonNull final Iterator<Child> nodes
-  ) {
-    super(type);
-    _nodes = ImmutableList.copyOf(nodes);
+  @Nullable
+  private Tick _lastTick = null;
+  
+  public TickEventStream (@NonNull final TickStream ticks) {
+    _ticks = ticks;
   }
   
-  public BaseCompositeFilterNode(
-    @NonNull final FilterNodeType type, 
-    @NonNull final Child[] nodes
-  ) {
-    super(type);
-    _nodes = ImmutableList.copyOf(nodes);
+  @Override
+  public boolean hasNext () {
+    update();
+    return _next != null;
+  }
+
+  private void update () {
+    while (_next == null && _ticks.hasNext()) {
+      final Tick next = _ticks.next();
+      
+      if (_lastTick == null) {
+        _lastTick = next;
+      } else if (!_lastTick.getSensor().equals(next.getSensor())) {
+        _next = new Event(_lastTick.getSensor(), _lastTick.getDate(), next.getDate());
+        _lastTick = next;
+      }
+    }
+    
+    if (_next == null && _ticks.hasNext() == false && _lastTick != null) {
+      _next = new Event(_lastTick.getSensor(), _lastTick.getDate());
+      _lastTick = null;
+    }
   }
 
   @Override
-  public Iterator<Child> iterator () {
-    return _nodes.iterator();
+  public Event next () {
+    update();
+
+    if (_next == null) throw new NoSuchElementException();
+    
+    final Event result = _next;
+    _next = null;
+    return result;
   }
 
-  @Override
-  public Child getChild (final int index) throws IndexOutOfBoundsException {
-    return _nodes.get(index);
-  }
-
-  @Override
-  public Collection<Child> getChildren () {
-    return _nodes;
-  }
-
-  @Override
-  public int getChildCount () {
-    return _nodes.size();
-  }
 }
