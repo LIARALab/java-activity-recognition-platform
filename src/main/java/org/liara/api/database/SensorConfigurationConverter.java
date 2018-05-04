@@ -34,7 +34,6 @@ public class SensorConfigurationConverter implements AttributeConverter<SensorCo
     if (dbData == null || dbData.trim().equals("")) {
       return null;
     } else {
-      System.out.println(dbData);
       try {
         final TreeNode node = _mapper.readTree(dbData);
         if (node.isObject()) {

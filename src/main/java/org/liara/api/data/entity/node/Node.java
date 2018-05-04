@@ -29,17 +29,21 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 
 import org.hibernate.annotations.Formula;
+import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
+import org.liara.api.data.schema.UseCreationSchema;
 import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.Collections;
 import java.util.List;
 
 @Entity
 @Table(name = "nodes")
+@UseCreationSchema(NodeCreationSchema.class)
 public class Node extends ApplicationEntity
 {
   @Column(name = "name", nullable = false, updatable = true, unique = false)
@@ -74,15 +78,28 @@ public class Node extends ApplicationEntity
   /**
    * Create a new node from a creation schema.
    * 
-   * @param nodeCreationSchema Schema to use in order to create this node.
+   * @param schema Schema to use in order to create this node.
+   * @param collection Future collection of this node.
    */
-  public Node(@NonNull final NodeCreationSchema nodeCreationSchema) {
-    _name = nodeCreationSchema.getName().get();
-    _type = nodeCreationSchema.getType().get();
-    _setStart = nodeCreationSchema.getSetStart();
-    _setEnd = nodeCreationSchema.getSetEnd();
-    _depth = nodeCreationSchema.getParent().getDepth() + 1;
-
+  public Node(
+    @NonNull final NodeCreationSchema schema,
+    @NonNull final NodeCollection collection
+  ) {
+    _name = schema.getName();
+    _type = schema.getType();
+    
+    if (schema.getParent() == null) {
+      _setStart = collection.getRootSetEnd();
+      _depth = 0;
+    } else {
+      final Node parent = collection.findByIdentifier(schema.getParent()).get();
+      _setStart = parent.getSetEnd();
+      _depth = parent.getDepth() + 1;
+    }
+    
+    _setEnd = _setStart + 1;
+    _sensors = Collections.emptyList();
+    _presences = Collections.emptyList();
   }
 
   /**
@@ -157,5 +174,10 @@ public class Node extends ApplicationEntity
   @JsonIgnore
   public List<Sensor> getSensors () {
     return _sensors;
+  }
+  
+  @Override
+  public NodeSnapshot snapshot () {
+    return new NodeSnapshot(this);
   }
 }

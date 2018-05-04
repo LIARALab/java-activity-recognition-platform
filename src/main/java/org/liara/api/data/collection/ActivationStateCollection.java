@@ -21,6 +21,9 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 
@@ -29,7 +32,9 @@ import org.liara.api.collection.configuration.DefaultCollectionRequestConfigurat
 import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.ActivationStateCollectionRequestConfiguration;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
+import org.liara.api.data.operators.StateOperators;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -95,5 +100,25 @@ public class ActivationStateCollection extends EntityCollection<ActivationState>
     };
     
     return apply(operator);
+  }
+  
+  public ActivationStateCollection of (@NonNull final Sensor sensor) {
+    return apply(StateOperators.of(sensor));
+  }
+  
+  public ActivationStateCollection of (@NonNull final Sensor[] sensors) {
+    return apply(StateOperators.of(sensors));
+  }
+  
+  public ActivationStateCollection of (@NonNull final Collection<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
+  }
+  
+  public ActivationStateCollection of (@NonNull final Iterator<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
+  }
+  
+  public ActivationStateCollection of (@NonNull final EntityCollection<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
   }
 }

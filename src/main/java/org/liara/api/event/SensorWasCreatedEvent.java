@@ -1,6 +1,7 @@
 package org.liara.api.event;
 
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.sensor.SensorSnapshot;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.lang.NonNull;
 
@@ -12,7 +13,7 @@ public class SensorWasCreatedEvent extends ApplicationEvent
   private static final long serialVersionUID = 784473504749676317L;
   
   @NonNull
-  private final Sensor _sensor;
+  private final SensorSnapshot _sensor;
   
   /**
    * 
@@ -24,10 +25,10 @@ public class SensorWasCreatedEvent extends ApplicationEvent
     @NonNull final Sensor sensor
   ) {
     super(source);
-    _sensor = sensor;
+    _sensor = sensor.snapshot();
   }
 
-  public Sensor getSensor () {
+  public SensorSnapshot getSensor () {
     return _sensor;
   }
 }

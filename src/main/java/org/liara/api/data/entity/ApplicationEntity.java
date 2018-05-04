@@ -38,7 +38,6 @@ import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-@MappedSuperclass
 /**
  * Base class for all application entities.
  * 
@@ -47,6 +46,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * 
  * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
  */
+@MappedSuperclass
 public class ApplicationEntity
 {
   @Id
@@ -212,5 +212,9 @@ public class ApplicationEntity
     ApplicationEntity other = (ApplicationEntity) obj;
     if (getIdentifier() == null || !getIdentifier().equals(other.getIdentifier())) return false;
     return true;
+  }
+  
+  public ApplicationEntitySnapshot snapshot () {
+    return new ApplicationEntitySnapshot(this);
   }
 }

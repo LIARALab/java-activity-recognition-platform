@@ -27,14 +27,19 @@ import javax.persistence.Table;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 
+import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.data.schema.UseCreationSchema;
 import org.liara.api.database.SensorConfigurationConverter;
+import org.liara.api.recognition.sensor.EmitStateOfType;
 import org.liara.api.recognition.sensor.SensorConfiguration;
 import org.liara.api.recognition.sensor.VirtualSensorHandler;
 import org.liara.api.recognition.sensor.common.NativeSensor;
@@ -46,19 +51,16 @@ import java.util.List;
 
 @Entity
 @Table(name = "sensors")
+@UseCreationSchema(SensorCreationSchema.class)
 public class      Sensor 
        extends    ApplicationEntity
-       implements Cloneable
 {
   @Column(name = "name", nullable = false, updatable = true, unique = false)
   private String        _name;
   
   @Column(name = "type", nullable = false, updatable = true, unique = false)
   private String        _type;
-
-  @Column(name = "value_type", nullable = false, updatable = true, unique = false)
-  private String        _valueType;
-
+  
   @Column(name = "value_unit", nullable = true, updatable = true, unique = false)
   private String        _valueUnit;
 
@@ -87,30 +89,23 @@ public class      Sensor
   @Column(name = "configuration", nullable = false, updatable = false, unique = false)
   private SensorConfiguration _configuration;
   
+  @Column(name = "virtual", nullable = false, updatable = true, unique = false)
+  private boolean _virtual;
+  
   public Sensor () { }
   
-  public Sensor (@NonNull final SensorCreationSchema schema) {
+  public Sensor (
+    @NonNull final SensorCreationSchema schema,
+    @NonNull final NodeCollection nodes
+  ) {
     _name = schema.getName();
     _type = schema.getType();
-    _valueType = schema.getValueType();
     _valueUnit = schema.getOptionalValueUnit().orElse("no-unit");
     _valueLabel = schema.getOptionalValueLabel().orElse("no-unit");
     _ipv4Address = schema.getIpv4Address();
     _ipv6Address = schema.getIpv6Address();
-    _node = schema.getParent();
+    _node = nodes.findByIdentifier(schema.getParent()).get();
     _configuration = schema.getConfiguration();
-  }
-  
-  public Sensor (@NonNull final Sensor toCopy) {
-    _name = toCopy.getName();
-    _type = toCopy.getType();
-    _valueType = toCopy.getValueType();
-    _valueUnit = toCopy.getValueUnit();
-    _valueLabel = toCopy.getValueLabel();
-    _ipv4Address = toCopy.getIpv4Address();
-    _ipv6Address = toCopy.getIpv6Address();
-    _configuration = toCopy.getConfiguration().clone();
-    _node = toCopy.getNode(); /** @TODO ~~~~~~~ */
   }
 
   public String getIpv4Address () {
@@ -135,6 +130,18 @@ public class      Sensor
 
   public void setName (@NonNull final String name) {
     _name = name;
+  }
+  
+  @PrePersist
+  protected void onCreate () {
+    super.onCreate();
+    _virtual = isVirtual();
+  }
+  
+  @PreUpdate
+  protected void onUpdate () {
+    super.onUpdate();
+    _virtual = isVirtual();
   }
 
   @JsonIgnore
@@ -164,6 +171,23 @@ public class      Sensor
     }
   }
   
+  @JsonIgnore
+  public Class<? extends State> getStateClass () {
+    final Class<?> typeClass = this.getTypeClass();
+    final EmitStateOfType annotation = typeClass.getAnnotation(EmitStateOfType.class);
+    
+    if (annotation == null) {
+      throw new Error(String.join(
+        "",
+        "Unnable to retrieve the emitted state type of this sensor because the ",
+        "type of this sensor ", typeClass.toString(), " does not declare any ",
+        EmitStateOfType.class.toString(), " annotation."
+      ));
+    } else {
+      return annotation.value();
+    }
+  }
+  
   public boolean isVirtual () {
     return VirtualSensorHandler.class.isAssignableFrom(getTypeClass());
   }
@@ -174,14 +198,6 @@ public class      Sensor
   
   public void setType (@NonNull final String type) {
     _type = type;
-  }
-
-  public String getValueType () {
-    return _valueType;
-  }
-  
-  public void setValueType (@NonNull final String valueType) {
-    _valueType = valueType;
   }
 
   public String getValueUnit () {
@@ -203,9 +219,9 @@ public class      Sensor
   public SensorConfiguration getConfiguration () {
     return _configuration;
   }
-
+  
   @Override
-  public Sensor clone () {
-    return new Sensor(this);
+  public SensorSnapshot snapshot () {
+    return new SensorSnapshot(this);
   }
 }

@@ -25,15 +25,28 @@ import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
+import org.liara.api.data.schema.UseCreationSchema;
+import org.liara.api.data.schema.UseMutationSchema;
+import org.springframework.lang.NonNull;
+
 import javax.persistence.Column;
 
 @Entity
 @Table(name = "states_double")
 @PrimaryKeyJoinColumn(name = "state_identifier")
+@UseCreationSchema(DoubleStateCreationSchema.class)
+@UseMutationSchema(DoubleStateMutationSchema.class)
 public class DoubleState extends State
 {
   @Column(name = "value", updatable = true, nullable = false, unique = false)
   private double _value;
+  
+  public DoubleState () { }
+  
+  public DoubleState (@NonNull final DoubleStateCreationSchema schema) {
+    super(schema);
+    _value = schema.getValue();
+  }
 
   public double getValue () {
     return _value;
@@ -42,42 +55,9 @@ public class DoubleState extends State
   public void setValue (final double value) {
     _value = value;
   }
-
+  
   @Override
-  public String toString () {
-    StringBuilder builder = new StringBuilder();
-    builder.append("DoubleState [");
-    if (getIdentifier() != null) {
-      builder.append("getIdentifier()=");
-      builder.append(getIdentifier());
-      builder.append(", ");
-    }
-    builder.append("getSensorIdentifier()=");
-    builder.append(getSensorIdentifier());
-    builder.append(", ");
-    if (getEmittionDate() != null) {
-      builder.append("getEmittionDate()=");
-      builder.append(getEmittionDate());
-      builder.append(", ");
-    }
-    if (getCreationDate() != null) {
-      builder.append("getCreationDate()=");
-      builder.append(getCreationDate());
-      builder.append(", ");
-    }
-    if (getDeletionDate() != null) {
-      builder.append("getDeletionDate()=");
-      builder.append(getDeletionDate());
-      builder.append(", ");
-    }
-    if (getUpdateDate() != null) {
-      builder.append("getUpdateDate()=");
-      builder.append(getUpdateDate());
-      builder.append(", ");
-    }
-    builder.append("_value=");
-    builder.append(_value);
-    builder.append("]");
-    return builder.toString();
+  public DoubleStateSnapshot snapshot () {
+    return new DoubleStateSnapshot(this);
   }
 }

@@ -1,6 +1,9 @@
 package org.liara.api.recognition.sensor.common;
 
-public interface NativeMotionSensor extends NativeSensor
-{
+import org.liara.api.data.entity.state.BooleanState;
+import org.liara.api.recognition.sensor.EmitStateOfType;
 
-}
+@EmitStateOfType(BooleanState.class)
+public interface NativeMotionSensor 
+       extends   NativeSensor 
+{ }

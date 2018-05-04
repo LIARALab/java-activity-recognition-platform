@@ -4,26 +4,21 @@ import java.util.Optional;
 
 import javax.validation.Valid;
 
-import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.data.collection.NodeCollection;
-import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.schema.Schema;
 import org.liara.api.recognition.sensor.SensorConfiguration;
 import org.liara.api.validation.IdentifierOfEntityInCollection;
 import org.liara.api.validation.Required;
 import org.liara.api.validation.SensorType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@Component
-@Scope("prototype")
+@Schema(Sensor.class)
 @JsonDeserialize(using = SensorCreationSchemaDeserializer.class)
 public class SensorCreationSchema
 {
@@ -49,22 +44,11 @@ public class SensorCreationSchema
   private String _ipv6Address = null;
   
   @NonNull
-  private Long _parentIdentifier = null;
+  private Long _parent = null;
   
   @NonNull
   private SensorConfiguration _configuration = null;
   
-  @NonNull
-  @Autowired
-  private NodeCollection _nodes;
-  
-  @NonNull
-  @Autowired
-  private SensorCollection _sensors;
-  
-  @Nullable
-  private Node _parent = null;
-
   @Required
   public String getName () {
     return _name;
@@ -171,48 +155,25 @@ public class SensorCreationSchema
   }
 
   @IdentifierOfEntityInCollection(collection = NodeCollection.class)
-  public Long getParentIdentifier () {
-    return _parentIdentifier;
+  public Long getParent () {
+    return _parent;
   }
   
   @JsonSetter
-  public void setParentIdentifier (@Nullable final Long parentIdentifier) {
-    _parentIdentifier = parentIdentifier;
-    _parent = null;
+  public void setParent (@Nullable final Long parentIdentifier) {
+    _parent = parentIdentifier;
   }
   
-  public void setParentIdentifier (@Nullable final Node parent) {
+  public void setParent (@Nullable final Node parent) {
     if (parent == null) {
-      _parentIdentifier = null;
+      _parent = null;
     } else {
-      _parentIdentifier = parent.getIdentifier();
+      _parent = parent.getIdentifier();
     }
-    _parent = null;
   }
 
-  public void setParentIdentifier (@NonNull final Optional<Long> parentIdentifier) {
-    _parentIdentifier = parentIdentifier.orElse(null);
-    _parent = null;
-  }
-  
-  public Node getParent () {
-    if (_parentIdentifier == null) {
-      return null;
-    }
-    
-    if (_parent == null) {
-      try {
-        _parent = _nodes.findByIdentifierOrFail(_parentIdentifier);
-      } catch (final EntityNotFoundException exception) {
-        throw new IllegalStateException(String.join(
-          "",
-          "Invalid SensorCreationSchema : the given parent node identifier does not",
-          "exists in the application's node collection."
-        ));
-      }
-    }
-    
-    return _parent;
+  public void setParent (@NonNull final Optional<Long> parentIdentifier) {
+    _parent = parentIdentifier.orElse(null);
   }
 
   @Valid

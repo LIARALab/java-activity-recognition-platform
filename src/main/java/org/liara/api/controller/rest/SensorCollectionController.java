@@ -46,12 +46,10 @@ import org.liara.api.data.collection.configuration.SensorCollectionRequestConfig
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.sensor.SensorCreationSchema;
+import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.documentation.ParametersFromConfiguration;
-import org.liara.api.event.SensorWasCreatedEvent;
-import org.liara.api.event.SensorWillBeCreatedEvent;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -70,7 +68,7 @@ public class SensorCollectionController extends BaseRestController
 {
   @Autowired
   @NonNull
-  private ApplicationEventPublisher _eventPublisher;
+  private SchemaManager _schemaManager;
   
   @Autowired
   @NonNull
@@ -109,13 +107,8 @@ public class SensorCollectionController extends BaseRestController
   public ResponseEntity<Void> create (
     @NonNull final HttpServletRequest request,
     @NonNull @Valid @RequestBody final SensorCreationSchema schema
-  ) throws JsonProcessingException {
-    final Sensor sensor = new Sensor(schema);
-    
-    _eventPublisher.publishEvent(new SensorWillBeCreatedEvent(this, sensor));
-    _collection.getManager().persist(sensor);
-    _collection.getManager().flush();
-    _eventPublisher.publishEvent(new SensorWasCreatedEvent(this, sensor));
+  ) throws JsonProcessingException {    
+    final Sensor sensor = _schemaManager.execute(schema);
     
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Location", request.getRequestURI() + "/" + sensor.getIdentifier());

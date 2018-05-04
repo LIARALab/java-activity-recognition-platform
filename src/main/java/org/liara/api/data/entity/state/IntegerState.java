@@ -24,21 +24,42 @@ package org.liara.api.data.entity.state;
 import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+
+import org.liara.api.data.schema.UseCreationSchema;
+import org.liara.api.data.schema.UseMutationSchema;
+import org.springframework.lang.NonNull;
+
 import javax.persistence.Column;
 
 @Entity
 @Table(name = "states_integer")
 @PrimaryKeyJoinColumn(name = "state_identifier")
+@UseCreationSchema(IntegerStateCreationSchema.class)
+@UseMutationSchema(IntegerStateMutationSchema.class)
 public class IntegerState extends State
 {
-  private int value;
-
   @Column(name = "value", nullable = false, updatable = true, unique = false)
+  private int _value;
+  
+  public IntegerState () { }
+  
+  public IntegerState (
+    @NonNull final IntegerStateCreationSchema schema
+  ) {
+    super(schema);
+    _value = schema.getValue();
+  }
+
   public int getValue () {
-    return this.value;
+    return _value;
   }
 
   public void setValue (final int value) {
-    this.value = value;
+    _value = value;
+  }
+  
+  @Override
+  public IntegerStateSnapshot snapshot () {
+    return new IntegerStateSnapshot(this);
   }
 }

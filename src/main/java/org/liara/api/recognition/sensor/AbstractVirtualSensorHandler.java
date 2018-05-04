@@ -3,7 +3,7 @@ package org.liara.api.recognition.sensor;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-public class AbstractVirtualSensorHandler implements VirtualSensorHandler
+public abstract class AbstractVirtualSensorHandler implements VirtualSensorHandler
 {
   @Nullable
   private VirtualSensorRunner _runner = null;

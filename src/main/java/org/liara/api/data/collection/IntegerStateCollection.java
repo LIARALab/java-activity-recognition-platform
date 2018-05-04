@@ -21,12 +21,17 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import javax.persistence.EntityManager;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.IntegerState;
+import org.liara.api.data.operators.StateOperators;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -51,5 +56,25 @@ public class IntegerStateCollection extends EntityCollection<IntegerState>
   @Override
   public IntegerStateCollection apply (@NonNull final EntityCollectionOperator<IntegerState> operator) {
     return new IntegerStateCollection(this, getOperator().conjugate(operator));
+  }
+  
+  public IntegerStateCollection of (@NonNull final Sensor sensor) {
+    return apply(StateOperators.of(sensor));
+  }
+  
+  public IntegerStateCollection of (@NonNull final Sensor[] sensors) {
+    return apply(StateOperators.of(sensors));
+  }
+  
+  public IntegerStateCollection of (@NonNull final Collection<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
+  }
+  
+  public IntegerStateCollection of (@NonNull final Iterator<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
+  }
+  
+  public IntegerStateCollection of (@NonNull final EntityCollection<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
   }
 }

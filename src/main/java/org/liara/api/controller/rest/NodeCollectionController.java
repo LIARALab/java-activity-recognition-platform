@@ -35,6 +35,7 @@ import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.node.NodeCreationSchema;
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.documentation.ParametersFromConfiguration;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +69,10 @@ import io.swagger.annotations.Api;
  */
 public final class NodeCollectionController extends BaseRestController
 {
+  @Autowired
+  @NonNull
+  private SchemaManager _schemaManager;
+  
   @Autowired
   @NonNull
   private NodeCollection _collection;
@@ -128,12 +133,12 @@ public final class NodeCollectionController extends BaseRestController
   @PostMapping("/nodes")
   public ResponseEntity<Void> create (
     @NonNull final HttpServletRequest request,
-    @NonNull @Valid @RequestBody final NodeCreationSchema nodeCreationSchema
+    @NonNull @Valid @RequestBody final NodeCreationSchema schema
   ) throws EntityNotFoundException {
-    final Node created = nodeCreationSchema.build();
+    final Node node = _schemaManager.execute(schema);
     
     final HttpHeaders headers = new HttpHeaders();
-    headers.add("Location", request.getRequestURI() + "/" + created.getIdentifier());
+    headers.add("Location", request.getRequestURI() + "/" + node.getIdentifier());
     
     return new ResponseEntity<>(headers, HttpStatus.CREATED);
   }

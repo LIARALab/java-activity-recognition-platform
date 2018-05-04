@@ -46,6 +46,7 @@ public enum CommonFilterNodeType implements FilterNodeType
   VALUE_DOUBLE("value<Double>"),
   VALUE_STRING("value<String>"),
   VALUE_DATETIME("value<PartialLocalDateTime>"),
+  VALUE_BOOLEAN("value<Boolean>"),
   VALUE_TIME("value<PartialLocalTime>");
   
   @NonNull

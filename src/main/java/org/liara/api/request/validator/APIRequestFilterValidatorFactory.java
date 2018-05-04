@@ -23,6 +23,7 @@ package org.liara.api.request.validator;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.filter.validator.BooleanFilterValidator;
 import org.liara.api.filter.validator.DateTimeFilterValidator;
 import org.liara.api.filter.validator.DoubleFilterValidator;
 import org.liara.api.filter.validator.DurationFilterValidator;
@@ -32,6 +33,10 @@ import org.springframework.lang.NonNull;
 
 public final class APIRequestFilterValidatorFactory
 {
+  public static APIRequestFilterValidator booleanValue (@NonNull final String parameter) {
+    return new APIRequestFilterValidator(parameter, new BooleanFilterValidator());
+  }
+  
   public static APIRequestFilterValidator integer (@NonNull final String parameter) {
     return new APIRequestFilterValidator(parameter, new IntegerFilterValidator());
   }

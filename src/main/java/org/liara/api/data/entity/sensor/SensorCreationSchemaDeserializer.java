@@ -49,22 +49,26 @@ public class SensorCreationSchemaDeserializer extends JsonDeserializer<SensorCre
       
       return result;
     } else if (treeNode.isValueNode() && ((ValueNode) treeNode).isNull()) {
-      return new SensorCreationSchema();
+      return null;
     } else {
-      throw new Error("Invalid node type.");
+      throw new Error(String.join(
+        "", 
+        "Unnable to parse a SensorCreationSchema from the provided json : ",
+        "the provided json is nor an object nor a null value."
+      ));
     }
   }
 
   private SensorCreationSchema deserializeSchema (@NonNull final ObjectNode node) {
     final SensorCreationSchema result = _context.getBean(SensorCreationSchema.class);
-    result.setName((node.has("name")) ? node.get("name").asText() : null);
-    result.setType((node.has("type")) ? node.get("type").asText() : null);
-    result.setValueType((node.has("valueType")) ? node.get("valueType").asText() : null);
-    result.setValueUnit((node.has("valueUnit")) ? node.get("valueUnit").asText() : null);
-    result.setValueLabel((node.has("valueLabel")) ? node.get("valueLabel").asText() : null);
-    result.setIpv4Address((node.has("ipv4Address")) ? node.get("ipv4Address").asText() : null);
-    result.setIpv6Address((node.has("ipv6Address")) ? node.get("ipv6Address").asText() : null);
-    result.setParentIdentifier((node.has("parentIdentifier")) ? node.get("parentIdentifier").asLong() : null);
+    result.setName((node.hasNonNull("name")) ? node.get("name").asText() : null);
+    result.setType((node.hasNonNull("type")) ? node.get("type").asText() : null);
+    result.setValueType((node.hasNonNull("valueType")) ? node.get("valueType").asText() : null);
+    result.setValueUnit((node.hasNonNull("valueUnit")) ? node.get("valueUnit").asText() : null);
+    result.setValueLabel((node.hasNonNull("valueLabel")) ? node.get("valueLabel").asText() : null);
+    result.setIpv4Address((node.hasNonNull("ipv4Address")) ? node.get("ipv4Address").asText() : null);
+    result.setIpv6Address((node.hasNonNull("ipv6Address")) ? node.get("ipv6Address").asText() : null);
+    result.setParent((node.hasNonNull("parent")) ? node.get("parent").asLong() : null);
     return result;
   }
 

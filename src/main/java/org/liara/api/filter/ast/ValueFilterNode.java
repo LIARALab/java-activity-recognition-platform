@@ -69,6 +69,14 @@ public class ValueFilterNode<Value> extends BaseFilterNode
     return new ValueFilterNode<String>(CommonFilterNodeType.VALUE_STRING, value);
   }
 
+  public static ValueFilterNode<Boolean> from (final boolean b) {
+    return new ValueFilterNode<Boolean>(CommonFilterNodeType.VALUE_BOOLEAN, b);
+  }
+  
+  public static ValueFilterNode<Boolean> from (@NonNull final Boolean b) {
+    return new ValueFilterNode<Boolean>(CommonFilterNodeType.VALUE_BOOLEAN, b);
+  }
+
   private ValueFilterNode(@NonNull final FilterNodeType type, @NonNull final Value value) {
     super(type);
     _value = value;

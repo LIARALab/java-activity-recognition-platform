@@ -81,8 +81,9 @@ public class VirtualSensorManager
   
   @EventListener
   public void onSensorCreation (@NonNull final SensorWasCreatedEvent event) {
-    if (event.getSensor().isVirtual()) {
-      VirtualSensorRunner.create(this, event.getSensor());
+    final Sensor sensor = event.getSensor().getModel();
+    if (sensor.isVirtual()) {
+      VirtualSensorRunner.create(this, sensor);
     }
   }
   

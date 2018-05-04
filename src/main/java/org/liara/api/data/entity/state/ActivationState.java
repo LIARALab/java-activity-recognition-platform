@@ -32,7 +32,10 @@ import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Formula;
+import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.schema.UseCreationSchema;
+import org.liara.api.data.schema.UseMutationSchema;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -42,6 +45,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "states_presence")
 @PrimaryKeyJoinColumn(name = "state_identifier")
+@UseCreationSchema(ActivationStateCreationSchema.class)
+@UseMutationSchema(ActivationStateMutationSchema.class)
 public class ActivationState extends State
 {  
   @Column(name = "start", nullable = false, updatable = true, unique = false)
@@ -58,6 +63,16 @@ public class ActivationState extends State
   
   @Formula("DATEDIFF(start, end) * 24 * 3600 + TIMESTAMPDIFF(MICROSECOND, start, end) / 1000")
   private Long _milliseconds;
+  
+  public ActivationState () { }
+  
+  public ActivationState (@NonNull final ActivationStateCreationSchema schema) {
+    super (schema);
+    
+    _start = schema.getStart();
+    _end = schema.getEnd();
+    _node = EntityCollections.NODES.findByIdentifier(schema.getNode()).get();
+  }
   
   public Duration getDuration () {
     if (this.getEnd() == null) {
@@ -84,6 +99,10 @@ public class ActivationState extends State
   public Long getNodeIdentifier () {
     return _node.getIdentifier();
   }
+
+  public void setNodeIdentifier (@NonNull final Long node) {
+    _node = EntityCollections.NODES.findByIdentifier(node).get();
+  }
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
   public ZonedDateTime getStart () {
@@ -109,59 +128,9 @@ public class ActivationState extends State
   public void setStart (@NonNull final ZonedDateTime start) {
     _start = start;
   }
-
+  
   @Override
-  public String toString () {
-    StringBuilder builder = new StringBuilder();
-    builder.append("PresenceState [");
-    if (getIdentifier() != null) {
-      builder.append("getIdentifier()=");
-      builder.append(getIdentifier());
-      builder.append(", ");
-    }
-    if (getEmittionDate() != null) {
-      builder.append("getEmittionDate()=");
-      builder.append(getEmittionDate());
-      builder.append(", ");
-    }
-    builder.append("getSensorIdentifier()=");
-    builder.append(getSensorIdentifier());
-    builder.append(", ");
-    if (getCreationDate() != null) {
-      builder.append("getCreationDate()=");
-      builder.append(getCreationDate());
-      builder.append(", ");
-    }
-    if (getDeletionDate() != null) {
-      builder.append("getDeletionDate()=");
-      builder.append(getDeletionDate());
-      builder.append(", ");
-    }
-    if (getUpdateDate() != null) {
-      builder.append("getUpdateDate()=");
-      builder.append(getUpdateDate());
-      builder.append(", ");
-    }
-    if (_start != null) {
-      builder.append("_start=");
-      builder.append(_start);
-      builder.append(", ");
-    }
-    if (_end != null) {
-      builder.append("_end=");
-      builder.append(_end);
-      builder.append(", ");
-    }
-    if (_milliseconds != null) {
-      builder.append("_milliseconds=");
-      builder.append(_milliseconds);
-      builder.append(", ");
-    }
-    if (getNodeIdentifier() != null) {
-      builder.append("getNodeIdentifier()=");
-      builder.append(getNodeIdentifier());
-    }
-    builder.append("]");
-    return builder.toString();
+  public ActivationStateSnapshot snapshot () {
+    return new ActivationStateSnapshot(this);
   }
 }

@@ -24,21 +24,40 @@ package org.liara.api.data.entity.state;
 import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+
+import org.liara.api.data.schema.UseCreationSchema;
+import org.liara.api.data.schema.UseMutationSchema;
+import org.springframework.lang.NonNull;
+
 import javax.persistence.Column;
 
 @Entity
 @Table(name = "states_boolean")
 @PrimaryKeyJoinColumn(name = "state_identifier")
+@UseCreationSchema(BooleanStateCreationSchema.class)
+@UseMutationSchema(BooleanStateMutationSchema.class)
 public class BooleanState extends State
 {
-  private boolean value;
-
   @Column(name = "value", nullable = false, unique = false, updatable = true)
+  private boolean _value;
+  
+  public BooleanState () { }
+  
+  public BooleanState (@NonNull final BooleanStateCreationSchema schema) {
+    super(schema);
+    _value = schema.getValue();
+  }
+  
   public boolean getValue () {
-    return this.value;
+    return _value;
   }
 
   public void setValue (final boolean value) {
-    this.value = value;
+    _value = value;
+  }
+  
+  @Override
+  public BooleanStateSnapshot snapshot () {
+    return new BooleanStateSnapshot(this);
   }
 }

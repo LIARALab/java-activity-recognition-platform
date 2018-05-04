@@ -21,6 +21,9 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import javax.persistence.EntityManager;
 
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
@@ -28,7 +31,9 @@ import org.liara.api.collection.transformation.operator.EntityCollectionConjunct
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.DoubleStateCollectionRequestConfiguration;
 import org.liara.api.collection.EntityCollection;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.DoubleState;
+import org.liara.api.data.operators.StateOperators;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -54,5 +59,25 @@ public class DoubleStateCollection extends EntityCollection<DoubleState>
   @Override
   public DoubleStateCollection apply (@NonNull final EntityCollectionOperator<DoubleState> operator) {
     return new DoubleStateCollection(this, getOperator().conjugate(operator));
+  }
+ 
+  public DoubleStateCollection of (@NonNull final Sensor sensor) {
+    return apply(StateOperators.of(sensor));
+  }
+  
+  public DoubleStateCollection of (@NonNull final Sensor[] sensors) {
+    return apply(StateOperators.of(sensors));
+  }
+  
+  public DoubleStateCollection of (@NonNull final Collection<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
+  }
+  
+  public DoubleStateCollection of (@NonNull final Iterator<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
+  }
+  
+  public DoubleStateCollection of (@NonNull final EntityCollection<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
   }
 }

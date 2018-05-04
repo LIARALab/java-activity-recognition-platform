@@ -29,8 +29,11 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.schema.UseCreationSchema;
+import org.liara.api.data.schema.UseMutationSchema;
 import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -41,14 +44,23 @@ import java.time.ZonedDateTime;
 @Entity
 @Table(name = "states")
 @Inheritance(strategy = InheritanceType.JOINED)
+@UseCreationSchema(StateCreationSchema.class)
+@UseMutationSchema(StateMutationSchema.class)
 public class State extends ApplicationEntity
-{
+{  
   @Column(name = "emitted_at", nullable = false, updatable = true, unique = false)
   private ZonedDateTime _emittionDate;
   
   @ManyToOne(optional = false)
   @JoinColumn(name = "sensor_identifier", nullable = false, unique = false, updatable = true)
   private Sensor _sensor;
+  
+  public State () { }
+  
+  public State (@NonNull final StateCreationSchema schema) {
+    _sensor = EntityCollections.SENSORS.findByIdentifier(schema.getSensor()).get();
+    _emittionDate = schema.getEmittionDate();
+  }
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
   public ZonedDateTime getEmittionDate () {
@@ -70,5 +82,10 @@ public class State extends ApplicationEntity
 
   public void setEmittionDate (@NonNull final ZonedDateTime emittionDate) {
     _emittionDate = emittionDate;
+  }
+  
+  @Override
+  public StateSnapshot snapshot () {
+    return new StateSnapshot(this);
   }
 }

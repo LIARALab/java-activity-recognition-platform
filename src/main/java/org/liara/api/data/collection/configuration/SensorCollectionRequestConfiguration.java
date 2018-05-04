@@ -69,6 +69,9 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
         APIRequestEntityFilterParserFactory.text(
           "name", (root) -> root.get("_name")
         ),
+        APIRequestEntityFilterParserFactory.booleanValue(
+          "virtual", (root) -> root.get("_virtual")
+        ),
         APIRequestEntityFilterParserFactory.text("type", (root) -> root.get("_type")),
         APIRequestEntityFilterParserFactory.text("valueType", (root) -> root.get("_valueType")),
         APIRequestEntityFilterParserFactory.text("valueLabel", (root) -> root.get("_valueLabel")),
@@ -98,6 +101,7 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       APIRequestFilterValidatorFactory.datetime("updateDate"),
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
       APIRequestFilterValidatorFactory.text("name"),
+      APIRequestFilterValidatorFactory.booleanValue("virtual"),
       APIRequestFilterValidatorFactory.includeCollection("states", StateCollection.class),
       APIRequestFilterValidatorFactory.includeCollection("node", NodeCollection.class) 
     );
@@ -136,6 +140,9 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       APIRequestOrderingProcessorFactory.field(
         "ipv4Address", (root) -> root.get("_ipv4Address")
       ),
+      APIRequestOrderingProcessorFactory.field(
+        "virtual", (root) -> root.get("_virtual")
+      ),
       APIRequestOrderingProcessorFactory.joinCollection(
         "node", _nodeJoin, NodeCollection.class
       )
@@ -155,6 +162,7 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
       APIRequestGroupingProcessorFactory.expression("valueLabel", (root) -> root.get("_valueLabel")),
       APIRequestGroupingProcessorFactory.expression("valueUnit", (root) -> root.get("_valueUnit")),
       APIRequestGroupingProcessorFactory.expression("ipv4Address", (root) -> root.get("_ipv4Address")),
+      APIRequestGroupingProcessorFactory.expression("virtual", (root) -> root.get("_virtual")),
       APIRequestGroupingProcessorFactory.joinCollection(
         "node", _nodeJoin, NodeCollection.class
       )

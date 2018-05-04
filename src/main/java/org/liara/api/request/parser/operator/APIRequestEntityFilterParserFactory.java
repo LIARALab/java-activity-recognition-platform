@@ -31,6 +31,8 @@ import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.query.relation.EntityRelation;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.filter.interpretor.BooleanFilterInterpretor;
 import org.liara.api.filter.interpretor.DatetimeFilterInterpretor;
 import org.liara.api.filter.interpretor.DatetimeInRangeFilterInterpretor;
 import org.liara.api.filter.interpretor.DoubleFilterInterpretor;
@@ -40,7 +42,33 @@ import org.liara.api.filter.interpretor.TextFilterInterpretor;
 import org.springframework.lang.NonNull;
 
 public final class APIRequestEntityFilterParserFactory
-{
+{  
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> defaultValue (
+    @NonNull final String parameter,
+    @NonNull final APIRequestEntityCollectionOperatorParser<Entity> parser,
+    @NonNull final EntityCollectionOperator<Entity> operator
+  ) {
+    return new APIRequestDefaultOperatorParser<>(parameter, operator, parser);
+  }
+  
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> booleanValue (
+    @NonNull final String parameter, 
+    @NonNull final SimpleEntityFieldSelector<Entity, Expression<Boolean>> selector
+  ) {
+    return APIRequestEntityFilterParserFactory.booleanValue(
+      parameter, (EntityFieldSelector<Entity, Expression<Boolean>>) selector
+    );
+  }
+  
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> booleanValue (
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector<Entity, Expression<Boolean>> selector
+  ) {
+    return new APIRequestEntityCollectionCommandBasedFilteringOperatorParser<Entity, Boolean>(
+        parameter, new BooleanFilterInterpretor<>(selector)
+    );
+  }
+  
   public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> integerValue (
     @NonNull final String parameter, 
     @NonNull final SimpleEntityFieldSelector<Entity, Expression<Integer>> selector

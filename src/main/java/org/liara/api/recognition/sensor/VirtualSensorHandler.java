@@ -1,5 +1,11 @@
 package org.liara.api.recognition.sensor;
 
+import org.liara.api.event.NodeWasCreatedEvent;
+import org.liara.api.event.NodeWillBeCreatedEvent;
+import org.liara.api.event.SensorWasCreatedEvent;
+import org.liara.api.event.SensorWillBeCreatedEvent;
+import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateWillBeCreatedEvent;
 import org.springframework.lang.NonNull;
 
 public interface VirtualSensorHandler
@@ -15,6 +21,18 @@ public interface VirtualSensorHandler
    * A method called before a shutdown of this sensor.
    */
   public void pause ();
+  
+  public void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event);
+  
+  public void sensorWasCreated (@NonNull final SensorWasCreatedEvent event);
+  
+  public void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event);
+  
+  public void nodeWasCreated (@NonNull final NodeWasCreatedEvent event);
+  
+  public void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event);
+  
+  public void stateWasCreated (@NonNull final StateWasCreatedEvent event);
   
   /**
    * A method called when the given virtual sensor is restarted.

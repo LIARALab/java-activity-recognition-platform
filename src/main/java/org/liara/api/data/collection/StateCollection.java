@@ -21,19 +21,19 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
-import org.liara.api.collection.query.selector.EntityFieldSelector;
-import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.data.operators.StateOperators;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -62,20 +62,22 @@ public class StateCollection extends EntityCollection<State>
   }
   
   public StateCollection of (@NonNull final Sensor sensor) {
-    final EntityCollectionOperator<State> operator = query -> query.andWhere(query.getEntity().get("_sensor").in(sensor));
-    return apply(operator);
+    return apply(StateOperators.of(sensor));
   }
   
-  public StateCollection orderedAscBy (@NonNull final SimpleEntityFieldSelector<State, Expression<?>> field) {
-    return orderedAscBy((EntityFieldSelector<State, Expression<?>>) field);
+  public StateCollection of (@NonNull final Sensor[] sensors) {
+    return apply(StateOperators.of(sensors));
   }
   
-  public StateCollection orderedAscBy (@NonNull final EntityFieldSelector<State, Expression<?>> field) {
-    final EntityCollectionOperator<State> operator = query -> {
-      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
-      query.andOrderBy(builder.asc(field.select(query)));
-    };
-    
-    return apply(operator);
+  public StateCollection of (@NonNull final Collection<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
+  }
+  
+  public StateCollection of (@NonNull final Iterator<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
+  }
+  
+  public StateCollection of (@NonNull final EntityCollection<Sensor> sensors) {
+    return apply(StateOperators.of(sensors));
   }
 }

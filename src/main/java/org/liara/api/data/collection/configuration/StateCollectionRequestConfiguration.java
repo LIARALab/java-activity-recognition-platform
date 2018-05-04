@@ -22,7 +22,6 @@
 package org.liara.api.data.collection.configuration;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.criteria.Join;
@@ -38,6 +37,7 @@ import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory
 import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
 import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessorFactory;
 import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessorFactory;
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 import org.springframework.lang.NonNull;
@@ -112,6 +112,13 @@ public final class StateCollectionRequestConfiguration implements CollectionRequ
   
   @Override
   public List<APIRequestGroupingProcessor<State>> createGroupingProcessors () {
-    return Collections.emptyList();
+    return Arrays.asList(
+      APIRequestGroupingProcessorFactory.expression("identifier", (root) -> root.get("_identifier")),
+      APIRequestGroupingProcessorFactory.expression("creationDate", (root) -> root.get("_creationDate")),
+      APIRequestGroupingProcessorFactory.expression("updateDate", (root) -> root.get("_updateDate")),
+      APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
+      APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
+      APIRequestGroupingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
+    );
   }
 }
