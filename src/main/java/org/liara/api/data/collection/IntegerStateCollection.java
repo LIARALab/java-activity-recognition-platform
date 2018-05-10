@@ -21,6 +21,7 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -76,5 +77,21 @@ public class IntegerStateCollection extends EntityCollection<IntegerState>
   
   public IntegerStateCollection of (@NonNull final EntityCollection<Sensor> sensors) {
     return apply(StateOperators.of(sensors));
+  }
+  
+  public IntegerStateCollection before (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.before(date));
+  }
+  
+  public IntegerStateCollection after (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.after(date));
+  }
+  
+  public IntegerStateCollection beforeOrAt (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.before(date));
+  }
+  
+  public IntegerStateCollection afterOrAt (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.after(date));
   }
 }

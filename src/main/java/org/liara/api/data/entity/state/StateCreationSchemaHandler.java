@@ -27,7 +27,7 @@ public class StateCreationSchemaHandler
     _publisher = publisher;
   }
   
-  public State handle (@NonNull final StateCreationSchema schema) {
+  public State handle (@NonNull final StateCreationSchema schema) {    
     _publisher.publishEvent(new StateWillBeCreatedEvent(this, schema));
     final State state = schema.create();
     _manager.persist(state);

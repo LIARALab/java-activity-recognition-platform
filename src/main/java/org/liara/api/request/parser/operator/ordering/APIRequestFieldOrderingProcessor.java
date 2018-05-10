@@ -29,18 +29,18 @@ import org.liara.api.collection.transformation.operator.ordering.EntityCollectio
 import org.liara.api.collection.transformation.operator.ordering.EntityCollectionOrderingOperator;
 import org.springframework.lang.NonNull;
 
-public class      APIRequestFieldOrderingProcessor<Entity> 
+public class      APIRequestFieldOrderingProcessor<Entity, Field> 
        implements APIRequestOrderingProcessor<Entity>
 {
   @NonNull
   private final String _parameter;
   
   @NonNull
-  private final EntityFieldSelector<Entity, Expression<?>> _selector;
+  private final EntityFieldSelector<Entity, Expression<Field>> _selector;
   
   public APIRequestFieldOrderingProcessor (
     @NonNull final String parameter, 
-    @NonNull final EntityFieldSelector<Entity, Expression<?>> selector
+    @NonNull final EntityFieldSelector<Entity, Expression<Field>> selector
   ) {
     _parameter = parameter;
     _selector = selector;

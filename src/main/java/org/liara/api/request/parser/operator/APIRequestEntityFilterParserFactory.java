@@ -43,6 +43,13 @@ import org.springframework.lang.NonNull;
 
 public final class APIRequestEntityFilterParserFactory
 {  
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> callback (
+    @NonNull final String parameter, 
+    @NonNull final APIRequestEntityCollectionCallbackOperatorParser<Entity> callback
+  ) {
+    return new APIRequestEntityCollectionIfPresentOperatorParser<>(parameter, callback);
+  }
+  
   public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> defaultValue (
     @NonNull final String parameter,
     @NonNull final APIRequestEntityCollectionOperatorParser<Entity> parser,

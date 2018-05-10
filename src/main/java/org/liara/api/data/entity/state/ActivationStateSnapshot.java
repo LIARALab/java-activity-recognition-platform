@@ -1,17 +1,15 @@
 package org.liara.api.data.entity.state;
 
-import java.time.ZonedDateTime;
-
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 public class ActivationStateSnapshot extends StateSnapshot
 {
   @NonNull
-  private final ZonedDateTime _start;
+  private final Long _startState;
   
   @Nullable
-  private final ZonedDateTime _end;
+  private final Long _endState;
   
   @NonNull
   private final Long _node;
@@ -19,25 +17,25 @@ public class ActivationStateSnapshot extends StateSnapshot
   public ActivationStateSnapshot(@NonNull final ActivationStateSnapshot toCopy) {
     super(toCopy);
     
-    _start = toCopy.getStart();
-    _end = toCopy.getEnd();
+    _startState = toCopy.getStartState();
+    _endState = toCopy.getEndState();
     _node = toCopy.getNode();
   }
 
   public ActivationStateSnapshot(@NonNull final ActivationState model) {
     super(model);
     
-    _start = model.getStart();
-    _end = model.getEnd();
+    _startState = model.getStartStateIdentifier();
+    _endState = model.getEndStateIdentifier();
     _node = model.getNodeIdentifier();
   }
   
-  public ZonedDateTime getStart () {
-    return _start;
+  public Long getStartState () {
+    return _startState;
   }
   
-  public ZonedDateTime getEnd () {
-    return _end;
+  public Long getEndState () {
+    return _endState;
   }
   
   public Long getNode () {

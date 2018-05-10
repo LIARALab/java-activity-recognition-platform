@@ -179,4 +179,18 @@ public class NodeCollection extends EntityCollection<Node>
   public NodeCollection apply (@NonNull final EntityCollectionOperator<Node> operator) {
     return new NodeCollection(this, getOperator().conjugate(operator));
   }
+
+  public NodeCollection parentsOf (@NonNull final Node node) {
+    final EntityCollectionOperator<Node> operator = query -> {
+      final QueriedEntity<?, Node> queried = query.getEntity();
+      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
+      
+      query.andWhere(builder.and(
+        builder.lessThan(queried.get("_setStart"), node.getSetStart()),
+        builder.greaterThan(queried.get("_setEnd"), node.getSetEnd())
+      ));
+    };
+    
+    return apply(operator);
+  }
 }

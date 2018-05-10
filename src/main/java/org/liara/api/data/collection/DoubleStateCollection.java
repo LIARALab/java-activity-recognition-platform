@@ -21,6 +21,7 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -79,5 +80,21 @@ public class DoubleStateCollection extends EntityCollection<DoubleState>
   
   public DoubleStateCollection of (@NonNull final EntityCollection<Sensor> sensors) {
     return apply(StateOperators.of(sensors));
+  }
+  
+  public DoubleStateCollection before (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.before(date));
+  }
+  
+  public DoubleStateCollection after (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.after(date));
+  }
+  
+  public DoubleStateCollection beforeOrAt (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.before(date));
+  }
+  
+  public DoubleStateCollection afterOrAt (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.after(date));
   }
 }

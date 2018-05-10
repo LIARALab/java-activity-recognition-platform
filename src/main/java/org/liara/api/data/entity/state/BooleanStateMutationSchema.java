@@ -34,15 +34,15 @@ public class BooleanStateMutationSchema extends StateMutationSchema
     _value = value.orElse(null);
   }
   
-  protected void apply (@NonNull final BooleanState state) {
-    if (_value != null) state.setValue(_value);
-  }
-  
   @Override
   @IdentifierOfEntityInCollection(collection = BooleanStateCollection.class)
   @Required
   public Long getIdentifier () {
     return super.getIdentifier();
+  }
+  
+  protected void apply (@NonNull final BooleanState state) {
+    if (_value != null) state.setValue(_value);
   }
   
   @Override

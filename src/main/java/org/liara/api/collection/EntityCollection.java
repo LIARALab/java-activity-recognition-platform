@@ -135,6 +135,12 @@ public class EntityCollection<Entity>
     }
   }
   
+  public <Identifier> boolean containsEntityWithIdentifier (
+    @NonNull final Identifier identifier
+  ) {
+    return findByIdentifier(identifier).isPresent();
+  }
+  
   /**
    * Try to find an entity of this collection by using it's identifier.
    * 
@@ -256,6 +262,16 @@ public class EntityCollection<Entity>
                      .setFirstResult((int) index)
                      .getSingleResult();
     }
+  }
+  
+  public Optional<Entity> first () {
+    final EntityCollectionMainQuery<Entity, Entity> query = createCollectionQuery();
+    final List<Entity> result = query.getManager()
+                                     .createQuery(query.getCriteriaQuery())
+                                     .setMaxResults(1)
+                                     .getResultList();
+    
+    return result.isEmpty() ? Optional.empty() : Optional.ofNullable(result.get(0));
   }
   
   /**

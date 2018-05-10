@@ -24,6 +24,11 @@ public class StateCreationSchema
   @Nullable
   private Long _sensor = null;
   
+  public void clear () {
+    _emittionDate = null;
+    _sensor = null;
+  }
+  
   @Required
   @IdentifierOfEntityInCollection(collection = SensorCollection.class)
   public Long getSensor () {

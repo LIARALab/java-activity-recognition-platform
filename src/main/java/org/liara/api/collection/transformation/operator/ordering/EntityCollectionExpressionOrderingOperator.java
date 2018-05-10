@@ -29,10 +29,11 @@ import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.springframework.lang.NonNull;
 
-public final class EntityCollectionExpressionOrderingOperator<Entity> implements EntityCollectionOrderingOperator<Entity>
+public final class      EntityCollectionExpressionOrderingOperator<Entity, Field> 
+             implements EntityCollectionOrderingOperator<Entity>
 {
   @NonNull
-  private final EntityFieldSelector<Entity, Expression<?>> _selector;
+  private final EntityFieldSelector<Entity, Expression<Field>> _selector;
   
   @NonNull
   private final EntityCollectionOrderingOperator.Direction _orderType;
@@ -43,7 +44,7 @@ public final class EntityCollectionExpressionOrderingOperator<Entity> implements
    * @param selector A selector that select an expression from an entity.
    */
   public EntityCollectionExpressionOrderingOperator (
-    @NonNull final EntityFieldSelector<Entity, Expression<?>> selector
+    @NonNull final EntityFieldSelector<Entity, Expression<Field>> selector
   ) {
     _selector = selector;
     _orderType = EntityCollectionOrderingOperator.Direction.ASC;
@@ -56,7 +57,7 @@ public final class EntityCollectionExpressionOrderingOperator<Entity> implements
    * @param orderType The order of the ordering for the given selector.
    */
   public EntityCollectionExpressionOrderingOperator (
-    @NonNull final EntityFieldSelector<Entity, Expression<?>> selector, 
+    @NonNull final EntityFieldSelector<Entity, Expression<Field>> selector, 
     @NonNull final EntityCollectionOrderingOperator.Direction orderType
   ) {
     _selector = selector;
@@ -86,8 +87,8 @@ public final class EntityCollectionExpressionOrderingOperator<Entity> implements
     return _selector;
   }
   
-  public EntityCollectionExpressionOrderingOperator<Entity> setSelector (
-    @NonNull final EntityFieldSelector<Entity, Expression<?>> selector
+  public EntityCollectionExpressionOrderingOperator<Entity, Field> setSelector (
+    @NonNull final EntityFieldSelector<Entity, Expression<Field>> selector
   ) {
     return new EntityCollectionExpressionOrderingOperator<>(selector, _orderType);
   }
@@ -96,7 +97,7 @@ public final class EntityCollectionExpressionOrderingOperator<Entity> implements
     return _orderType;
   }
 
-  public EntityCollectionExpressionOrderingOperator<Entity> setDirection (
+  public EntityCollectionExpressionOrderingOperator<Entity, Field> setDirection (
     @NonNull final EntityCollectionOrderingOperator.Direction direction
   ) {
     return new EntityCollectionExpressionOrderingOperator<>(_selector, direction);

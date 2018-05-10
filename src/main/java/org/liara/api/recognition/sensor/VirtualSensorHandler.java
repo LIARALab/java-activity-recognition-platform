@@ -5,7 +5,9 @@ import org.liara.api.event.NodeWillBeCreatedEvent;
 import org.liara.api.event.SensorWasCreatedEvent;
 import org.liara.api.event.SensorWillBeCreatedEvent;
 import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateWasMutatedEvent;
 import org.liara.api.event.StateWillBeCreatedEvent;
+import org.liara.api.event.StateWillBeMutatedEvent;
 import org.springframework.lang.NonNull;
 
 public interface VirtualSensorHandler
@@ -33,6 +35,10 @@ public interface VirtualSensorHandler
   public void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event);
   
   public void stateWasCreated (@NonNull final StateWasCreatedEvent event);
+  
+  public void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event);
+  
+  public void stateWasMutated (@NonNull final StateWasMutatedEvent event);
   
   /**
    * A method called when the given virtual sensor is restarted.

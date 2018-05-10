@@ -1,6 +1,5 @@
 package org.liara.api.data.entity.state;
 
-import java.time.ZonedDateTime;
 import java.util.Optional;
 
 import org.liara.api.data.collection.ActivationStateCollection;
@@ -22,38 +21,65 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public class ActivationStateMutationSchema extends StateMutationSchema
 {
   @Nullable
-  private ZonedDateTime _start = null;
+  private Long _startState = null;
   
   @Nullable
-  private ZonedDateTime _end = null;
+  private Long _endState = null;
   
   @Nullable
   private Long _node = null;
+
+  @Override
+  public void clear () {
+    super.clear();
+    
+    _startState = null;
+    _endState = null;
+    _node = null;
+  }
   
-  public ZonedDateTime getStart () {
-    return _start;
+  @IdentifierOfEntityInCollection(collection = StateCollection.class)
+  public Long getStartState () {
+    return _startState;
   }
   
   @JsonSetter
-  public void setStart (@Nullable final ZonedDateTime start) {
-    _start = start;
+  public void setStartState (@Nullable final Long startState) {
+    _startState = startState;
   }
   
-  public void setStart (@NonNull final Optional<ZonedDateTime> start) {
-    _start = start.orElse(null);
+  public void setStartState (@NonNull final Optional<Long> startState) {
+    _startState = startState.orElse(null);
   }
   
-  public ZonedDateTime getEnd () {
-    return _end;
+  public void setStartState (@Nullable final State startState) {
+    if (startState == null) {
+      _startState = null;
+    } else {
+      _startState = startState.getIdentifier();
+    }
+  }
+  
+  @IdentifierOfEntityInCollection(collection = StateCollection.class)
+  public Long getEndState () {
+    return _endState;
   }
   
   @JsonSetter
-  public void setEnd (@Nullable final ZonedDateTime end) {
-    _end = end;
+  public void setEndState (@Nullable final Long endState) {
+    _endState = endState;
   }
   
-  public void setEnd (@NonNull final Optional<ZonedDateTime> end) {
-    _end = end.orElse(null);
+  public void setEndState (@NonNull final Optional<Long> endState) {
+    _endState = endState.orElse(null);
+  }
+  
+  public void setEndState (@Nullable final State endState) {
+    if (endState == null) {
+      _endState = null;
+    } else {
+      _endState = endState.getIdentifier();
+    }
   }
   
   @IdentifierOfEntityInCollection(collection = NodeCollection.class)
@@ -79,8 +105,8 @@ public class ActivationStateMutationSchema extends StateMutationSchema
   }
   
   protected void apply (@NonNull final ActivationState state) {
-    if (_start != null) state.setStart(_start);
-    if (_end != null) state.setEnd(_end);
+    if (_startState != null) state.setStartStateIdentifier(_startState);
+    if (_endState != null) state.setEndStateIdentifier(_endState);
     if (_node != null) state.setNodeIdentifier(_node);
   }
   

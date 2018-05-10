@@ -81,7 +81,7 @@ public class      Sensor
   )
   private List<State>   _states;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @ManyToOne(optional = false)
   @JoinColumn(name = "node_identifier", nullable = false, unique = false, updatable = false)
   private Node    _node;
   
@@ -89,7 +89,7 @@ public class      Sensor
   @Column(name = "configuration", nullable = false, updatable = false, unique = false)
   private SensorConfiguration _configuration;
   
-  @Column(name = "virtual", nullable = false, updatable = true, unique = false)
+  @Column(name = "is_virtual_sensor", nullable = false, updatable = true, unique = false)
   private boolean _virtual;
   
   public Sensor () { }

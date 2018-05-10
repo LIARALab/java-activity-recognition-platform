@@ -23,6 +23,11 @@ public class StateMutationSchema
   @Nullable
   private ZonedDateTime _emittionDate = null;
   
+  public void clear () {
+    _identifier = null;
+    _emittionDate = null;
+  }
+  
   @Required
   @IdentifierOfEntityInCollection(collection = StateCollection.class)
   public Long getIdentifier () {

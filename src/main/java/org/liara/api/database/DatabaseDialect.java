@@ -24,11 +24,25 @@ package org.liara.api.database;
 import org.hibernate.dialect.MySQL5Dialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.type.IntegerType;
+import org.hibernate.type.LongType;
 
 public class DatabaseDialect extends MySQL5Dialect {
   public DatabaseDialect() {
       super();
       registerKeyword("microsecond");
-      registerFunction("regexp", new SQLFunctionTemplate(IntegerType.INSTANCE, "?1 REGEXP ?2"));
+      registerFunction(
+        "timestampdiff_microsecond", 
+        new SQLFunctionTemplate(
+          LongType.INSTANCE, 
+          "TIMESTAMPDIFF(MICROSECOND, ?1, ?2)"
+        )
+      );
+      registerFunction(
+        "regexp", 
+        new SQLFunctionTemplate(
+          IntegerType.INSTANCE, 
+          "?1 REGEXP ?2"
+        )
+      );
   }
 }

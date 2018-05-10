@@ -21,6 +21,7 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -79,5 +80,21 @@ public class BooleanStateCollection extends EntityCollection<BooleanState>
   
   public BooleanStateCollection of (@NonNull final EntityCollection<Sensor> sensors) {
     return apply(StateOperators.of(sensors));
+  }
+  
+  public BooleanStateCollection before (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.before(date));
+  }
+  
+  public BooleanStateCollection after (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.after(date));
+  }
+  
+  public BooleanStateCollection beforeOrAt (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.beforeOrAt(date));
+  }
+  
+  public BooleanStateCollection afterOrAt (@NonNull final ZonedDateTime date) {
+    return apply(StateOperators.afterOrAt(date));
   }
 }

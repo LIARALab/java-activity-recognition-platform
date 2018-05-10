@@ -21,8 +21,15 @@ import com.fasterxml.jackson.databind.node.ValueNode;
 @JsonComponent
 public class SensorCreationSchemaDeserializer extends JsonDeserializer<SensorCreationSchema>
 { 
+  private final ApplicationContext _context;
+
   @Autowired
-  private ApplicationContext _context;
+  public SensorCreationSchemaDeserializer (
+    @NonNull final ApplicationContext context
+  ) {
+    super();
+    _context = context;
+  }
   
   @Override
   public SensorCreationSchema deserialize (

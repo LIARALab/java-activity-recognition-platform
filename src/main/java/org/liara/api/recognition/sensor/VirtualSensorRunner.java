@@ -36,26 +36,17 @@ public class VirtualSensorRunner
       throw new Error("Unnable to instanciate a runner for a non-virtual sensor.");
     }
     
-    try {
-      @SuppressWarnings("unchecked") /* Checked virtual sensor */
-      final Class<? extends VirtualSensorHandler> handlerType = (Class<? extends VirtualSensorHandler>) sensor.getTypeClass();
-      final ApplicationContext applicationContext = manager.getApplicationContext();
-      /* @TODO check handler unicity */
-      final VirtualSensorHandler handler = applicationContext.getBean(
-        applicationContext.getBeanNamesForType(handlerType)[0], handlerType
-      );
-      
-      final VirtualSensorRunner result = new VirtualSensorRunner(manager, sensor, handler);
-      manager.registerRunner(result);
-      return result;
-    } catch (final Exception exception) {
-      throw new Error(String.join(
-        "", 
-        "Unnable to instanciate a virtual sensor handler for the virtual type ",
-        sensor.getType(), ". Note that, a virtual sensor handler must always have an ",
-        "empty constructor."
-      ));
-    }
+    @SuppressWarnings("unchecked") /* Checked virtual sensor */
+    final Class<? extends VirtualSensorHandler> handlerType = (Class<? extends VirtualSensorHandler>) sensor.getTypeClass();
+    final ApplicationContext applicationContext = manager.getApplicationContext();
+    /* @TODO check handler unicity */
+    final VirtualSensorHandler handler = applicationContext.getBean(
+      applicationContext.getBeanNamesForType(handlerType)[0], handlerType
+    );
+    
+    final VirtualSensorRunner result = new VirtualSensorRunner(manager, sensor, handler);
+    manager.registerRunner(result);
+    return result;
   }
   
   public static VirtualSensorRunner create (

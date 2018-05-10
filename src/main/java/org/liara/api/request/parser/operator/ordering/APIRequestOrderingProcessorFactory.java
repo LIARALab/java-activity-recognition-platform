@@ -32,16 +32,16 @@ import org.springframework.lang.NonNull;
 
 public final class APIRequestOrderingProcessorFactory
 {
-  public static <Entity> APIRequestOrderingProcessor<Entity> field (
+  public static <Entity, Field> APIRequestOrderingProcessor<Entity> field (
     @NonNull final String key, 
-    @NonNull final SimpleEntityFieldSelector<Entity, Expression<?>> selector
+    @NonNull final SimpleEntityFieldSelector<Entity, Expression<Field>> selector
   ) {
-    return field(key, (EntityFieldSelector<Entity, Expression<?>>) selector);
+    return field(key, (EntityFieldSelector<Entity, Expression<Field>>) selector);
   }
   
-  public static <Entity> APIRequestOrderingProcessor<Entity> field (
+  public static <Entity, Field> APIRequestOrderingProcessor<Entity> field (
     @NonNull final String key, 
-    @NonNull final EntityFieldSelector<Entity, Expression<?>> selector
+    @NonNull final EntityFieldSelector<Entity, Expression<Field>> selector
   ) {
     return new APIRequestFieldOrderingProcessor<>(key, selector);
   }

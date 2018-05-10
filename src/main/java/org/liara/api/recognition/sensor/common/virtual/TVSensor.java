@@ -16,7 +16,9 @@ import org.liara.api.event.NodeWillBeCreatedEvent;
 import org.liara.api.event.SensorWasCreatedEvent;
 import org.liara.api.event.SensorWillBeCreatedEvent;
 import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateWasMutatedEvent;
 import org.liara.api.event.StateWillBeCreatedEvent;
+import org.liara.api.event.StateWillBeMutatedEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.EmitStateOfType;
 import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
@@ -71,7 +73,7 @@ public class TVSensor extends AbstractVirtualSensorHandler
     
     while (states.hasNext()) {
       final DoubleState next = (DoubleState) states.next();
-      
+      /*
       if (previous == null && next.getValue() > 0.0) {
         emitting = new ActivationState();
         emitting.setStart(next.getEmittionDate());
@@ -93,7 +95,7 @@ public class TVSensor extends AbstractVirtualSensorHandler
           emitting.setEmittionDate(next.getEmittionDate());
           _states.getManager().persist(emitting);
         }
-      }
+      }*/
       
       previous = next;
     }
@@ -131,6 +133,18 @@ public class TVSensor extends AbstractVirtualSensorHandler
 
   @Override
   public void stateWasCreated (@NonNull final StateWasCreatedEvent event) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void stateWillBeMutated (StateWillBeMutatedEvent event) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void stateWasMutated (StateWasMutatedEvent event) {
     // TODO Auto-generated method stub
     
   }

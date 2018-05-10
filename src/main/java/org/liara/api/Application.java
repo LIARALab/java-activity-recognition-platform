@@ -45,6 +45,15 @@ public class Application
     context.getBean(VirtualSensorManager.class).start();
   }
   
+  /*
+  @Bean
+  public Jackson2ObjectMapperBuilder jacksonBuilder() {
+    Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+    builder.modules(new JavaTimeModule());
+    return builder;
+  }
+  */
+  
   @Bean
   public WebMvcConfigurer corsConfigurer() {
       return new WebMvcConfigurer () {

@@ -81,7 +81,7 @@ public class SensorCollection extends EntityCollection<Sensor>
   public SensorCollection ofType (@NonNull final Class<?> type) {
     final EntityCollectionOperator<Sensor> operator = query -> {
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
-      query.andWhere(builder.equal(query.getEntity().get("_type"), type.toString()));
+      query.andWhere(builder.equal(query.getEntity().get("_type"), type.getName()));
     };
     
     return apply(operator);
@@ -91,7 +91,7 @@ public class SensorCollection extends EntityCollection<Sensor>
     final EntityCollectionOperator<Sensor> operator = query -> {
       query.andWhere(
         query.getEntity().get("_type").in(
-          types.stream().map(Class::toString)
+          types.stream().map(Class::getName)
                         .collect(Collectors.toList())
         )
       );

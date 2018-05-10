@@ -62,12 +62,18 @@ public class SensorSnapshot extends ApplicationEntitySnapshot
     _valueLabel = model.getValueLabel();
     _ipv4Address = model.getIpv4Address();
     _ipv6Address = model.getIpv6Address();
-    _states = Collections.unmodifiableList(
-      model.getStates()
-           .stream()
-           .map(x -> x.getIdentifier())
-           .collect(Collectors.toList())
-    );
+    
+    if (model.getStates() == null || model.getStates().size() == 0) {
+      _states = Collections.unmodifiableList(Collections.emptyList());
+    } else {
+      _states = Collections.unmodifiableList(
+        model.getStates()
+             .stream()
+             .map(x -> x.getIdentifier())
+             .collect(Collectors.toList())
+      );
+    }
+    
     _node = model.getNodeIdentifier();
   }
 

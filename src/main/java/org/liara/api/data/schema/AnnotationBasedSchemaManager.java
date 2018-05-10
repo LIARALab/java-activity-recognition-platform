@@ -1,6 +1,7 @@
 package org.liara.api.data.schema;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,10 @@ public class AnnotationBasedSchemaManager implements SchemaManager
   
   @NonNull
   private final BiMap<Class<?>, String> _handlers = HashBiMap.create();
-
+  
+  @NonNull
+  private final Map<Class<?>, Class<?>> _handlerSolutions = new HashMap<>();
+  
   @Autowired
   public AnnotationBasedSchemaManager (
     @NonNull final ApplicationContext context
@@ -42,6 +46,7 @@ public class AnnotationBasedSchemaManager implements SchemaManager
   
   private void captureHandlers () {
     _handlers.clear();
+    _handlerSolutions.clear();
     
     final String[] handlerNames = _context.getBeanNamesForAnnotation(SchemaHandler.class);
     
@@ -59,6 +64,7 @@ public class AnnotationBasedSchemaManager implements SchemaManager
           ));
         } else {
           _handlers.put(handled, handlerName);
+          _handlerSolutions.put(handled, handled);
         }
       }
     }
@@ -72,6 +78,7 @@ public class AnnotationBasedSchemaManager implements SchemaManager
     final Method method = getHandlerMethodOrFail(handlerName);
     
     final Object handler = _context.getBean(handlerName);
+        
     final Object result = executeOrFail(method, handler, schema);
     
     return castOrFail(result);
@@ -126,6 +133,11 @@ public class AnnotationBasedSchemaManager implements SchemaManager
 
   private String findHandlerForSchemaOrFail (@NonNull final Object schema) {
     final Class<?> schemaClass = schema.getClass();
+    
+    if (_handlerSolutions.containsKey(schemaClass)) {
+      return _handlers.get(_handlerSolutions.get(schemaClass));
+    }
+    
     String result = null;
     Class<?> resultHandledSchemaClass = null;
     
@@ -153,6 +165,7 @@ public class AnnotationBasedSchemaManager implements SchemaManager
       ));
     }
     
+    _handlerSolutions.put(schemaClass, resultHandledSchemaClass);
     return result;
   }
 

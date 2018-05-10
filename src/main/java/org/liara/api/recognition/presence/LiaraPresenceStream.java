@@ -82,8 +82,8 @@ public class LiaraPresenceStream implements PresenceStream
 
   private ActivationState toOccuringPresence (Event event) {
     final ActivationState result = new ActivationState();
-    result.setStart(event.getStart());
-    result.setEnd(null);
+    /*result.setStart(event.getStart());
+    result.setEnd(null);*/
     result.setNode(event.getSensor().getNode());
     result.setEmittionDate(event.getStart());
     return result;  
@@ -91,8 +91,8 @@ public class LiaraPresenceStream implements PresenceStream
 
   private ActivationState toPresence (@NonNull final Event event) {
     final ActivationState result = new ActivationState();
-    result.setStart(event.getStart());
-    result.setEnd(event.getEnd());
+    /*result.setStart(event.getStart());
+    result.setEnd(event.getEnd());*/
     result.setNode(event.getSensor().getNode());
     result.setEmittionDate(event.getEnd());
     return result;

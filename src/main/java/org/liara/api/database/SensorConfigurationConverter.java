@@ -20,6 +20,10 @@ public class SensorConfigurationConverter implements AttributeConverter<SensorCo
   
   @Override
   public String convertToDatabaseColumn (@Nullable final SensorConfiguration attribute) {
+    if (attribute == null) {
+      return "null";
+    }
+    
     try {
       final ObjectNode node = _mapper.valueToTree(attribute);
       node.set("$$sensorConfigurationClass", _mapper.valueToTree(attribute.getClass()));

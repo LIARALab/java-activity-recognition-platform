@@ -24,14 +24,15 @@ package org.liara.api.data.entity.state;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
 
-import org.hibernate.annotations.Formula;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.schema.UseCreationSchema;
@@ -49,46 +50,102 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @UseMutationSchema(ActivationStateMutationSchema.class)
 public class ActivationState extends State
 {  
-  @Column(name = "start", nullable = false, updatable = true, unique = false)
-  @NonNull
-  private ZonedDateTime _start;
+  public static EntityFieldSelector<ActivationState, Expression<ZonedDateTime>> START_DATE = (query, queried) -> {
+    return queried.join("_startState").get("_emittionDate");
+  };
+  
+  public static EntityFieldSelector<ActivationState, Expression<ZonedDateTime>> END_DATE = (query, queried) -> {
+    return queried.join("_endState").get("_emittionDate");
+  };
+  
+  public static EntityFieldSelector<ActivationState, Expression<Long>> DURATION_SELECTOR = (query, queried) -> {
+    final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
+    final Expression<ZonedDateTime> start = START_DATE.select(query, queried);
+    final Expression<ZonedDateTime> end = END_DATE.select(query, queried);
+    
+    return builder.sum(
+      builder.prod(
+        builder.function(
+          "DATEDIFF", Long.class, start, end
+        ), 24L * 3600L
+      ),
+      builder.toLong(
+        builder.quot(
+          builder.function(
+            "TIMESTAMPDIFF_MICROSECOND", Long.class, start, end
+          ), 1000L
+        )
+      )
+    );
+  };
+  
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "start_state_identifier", nullable = false, unique = false, updatable = true)
+  private State _startState;
 
-  @Column(name = "end", nullable = true, updatable = true, unique = false)
-  @Nullable
-  private ZonedDateTime _end;
+  @ManyToOne(optional = true)
+  @JoinColumn(name = "end_state_identifier", nullable = true, unique = false, updatable = true)
+  private State _endState;
   
   @ManyToOne(optional = false)
   @JoinColumn(name = "node_identifier", nullable = false, unique = false, updatable = true)
   private Node _node;
-  
-  @Formula("DATEDIFF(start, end) * 24 * 3600 + TIMESTAMPDIFF(MICROSECOND, start, end) / 1000")
-  private Long _milliseconds;
   
   public ActivationState () { }
   
   public ActivationState (@NonNull final ActivationStateCreationSchema schema) {
     super (schema);
     
-    _start = schema.getStart();
-    _end = schema.getEnd();
+    _startState = EntityCollections.STATES.findByIdentifier(schema.getStartState()).get();
+    
+    if (schema.getEndState() != null) {
+      _endState = EntityCollections.STATES.findByIdentifier(schema.getEndState()).get();
+    } else {
+      _endState = null;
+    }
+    
     _node = EntityCollections.NODES.findByIdentifier(schema.getNode()).get();
   }
   
   public Duration getDuration () {
-    if (this.getEnd() == null) {
+    if (_endState == null) {
       return null;
     } else {
-      return Duration.between(_start, _end);
+      return Duration.between(_startState.getEmittionDate(), _endState.getEmittionDate());
     }
   }
   
   public Long getMilliseconds () {
-    return _milliseconds;
+    final Duration duration = getDuration();
+    
+    if (duration == null) {
+      return null;
+    } else {
+      return getDuration().getNano() / 1_000_000L;
+    }
   }
   
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
   public ZonedDateTime getEnd () {
-    return _end;
+    return (_endState == null) ? null : _endState.getEmittionDate();
+  }
+  
+  @JsonIgnore
+  public State getEndState () {
+    return _endState;
+  }
+  
+  public Long getEndStateIdentifier () {
+    if (_endState == null) return null;
+    else return _endState.getIdentifier();
+  }
+  
+  public void setEndStateIdentifier (@Nullable final Long identifier) {
+    if (identifier == null) {
+      _endState = null;
+    } else {
+      _endState = EntityCollections.STATES.findByIdentifier(identifier).get();
+    }
   }
 
   @JsonIgnore
@@ -103,30 +160,35 @@ public class ActivationState extends State
   public void setNodeIdentifier (@NonNull final Long node) {
     _node = EntityCollections.NODES.findByIdentifier(node).get();
   }
-  
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
+
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
   public ZonedDateTime getStart () {
-    return _start;
+    return _startState.getEmittionDate();
   }
   
-  public void merge (@NonNull final ActivationState other) {
-    if (_start.compareTo(other.getStart()) <= 0) {
-      _end = other.getEnd();
-    } else {
-      _start = other.getStart();
-    }
+  @JsonIgnore
+  public State getStartState () {
+    return _startState;
+  }
+  
+  public Long getStartStateIdentifier () {
+    return _startState.getIdentifier();
   }
 
-  public void setEnd (@NonNull final ZonedDateTime end) {
-    _end = end;
+  public void setStartStateIdentifier (@NonNull final Long identifier) {
+    _startState = EntityCollections.STATES.findByIdentifier(identifier).get();
   }
+  
+  public void setEndState (@Nullable final State state) {
+    _endState = state;
+ }
 
   public void setNode (@NonNull final Node node) {
     _node = node;
   }
 
-  public void setStart (@NonNull final ZonedDateTime start) {
-    _start = start;
+  public void setStartState (@NonNull final State start) {
+    _startState = start;
   }
   
   @Override

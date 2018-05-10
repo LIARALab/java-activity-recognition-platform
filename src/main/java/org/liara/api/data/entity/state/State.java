@@ -88,4 +88,28 @@ public class State extends ApplicationEntity
   public StateSnapshot snapshot () {
     return new StateSnapshot(this);
   }
+
+  @Override
+  public int hashCode () {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((_emittionDate == null) ? 0 : _emittionDate.hashCode());
+    result = prime * result + ((_sensor == null) ? 0 : _sensor.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals (Object obj) {
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    if (getClass() != obj.getClass()) return false;
+    State other = (State) obj;
+    if (_emittionDate == null) {
+      if (other._emittionDate != null) return false;
+    } else if (!_emittionDate.equals(other._emittionDate)) return false;
+    if (_sensor == null) {
+      if (other._sensor != null) return false;
+    } else if (!_sensor.equals(other._sensor)) return false;
+    return true;
+  }
 }
