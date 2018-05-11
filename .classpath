@@ -12,6 +12,7 @@
 			<attribute name="gradle_used_by_scope" value="main,test"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="src" path="src/test/groovy"/>
 	<classpathentry kind="con" path="org.eclipse.buildship.core.gradleclasspathcontainer"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8/"/>
 	<classpathentry kind="lib" path="C:/Users/cedric/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-starter-hateoas/2.0.0.RELEASE/26c3bdac98bf2415cbf463dde6119f573071fb67/spring-boot-starter-hateoas-2.0.0.RELEASE.jar" sourcepath="C:/Users/cedric/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-starter-hateoas/2.0.0.RELEASE/6923ca2f586fda7ff6c3b022c725fd5e43a3077a/spring-boot-starter-hateoas-2.0.0.RELEASE-sources.jar">
@@ -529,5 +530,7 @@
 			<attribute name="gradle_used_by_scope" value=""/>
 		</attributes>
 	</classpathentry>
+	<classpathentry exported="true" kind="con" path="GROOVY_DSL_SUPPORT"/>
+	<classpathentry kind="lib" path="C:/Users/cedric/.gradle/caches/modules-2/files-2.1/org.spockframework/spock-core/1.1-groovy-2.4/1c42014d4a18995d5d4aa10a4e060e88f60fdf78/spock-core-1.1-groovy-2.4.jar"/>
 	<classpathentry kind="output" path="bin/default"/>
 </classpath>
