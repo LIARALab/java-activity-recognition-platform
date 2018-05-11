@@ -76,7 +76,7 @@ public class State extends ApplicationEntity
     _sensor = sensor;
   }
 
-  public long getSensorIdentifier () {
+  public Long getSensorIdentifier () {
     return _sensor.getIdentifier();
   }
 

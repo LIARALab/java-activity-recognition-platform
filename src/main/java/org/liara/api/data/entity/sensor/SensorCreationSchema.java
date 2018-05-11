@@ -29,9 +29,6 @@ public class SensorCreationSchema
   private String _type = null;
   
   @NonNull
-  private String _valueType = null;
-  
-  @NonNull
   private String _valueUnit = null;
   
   @NonNull
@@ -76,20 +73,6 @@ public class SensorCreationSchema
 
   public void setType (@NonNull final Optional<String> type) {
     _type = type.orElse(null);
-  }
-
-  @Required
-  public String getValueType () {
-    return _valueType;
-  }
-
-  @JsonSetter
-  public void setValueType (@Nullable final String valueType) {
-    _valueType = valueType;
-  }
-
-  public void setValueType (@NonNull final Optional<String> valueType) {
-    _valueType = valueType.orElse(null);
   }
 
   public String getValueUnit () {

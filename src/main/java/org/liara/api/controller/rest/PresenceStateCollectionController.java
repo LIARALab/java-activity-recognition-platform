@@ -102,7 +102,9 @@ public class PresenceStateCollectionController extends BaseRestController
       _collection.presences(), request, 
       new ExpressionAggregationTransformation<>(
         (query, entity) -> {
-          return query.getManager().getCriteriaBuilder().sumAsLong(entity.get("_milliseconds"));
+          return query.getManager().getCriteriaBuilder().sum(
+            ActivationState.DURATION_SELECTOR.select(query, entity)
+          );
         }, Long.class
       ), 
       new MapValueTransformation<>(Duration::ofMillis)
@@ -120,7 +122,9 @@ public class PresenceStateCollectionController extends BaseRestController
       _collection.presences(), request, 
       new ExpressionAggregationTransformation<>(
         (query, entity) -> {
-          return query.getManager().getCriteriaBuilder().avg(entity.get("_milliseconds"));
+          return query.getManager().getCriteriaBuilder().avg(
+            ActivationState.DURATION_SELECTOR.select(query, entity)
+          );
         }, Double.class
       ), 
       new MapValueTransformation<>((x) -> Duration.ofMillis(x.longValue()))

@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-@Schema(ActivationStateCreationSchema.class)
+@Schema(ActivationState.class)
 @JsonDeserialize(using = JsonDeserializer.None.class)
 public class ActivationStateCreationSchema extends StateCreationSchema
 {

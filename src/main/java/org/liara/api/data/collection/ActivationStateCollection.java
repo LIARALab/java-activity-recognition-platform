@@ -22,6 +22,7 @@
 package org.liara.api.data.collection;
 
 import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -33,6 +34,7 @@ import org.liara.api.collection.configuration.DefaultCollectionRequestConfigurat
 import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.ActivationStateCollectionRequestConfiguration;
+import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.operators.StateOperators;
@@ -105,6 +107,22 @@ public class ActivationStateCollection extends EntityCollection<ActivationState>
   
   public ActivationStateCollection of (@NonNull final Sensor sensor) {
     return apply(StateOperators.of(sensor));
+  }
+  
+  public ActivationStateCollection of (@NonNull final Node node) {
+    final EntityCollectionOperator<ActivationState> operator = query -> {
+      query.andWhere(query.getEntity().get("_node").in(node));
+    };
+    
+    return apply(operator);
+  }
+  
+  public ActivationStateCollection of (@NonNull final Node[] nodes) {
+    final EntityCollectionOperator<ActivationState> operator = query -> {
+      query.andWhere(query.getEntity().get("_node").in(Arrays.asList(nodes)));
+    };
+    
+    return apply(operator);
   }
   
   public ActivationStateCollection of (@NonNull final Sensor[] sensors) {

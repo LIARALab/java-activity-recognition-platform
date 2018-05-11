@@ -42,10 +42,12 @@ import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.sensor.SensorCreationSchema;
+import org.liara.api.data.entity.state.State;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.documentation.ParametersFromConfiguration;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
@@ -72,11 +74,15 @@ public class SensorCollectionController extends BaseRestController
   
   @Autowired
   @NonNull
-  private SensorCollection _collection;
+  private SensorCollection _sensors;
   
   @Autowired
   @NonNull
   private NodeCollection _nodes;
+  
+  @Autowired
+  @NonNull
+  private StateCollection _states;
 
   @GetMapping("/sensors/count")
   @ParametersFromConfiguration(
@@ -85,7 +91,7 @@ public class SensorCollectionController extends BaseRestController
   )
   public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
     return aggregate(
-      _collection, request, 
+      _sensors, request, 
       EntityCountAggregationTransformation.create()
     );
   }
@@ -99,7 +105,7 @@ public class SensorCollectionController extends BaseRestController
   public ResponseEntity<List<Sensor>> index (
     @NonNull final HttpServletRequest request
   ) throws InvalidAPIRequestException {
-    return indexCollection(_collection, request);
+    return indexCollection(_sensors, request);
   }
 
   @PostMapping("/sensors")
@@ -116,16 +122,50 @@ public class SensorCollectionController extends BaseRestController
     return new ResponseEntity<>(headers, HttpStatus.CREATED);
   }
 
-  @GetMapping("/sensors/{identifier}")
-  public Sensor get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdentifierOrFail(identifier);
+  @GetMapping("/sensors/{sensorIdentifier}")
+  public Sensor get (@PathVariable final long sensorIdentifier) throws EntityNotFoundException {
+    return _sensors.findByIdentifierOrFail(sensorIdentifier);
   }
 
-  @GetMapping("/sensors/{identifier}/node")
+  @GetMapping("/sensors/{sensorIdentifier}/node")
   public Node getNodes (
     @NonNull final HttpServletRequest request,
-    @PathVariable final long identifier
+    @PathVariable final long sensorIdentifier
   ) throws EntityNotFoundException, InvalidAPIRequestException {    
-    return _collection.findByIdentifierOrFail(identifier).getNode();
+    return _sensors.findByIdentifierOrFail(sensorIdentifier).getNode();
+  }
+  
+  @GetMapping("/sensors/{sensorIdentifier}/states")
+  public ResponseEntity<List<State>> getStates (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long sensorIdentifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {    
+    return indexCollection(
+      _states.of(_sensors.findByIdentifierOrFail(sensorIdentifier)), 
+      request
+    );
+  }
+  
+  @GetMapping("/sensors/{sensorIdentifier}/states/count")
+  public ResponseEntity<Object> countStates (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long sensorIdentifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {    
+    return aggregate(
+      _states.of(_sensors.findByIdentifierOrFail(sensorIdentifier)), 
+      request,
+      EntityCountAggregationTransformation.create()
+    );
+  }
+  
+  @GetMapping("/sensors/{sensorIdentifier}/states/{stateIdentifier}")
+  public State getState (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long sensorIdentifier,
+    @PathVariable final long stateIdentifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {    
+    return _states.of(
+      _sensors.findByIdentifierOrFail(sensorIdentifier)
+    ).findByIdentifierOrFail(stateIdentifier);
   }
 }
