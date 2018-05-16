@@ -40,19 +40,31 @@ public class ImmutableAPIRequestParameter implements APIRequestParameter
 {
   @NonNull
   private final APIRequest _request;
+  
   @NonNull
   private final String     _name;
+  
   @NonNull
   private final String[]   _values;
 
   public ImmutableAPIRequestParameter(
     @NonNull final APIRequest request,
     @NonNull final String name,
+    @NonNull final String[] values
+  ) {
+    _request = request;
+    _name = name;
+    _values = Arrays.copyOf(values, values.length);
+  }
+
+  public ImmutableAPIRequestParameter(
+    @NonNull final APIRequest request,
+    @NonNull final String name,
     @NonNull final String value
   ) {
-    this._request = request;
-    this._name = name;
-    this._values = new String[] {value};
+    _request = request;
+    _name = name;
+    _values = new String[] {value};
   }
 
   public ImmutableAPIRequestParameter(
@@ -60,9 +72,9 @@ public class ImmutableAPIRequestParameter implements APIRequestParameter
     @NonNull final String name,
     @NonNull final Collection<String> values
   ) {
-    this._request = request;
-    this._name = name;
-    this._values = values.toArray(new String[values.size()]);
+    _request = request;
+    _name = name;
+    _values = values.toArray(new String[values.size()]);
   }
   
   public ImmutableAPIRequestParameter(
@@ -70,9 +82,9 @@ public class ImmutableAPIRequestParameter implements APIRequestParameter
     @NonNull final String name,
     @NonNull final Iterable<String> values
   ) {
-    this._request = request;
-    this._name = name;
-    this._values = Iterators.toArray(values.iterator(), String.class);
+    _request = request;
+    _name = name;
+    _values = Iterators.toArray(values.iterator(), String.class);
   }
 
   public ImmutableAPIRequestParameter(
@@ -80,28 +92,18 @@ public class ImmutableAPIRequestParameter implements APIRequestParameter
     @NonNull final String name,
     @NonNull final Iterator<String> values
   ) {
-    this._request = request;
-    this._name = name;
-    this._values = Iterators.toArray(values, String.class);
-  }
-
-  public ImmutableAPIRequestParameter(
-    @NonNull final APIRequest request,
-    @NonNull final String name,
-    @NonNull final String[] values
-  ) {
-    this._request = request;
-    this._name = name;
-    this._values = Arrays.copyOf(values, values.length);
+    _request = request;
+    _name = name;
+    _values = Iterators.toArray(values, String.class);
   }
 
   public ImmutableAPIRequestParameter(
     @NonNull final APIRequest request,
     @NonNull final APIRequestParameter parameter
   ) {
-    this._request = request;
-    this._name = parameter.getName();
-    this._values = Arrays.copyOf(parameter.getValues(), parameter.getValueCount());
+    _request = request;
+    _name = parameter.getName();
+    _values = Arrays.copyOf(parameter.getValues(), parameter.getValueCount());
   }
   
   /**
@@ -109,7 +111,7 @@ public class ImmutableAPIRequestParameter implements APIRequestParameter
    */
   @Override
   public Iterator<String> iterator () {
-    return Iterators.forArray(this._values);
+    return Iterators.forArray(_values);
   }
 
   /**
@@ -117,7 +119,7 @@ public class ImmutableAPIRequestParameter implements APIRequestParameter
    */
   @Override
   public APIRequest getRequest () {
-    return this._request;
+    return _request;
   }
 
   /**
@@ -125,7 +127,7 @@ public class ImmutableAPIRequestParameter implements APIRequestParameter
    */
   @Override
   public String getName () {
-    return this._name;
+    return _name;
   }
 
   /**
@@ -133,7 +135,7 @@ public class ImmutableAPIRequestParameter implements APIRequestParameter
    */
   @Override
   public int getValueCount () {
-    return this._values.length;
+    return _values.length;
   }
 
   /**
@@ -141,7 +143,7 @@ public class ImmutableAPIRequestParameter implements APIRequestParameter
    */
   @Override
   public String getValue (final int index) throws IndexOutOfBoundsException {
-    return this._values[index];
+    return _values[index];
   }
 
   /**
@@ -149,7 +151,7 @@ public class ImmutableAPIRequestParameter implements APIRequestParameter
    */
   @Override
   public String[] getValues () {
-    return Arrays.copyOf(this._values, this._values.length);
+    return Arrays.copyOf(_values, _values.length);
   }
 
 }
