@@ -12,7 +12,7 @@ cache:
 test:
   stage: test
   script:
-    - gradle clean test jacocoTestReport
+    - gradlew clean test jacocoTestReport
   tags:
     - Gradle
     - Java 8.X
@@ -21,7 +21,7 @@ test:
 build:
   stage: build
   script:
-    - gradle run build
+    - gradlew run build
   only:
     - tags
   tags:
