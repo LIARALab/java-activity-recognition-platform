@@ -15,9 +15,6 @@ test:
     - gradle clean test jacocoTestReport
   tags:
     - Gradle
-    - Spring
-    - Spock
-    - Java
     - Java 8.x
 
 # Build the project and create the spring-boot jar.
@@ -29,8 +26,6 @@ build:
     - tags
   tags:
     - Gradle
-    - Spring
-    - Java
     - Java 8.x
   artifacts:
     untracked: true
