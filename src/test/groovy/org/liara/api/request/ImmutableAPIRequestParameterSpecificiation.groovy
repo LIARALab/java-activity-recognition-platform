@@ -155,21 +155,21 @@ class ImmutableAPIRequestParameterSpecificiation extends Specification
         Mockito.mock(APIRequest.class), "parameter",  values
       )
       
-     when: "we call #getValues()"
-       final String[] valueCopy = parameter.getValues()
+    when: "we call #getValues()"
+      final String[] valueCopy = parameter.getValues()
        
-     then: "we get a copy of the inner parameters"
-       valueCopy.length == parameter.getValueCount()
+    then: "we get a copy of the inner parameters"
+      valueCopy.length == parameter.getValueCount()
+      
+      for (int index = 0; index < valueCopy.length; ++index) {
+        parameter.getValue(index).equals(valueCopy[index]) == true
+      }
        
-       for (int index = 0; index < valueCopy.length; ++index) {
-         parameter.getValue(index).equals(valueCopy[index]) == true
-       }
+    when: "we mutate the returned copy"
+      valueCopy[2] = "wagabada"
        
-     when: "we mutate the returned copy"
-       valueCopy[2] = "wagabada"
-       
-     then: "the internal parameter state does not change"
-       parameter.getValue(2).equals("third") == true
+    then: "the internal parameter state does not change"
+      parameter.getValue(2).equals("third") == true
   }
   
   def "it allow the user to iterate over the parameter's values by using the instance" () {

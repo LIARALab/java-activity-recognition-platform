@@ -1,0 +1,50 @@
+stages:
+  - test
+  - build
+  - publish
+
+# Allow to cache files untracked by git, false by default, useful for keeping the build directory,
+# between two stages.
+cache:
+  untracked: true
+
+# Test the project and report the code coverage completion. 
+test:
+  stage: test
+  script:
+    - gradle clean test jacocoTestReport
+  tags:
+    - Gradle
+    - Spring
+    - Spock
+    - Java
+    - Java 8.x
+
+# Build the project and create the spring-boot jar.
+build:
+  stage: build
+  script:
+    - gradle run build
+  only:
+    - tags
+  tags:
+    - Gradle
+    - Spring
+    - Java
+    - Java 8.x
+  artifacts:
+    untracked: true
+    paths:
+      - ./build/libs/**/*
+
+#publish:
+#  stage: publish
+#  only:
+#    - tags
+#  script:
+#    - npm publish
+#  tags:
+#    - NodeJS
+#    - NPM
+#  dependencies:
+#    - build
