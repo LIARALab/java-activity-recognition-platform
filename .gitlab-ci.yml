@@ -35,7 +35,7 @@ build:
   artifacts:
     untracked: true
     paths:
-      - ./build/libs/**/*
+      - ./build/libs/server.jar
 
 #publish:
 #  stage: publish
