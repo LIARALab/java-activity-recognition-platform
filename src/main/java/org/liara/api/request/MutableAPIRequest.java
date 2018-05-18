@@ -36,7 +36,7 @@ import com.google.common.collect.HashBiMap;
 /**
  * An api request.
  */
-public final class MutableAPIRequest implements APIRequest
+public class MutableAPIRequest implements APIRequest
 {
   /**
    * Request parameter.
@@ -76,7 +76,7 @@ public final class MutableAPIRequest implements APIRequest
    * Create a new empty request.
    */
   public MutableAPIRequest() {
-    this._parameters = HashBiMap.create();
+    _parameters = HashBiMap.create();
   }
 
   /**
@@ -84,7 +84,7 @@ public final class MutableAPIRequest implements APIRequest
    */
   @Override
   public boolean contains (@NonNull final String name) {
-    return this._parameters.containsKey(name);
+    return _parameters.containsKey(name);
   }
 
   /**
@@ -93,14 +93,14 @@ public final class MutableAPIRequest implements APIRequest
    * @param parameter The parameter to add.
    */
   public void addParameter (@NonNull final MutableAPIRequestParameter parameter) {
-    if (this._parameters.containsKey(parameter.getName()) && this._parameters.get(parameter.getName()) != parameter) {
+    if (_parameters.containsKey(parameter.getName()) && _parameters.get(parameter.getName()) != parameter) {
       throw new Error(
         String.join("", "Unnable to add the parameter ", String.valueOf(parameter), " to the request ", this.toString(), " because the given request already contains a parameter with the same name.")
       );
     }
 
-    if (!this._parameters.containsValue(parameter)) {
-      this._parameters.put(parameter.getName(), parameter);
+    if (!_parameters.containsValue(parameter)) {
+      _parameters.put(parameter.getName(), parameter);
       parameter.setRequest(this);
     }
   }
@@ -112,11 +112,11 @@ public final class MutableAPIRequest implements APIRequest
    * @param value The value to add to the parameter.
    */
   public void addValue (@NonNull final String name, @NonNull final String value) {
-    if (!this._parameters.containsKey(name)) {
-      this._parameters.put(name, new MutableAPIRequestParameter(name));
+    if (!_parameters.containsKey(name)) {
+      _parameters.put(name, new MutableAPIRequestParameter(name));
     }
 
-    this._parameters.get(name).addValue(value);
+    _parameters.get(name).addValue(value);
   }
 
   /**
@@ -126,11 +126,11 @@ public final class MutableAPIRequest implements APIRequest
    * @param values All values to add to the parameter.
    */
   public void addValues (@NonNull final String name, @NonNull final Iterable<String> values) {
-    if (!this._parameters.containsKey(name)) {
-      this._parameters.put(name, new MutableAPIRequestParameter(name));
+    if (!_parameters.containsKey(name)) {
+      _parameters.put(name, new MutableAPIRequestParameter(name));
     }
 
-    this._parameters.get(name).addValues(values);
+    _parameters.get(name).addValues(values);
   }
 
   /**
@@ -140,11 +140,11 @@ public final class MutableAPIRequest implements APIRequest
    * @param values All values to add to the parameter.
    */
   public void addValues (@NonNull final String name, @NonNull final String[] values) {
-    if (!this._parameters.containsKey(name)) {
-      this._parameters.put(name, new MutableAPIRequestParameter(name));
+    if (!_parameters.containsKey(name)) {
+      _parameters.put(name, new MutableAPIRequestParameter(name));
     }
 
-    this._parameters.get(name).addValues(values);
+    _parameters.get(name).addValues(values);
   }
 
   /**
@@ -154,11 +154,11 @@ public final class MutableAPIRequest implements APIRequest
    * @param values All values to add to the parameter.
    */
   public void addValues (@NonNull final String name, @NonNull final Iterator<String> values) {
-    if (!this._parameters.containsKey(name)) {
-      this._parameters.put(name, new MutableAPIRequestParameter(name));
+    if (!_parameters.containsKey(name)) {
+      _parameters.put(name, new MutableAPIRequestParameter(name));
     }
 
-    this._parameters.get(name).addValues(values);
+    _parameters.get(name).addValues(values);
   }
 
   /**
@@ -167,8 +167,8 @@ public final class MutableAPIRequest implements APIRequest
    * @param name Name of the parameter to remove.
    */
   public void removeParameter (@NonNull final String name) {
-    if (this._parameters.containsKey(name)) {
-      MutableAPIRequestParameter oldParameter = this._parameters.remove(name);
+    if (_parameters.containsKey(name)) {
+      MutableAPIRequestParameter oldParameter = _parameters.remove(name);
       oldParameter.setRequest(null);
     }
   }
@@ -179,8 +179,8 @@ public final class MutableAPIRequest implements APIRequest
    * @param name Name of the parameter to remove.
    */
   public void removeParameter (@NonNull final MutableAPIRequestParameter parameter) {
-    if (this._parameters.containsValue(parameter)) {
-      MutableAPIRequestParameter oldParameter = this._parameters.remove(parameter.getName());
+    if (_parameters.containsValue(parameter)) {
+      MutableAPIRequestParameter oldParameter = _parameters.remove(parameter.getName());
       oldParameter.setRequest(null);
     }
   }
@@ -192,7 +192,7 @@ public final class MutableAPIRequest implements APIRequest
    * @param index Index of the value to remove.
    */
   public void removeValue (@NonNull final String name, final int index) {
-    this._parameters.get(name).removeValue(index);
+    _parameters.get(name).removeValue(index);
   }
 
   /**
@@ -202,7 +202,7 @@ public final class MutableAPIRequest implements APIRequest
    * @param value Value to remove.
    */
   public void removeValue (@NonNull final String name, @NonNull final String value) {
-    this._parameters.get(name).removeValue(value);
+    _parameters.get(name).removeValue(value);
   }
 
   /**
@@ -212,7 +212,7 @@ public final class MutableAPIRequest implements APIRequest
    * @param values Values to remove.
    */
   public void removeValues (@NonNull final String name, @NonNull final Iterable<String> values) {
-    this._parameters.get(name).removeValues(values);
+    _parameters.get(name).removeValues(values);
   }
 
   /**
@@ -222,7 +222,7 @@ public final class MutableAPIRequest implements APIRequest
    * @param values Values to remove.
    */
   public void removeValues (@NonNull final String name, @NonNull final Iterator<String> values) {
-    this._parameters.get(name).removeValues(values);
+    _parameters.get(name).removeValues(values);
   }
 
   /**
@@ -232,7 +232,7 @@ public final class MutableAPIRequest implements APIRequest
    * @param values Values to remove.
    */
   public void removeValues (@NonNull final String name, @NonNull final String[] values) {
-    this._parameters.get(name).removeValues(values);
+    _parameters.get(name).removeValues(values);
   }
 
   /**
@@ -240,7 +240,7 @@ public final class MutableAPIRequest implements APIRequest
    */
   @Override
   public int getParameterCount () {
-    return this._parameters.size();
+    return _parameters.size();
   }
 
   /**
@@ -248,7 +248,7 @@ public final class MutableAPIRequest implements APIRequest
    */
   @Override
   public int getValueCount (@NonNull final String name) {
-    return this._parameters.get(name).getValueCount();
+    return _parameters.get(name).getValueCount();
   }
 
   /**
@@ -264,7 +264,7 @@ public final class MutableAPIRequest implements APIRequest
    */
   @Override
   public String getValue (@NonNull final String name, final int index) {
-    return this._parameters.get(name).getValue(index);
+    return _parameters.get(name).getValue(index);
   }
 
   /**
@@ -272,7 +272,7 @@ public final class MutableAPIRequest implements APIRequest
    */
   @Override
   public String[] getValues (@NonNull final String name) {
-    return this._parameters.get(name).getValues();
+    return _parameters.get(name).getValues();
   }
 
   /**
@@ -280,7 +280,7 @@ public final class MutableAPIRequest implements APIRequest
    */
   @Override
   public Set<? extends APIRequestParameter> getParameters () {
-    return this._parameters.values();
+    return _parameters.values();
   }
 
   /**

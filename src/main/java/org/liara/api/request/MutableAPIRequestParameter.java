@@ -31,7 +31,7 @@ import org.springframework.lang.Nullable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
-public final class MutableAPIRequestParameter implements APIRequestParameter
+public class MutableAPIRequestParameter implements APIRequestParameter
 {
   @Nullable
   private MutableAPIRequest  _request;
@@ -71,12 +71,12 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
    */
   public void setRequest (@Nullable final MutableAPIRequest request) {
     if (request != _request) {
-      if (_request != null && _request.contains(this._name)) {
-        throw new Error(String.join(
+      if (request != null && request.contains(_name)) {
+        throw new IllegalArgumentException(String.join(
           "", 
           "Unnable to change the request of the parameter ", this.toString(), " (",
           String.valueOf(_request), ") by ", String.valueOf(_request), " because the new ",
-          " request already contains a parameter nammed ", this._name, "."
+          " request already contains a parameter nammed ", _name, "."
         ));
       }
       
@@ -112,18 +112,18 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
   public void setName (@NonNull final String newName) {
     if (!newName.equals(_name)) {
       if (_request != null && _request.contains(newName)) {
-        throw new Error(String.join(
+        throw new IllegalArgumentException(String.join(
           "", 
-          "Unnable to rename the parameter ", this.toString(), " ", this._name, " into ", newName, " because ",
+          "Unnable to rename the parameter ", this.toString(), " ", _name, " into ", newName, " because ",
           "the parent request of this parameter (", _request.toString(), ") already contains a parameter nammed ",
           newName, "."
         ));
       }
       
       final MutableAPIRequest request = _request;
-      this.setRequest(null);
-      this._name = newName;
-      this.setRequest(request);
+      setRequest(null);
+      _name = newName;
+      setRequest(request);
     }
   }
 
@@ -132,7 +132,7 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
    */
   @Override
   public int getValueCount () {
-    return this._values.size();
+    return _values.size();
   }
 
   /**
@@ -140,7 +140,7 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
    */
   @Override
   public String getValue (final int index) {
-    return this._values.get(index);
+    return _values.get(index);
   }
   
   /**
@@ -149,7 +149,7 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
    * @param value A value to register.
    */
   public void addValue (@NonNull final String value) {
-    this._values.add(value);
+    _values.add(value);
   }
   
   /**
@@ -169,7 +169,7 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
    * @param values All values to register.
    */
   public void addValues (@NonNull final Iterable<String> values) {
-    Iterables.addAll(this._values, values);
+    Iterables.addAll(_values, values);
   }
 
   /**
@@ -178,7 +178,7 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
    * @param values All values to register.
    */
   public void addValues (@NonNull final Iterator<String> values) {
-    Iterators.addAll(this._values, values);
+    Iterators.addAll(_values, values);
   }
   
   /**
@@ -189,7 +189,7 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
    * @param index Index of the value to remove.
    */
   public void removeValue (final int index) {
-    this._values.remove(index);
+    _values.remove(index);
   }
   
   /**
@@ -198,7 +198,7 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
    * @param value The value to remove.
    */
   public void removeValue (@NonNull final String value) {
-    this._values.remove(value);
+    _values.remove(value);
   }
   
   /**
@@ -208,7 +208,7 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
    */
   public void removeValues (@NonNull final String[] values) {
     for (final String value : values) {
-      this._values.remove(value);
+      _values.remove(value);
     }
   }
   
@@ -236,7 +236,7 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
    * Remove all values of this parameter.
    */
   public void clear () {
-    this._values.clear();
+    _values.clear();
   }
 
   /**
@@ -244,6 +244,6 @@ public final class MutableAPIRequestParameter implements APIRequestParameter
    */
   @Override
   public String[] getValues () {
-    return this._values.toArray(new String[this._values.size()]);
+    return _values.toArray(new String[_values.size()]);
   }
 }

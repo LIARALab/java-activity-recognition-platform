@@ -59,11 +59,6 @@ class ImmutableAPIRequestSpecification extends Specification
       
       final HttpServletRequest httpRequest = Mockito.mock(HttpServletRequest.class)
       Mockito.when(httpRequest.getParameterMap()).thenReturn(parameters)
-      Mockito.when(httpRequest.getParameterValues(Mockito.anyString())).thenAnswer({
-        InvocationOnMock invocation ->
-          def (String name) = invocation.getArguments()
-          return parameters.get(name)
-      })
        
     when: "we instantiate a new ImmutableAPIRequest with the given HttpServletRequest"
       final ImmutableAPIRequest request = new ImmutableAPIRequest(httpRequest)
@@ -116,5 +111,77 @@ class ImmutableAPIRequestSpecification extends Specification
           copiedParameter.getValue(index).equals(baseParameter.getValue(index)) == true
         }
       }
+  }
+  
+  def "it allows the user to get the number of values of a parameter of the request" () {
+    given: "a valid ImmutableAPIRequest"
+      final Map<String, String[]> parameters = [
+        "first": ["first:first", "first:second", "first:last"] as String[],
+        "second": ["second:first", "second:last"] as String[],
+        "third": ["third:first", "third:second", "third:third", "third:last"] as String[]
+      ]
+      
+      final ImmutableAPIRequest request = new ImmutableAPIRequest(parameters)
+      
+    expect: "to get the number of values of a parameter of the request when we call #getValueCount" 
+      for (final Map.Entry<String, String[]> entry : parameters) {
+        request.getValueCount(entry.key) == entry.value.length
+      }
+  }
+  
+  def "it allows to get a copy of the values of a parameter of the request" () {
+    given: "a valid ImmutableAPIRequest"
+      final Map<String, String[]> parameters = [
+        "first": ["first:first", "first:second", "first:last"] as String[],
+        "second": ["second:first", "second:last"] as String[],
+        "third": ["third:first", "third:second", "third:third", "third:last"] as String[]
+      ]
+      
+      final ImmutableAPIRequest request = new ImmutableAPIRequest(parameters)
+    
+    expect: "to get a copy of the values of a parameter of the request when we call #getValues"
+      for (final Map.Entry<String, String[]> entry : parameters) {
+        final String[] values = request.getValues(entry.key)
+        
+        values != entry.value
+        Arrays.equals(values, entry.value) == true
+      }
+  }
+  
+  def "it allows to get a value of a parameter of the request" () {
+    given: "a valid ImmutableAPIRequest"
+      final Map<String, String[]> parameters = [
+        "first": ["first:first", "first:second", "first:last"] as String[],
+        "second": ["second:first", "second:last"] as String[],
+        "third": ["third:first", "third:second", "third:third", "third:last"] as String[]
+      ]
+      
+      final ImmutableAPIRequest request = new ImmutableAPIRequest(parameters)
+    
+    expect: "to get a value of a parameter of the request when we call #getValue"
+      for (final Map.Entry<String, String[]> entry : parameters) {
+        for (int index = 0; index < entry.value.length; ++index) {
+           request.getValue(entry.key, index).equals(entry.value[index]) == true 
+        }
+      }
+  }
+  
+  def "it allows to get a sub request by filtering request's parameters by a prefix" () {
+    given: "a valid ImmutableAPIRequest"
+      final Map<String, String[]> parameters = [
+        "first": ["first:first", "first:second", "first:last"] as String[],
+        "child.second": ["second:first", "second:last"] as String[],
+        "child.third": ["third:first", "third:second", "third:third", "third:last"] as String[]
+      ]
+      
+      final ImmutableAPIRequest request = new ImmutableAPIRequest(parameters)
+  
+    expect: "to get a valid sub-request by calling #subRequest"
+      final ImmutableAPIRequest subRequest = request.subRequest("child")
+      
+      subRequest.parameterCount == 2
+      
+      Arrays.equals(subRequest.getValues("second"), request.getValues("child.second"))
+      Arrays.equals(subRequest.getValues("third"), request.getValues("child.third"))
   }
 }
