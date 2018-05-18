@@ -25,6 +25,7 @@
 package org.liara.api.request;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -44,34 +45,52 @@ public class ImmutableAPIRequest implements APIRequest
 {
   @NonNull private final BiMap<String, ImmutableAPIRequestParameter> _parameters;
   
+  /**
+   * Create a new empty ImmutableAPIRequest instance.
+   */
   public ImmutableAPIRequest() {
-    this._parameters = HashBiMap.create();
+    _parameters = HashBiMap.create();
   }
   
-  public ImmutableAPIRequest(@NonNull final APIRequest request) {
-    this._parameters = HashBiMap.create();
+  /**
+   * Create a new deep copy of another APIRequest instance.
+   * 
+   * @param toCopy A request to copy.
+   */
+  public ImmutableAPIRequest(@NonNull final APIRequest toCopy) {
+    _parameters = HashBiMap.create();
     
-    for (final APIRequestParameter parameter : request) {
-      this._parameters.put(parameter.getName(), new ImmutableAPIRequestParameter(this, parameter));
+    for (final APIRequestParameter parameter : toCopy) {
+      _parameters.put(parameter.getName(), new ImmutableAPIRequestParameter(this, parameter));
     }
   }
   
-  public ImmutableAPIRequest(@NonNull final Map<String, String[]> request) {
-    this._parameters = HashBiMap.create();
+  /**
+   * Create a new ImmutableAPIRequest instance with all the parameters stored in a given Map.
+   * 
+   * @param parameters A map of parameters key, values pair.
+   */
+  public ImmutableAPIRequest(@NonNull final Map<String, String[]> parameters) {
+    _parameters = HashBiMap.create();
     
-    for (final Map.Entry<String, String[]> entry : request.entrySet()) {
-      this._parameters.put(
+    for (final Map.Entry<String, String[]> entry : parameters.entrySet()) {
+      _parameters.put(
         entry.getKey(), 
         new ImmutableAPIRequestParameter(this, entry.getKey(), entry.getValue())
       );
     }
   }
   
+  /**
+   * Create a new ImmutableAPIRequest instance with all the parameters from an HttpServletRequest.
+   * 
+   * @param request An HttpServletRequest to copy.
+   */
   public ImmutableAPIRequest(@NonNull final HttpServletRequest request) {
-    this._parameters = HashBiMap.create();
+    _parameters = HashBiMap.create();
     
     for (final Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
-      this._parameters.put(
+      _parameters.put(
         entry.getKey(), 
         new ImmutableAPIRequestParameter(this, entry.getKey(), entry.getValue())
       );
@@ -140,9 +159,12 @@ public class ImmutableAPIRequest implements APIRequest
    */
   @Override
   public Set<? extends APIRequestParameter> getParameters () {
-    return this._parameters.values();
+    return new HashSet<>(_parameters.values());
   }
 
+  /**
+   * @see org.liara.api.request.APIRequest#subRequest(java.lang.String)
+   */
   @Override
   public APIRequest subRequest (@NonNull final String prefix) {
     final Map<String, String[]> result = new HashMap<>();

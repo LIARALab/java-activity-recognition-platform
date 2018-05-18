@@ -1,6 +1,6 @@
 package org.liara.api.request
 
-import org.mockito.Mockito;
+import org.mockito.Mockito
 
 import spock.lang.Specification
 
