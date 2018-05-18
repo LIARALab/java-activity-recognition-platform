@@ -11,7 +11,7 @@ import org.springframework.http.client.ClientHttpRequestFactory
 
 import spock.lang.Specification
 
-class ImmutableAPIRequestSpecification extends Specification
+public class ImmutableAPIRequestSpecification extends Specification
 {  
   def "it can be instantiated as a new empty ImmutableAPIRequest" () {
     when: "we instantiate an new ImmutableAPIRequest without any parameters"

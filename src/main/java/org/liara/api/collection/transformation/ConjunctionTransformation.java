@@ -24,7 +24,16 @@ package org.liara.api.collection.transformation;
 import org.liara.api.collection.view.View;
 import org.springframework.lang.NonNull;
 
-public class      TransformationChain<
+/**
+ * A conjunction of two or more transformation.
+ * 
+ * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ *
+ * @param <Input> Input view type.
+ * @param <Chain> Intermediate view type.
+ * @param <Output> Output view type.
+ */
+public class      ConjunctionTransformation<
                     Input extends View<?>,
                     Chain extends View<?>, 
                     Output extends View<?>
@@ -33,9 +42,8 @@ public class      TransformationChain<
 {
   /**
    * Chain two transformation into one transformation.
-   * 
-   * @param innerTransformation The transformation to apply directly on the given input view.
    * @param outerTransformation The transformation to apply directly over the intermediate result view.
+   * @param innerTransformation The transformation to apply directly on the given input view.
    * 
    * @return A chain transformation that apply both transformations and return the result of the chain.
    */
@@ -43,11 +51,11 @@ public class      TransformationChain<
     Input extends View<?>, 
     Chain extends View<?>, 
     Output extends View<?>
-  > TransformationChain<Input, Chain, Output> chain (
-    @NonNull final Transformation<Input, Chain> innerTransformation,
-    @NonNull final Transformation<Chain, Output> outerTransformation
+  > ConjunctionTransformation<Input, Chain, Output> conjugate (
+    @NonNull final Transformation<Chain, Output> outerTransformation,
+    @NonNull final Transformation<Input, Chain> innerTransformation
   ) {
-    return new TransformationChain<>(innerTransformation, outerTransformation);
+    return new ConjunctionTransformation<>(innerTransformation, outerTransformation);
   }
 
   @NonNull
@@ -62,7 +70,7 @@ public class      TransformationChain<
    * @param innerTransformation The transformation to apply directly on the given input view.
    * @param outerTransformation The transformation to apply directly over the intermediate result view.
    */
-  public TransformationChain(
+  public ConjunctionTransformation(
     @NonNull final Transformation<Input, Chain> innerTransformation,
     @NonNull final Transformation<Chain, Output> outerTransformation
   )

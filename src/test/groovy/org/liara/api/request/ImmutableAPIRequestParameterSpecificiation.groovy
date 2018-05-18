@@ -4,7 +4,7 @@ import org.mockito.Mockito
 
 import spock.lang.Specification
 
-class ImmutableAPIRequestParameterSpecificiation extends Specification
+public class ImmutableAPIRequestParameterSpecificiation extends Specification
 {
   def "it can be instanciated for a given request, with a name and a value" () {
     given: "a request"

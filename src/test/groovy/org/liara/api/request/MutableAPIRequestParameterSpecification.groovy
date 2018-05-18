@@ -4,7 +4,7 @@ import org.mockito.Mockito
 
 import spock.lang.Specification
 
-class MutableAPIRequestParameterSpecification extends Specification
+public class MutableAPIRequestParameterSpecification extends Specification
 {
   def "it can be instanciated with a given name" () {
     when: "we create a new instance of MutableAPIRequestParameter with a given name"

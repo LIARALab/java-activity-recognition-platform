@@ -28,20 +28,7 @@ import org.springframework.lang.NonNull;
 public interface Transformation<
   Input extends View<?>, 
   Output extends View<?>
-> { 
-  /**
-   * An identity transformation.
-   * 
-   * The identity transformation return its given view.
-   * 
-   * @param input View to transform.
-   * 
-   * @return The given view.
-   */
-  public static <Input extends View<?>> Input identity (
-    @NonNull final Input input
-  ) { return input; }
-  
+> {   
   /**
    * Apply the given transformation to another and return a chain transformation.
    * 
@@ -55,7 +42,7 @@ public interface Transformation<
   public default <Previous extends View<?>> Transformation<Previous, Output> apply (
     @NonNull final Transformation<Previous, Input> other
   ) {
-    return TransformationChain.chain(other, this);
+    return ConjunctionTransformation.conjugate(this, other);
   }
   
   /**
