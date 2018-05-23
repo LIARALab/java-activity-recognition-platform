@@ -32,14 +32,20 @@ build:
     paths:
       - ./build/libs/server.jar
 
-#publish:
-#  stage: publish
-#  only:
-#    - tags
-#  script:
-#    - npm publish
-#  tags:
-#    - NodeJS
-#    - NPM
-#  dependencies:
-#    - build
+publish.development:
+  stage: publish
+  only:
+    - tags
+    - development
+  script:
+    - rm .git
+    - git init
+    - git add /build/libs/server.jar
+    - git add Dockerfile
+    - git remote add dokku dokku@apps.cedric-demongivert.com:domus-api
+    - git push master dokku
+  tags:
+    - NodeJS
+    - NPM
+  dependencies:
+    - build
