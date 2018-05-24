@@ -21,6 +21,7 @@ build:
   stage: build
   script:
     - bash gradlew --no-daemon build
+    - docker build . -t depot.domus.usherbrooke.ca:4567/sapa/activity-agent-api:latest
   only:
     - tags
   tags:
@@ -30,18 +31,12 @@ build:
     paths:
       - ./build/libs/server.jar
 
-publish.development:
+publish.docker:
   stage: publish
   only:
     - tags
-    - development
   script:
-    - rm .git
-    - git init
-    - git add /build/libs/server.jar
-    - git add Dockerfile
-    - git remote add dokku dokku@apps.cedric-demongivert.com:domus-api
-    - git push master dokku
+    - docker push depot.domus.usherbrooke.ca:4567/sapa/activity-agent-api:latest
   tags:
     - sapa
   dependencies:
