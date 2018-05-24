@@ -36,7 +36,9 @@ publish.docker:
   only:
     - tags
   script:
+    - docker login -u gitlab-runner-sapa -p YCZgp2-pBWmyGpHwZm_o
     - docker push depot.domus.usherbrooke.ca:4567/sapa/activity-agent-api:latest
+    - docker logout
   tags:
     - sapa
   dependencies:
