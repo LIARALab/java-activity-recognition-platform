@@ -14,8 +14,7 @@ test:
   script:
     - bash gradlew --no-daemon clean test jacocoTestReport
   tags:
-    - Gradle
-    - Java 8.X
+    - sapa
 
 # Build the project and create the spring-boot jar.
 build:
@@ -25,8 +24,7 @@ build:
   only:
     - tags
   tags:
-    - Gradle
-    - Java 8.X
+    - sapa
   artifacts:
     untracked: true
     paths:
@@ -45,7 +43,6 @@ publish.development:
     - git remote add dokku dokku@apps.cedric-demongivert.com:domus-api
     - git push master dokku
   tags:
-    - NodeJS
-    - NPM
+    - sapa
   dependencies:
     - build
