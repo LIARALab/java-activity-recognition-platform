@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import com.google.common.collect.ImmutableList;
 
@@ -76,5 +77,25 @@ public class BaseCompositeFilterNode<Child extends FilterNode> extends BaseFilte
   @Override
   public int getChildCount () {
     return _nodes.size();
+  }
+
+  @Override
+  public int hashCode () {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((_nodes == null) ? 0 : _nodes.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals (@Nullable final Object obj) {
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    if (getClass() != obj.getClass()) return false;
+    BaseCompositeFilterNode<?> other = (BaseCompositeFilterNode<?>) obj;
+    if (_nodes == null) {
+      if (other._nodes != null) return false;
+    } else if (!_nodes.equals(other._nodes)) return false;
+    return true;
   }
 }

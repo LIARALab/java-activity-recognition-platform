@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 public class BetweenFilterNode<Value extends Comparable<? super Value>> extends BaseFilterNode implements CompositeFilterNode<ValueFilterNode<Value>>, PredicateFilterNode
 {
@@ -84,5 +85,29 @@ public class BetweenFilterNode<Value extends Comparable<? super Value>> extends 
   @Override
   public int getChildCount () {
     return 2;
+  }
+
+  @Override
+  public int hashCode () {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((_maximum == null) ? 0 : _maximum.hashCode());
+    result = prime * result + ((_minimum == null) ? 0 : _minimum.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals (@Nullable final Object object) {
+    if (this == object) return true;
+    if (!super.equals(object)) return false;
+    if (getClass() != object.getClass()) return false;
+    BetweenFilterNode<?> other = (BetweenFilterNode<?>) object;
+    if (_maximum == null) {
+      if (other._maximum != null) return false;
+    } else if (!_maximum.equals(other._maximum)) return false;
+    if (_minimum == null) {
+      if (other._minimum != null) return false;
+    } else if (!_minimum.equals(other._minimum)) return false;
+    return true;
   }
 }

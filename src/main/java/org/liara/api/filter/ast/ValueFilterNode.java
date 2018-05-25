@@ -29,6 +29,32 @@ public class ValueFilterNode<Value> extends BaseFilterNode
   @NonNull
   private final Value _value;
   
+  public static <T> ValueFilterNode<T> fromGeneric (final T value) {
+    if (value instanceof Integer) {
+      return new ValueFilterNode<T>(CommonFilterNodeType.VALUE_INTEGER, value);
+    } else if (value instanceof Long) {
+      return new ValueFilterNode<T>(CommonFilterNodeType.VALUE_LONG, value);
+    } else if (value instanceof Float) {
+      return new ValueFilterNode<T>(CommonFilterNodeType.VALUE_FLOAT, value);
+    } else if (value instanceof Double) {
+      return new ValueFilterNode<T>(CommonFilterNodeType.VALUE_DOUBLE, value);
+    } else if (value instanceof String) {
+      return new ValueFilterNode<T>(CommonFilterNodeType.VALUE_STRING, value);
+    } else if (value instanceof PartialZonedDateTime) {
+      return new ValueFilterNode<T>(CommonFilterNodeType.VALUE_DATETIME, value);
+    } else if (value instanceof Boolean) {
+      return new ValueFilterNode<T>(CommonFilterNodeType.VALUE_BOOLEAN, value);
+    } else {
+      throw new IllegalArgumentException(String.join(
+        "", 
+        "Unnable to instanciate a valid ValueFilterNode for the value ",
+        String.valueOf(value), " because the type of the given value (",
+        String.valueOf(value.getClass()),
+        ") is not a valid ValueFilterNode content type."
+      ));
+    }
+  }
+  
   public static ValueFilterNode<Integer> from (final int value) {
     return new ValueFilterNode<Integer>(CommonFilterNodeType.VALUE_INTEGER, value);
   }
@@ -54,7 +80,7 @@ public class ValueFilterNode<Value> extends BaseFilterNode
   }
   
   public static ValueFilterNode<Double> from (final double value) {
-    return new ValueFilterNode<Double>(CommonFilterNodeType.VALUE_FLOAT, value);
+    return new ValueFilterNode<Double>(CommonFilterNodeType.VALUE_DOUBLE, value);
   }
   
   public static ValueFilterNode<Double> from (@NonNull final Double value) {
@@ -84,5 +110,25 @@ public class ValueFilterNode<Value> extends BaseFilterNode
 
   public Value getValue () {
     return _value;
+  }
+
+  @Override
+  public int hashCode () {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((_value == null) ? 0 : _value.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals (Object obj) {
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    if (getClass() != obj.getClass()) return false;
+    ValueFilterNode<?> other = (ValueFilterNode<?>) obj;
+    if (_value == null) {
+      if (other._value != null) return false;
+    } else if (!_value.equals(other._value)) return false;
+    return true;
   }
 }

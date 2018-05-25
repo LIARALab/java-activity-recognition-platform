@@ -42,4 +42,24 @@ public class BaseFilterNode implements FilterNode
   public void invit (@NonNull final FilterASTVisitor visitor) {
     visitor.visit(this);
   }
+
+  @Override
+  public int hashCode () {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((_type == null) ? 0 : _type.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals (Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+    BaseFilterNode other = (BaseFilterNode) obj;
+    if (_type == null) {
+      if (other._type != null) return false;
+    } else if (!_type.equals(other._type)) return false;
+    return true;
+  }
 }

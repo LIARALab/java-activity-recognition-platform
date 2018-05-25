@@ -66,4 +66,24 @@ public class LessThanOrEqualToFilterNode<Value extends Comparable<? super Value>
   public int getChildCount () {
     return 1;
   }
+
+  @Override
+  public int hashCode () {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((_maximum == null) ? 0 : _maximum.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals (Object obj) {
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    if (getClass() != obj.getClass()) return false;
+    LessThanOrEqualToFilterNode<?> other = (LessThanOrEqualToFilterNode<?>) obj;
+    if (_maximum == null) {
+      if (other._maximum != null) return false;
+    } else if (!_maximum.equals(other._maximum)) return false;
+    return true;
+  }
 }

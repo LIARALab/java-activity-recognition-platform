@@ -37,8 +37,10 @@
 package org.liara.api.filter.parser;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.liara.api.filter.ast.BetweenFilterNode;
 import org.liara.api.filter.ast.ConjunctionFilterNode;
@@ -78,19 +80,33 @@ public class IntegerFilterParser implements FilterParser
   );
 
   public PredicateFilterNode parse (@NonNull final String value) {
-    return new DisjunctionFilterNode(
-      Arrays.stream(value.split(";"))
-            .map(token -> parseConjunction(token.trim()))
-            .iterator()
-    );
+    final List<PredicateFilterNode> predicates = Arrays.stream(
+      value.split(";")
+    ).map(token -> parseConjunction(token.trim()))
+     .collect(Collectors.toList());
+    
+    if (predicates.size() == 1) {
+      return predicates.get(0);
+    } else {
+      return new DisjunctionFilterNode(
+        predicates
+      );
+    }
   }
 
   private PredicateFilterNode parseConjunction (@NonNull final String value) {
-    return new ConjunctionFilterNode(
-      Arrays.stream(value.split(","))
-            .map(token -> parsePredicate(token.trim()))
-            .iterator()
-    );
+    final List<PredicateFilterNode> predicates = Arrays.stream(
+      value.split(",")
+    ).map(token -> parsePredicate(token.trim()))
+     .collect(Collectors.toList());
+    
+    if (predicates.size() == 1) {
+      return predicates.get(0);
+    } else {
+      return new ConjunctionFilterNode(
+        predicates
+      );
+    }
   }
 
   private PredicateFilterNode parsePredicate (@NonNull final String value) {

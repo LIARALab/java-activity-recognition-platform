@@ -62,4 +62,24 @@ public class NotFilterNode extends BaseFilterNode implements CompositeFilterNode
   public int getChildCount () {
     return 1;
   }
+
+  @Override
+  public int hashCode () {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((_predicate == null) ? 0 : _predicate.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals (Object obj) {
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    if (getClass() != obj.getClass()) return false;
+    NotFilterNode other = (NotFilterNode) obj;
+    if (_predicate == null) {
+      if (other._predicate != null) return false;
+    } else if (!_predicate.equals(other._predicate)) return false;
+    return true;
+  }
 }
