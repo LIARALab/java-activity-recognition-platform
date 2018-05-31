@@ -314,4 +314,21 @@ public class MutableAPIRequestParameterSpecification extends Specification
     then: "we expect that the parameter values to be updated accordingly"
       Arrays.equals(parameter.values, [] as String[])
   }
+  
+  def "it allow to get an iterator over all values of the parameter" () {
+    given: "a valid MutableAPIRequestParameter with some values registered in"
+      final MutableAPIRequestParameter parameter = new MutableAPIRequestParameter("parameter")
+      parameter.addValues(["first", "second", "third", "fourth"] as String[])
+      
+    when: "we get an iterator over all values of the parameter"
+      final Iterator<String> values = parameter.iterator()
+      
+    then: "we are able to iterate over all values of the given parameter by using the given iterator"
+      int index = 0
+      
+      while (values.hasNext()) {
+        values.next().equals(parameter.getValue(index)) == true
+        ++index
+      }
+  }
 }

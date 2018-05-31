@@ -33,8 +33,7 @@ import org.liara.api.request.APIRequest;
 import org.liara.api.request.parser.APIDocumentedRequestParser;
 import org.springframework.lang.NonNull;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
+import com.google.common.collect.ImmutableList;
 
 import springfox.documentation.service.Parameter;
 
@@ -42,27 +41,29 @@ public class APIRequestEntityCollectionConjunctionOperatorParser<Entity>
   implements APIRequestEntityCollectionOperatorParser<Entity>, APIDocumentedRequestParser
 {
   @NonNull
-  private final List<APIRequestEntityCollectionOperatorParser<Entity>> _parsers = new ArrayList<>();
+  private final List<APIRequestEntityCollectionOperatorParser<Entity>> _parsers;
   
   public APIRequestEntityCollectionConjunctionOperatorParser(
     @NonNull final Iterable<APIRequestEntityCollectionOperatorParser<Entity>> parsers
   ) {
-    Iterables.addAll(_parsers, parsers);
+    _parsers = ImmutableList.copyOf(parsers);
   }
   
   public APIRequestEntityCollectionConjunctionOperatorParser(
     @NonNull final Iterator<APIRequestEntityCollectionOperatorParser<Entity>> parsers
   ) {
-    Iterators.addAll(_parsers, parsers);
+    _parsers = ImmutableList.copyOf(parsers);
   }
   
   public APIRequestEntityCollectionConjunctionOperatorParser(
     @NonNull final APIRequestEntityCollectionOperatorParser<Entity>[] parsers
   ) {
-    _parsers.addAll(Arrays.asList(parsers));
+    _parsers = ImmutableList.copyOf(Arrays.asList(parsers));
   }
 
-  public APIRequestEntityCollectionConjunctionOperatorParser() {  }
+  public APIRequestEntityCollectionConjunctionOperatorParser() { 
+    _parsers = ImmutableList.of();
+  }
 
   @Override
   public EntityCollectionOperator<Entity> parse (@NonNull final APIRequest request) {
@@ -71,6 +72,10 @@ public class APIRequestEntityCollectionConjunctionOperatorParser<Entity>
               .map(x -> x.parse(request))
               .iterator()
     );
+  }
+  
+  public List<APIRequestEntityCollectionOperatorParser<Entity>> getParsers () {
+    return _parsers;
   }
 
   @Override

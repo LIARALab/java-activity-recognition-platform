@@ -1,17 +1,8 @@
-package org.liara.api.recognition.sensor.common.virtual;
+package org.liara.api.recognition.sensor.common.virtual.presence;
 
-import java.time.ZonedDateTime;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Optional;
 
-import javax.annotation.Nullable;
-import javax.persistence.EntityManager;
-
-import org.liara.api.collection.Operators;
-import org.liara.api.collection.query.EntityCollectionMainQuery;
-import org.liara.api.data.collection.ActivationStateCollection;
-import org.liara.api.data.collection.BooleanStateCollection;
-import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.ActivationStateCreationSchema;
 import org.liara.api.data.entity.state.ActivationStateMutationSchema;
@@ -24,7 +15,6 @@ import org.liara.api.event.StateWillBeMutatedEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.EmitStateOfType;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
-import org.liara.api.recognition.sensor.common.NativeMotionSensor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
@@ -34,106 +24,58 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope("prototype")
 public class PresenceSensor extends AbstractVirtualSensorHandler
-{
-  @NonNull
-  private final EntityManager _entityManager;
-  
+{  
   @NonNull
   private final SchemaManager _schemaManager;
   
-  @Nullable
-  private ActivationStateCollection _states = null;
-  
-  @Nullable
-  private BooleanStateCollection _watched = null;
+  @NonNull
+  private final PresenceSensorData _data;
   
   @Autowired
   public PresenceSensor (
-    @NonNull final EntityManager entityManager,
-    @NonNull final SchemaManager schemaManager
+    @NonNull final SchemaManager schemaManager,
+    @NonNull final PresenceSensorData data
   ) {
-    _entityManager = entityManager;
     _schemaManager = schemaManager;
+    _data = data;
   }
   
   @Override
   public void initialize (@NonNull final VirtualSensorRunner runner) {
     super.initialize(runner);
         
-    initializeTrackedCollections();    
-    initializePresenceCollection();
-  }
-
-  private void initializePresenceCollection () {
     final ActivationStateCreationSchema creationSchema = new ActivationStateCreationSchema();
-    final List<BooleanState> ticks = getInitialisationTicks();
-    int tickCount = ticks.size();
-    int executedSchemas = 0;
+    final Iterator<BooleanState> ticks = _data.getTrackedMotionActivation(runner.getSensor()).iterator();
     
-    BooleanState last = ticks.get(0);
-    
-    for (int index = 1; index < tickCount; ++index) {
-      final BooleanState next = ticks.get(index);
+    if (ticks.hasNext()) {
+      BooleanState last = ticks.next();
       
-      if (!last.getSensor().getNodeIdentifier().equals(next.getSensor().getNodeIdentifier())) {
-        creationSchema.clear();
-        creationSchema.setEmittionDate(last.getEmittionDate());
-        creationSchema.setStartState(last);
-        creationSchema.setEndState(next);
-        creationSchema.setNode(last.getSensor().getNode());
-        creationSchema.setSensor(getRunner().getSensor());
+      while (ticks.hasNext()) {
+        final BooleanState next = ticks.next();
         
-        _schemaManager.execute(creationSchema);
-        executedSchemas += 1;
-        
-        if (executedSchemas >= 20) {
-          executedSchemas = 0;
-          _entityManager.flush();
-          _entityManager.clear();
+        if (!last.getSensor().getNodeIdentifier().equals(next.getSensor().getNodeIdentifier())) {
+          creationSchema.clear();
+          creationSchema.setEmittionDate(last.getEmittionDate());
+          creationSchema.setStartState(last);
+          creationSchema.setEndState(next);
+          creationSchema.setNode(last.getSensor().getNode());
+          creationSchema.setSensor(getRunner().getSensor());
+          
+          _schemaManager.execute(creationSchema);
+          
+          last = next;
         }
-        
-        last = next;
       }
+      
+      creationSchema.clear();
+      creationSchema.setEmittionDate(last.getEmittionDate());
+      creationSchema.setStartState(last);
+      creationSchema.setEndState(Optional.empty());
+      creationSchema.setNode(last.getSensor().getNode());
+      creationSchema.setSensor(getRunner().getSensor());
+      
+      _schemaManager.execute(creationSchema);
     }
-    
-    creationSchema.clear();
-    creationSchema.setEmittionDate(last.getEmittionDate());
-    creationSchema.setStartState(last);
-    creationSchema.setEndState(Optional.empty());
-    creationSchema.setNode(last.getSensor().getNode());
-    creationSchema.setSensor(getRunner().getSensor());
-    
-    _schemaManager.execute(creationSchema);
-  }
-  
-  private List<BooleanState> getInitialisationTicks () {
-    final EntityCollectionMainQuery<BooleanState, BooleanState> query = _watched.apply(
-      Operators.orderAscendingBy(x -> x.get("_emittionDate"))
-    ).createCollectionQuery();
-    
-    query.join(x -> x.join("_sensor")).join(x -> x.join("_node"));
-    
-    final List<BooleanState> ticks = _entityManager.createQuery(query.getCriteriaQuery())
-                                                   .getResultList();
-    
-    _entityManager.clear();
-    
-    return ticks;
-  }
-
-  @Override
-  public void resume (@NonNull final VirtualSensorRunner runner) {
-    super.resume(runner);
-    
-    initializeTrackedCollections();
-  }
-  
-  private void initializeTrackedCollections () {
-    _states = EntityCollections.ACTIVATION_STATES.of(getRunner().getSensor());
-    _watched = EntityCollections.BOOLEAN_STATES.of(
-      EntityCollections.SENSORS.deepIn(getRunner().getSensor().getNode())
-                               .ofType(NativeMotionSensor.class)
-    ).apply(Operators.equal("_value", true));
   }
 
   @Override
@@ -145,17 +87,20 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
 
   private boolean isValidInputTick (@NonNull final State state) {
     return state instanceof BooleanState &&
-           ((BooleanState) state).getValue() == true &&  
-           EntityCollections.SENSORS.deepIn(
-             getRunner().getSensor().getNode()
-           ).containsEntityWithIdentifier(
-             state.getSensorIdentifier()
-           );
+           ((BooleanState) state).getValue() == true &&
+           _data.isTracked(getRunner().getSensor(), state);
   }
   
   private void handleTickDiscovery (@NonNull final BooleanState tick) {    
-    final ActivationState before = getActivationBefore(tick.getEmittionDate());
-    final ActivationState after = getActivationAfter(tick.getEmittionDate());
+    final ActivationState before = _data.getActivationBefore(
+      getRunner().getSensor(), 
+      tick.getEmittionDate()
+    );
+    
+    final ActivationState after = _data.getActivationAfter(
+      getRunner().getSensor(), 
+      tick.getEmittionDate()
+    );
     
     if (before == null && after == null) {
       handleEmptyCollectionSplit(tick);
@@ -221,7 +166,7 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
     
     final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
     final ActivationStateCreationSchema creation = new ActivationStateCreationSchema();
-    BooleanState nextTick = getTickAfter(tick);
+    BooleanState nextTick = _data.getTickAfter(getRunner().getSensor(), tick.getEmittionDate());
     
     // Twin ticks
     if (nextTick.getEmittionDate().equals(after.getStartState().getEmittionDate())) { 
@@ -304,7 +249,7 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
     
     final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
     final ActivationStateCreationSchema creation = new ActivationStateCreationSchema();
-    final BooleanState nextTick = getTickAfter(tick);
+    final BooleanState nextTick = _data.getTickAfter(getRunner().getSensor(), tick.getEmittionDate());
     
     mutation.setIdentifier(before);
     mutation.setEndState(tick);
@@ -402,26 +347,6 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
     
     _schemaManager.execute(creation);
   }
-  
-  public ActivationState getActivationAfter (@NonNull final ZonedDateTime date) {
-    return _states.afterOrAt(date)
-                  .apply(Operators.orderAscendingBy("_emittionDate"))
-                  .first()
-                  .orElse(null);
-  }
-  
-  private ActivationState getActivationBefore (@NonNull final ZonedDateTime date) {
-    return _states.beforeOrAt(date)
-                  .apply(Operators.orderDescendingBy("_emittionDate"))
-                  .first()
-                  .orElse(null);
-  }
-
-  private BooleanState getTickAfter (@NonNull final BooleanState tick) {
-    return _watched.after(tick.getEmittionDate())
-                   .apply(Operators.orderAscendingBy("_emittionDate"))
-                   .first().orElse(null);
-  }
 
   @Override
   public void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event) {
@@ -433,21 +358,5 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
   public void stateWasMutated (@NonNull final StateWasMutatedEvent event) {
     // TODO Auto-generated method stub
     
-  }
-
-  @Override
-  public void stop () {
-    super.stop();
-    
-    _states = null;
-    _watched = null;
-  }
-
-  @Override
-  public void pause () {
-    super.pause();
-    
-    _states = null;
-    _watched = null;
   }
 }

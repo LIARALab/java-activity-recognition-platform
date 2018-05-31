@@ -52,13 +52,7 @@ public class MutableAPIRequest implements APIRequest
    *         map.
    */
   public static MutableAPIRequest from (@NonNull final Map<String, String[]> map) {
-    final MutableAPIRequest result = new MutableAPIRequest();
-
-    for (Map.Entry<String, String[]> entry : map.entrySet()) {
-      result.addValues(entry.getKey(), entry.getValue());
-    }
-
-    return result;
+    return new MutableAPIRequest(map);
   }
 
   /**
@@ -69,14 +63,30 @@ public class MutableAPIRequest implements APIRequest
    *         Request.
    */
   public static MutableAPIRequest from (@NonNull final HttpServletRequest request) {
-    return MutableAPIRequest.from(request.getParameterMap());
+    return new MutableAPIRequest(request);
   }
 
   /**
    * Create a new empty request.
    */
-  public MutableAPIRequest() {
+  public MutableAPIRequest () {
     _parameters = HashBiMap.create();
+  }
+  
+  public MutableAPIRequest (@NonNull final Map<String, String[]> map) {
+    _parameters = HashBiMap.create();
+    
+    for (Map.Entry<String, String[]> entry : map.entrySet()) {
+      this.addValues(entry.getKey(), entry.getValue());
+    }
+  }
+  
+  public MutableAPIRequest (@NonNull final HttpServletRequest request) {
+    _parameters = HashBiMap.create();
+    
+    for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+      this.addValues(entry.getKey(), entry.getValue());
+    }
   }
 
   /**
@@ -95,7 +105,11 @@ public class MutableAPIRequest implements APIRequest
   public void addParameter (@NonNull final MutableAPIRequestParameter parameter) {
     if (_parameters.containsKey(parameter.getName()) && _parameters.get(parameter.getName()) != parameter) {
       throw new Error(
-        String.join("", "Unnable to add the parameter ", String.valueOf(parameter), " to the request ", this.toString(), " because the given request already contains a parameter with the same name.")
+        String.join(
+          "", 
+          "Unnable to add the parameter ", String.valueOf(parameter), " to the request ", 
+          this.toString(), " because the given request already contains a parameter with the same name."
+        )
       );
     }
 
@@ -256,7 +270,7 @@ public class MutableAPIRequest implements APIRequest
    */
   @Override
   public MutableAPIRequestParameter getParameter (@NonNull final String name) {
-    return this.getParameter(name);
+    return _parameters.get(name);
   }
 
   /**
