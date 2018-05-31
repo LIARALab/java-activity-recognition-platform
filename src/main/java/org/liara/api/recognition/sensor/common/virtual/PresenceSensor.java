@@ -18,13 +18,8 @@ import org.liara.api.data.entity.state.ActivationStateMutationSchema;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.schema.SchemaManager;
-import org.liara.api.event.NodeWasCreatedEvent;
-import org.liara.api.event.NodeWillBeCreatedEvent;
-import org.liara.api.event.SensorWasCreatedEvent;
-import org.liara.api.event.SensorWillBeCreatedEvent;
 import org.liara.api.event.StateWasCreatedEvent;
 import org.liara.api.event.StateWasMutatedEvent;
-import org.liara.api.event.StateWillBeCreatedEvent;
 import org.liara.api.event.StateWillBeMutatedEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.EmitStateOfType;
@@ -66,30 +61,10 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
     super.initialize(runner);
         
     initializeTrackedCollections();    
-    initializeSensorCollection();
+    initializePresenceCollection();
   }
-  
-  /*
-  private void testInitializeSensorCollection () {
-    final List<BooleanState> ticks = getInitialisationTicks().subList(0, 2000);
-    final List<BooleanState> discovered = new ArrayList<>(ticks.size());
-    
-    Collections.shuffle(ticks);
-    for (int index = 0; index < ticks.size(); ++index) {
-      discovered.add(ticks.get(index));
-      _watchedTest = _watched.apply(Operators.in(discovered));
-      
-      handleTickDiscovery(ticks.get(index));
-      
-      if (index % 100 == 0) {
-        _entityManager.flush();
-        _entityManager.clear();
-      }
-    }
-  }
-  */
 
-  private void initializeSensorCollection () {
+  private void initializePresenceCollection () {
     final ActivationStateCreationSchema creationSchema = new ActivationStateCreationSchema();
     final List<BooleanState> ticks = getInitialisationTicks();
     int tickCount = ticks.size();
@@ -159,31 +134,6 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
       EntityCollections.SENSORS.deepIn(getRunner().getSensor().getNode())
                                .ofType(NativeMotionSensor.class)
     ).apply(Operators.equal("_value", true));
-  }
-  
-  @Override
-  public void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event) {
-    
-  }
-
-  @Override
-  public void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) {
-    
-  }
-
-  @Override
-  public void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event) {
-    
-  }
-
-  @Override
-  public void nodeWasCreated (@NonNull final NodeWasCreatedEvent event) {
-    
-  }
-
-  @Override
-  public void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event) {
-    
   }
 
   @Override
@@ -432,10 +382,10 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
   /**
    * Called when a tick is discovered without any activation state before it, and without any activation state after it.
    * 
-   * This method will create an infinite activation start that begins at the discovered tick and
-   * does not have a finishing activation state.
+   * This method will create activation that begins at the discovered tick and does not finish.
    * 
    * -------------------------X(DiscoveredTick)------------------------
+   * -------------------------[ActivationState-------------------------
    * 
    * @param tick Discovered tick.
    */

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
@@ -16,6 +17,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
 @Service
+@Primary
 public class AnnotationBasedSchemaManager implements SchemaManager
 {
   @NonNull
@@ -114,7 +116,7 @@ public class AnnotationBasedSchemaManager implements SchemaManager
     }
   }
 
-  private Method getHandlerMethodOrFail (@NonNull final String handlerName) {
+  protected Method getHandlerMethodOrFail (@NonNull final String handlerName) {
     final Class<?> handledSchema = _handlers.inverse().get(handlerName);
     
     try {
@@ -131,7 +133,7 @@ public class AnnotationBasedSchemaManager implements SchemaManager
     }
   }
 
-  private String findHandlerForSchemaOrFail (@NonNull final Object schema) {
+  protected String findHandlerForSchemaOrFail (@NonNull final Object schema) {
     final Class<?> schemaClass = schema.getClass();
     
     if (_handlerSolutions.containsKey(schemaClass)) {
@@ -169,7 +171,7 @@ public class AnnotationBasedSchemaManager implements SchemaManager
     return result;
   }
 
-  private void assertIsValidSchema (
+  protected void assertIsValidSchema (
     @NonNull final Object schema
   ) {
     if (schema.getClass().getAnnotation(Schema.class) == null) {
