@@ -76,7 +76,7 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
   public APIRequestEntityCollectionOperatorParser<Node> createFilterParser () {
     return new APIRequestEntityCollectionConjunctionOperatorParser<>(
       Arrays.asList(
-        APIRequestEntityFilterParserFactory.integerValue(
+        APIRequestEntityFilterParserFactory.integer(
           "identifier", (root) -> root.get("_identifier")
         ),
         APIRequestEntityFilterParserFactory.datetime(
@@ -88,13 +88,13 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
         APIRequestEntityFilterParserFactory.datetime(
           "deletionDate", (root) -> root.get("_deletionDate")
         ),
-        APIRequestEntityFilterParserFactory.integerValue(
+        APIRequestEntityFilterParserFactory.integer(
           "setStart", (root) -> root.get("_setStart")
         ),
-        APIRequestEntityFilterParserFactory.integerValue(
+        APIRequestEntityFilterParserFactory.integer(
           "setEnd", (root) -> root.get("_setEnd")
         ),
-        APIRequestEntityFilterParserFactory.integerValue(
+        APIRequestEntityFilterParserFactory.integer(
           "depth", (root) -> root.get("_depth")
         ),
         APIRequestEntityFilterParserFactory.text(

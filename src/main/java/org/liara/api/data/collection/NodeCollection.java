@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -40,6 +41,7 @@ import org.liara.api.collection.transformation.operator.EntityCollectionOperator
 import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.sensor.Sensor_;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -52,8 +54,8 @@ public class NodeCollection extends EntityCollection<Node>
 {     
   @Autowired
   public NodeCollection (
-    @NonNull final EntityManager entityManager
-  ) { super(entityManager, Node.class); }
+    @NonNull final EntityManagerFactory entityManagerFactory
+  ) { super(entityManagerFactory, Node.class); }
 
   public NodeCollection (
     @NonNull final NodeCollection toCopy  
@@ -65,13 +67,14 @@ public class NodeCollection extends EntityCollection<Node>
   ) { super(collection, operator); }
   
   public List<Node> getAllChildren (@NonNull final Node node) {
-    final TypedQuery<Node> query = getManager().createQuery(
+    final EntityManager manager = getManagerFactory().createEntityManager();
+    final TypedQuery<Node> query = manager.createQuery(
       "SELECT child FROM Node child WHERE child._setStart > :start AND child._setEnd < :end", 
       Node.class
     );
     
-    query.setParameter("start", node.getSetStart());
-    query.setParameter("end", node.getSetEnd());
+    query.setParameter("start", node.getCoordinates().getStart());
+    query.setParameter("end", node.getCoordinates().getEnd());
     
     return query.getResultList();
   }  
@@ -81,7 +84,8 @@ public class NodeCollection extends EntityCollection<Node>
   }
   
   public List<Node> getAllChildren (@NonNull final Iterable<Node> nodes) {
-    final CriteriaBuilder criteriaBuilder = getManager().getCriteriaBuilder();
+    final EntityManager manager = getManagerFactory().createEntityManager();
+    final CriteriaBuilder criteriaBuilder = manager.getCriteriaBuilder();
     final CriteriaQuery<Node> query = criteriaBuilder.createQuery(Node.class);
     
     final Root<Node> child = query.from(Node.class);
@@ -91,19 +95,24 @@ public class NodeCollection extends EntityCollection<Node>
         StreamSupport.stream(nodes.spliterator(), false).map(
           node -> {
             return criteriaBuilder.and(
-              criteriaBuilder.greaterThan(child.get("_setStart"), node.getSetStart()),
-              criteriaBuilder.lessThan(child.get("_setEnd"), node.getSetEnd())
+              criteriaBuilder.greaterThan(child.get("_setStart"), node.getCoordinates().getStart()),
+              criteriaBuilder.lessThan(child.get("_setEnd"), node.getCoordinates().getEnd())
             );
           }
         ).toArray(size -> new Predicate[size])
       )  
     );
     
-    return getManager().createQuery(query).getResultList();
+    final List<Node> result = manager.createQuery(query).getResultList();
+    
+    manager.close();
+    
+    return result;
   }
   
   public List<Node> getAllChildren (@NonNull final long identifier) {
-    final TypedQuery<Node> query = getManager().createQuery(
+    final EntityManager manager = getManagerFactory().createEntityManager();
+    final TypedQuery<Node> query = manager.createQuery(
       String.join(
         " ", 
         "SELECT child",
@@ -115,9 +124,13 @@ public class NodeCollection extends EntityCollection<Node>
       Node.class
     );
     
-    query.setParameter("identifier", identifier);
     
-    return query.getResultList();
+    final List<Node> result = query.setParameter("identifier", identifier)
+                                   .getResultList();
+    
+    manager.close();
+    
+    return result;
   }
 
   /**
@@ -126,27 +139,35 @@ public class NodeCollection extends EntityCollection<Node>
    * @return
    */
   public List<Sensor> getAllSensors (@NonNull final Iterable<Node> parents, @NonNull final String type) {
-    final CriteriaBuilder criteriaBuilder = getManager().getCriteriaBuilder();
+    final EntityManager manager = getManagerFactory().createEntityManager();
+    final CriteriaBuilder criteriaBuilder = manager.getCriteriaBuilder();
     final CriteriaQuery<Sensor> query = criteriaBuilder.createQuery(Sensor.class);
     final List<Node> nodes = this.getAllChildren(parents);
     Iterables.addAll(nodes, parents);
     
     final Root<Sensor> sensor = query.from(Sensor.class);
     query.select(sensor);
-    query.where(sensor.join("_nodes").in(nodes));
-    query.where(criteriaBuilder.equal(sensor.get("_type"), type));
+    query.where(sensor.join(Sensor_._node).in(nodes));
+    query.where(criteriaBuilder.equal(sensor.get(Sensor_._type), type));
     
-    return getManager().createQuery(query).getResultList();
+    final List<Sensor> result = manager.createQuery(query).getResultList();
+    
+    manager.close();
+    
+    return result;
   }
   
   public int getRootSetEnd () {
-    if (this.getSize() <= 0) {
+    if (getSize() <= 0) {
       return 1;
     } else {
-      return getManager().createQuery(
+      final EntityManager manager = getManagerFactory().createEntityManager();
+      final int result = manager.createQuery(
         "SELECT MAX(node._setEnd) + 1 FROM Node node",
         Integer.class
       ).getSingleResult().intValue();
+      manager.close();
+      return result;
     }
   }
   
@@ -158,8 +179,8 @@ public class NodeCollection extends EntityCollection<Node>
     final EntityCollectionOperator<Node> operator = query -> {
       final QueriedEntity<?, Node> queried = query.getEntity();
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
-      query.andWhere(builder.greaterThan(queried.get("_setStart"), node.getSetStart()));
-      query.andWhere(builder.lessThan(queried.get("_setEnd"), node.getSetEnd()));
+      query.andWhere(builder.greaterThan(queried.get("_setStart"), node.getCoordinates().getStart()));
+      query.andWhere(builder.lessThan(queried.get("_setEnd"), node.getCoordinates().getEnd()));
     };
     
     return apply(operator);
@@ -169,7 +190,7 @@ public class NodeCollection extends EntityCollection<Node>
     final EntityCollectionOperator<Node> operator = query -> {
       final QueriedEntity<?, Node> queried = query.getEntity();
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
-      query.andWhere(builder.equal(queried.get("_depth"), node.getDepth() + 1));
+      query.andWhere(builder.equal(queried.get("_depth"), node.getCoordinates().getDepth() + 1));
     };
     
     return deepChildrenOf(node).apply(operator);
@@ -186,8 +207,8 @@ public class NodeCollection extends EntityCollection<Node>
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
       
       query.andWhere(builder.and(
-        builder.lessThan(queried.get("_setStart"), node.getSetStart()),
-        builder.greaterThan(queried.get("_setEnd"), node.getSetEnd())
+        builder.lessThan(queried.get("_setStart"), node.getCoordinates().getStart()),
+        builder.greaterThan(queried.get("_setEnd"), node.getCoordinates().getEnd())
       ));
     };
     

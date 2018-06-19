@@ -24,7 +24,7 @@ package org.liara.api.data.collection;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Join;
 
@@ -35,6 +35,7 @@ import org.liara.api.collection.transformation.operator.EntityCollectionOperator
 import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.sensor.Sensor_;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -45,8 +46,8 @@ public class SensorCollection extends EntityCollection<Sensor>
 { 
   @Autowired
   public SensorCollection (
-    @NonNull final EntityManager entityManager
-  ) { super(entityManager, Sensor.class); }
+    @NonNull final EntityManagerFactory entityManagerFactory
+  ) { super(entityManagerFactory, Sensor.class); }
   
   public SensorCollection (
     @NonNull final SensorCollection toCopy  
@@ -70,9 +71,13 @@ public class SensorCollection extends EntityCollection<Sensor>
   public SensorCollection deepIn (@NonNull final Node node) {
     final EntityCollectionOperator<Sensor> operator = query -> {
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
-      final Join<Sensor, Node> join = query.getEntity().join("_node");
-      query.andWhere(builder.greaterThanOrEqualTo(join.get("_setStart"), node.getSetStart()));
-      query.andWhere(builder.lessThanOrEqualTo(join.get("_setEnd"), node.getSetEnd()));
+      final Join<Sensor, Node> join = query.getEntity().join(Sensor_._node);
+      query.andWhere(
+        builder.greaterThanOrEqualTo(join.get("_setStart"), node.getCoordinates().getStart())
+      );
+      query.andWhere(
+        builder.lessThanOrEqualTo(join.get("_setEnd"), node.getCoordinates().getEnd())
+      );
     };
     
     return apply(operator);
@@ -81,7 +86,7 @@ public class SensorCollection extends EntityCollection<Sensor>
   public SensorCollection ofType (@NonNull final Class<?> type) {
     final EntityCollectionOperator<Sensor> operator = query -> {
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
-      query.andWhere(builder.equal(query.getEntity().get("_type"), type.getName()));
+      query.andWhere(builder.equal(query.getEntity().get(Sensor_._type), type.getName()));
     };
     
     return apply(operator);
@@ -90,7 +95,7 @@ public class SensorCollection extends EntityCollection<Sensor>
   public SensorCollection ofType (@NonNull final Collection<Class<?>> types) {
     final EntityCollectionOperator<Sensor> operator = query -> {
       query.andWhere(
-        query.getEntity().get("_type").in(
+        query.getEntity().get(Sensor_._type).in(
           types.stream().map(Class::getName)
                         .collect(Collectors.toList())
         )

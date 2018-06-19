@@ -147,14 +147,31 @@ public abstract class NodeBuilder<Self extends NodeBuilder<Self>>
   public Node into (@NonNull final SchemaManager manager) {
     return build(manager);
   }
-
-  public Node build (@NonNull final SchemaManager manager) {
+  
+  public NodeCreationSchema buildSchema () {
     final NodeCreationSchema schema = new NodeCreationSchema();
     schema.setName(_name);
     schema.setType(_type);
     schema.setParent(_parent);
     
-    final Node result = manager.execute(schema);
+    return schema;
+  }
+  
+  /*
+  public Node build () {
+    final Node result = new Node(buildSchema());
+    
+    for (final SensorBuilder<?> sensor : _sensors) {
+      sensor.withParent(result);
+      result.getSensors().add(sensor.build());
+    }
+    
+    return result;
+  }
+  */
+
+  public Node build (@NonNull final SchemaManager manager) {    
+    final Node result = manager.execute(buildSchema());
     
     for (final SensorBuilder<?> sensor : _sensors) {
       sensor.withParent(result);

@@ -47,11 +47,14 @@ public final class StateCollectionRequestConfiguration implements CollectionRequ
   @NonNull
   private final SimpleEntityFieldSelector<State, Join<State, Sensor>> _sensorJoin = root -> root.join("_sensor");
   
+  @NonNull
+  private final ApplicationEntityCollectionRequestConfiguration _applicationEntityConfiguration = new ApplicationEntityCollectionRequestConfiguration();
+  
   @Override
   public APIRequestEntityCollectionOperatorParser<State> createFilterParser () {
     return new APIRequestEntityCollectionConjunctionOperatorParser<>(
       Arrays.asList(
-        APIRequestEntityFilterParserFactory.integerValue(
+        APIRequestEntityFilterParserFactory.integer(
           "identifier", (root) -> root.get("_identifier")
         ),
         APIRequestEntityFilterParserFactory.datetime(

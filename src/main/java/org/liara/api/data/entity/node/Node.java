@@ -33,18 +33,24 @@ import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
+import org.liara.api.data.entity.tree.NestedSetCoordinates;
+import org.liara.api.data.entity.tree.NestedSetTree;
+import org.liara.api.data.entity.tree.NestedSetTreeNode;
 import org.liara.api.data.schema.UseCreationSchema;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Table(name = "nodes")
 @UseCreationSchema(NodeCreationSchema.class)
-public class Node extends ApplicationEntity
+public class Node extends ApplicationEntity implements NestedSetTreeNode<Node>
 {
   @Column(name = "name", nullable = false, updatable = true, unique = false)
   @NonNull
@@ -53,25 +59,19 @@ public class Node extends ApplicationEntity
   @Column(name = "type", nullable = false, updatable = false, unique = false)
   @NonNull
   private String                _type;
-
-  @Column(name = "set_start", nullable = true, updatable = true, unique = false)
-  private int                   _setStart;
-
-  @Column(name = "set_end", nullable = true, updatable = true, unique = false)
-  private int                   _setEnd;
+  
+  @NonNull
+  private NestedSetTree<Node> _tree;
 
   @OneToMany(
     cascade = CascadeType.ALL, 
     fetch = FetchType.LAZY,
     mappedBy = "_node"
   )
-  private List<Sensor>          _sensors;
+  private Set<Sensor>          _sensors;
 
   @OneToMany(mappedBy = "_node", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
   private List<ActivationState> _presences;
-
-  @Formula("(SELECT (COUNT(*) - 1) FROM nodes AS parent WHERE set_start BETWEEN parent.set_start AND parent.set_end)")
-  private int                   _depth;
 
   public Node () { }
   
@@ -81,27 +81,16 @@ public class Node extends ApplicationEntity
    * @param schema Schema to use in order to create this node.
    * @param collection Future collection of this node.
    */
-  public Node(
+  public Node (
     @NonNull final NodeCreationSchema schema,
     @NonNull final NodeCollection collection
   ) {
     _name = schema.getName();
     _type = schema.getType();
-    
-    if (schema.getParent() == null) {
-      _setStart = collection.getRootSetEnd();
-      _depth = 0;
-    } else {
-      final Node parent = collection.findByIdentifier(schema.getParent()).get();
-      _setStart = parent.getSetEnd();
-      _depth = parent.getDepth() + 1;
-    }
-    
-    _setEnd = _setStart + 1;
-    _sensors = Collections.emptyList();
+    _sensors = Collections.emptySet();
     _presences = Collections.emptyList();
   }
-
+  
   /**
    * Return the type of this node.
    * 
@@ -134,50 +123,98 @@ public class Node extends ApplicationEntity
   }
 
   /**
-   * Return the start index of the nested-set that represent this tree node.
-   * 
-   * @see https://en.wikipedia.org/wiki/Nested_set_model
-   * 
-   * @return The start index of the nested-set that represent this tree node.
-   */
-  public int getSetStart () {
-    return _setStart;
-  }
-
-  /**
-   * Return the end index of the nested-set that represent this tree node.
-   * 
-   * @see https://en.wikipedia.org/wiki/Nested_set_model
-   * 
-   * @return The end index of the nested-set that represent this tree node.
-   */
-  public int getSetEnd () {
-    return _setEnd;
-  }
-
-  /**
-   * Return the depth of this node from its root into the application tree.
-   * 
-   * It's also the number of parents that this node have.
-   * 
-   * @return The depth of this node from its root into the application tree.
-   */
-  public int getDepth () {
-    return _depth;
-  }
-
-  /**
    * Return all sensors directly attached to this node.
    * 
    * @return All sensors directly attached to this node.
    */
   @JsonIgnore
-  public List<Sensor> getSensors () {
-    return _sensors;
+  public Set<Sensor> getSensors () {
+    return Collections.unmodifiableSet(_sensors);
+  }
+  
+  /**
+   * Add a sensor to this node.
+   * 
+   * @param sensor A sensor to add to this node.
+   */
+  public void addSensor (@NonNull final Sensor sensor) {
+    if (!_sensors.contains(sensor)) {
+      _sensors.add(sensor);
+      sensor.setNode(this);
+    }
+  }
+  
+  /**
+   * Remove a sensor from this node.
+   * 
+   * @param sensor A sensor to remove from this node.
+   */
+  public void removeSensor (@NonNull final Sensor sensor) {
+    if (_sensors.contains(sensor)) {
+      _sensors.remove(sensor);
+      sensor.setNode(null);
+    }
   }
   
   @Override
   public NodeSnapshot snapshot () {
     return new NodeSnapshot(this);
+  }
+
+  @Override
+  public NestedSetTree<Node> getTree () {
+    return _tree;
+  }
+
+  @Override
+  public void setTree (@Nullable final NestedSetTree<Node> tree) {
+    if (!Objects.equals(_tree, tree)) {
+      if (!Objects.equals(_tree, null)) {
+        final NestedSetTree<Node> oldTree = _tree;
+        _tree = null;
+        oldTree.removeNode(this);
+      }
+      
+      _tree = tree;
+      
+      if (!Objects.equals(_tree, null)) {
+        _tree.addNode(this);
+      }
+    }
+  }
+
+  @Override
+  public NestedSetCoordinates getCoordinates () {
+    return _tree.getCoordinatesOf(this);
+  }
+
+  @Override
+  public Set<Node> getChildren () {
+    return _tree.getChildrenOf(this);
+  }
+
+  @Override
+  public Set<Node> getAllChildren () {
+    return _tree.getAllChildrenOf(this);
+  }
+
+  @Override
+  public void addChild (@NonNull final Node node) {
+    _tree.addNode(node, this);
+  }
+
+  @Override
+  public void removeChild (@NonNull final Node node) {
+    _tree.removeNode(node);
+  }
+
+  @Override
+  public Node getParent () {
+    return _tree.getParentOf(this);
+  }
+
+  @Override
+  public void setParent (@NonNull final Node node) {
+    _tree.addNode(this, node);
   }
 }

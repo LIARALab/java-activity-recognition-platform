@@ -44,10 +44,12 @@ import org.liara.api.recognition.sensor.SensorConfiguration;
 import org.liara.api.recognition.sensor.VirtualSensorHandler;
 import org.liara.api.recognition.sensor.common.NativeSensor;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.Set;
 
 @Entity
 @Table(name = "sensors")
@@ -79,7 +81,7 @@ public class      Sensor
     orphanRemoval = false,
     fetch = FetchType.LAZY
   )
-  private List<State>   _states;
+  private Set<State>   _states;
 
   @ManyToOne(optional = false)
   @JoinColumn(name = "node_identifier", nullable = false, unique = false, updatable = false)
@@ -149,13 +151,48 @@ public class      Sensor
     return _node;
   }
   
+  /**
+   * Change the parent node of this sensor.
+   * 
+   * @param node The new parent node of this sensor.
+   */
+  public void setNode (@Nullable final Node node) {
+    if (node != _node) {
+      if (_node != null) {
+        final Node oldNode = _node;
+        _node = null;
+        oldNode.removeSensor(this);
+      }
+      
+      _node = node;
+      
+      if (_node != null) {
+        _node.addSensor(this);
+      }
+    }
+  }
+  
   public Long getNodeIdentifier () {
     return _node.getIdentifier();
   }
 
   @JsonIgnore
-  public List<State> getStates () {
-    return _states;
+  public Set<State> getStates () {
+    return Collections.unmodifiableSet(_states);
+  }
+  
+  public void addState (@NonNull final State state) {
+    if (!_states.contains(state)) {
+      _states.add(state);
+      state.setSensor(this);
+    }
+  }
+  
+  public void removeState (@NonNull final State state) {
+    if (_states.contains(state)) {
+      _states.remove(state);
+      state.setSensor(null);
+    }
   }
 
   public String getType () {

@@ -56,7 +56,7 @@ public class EntityCollectionGrouping<Entity>
   @Override
   public List<Tuple> get () {
     final EntityCollectionMainQuery<Entity, Tuple> query = createQuery();
-    return query.getManager().createQuery(query.getCriteriaQuery()).getResultList();
+    return query.fetchAllAndClose();
   }
   
   public EntityCollectionAggregation<Entity, ?> getAggregation () {

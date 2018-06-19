@@ -25,7 +25,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
@@ -41,8 +41,8 @@ import org.springframework.stereotype.Component;
 public class IntegerStateCollection extends EntityCollection<IntegerState>
 {
   @Autowired
-  public IntegerStateCollection(@NonNull final EntityManager entityManager) {
-    super(entityManager, IntegerState.class);
+  public IntegerStateCollection(@NonNull final EntityManagerFactory entityManagerFactory) {
+    super(entityManagerFactory, IntegerState.class);
   }
 
   public IntegerStateCollection (

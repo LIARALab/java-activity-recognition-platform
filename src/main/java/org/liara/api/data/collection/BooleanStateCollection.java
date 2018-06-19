@@ -25,7 +25,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
@@ -44,8 +44,8 @@ import org.springframework.stereotype.Component;
 public class BooleanStateCollection extends EntityCollection<BooleanState>
 {
   @Autowired
-  public BooleanStateCollection(@NonNull final EntityManager entityManager) {
-    super(entityManager, BooleanState.class);
+  public BooleanStateCollection(@NonNull final EntityManagerFactory entityManagerFactory) {
+    super(entityManagerFactory, BooleanState.class);
   }
   
   public BooleanStateCollection (

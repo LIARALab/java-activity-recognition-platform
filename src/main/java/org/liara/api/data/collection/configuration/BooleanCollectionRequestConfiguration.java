@@ -51,7 +51,7 @@ public final class BooleanCollectionRequestConfiguration implements CollectionRe
   public APIRequestEntityCollectionOperatorParser<State> createFilterParser () {
     return new APIRequestEntityCollectionConjunctionOperatorParser<>(
       Arrays.asList(
-        APIRequestEntityFilterParserFactory.integerValue(
+        APIRequestEntityFilterParserFactory.integer(
           "identifier", (root) -> root.get("_identifier")
         ),
         APIRequestEntityFilterParserFactory.datetime(

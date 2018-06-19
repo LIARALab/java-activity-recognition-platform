@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.liara.api.collection.EntityCollection;
@@ -48,17 +48,23 @@ public class ActivationStateCollection extends EntityCollection<ActivationState>
 {
   @Autowired
   public ActivationStateCollection (
-    @NonNull final EntityManager entityManager
-  ) { super(entityManager, ActivationState.class); }
+    @NonNull final EntityManagerFactory entityManagerFactory
+  ) { 
+    super(entityManagerFactory, ActivationState.class); 
+  }
   
   public ActivationStateCollection (
     @NonNull final ActivationStateCollection toCopy  
-  ) { super(toCopy); }
+  ) { 
+    super(toCopy); 
+  }
   
   public ActivationStateCollection (
     @NonNull final ActivationStateCollection collection,
     @NonNull final EntityCollectionConjunctionOperator<ActivationState> operator
-  ) { super(collection, operator); }
+  ) { 
+    super(collection, operator); 
+  }
 
   @Override
   public ActivationStateCollection apply (@NonNull final EntityCollectionOperator<ActivationState> operator) {

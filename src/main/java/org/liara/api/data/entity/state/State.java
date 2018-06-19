@@ -35,6 +35,7 @@ import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.schema.UseCreationSchema;
 import org.liara.api.data.schema.UseMutationSchema;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -72,12 +73,24 @@ public class State extends ApplicationEntity
     return _sensor;
   }
   
-  public void setSensor (@NonNull final Sensor sensor) {
-    _sensor = sensor;
+  public void setSensor (@Nullable final Sensor sensor) {
+    if (_sensor != sensor) {
+      if (_sensor != null) {
+        final Sensor oldSensor = _sensor;
+        _sensor = null;
+        oldSensor.removeState(this);
+      }
+      
+      _sensor = sensor;
+      
+      if (_sensor != null) {
+        _sensor.addState(this);
+      }
+    }
   }
 
   public Long getSensorIdentifier () {
-    return _sensor.getIdentifier();
+    return _sensor == null ? null : _sensor.getIdentifier();
   }
 
   public void setEmittionDate (@NonNull final ZonedDateTime emittionDate) {

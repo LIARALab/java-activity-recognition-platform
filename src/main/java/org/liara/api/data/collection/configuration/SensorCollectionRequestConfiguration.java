@@ -54,7 +54,7 @@ public final class SensorCollectionRequestConfiguration implements CollectionReq
   public APIRequestEntityCollectionOperatorParser<Sensor> createFilterParser () {
     return new APIRequestEntityCollectionConjunctionOperatorParser<>(
       Arrays.asList(
-        APIRequestEntityFilterParserFactory.integerValue(
+        APIRequestEntityFilterParserFactory.integer(
           "identifier", (root) -> root.get("_identifier")
         ),
         APIRequestEntityFilterParserFactory.datetime(

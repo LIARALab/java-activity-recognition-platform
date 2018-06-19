@@ -51,11 +51,11 @@ public class      EntityCollectionFieldGroupingTransformation<Entity>
     query.andGroupBy(group);
     
     final List<Selection<?>> selections = new ArrayList<>(
-      query.getCriteriaQuery().getSelection().getCompoundSelectionItems()
+      query.getSelection().getCompoundSelectionItems()
     );
  
     selections.add(group);
-    query.getCriteriaQuery().multiselect(selections);
+    query.multiselect(selections);
   }
 
 }

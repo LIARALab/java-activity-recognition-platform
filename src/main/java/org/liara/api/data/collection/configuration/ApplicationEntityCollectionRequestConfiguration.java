@@ -22,7 +22,7 @@ public class ApplicationEntityCollectionRequestConfiguration implements Collecti
   @Override
   public APIRequestEntityCollectionOperatorParser<ApplicationEntity> createFilterParser () {
     return new APIRequestEntityCollectionConjunctionOperatorParser<>(Arrays.asList(
-      APIRequestEntityFilterParserFactory.integerValue("identifier", (root) -> root.get("_identifier")),
+      APIRequestEntityFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
       APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
       APIRequestEntityFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
       APIRequestEntityFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate"))

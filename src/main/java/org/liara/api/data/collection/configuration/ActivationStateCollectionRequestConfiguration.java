@@ -32,6 +32,7 @@ import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.collection.StateCollection;
+import org.liara.api.data.entity.ApplicationEntity_;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
@@ -65,14 +66,14 @@ public final class ActivationStateCollectionRequestConfiguration implements Coll
   public APIRequestEntityCollectionOperatorParser<ActivationState> createFilterParser () {
     return new APIRequestEntityCollectionConjunctionOperatorParser<>(
       Arrays.asList(
-        APIRequestEntityFilterParserFactory.integerValue(
+        APIRequestEntityFilterParserFactory.integer(
           "identifier", (root) -> root.get("_identifier")
         ),
         APIRequestEntityFilterParserFactory.datetime(
-          "creationDate", (root) -> root.get("_creationDate")
+          "creationDate", (root) -> root.get(ApplicationEntity_._creationDate)
         ),
         APIRequestEntityFilterParserFactory.datetime(
-          "updateDate", (root) -> root.get("_updateDate")
+          "updateDate", (root) -> root.get(ApplicationEntity_._updateDate)
         ),
         APIRequestEntityFilterParserFactory.datetime(
           "deletionDate", (root) -> root.get("_deletionDate")

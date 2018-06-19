@@ -22,17 +22,21 @@
 package org.liara.api.collection.query;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Selection;
 
 import org.liara.api.collection.query.queried.QueriedEntity;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
+import org.liara.api.collection.transformation.cursor.Cursor;
 import org.springframework.lang.NonNull;
 
 public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCollectionQuery<Entity, Output>
@@ -48,15 +52,22 @@ public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCol
     super(manager, query, entity);
     _query = query;
   }
+  
+  public EntityCollectionMainQuery<Entity, Output> select (
+    @NonNull final Selection<? extends Output> selection
+  ) {
+    _query.select(selection);
+    return this;
+  }
 
   @Override
-  public EntityCollectionQuery<Entity, Output> orderBy (@NonNull final Order... o) {
+  public EntityCollectionMainQuery<Entity, Output> orderBy (@NonNull final Order... o) {
     _query.orderBy(o);
     return this;
   }
 
   @Override
-  public EntityCollectionQuery<Entity, Output> orderBy (@NonNull final List<Order> o) {
+  public EntityCollectionMainQuery<Entity, Output> orderBy (@NonNull final List<Order> o) {
     _query.orderBy(o);
     return this;
   }
@@ -92,12 +103,71 @@ public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCol
     return join((EntityFieldSelector<Entity, Join<Entity, Joined>>) join);
   }
   
-  /**
-   * Return the underlying criteria query.
-   * 
-   * @return The underlying criteria query.
-   */
-  public CriteriaQuery<Output> getCriteriaQuery () {
-    return _query;
+  public List<Output> fetchAllAndClose () {
+    final List<Output> result = getManager().createQuery(_query)
+                                            .getResultList();
+
+    getManager().close();
+    
+    return result;
+  }
+  
+  public Optional<Output> fetchFirstAndClose () {
+    final List<Output> result = getManager().createQuery(_query)
+                                            .setMaxResults(1)
+                                            .getResultList();
+    
+    getManager().close();
+    
+    if (result.size() > 0) {
+      return Optional.ofNullable(result.get(0));
+    } else {
+      return Optional.empty();
+    }
+  }
+  
+  public Optional<Output> fetchOneAndClose (final int index) {
+    final List<Output> result = getManager().createQuery(_query)
+                                            .setMaxResults(1)
+                                            .setFirstResult(index)
+                                            .getResultList();
+    
+    getManager().close();
+    
+    if (result.size() > 0) {
+      return Optional.ofNullable(result.get(0));
+    } else {
+      return Optional.empty();
+    }
+  }
+  
+  public List<Output> fetchCursorAndClose (@NonNull final Cursor cursor) {
+    final TypedQuery<Output> query = getManager().createQuery(_query);
+   
+    query.setFirstResult(cursor.getOffset());
+    
+    if (cursor.hasLimit()) {
+      query.setMaxResults(cursor.getLimit());
+    }
+    
+    final List<Output> result = query.getResultList();
+    
+    getManager().close();
+    
+    return result;
+  }
+
+  public Selection<?> getSelection () {
+    return _query.getSelection();
+  }
+
+  public EntityCollectionMainQuery<Entity, Output> multiselect (@NonNull final List<Selection<?>> selections) {
+    _query.multiselect(selections);
+    return this;
+  }
+  
+  public EntityCollectionMainQuery<Entity, Output> multiselect (@NonNull final Selection<?> ...selections) {
+    _query.multiselect(selections);
+    return this;
   }
 }

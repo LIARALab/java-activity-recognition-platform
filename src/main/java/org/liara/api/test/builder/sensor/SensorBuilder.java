@@ -343,7 +343,7 @@ public abstract class SensorBuilder<Self extends SensorBuilder<Self>>
     return andWithStateAfter(builder, duration, ChronoUnit.YEARS, callback);
   }
   
-  public Sensor build (@NonNull final SchemaManager manager) {
+  public SensorCreationSchema buildSchema () {
     final SensorCreationSchema schema = new SensorCreationSchema();
     schema.setConfiguration(_configuration);
     schema.setIpv4Address(_ipv4Address);
@@ -354,7 +354,24 @@ public abstract class SensorBuilder<Self extends SensorBuilder<Self>>
     schema.setParent(_parent);
     schema.setType(_type);
     
-    final Sensor sensor = manager.execute(schema);
+    return schema;
+  }
+  
+  /*
+  public Sensor build () {
+    final Sensor sensor = new Sensor(buildSchema());
+    
+    for (final StateBuilder<?> state : _states) {
+      state.withSource(sensor);
+      sensor.addState(state.build());
+    }
+    
+    return sensor;
+  }
+  */
+  
+  public Sensor build (@NonNull final SchemaManager manager) {
+    final Sensor sensor = manager.execute(buildSchema());
     
     for (final StateBuilder<?> state : _states) {
       state.withSource(sensor);

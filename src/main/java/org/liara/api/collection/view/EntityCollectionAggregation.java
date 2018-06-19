@@ -21,8 +21,6 @@
  ******************************************************************************/
 package org.liara.api.collection.view;
 
-import javax.persistence.EntityManager;
-
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.query.EntityCollectionMainQuery;
 import org.liara.api.collection.transformation.aggregation.EntityAggregationTransformation;
@@ -67,11 +65,7 @@ public class EntityCollectionAggregation<Entity, AggregationType> implements Vie
       _aggregator.getAggregationType()
     );
     
-    return query.getManager().createQuery(query.getCriteriaQuery()).getSingleResult();
-  }
-  
-  public EntityManager getManager () {
-    return _aggregated.getManager();
+    return query.fetchFirstAndClose().get();
   }
   
   public EntityCollection<Entity> getAggregated () {

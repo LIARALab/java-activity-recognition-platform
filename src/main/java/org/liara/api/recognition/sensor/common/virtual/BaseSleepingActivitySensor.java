@@ -12,6 +12,7 @@ import org.liara.api.data.collection.ActivationStateCollection;
 import org.liara.api.data.collection.BaseSleepingActivityStateCollection;
 import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.entity.state.ActivationState;
+import org.liara.api.data.entity.state.ActivationState_;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.activity.BaseSleepingActivityMutationSchema;
 import org.liara.api.data.entity.state.activity.BaseSleepingActivityState;
@@ -103,15 +104,12 @@ public class BaseSleepingActivitySensor extends AbstractVirtualSensorHandler
   
   private List<ActivationState> getInitialisationStates () {
     final EntityCollectionMainQuery<ActivationState, ActivationState> query = _watched.apply(
-      Operators.orderAscendingBy(x -> x.get("_emittionDate"))
+      Operators.orderAscendingBy(x -> x.get(ActivationState_._emittionDate))
     ).createCollectionQuery();
     
     query.join(x -> x.join("_sensor")).join(x -> x.join("_node"));
     
-    final List<ActivationState> result = _entityManager.createQuery(query.getCriteriaQuery())
-                                                       .getResultList();
-    
-    _entityManager.clear();
+    final List<ActivationState> result = query.fetchAllAndClose();
     
     return result;
   }

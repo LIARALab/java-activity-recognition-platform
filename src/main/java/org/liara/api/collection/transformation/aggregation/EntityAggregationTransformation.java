@@ -63,14 +63,14 @@ public interface EntityAggregationTransformation<Entity, AggregationResult>
   default public void apply (
     @NonNull final EntityCollectionMainQuery<Entity, ?> query
   ) {
-    final Selection<?> selection = query.getCriteriaQuery().getSelection();
+    final Selection<?> selection = query.getSelection();
     
     if (selection == null) {
-      query.getCriteriaQuery().multiselect(aggregate(query));
+      query.multiselect(aggregate(query));
     } else {
       final List<Selection<?>> selections = new ArrayList<>(selection.getCompoundSelectionItems());
       selections.add(selection);
-      query.getCriteriaQuery().multiselect(selections);
+      query.multiselect(selections);
     }
   }
   

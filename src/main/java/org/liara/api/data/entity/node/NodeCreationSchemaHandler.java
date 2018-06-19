@@ -13,10 +13,7 @@ import org.springframework.lang.NonNull;
 
 @SchemaHandler(NodeCreationSchema.class)
 public class NodeCreationSchemaHandler
-{
-  @NonNull
-  private final EntityManager _entityManager;
-  
+{  
   @NonNull
   private final NodeCollection _collection;
   
@@ -28,7 +25,6 @@ public class NodeCreationSchemaHandler
     @NonNull final NodeCollection collection,
     @NonNull final ApplicationEventPublisher eventPublisher
   ) {
-    _entityManager = collection.getManager();
     _collection = collection;
     _eventPublisher = eventPublisher;
   }
@@ -37,32 +33,35 @@ public class NodeCreationSchemaHandler
   public Node handle (
     @NonNull final NodeCreationSchema schema
   ) {
+    final EntityManager manager = _collection.getManagerFactory().createEntityManager();
     _eventPublisher.publishEvent(new NodeWillBeCreatedEvent(this, schema));
     final Node node = new Node(schema, _collection);
 
     if (schema.getParent() != null) {      
-      updateNestedTreeBoundaries(node);
+      updateNestedTreeBoundaries(node, manager);
     }
     
-    _collection.getManager().persist(node);
+    manager.persist(node);
     _eventPublisher.publishEvent(new NodeWasCreatedEvent(this, node));
     
+    manager.close();
     return node;
   }
 
   private void updateNestedTreeBoundaries (
-    @NonNull final Node node
+    @NonNull final Node node,
+    @NonNull final EntityManager manager
   ) {
-    _entityManager.createQuery(
+    manager.createQuery(
       "UPDATE Node SET _setStart = _setStart + 2 WHERE _setStart > :parentSetEnd"
     ).setParameter(
-      "parentSetEnd", node.getSetStart()
+      "parentSetEnd", node.getCoordinates().getStart()
     ).executeUpdate();
     
-    _entityManager.createQuery(
+    manager.createQuery(
       "UPDATE Node SET _setEnd = _setEnd + 2 WHERE _setEnd >= :parentSetEnd"
     ).setParameter(
-      "parentSetEnd", node.getSetEnd()
+      "parentSetEnd", node.getCoordinates().getEnd()
     ).executeUpdate();
   }
 }

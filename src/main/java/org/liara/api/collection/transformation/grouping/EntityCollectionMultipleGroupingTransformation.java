@@ -87,7 +87,7 @@ public class      EntityCollectionMultipleGroupingTransformation<Entity>
     }
     
     final List<Selection<?>> selection = new ArrayList<>(
-        query.getCriteriaQuery().getSelection().getCompoundSelectionItems()
+        query.getSelection().getCompoundSelectionItems()
     );
     
     final int groups = query.getGroupList().size();
@@ -99,7 +99,7 @@ public class      EntityCollectionMultipleGroupingTransformation<Entity>
       );
     }
     
-    query.getCriteriaQuery().multiselect(selection);
+    query.multiselect(selection);
   }
 
   @Override

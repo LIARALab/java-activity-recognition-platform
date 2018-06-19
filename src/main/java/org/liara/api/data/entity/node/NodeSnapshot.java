@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.liara.api.data.entity.ApplicationEntitySnapshot;
+import org.liara.api.data.entity.tree.ImmutableNestedSetCoordinates;
+import org.liara.api.data.entity.tree.NestedSetCoordinates;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -20,31 +22,23 @@ public class NodeSnapshot extends ApplicationEntitySnapshot
   private final String     _type;
 
   @NonNull
-  private final int        _setStart;
-
-  @NonNull
-  private final int        _setEnd;
+  private final NestedSetCoordinates _coordinates;
 
   @NonNull
   private final List<Long> _sensors;
-
-  @NonNull
-  private final int        _depth;
 
   public NodeSnapshot (@NonNull final Node model) {
     super(model);
     
     _name = model.getName();
     _type = model.getType();
-    _setStart = model.getSetStart();
-    _setEnd = model.getSetEnd();
+    _coordinates = new ImmutableNestedSetCoordinates(model.getCoordinates());
     _sensors = Collections.unmodifiableList(
       model.getSensors()
            .stream()
            .map(x -> x.getIdentifier())
            .collect(Collectors.toList())
     );
-    _depth = model.getDepth();
   }
 
   public NodeSnapshot (@NonNull final NodeSnapshot toCopy) {
@@ -52,10 +46,8 @@ public class NodeSnapshot extends ApplicationEntitySnapshot
 
     _name = toCopy.getName();
     _type = toCopy.getType();
-    _setStart = toCopy.getSetStart();
-    _setEnd = toCopy.getSetEnd();
+    _coordinates = toCopy.getCoordinates();
     _sensors = Collections.unmodifiableList(toCopy.getSensors());
-    _depth = toCopy.getDepth();
   }
   
   public String getName () {
@@ -66,20 +58,12 @@ public class NodeSnapshot extends ApplicationEntitySnapshot
     return _type;
   }
   
-  public int getSetStart () {
-    return _setStart;
-  }
-  
-  public int getSetEnd() {
-    return _setEnd;
+  public NestedSetCoordinates getCoordinates () {
+    return _coordinates;
   }
   
   public List<Long> getSensors () {
     return _sensors;
-  }
-  
-  public int getDepth () {
-    return _depth;
   }
   
   @Override

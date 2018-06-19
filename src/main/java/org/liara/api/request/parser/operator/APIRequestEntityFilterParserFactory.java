@@ -76,7 +76,7 @@ public final class APIRequestEntityFilterParserFactory
     );
   }
   
-  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> integerValue (
+  public static <Entity> APIRequestEntityCollectionOperatorParser<Entity> integer (
     @NonNull final String parameter, 
     @NonNull final SimpleEntityFieldSelector<Entity, Expression<Integer>> selector
   ) {

@@ -23,44 +23,32 @@ package org.liara.api.collection.view.cursor;
 
 import java.util.List;
 
-import javax.persistence.TypedQuery;
+import javax.persistence.Tuple;
 
 import org.liara.api.collection.transformation.cursor.Cursor;
+import org.liara.api.collection.view.EntityCollectionGrouping;
 import org.springframework.lang.NonNull;
 
-public class   TypedQueryCursorView<Result> 
-       extends AbstractCursorView<Result>
-{
-  @FunctionalInterface
-  public static interface TypedQueryProducer<Result> {
-    public TypedQuery<Result> produce ();
-  }
-  
+public class   GroupedCollectionCursorView
+       extends AbstractCursorView<Tuple>
+{  
   @NonNull
-  private final TypedQueryProducer<Result> _producer;
+  private final EntityCollectionGrouping<?> _collection;
   
-  public TypedQueryCursorView (
-    @NonNull final TypedQueryProducer<Result> producer, 
+  public GroupedCollectionCursorView (
+    @NonNull final EntityCollectionGrouping<?> collection, 
     @NonNull final Cursor cursor
   ) {
     super (cursor);
-    _producer = producer;
+    _collection = collection;
   }
 
   @Override
-  public List<Result> get () {
-    final TypedQuery<Result> query = _producer.produce();
-    
-    if (getCursor().hasLimit()) {
-      query.setMaxResults(getCursor().getLimit());
-    } 
-      
-    query.setFirstResult(getCursor().getOffset());
-    
-    return query.getResultList();
+  public List<Tuple> get () {
+    return _collection.createQuery().fetchCursorAndClose(getCursor());
   }
   
-  public TypedQueryCursorView<Result> setCursor (@NonNull final Cursor cursor) {
-    return new TypedQueryCursorView<>(_producer, cursor);
+  public GroupedCollectionCursorView setCursor (@NonNull final Cursor cursor) {
+    return new GroupedCollectionCursorView(_collection, cursor);
   }
 }

@@ -9,7 +9,6 @@ import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
-import org.liara.api.data.entity.state.DoubleState;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.event.NodeWasCreatedEvent;
 import org.liara.api.event.NodeWillBeCreatedEvent;
@@ -66,14 +65,14 @@ public class TVSensor extends AbstractVirtualSensorHandler
       Operators.orderAscendingBy(entity -> entity.get("_emittionDate"))
     );
     
-    DoubleState previous = null;
-    ActivationState emitting = null;
+    //DoubleState previous = null;
+    //ActivationState emitting = null;
     
     final Iterator<State> states = sourceStates.get().iterator();
     
     while (states.hasNext()) {
-      final DoubleState next = (DoubleState) states.next();
-      /*
+      /*final DoubleState next = (DoubleState) states.next();
+      
       if (previous == null && next.getValue() > 0.0) {
         emitting = new ActivationState();
         emitting.setStart(next.getEmittionDate());
@@ -95,9 +94,9 @@ public class TVSensor extends AbstractVirtualSensorHandler
           emitting.setEmittionDate(next.getEmittionDate());
           _states.getManager().persist(emitting);
         }
-      }*/
+      }
       
-      previous = next;
+      previous = next;*/
     }
   }
 

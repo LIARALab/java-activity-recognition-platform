@@ -17,9 +17,6 @@ public class StateMutationSchemaHandler
   private final ApplicationEventPublisher _eventPublisher;
   
   @NonNull
-  private final EntityManager _entityManager;
-  
-  @NonNull
   private final StateCollection _states;
   
   @Autowired
@@ -28,15 +25,16 @@ public class StateMutationSchemaHandler
     @NonNull final ApplicationEventPublisher eventPublisher
   ) {
     _eventPublisher = eventPublisher;
-    _entityManager = states.getManager();
     _states = states;
   }
   
   public State handle (@NonNull final StateMutationSchema schema) {
+    final EntityManager manager = _states.getManagerFactory().createEntityManager();
     _eventPublisher.publishEvent(new StateWillBeMutatedEvent(this, schema));
     final State state = schema.apply(_states);
-    _entityManager.merge(state);
+    manager.merge(state);
     _eventPublisher.publishEvent(new StateWasMutatedEvent(this, state));
+    manager.close();
     return state;
   }
 }

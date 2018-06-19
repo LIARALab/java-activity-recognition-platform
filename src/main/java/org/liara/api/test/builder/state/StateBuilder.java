@@ -65,16 +65,22 @@ public abstract class StateBuilder<Self extends StateBuilder<Self>>
     return _sensor;
   }
   
-  public void apply (@NonNull final StateCreationSchema schema) {
+  public StateCreationSchema buildSchema () {
+    return apply(new StateCreationSchema());
+  }
+  
+  protected StateCreationSchema apply (@NonNull final StateCreationSchema schema) {
     schema.setEmittionDate(_emittionDate);
     schema.setSensor(_sensor);
+    return schema;
+  }
+  
+  public State build () {
+    return buildSchema().create();
   }
 
-  public State build (@NonNull final SchemaManager manager) {
-    final StateCreationSchema schema = new StateCreationSchema();
-    apply(schema);
-    
-    return manager.execute(schema);
+  public State build (@NonNull final SchemaManager manager) {    
+    return manager.execute(buildSchema());
   }
   
   public abstract Self self ();
