@@ -75,8 +75,11 @@ public class LocalNestedSetTreeNodeReference<TreeNode extends NestedSetTreeNode<
     @NonNull final LocalNestedSetTreeNodeReference<TreeNode> node
   ) {
     if (!_children.contains(node)) {
-      node.getCoordinates().setStart(_coordinates.getEnd())
-      .setEnd(_coordinates.getEnd() + 1);
+      node.getCoordinates().set(
+        _coordinates.getEnd(),
+        _coordinates.getEnd() + 1, 
+        _coordinates.getDepth() + 1
+      );
 
       _coordinates.setEnd(_coordinates.getEnd() + 2);
       

@@ -34,8 +34,10 @@ import org.liara.api.collection.transformation.operator.EntityCollectionConjunct
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.node.Node_;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.sensor.Sensor_;
+import org.liara.api.data.entity.tree.NestedSetCoordinates_;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -64,7 +66,9 @@ public class SensorCollection extends EntityCollection<Sensor>
   }
   
   public SensorCollection in (@NonNull final Node node) {
-    final EntityCollectionOperator<Sensor> operator = query -> query.andWhere(query.getEntity().in(node.getSensors()));
+    final EntityCollectionOperator<Sensor> operator = query -> query.andWhere(
+      query.getEntity().get(Sensor_._node).in(node)
+    );
     return apply(operator);
   }
 
@@ -73,10 +77,16 @@ public class SensorCollection extends EntityCollection<Sensor>
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
       final Join<Sensor, Node> join = query.getEntity().join(Sensor_._node);
       query.andWhere(
-        builder.greaterThanOrEqualTo(join.get("_setStart"), node.getCoordinates().getStart())
+        builder.greaterThanOrEqualTo(
+          join.get(Node_._coordinates).get(NestedSetCoordinates_._start), 
+          node.getCoordinates().getStart()
+        )
       );
       query.andWhere(
-        builder.lessThanOrEqualTo(join.get("_setEnd"), node.getCoordinates().getEnd())
+        builder.lessThanOrEqualTo(
+          join.get(Node_._coordinates).get(NestedSetCoordinates_._end), 
+          node.getCoordinates().getEnd()
+        )
       );
     };
     

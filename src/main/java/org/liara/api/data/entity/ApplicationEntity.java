@@ -22,6 +22,8 @@
 package org.liara.api.data.entity;
 
 import java.time.ZonedDateTime;
+import java.util.Objects;
+import java.util.WeakHashMap;
 
 import javax.annotation.Nullable;
 import javax.persistence.Column;
@@ -44,11 +46,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * This base class support a standard application identifier field, and
  * declare usual entities lifecycle timestamps fields.
  * 
- * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  */
 @MappedSuperclass
 public class ApplicationEntity
 {
+  @NonNull
+  private final static WeakHashMap<Class<?>, Long> NEXT_IDENTIFIERS = new WeakHashMap<>(); 
+  
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "identifier", nullable = false, updatable = false, unique = true)
@@ -69,6 +74,39 @@ public class ApplicationEntity
   @Nullable
   private ZonedDateTime _deletionDate;
 
+  private static Long getNextIdentifierFor(@NonNull final ApplicationEntity entity) {
+    final Class<? extends ApplicationEntity> clazz = entity.getClass();
+    final Long identifier;
+    
+    if (ApplicationEntity.NEXT_IDENTIFIERS.containsKey(clazz)) {
+      identifier = ApplicationEntity.NEXT_IDENTIFIERS.get(clazz);
+      
+      ApplicationEntity.NEXT_IDENTIFIERS.put(
+        clazz,
+        ApplicationEntity.NEXT_IDENTIFIERS.get(clazz) + 1L
+      );
+    } else {
+      identifier = 0L;
+      ApplicationEntity.NEXT_IDENTIFIERS.put(clazz, 1L);
+    }
+    
+    return identifier;
+  }
+  
+  public ApplicationEntity () {
+    _identifier = ApplicationEntity.getNextIdentifierFor(this);
+    _creationDate = ZonedDateTime.now();
+    _updateDate = _creationDate;
+    _deletionDate = null;
+  }
+  
+  public ApplicationEntity (final long identifier) {
+    _identifier = identifier;
+    _creationDate = ZonedDateTime.now();
+    _updateDate = _creationDate;
+    _deletionDate = null;
+  }
+  
   /**
    * Entity identifier. 
    * 
@@ -79,6 +117,10 @@ public class ApplicationEntity
    */
   public Long getIdentifier () {
     return _identifier.longValue();
+  }
+  
+  protected void setIdentifier (@NonNull final Long identifier) {
+    _identifier = identifier;
   }
 
   /**
@@ -198,20 +240,16 @@ public class ApplicationEntity
 
   @Override
   public int hashCode () {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + ((getIdentifier() == null) ? 0 : getIdentifier().intValue());
-    return result;
+    return Objects.hash(getClass(), getIdentifier());
   }
 
   @Override
   public boolean equals (Object obj) {
     if (this == obj) return true;
     if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (!getClass().isAssignableFrom(obj.getClass())) return false;
     ApplicationEntity other = (ApplicationEntity) obj;
-    if (getIdentifier() == null || !getIdentifier().equals(other.getIdentifier())) return false;
-    return true;
+    return Objects.equals(getIdentifier(), other.getIdentifier());
   }
   
   public ApplicationEntitySnapshot snapshot () {

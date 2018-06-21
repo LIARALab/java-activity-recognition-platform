@@ -6,7 +6,7 @@ import org.springframework.lang.NonNull;
 
 public interface NestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
 {
-  public long size ();
+  public long getSize ();
   
   public TreeNode getNode (@NonNull final Long identifier);
   

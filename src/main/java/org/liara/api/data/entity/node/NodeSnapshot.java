@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Streams;
+
 @Component
 @Scope("prototype")
 public class NodeSnapshot extends ApplicationEntitySnapshot
@@ -34,10 +36,9 @@ public class NodeSnapshot extends ApplicationEntitySnapshot
     _type = model.getType();
     _coordinates = new ImmutableNestedSetCoordinates(model.getCoordinates());
     _sensors = Collections.unmodifiableList(
-      model.getSensors()
-           .stream()
-           .map(x -> x.getIdentifier())
-           .collect(Collectors.toList())
+      Streams.stream(model.sensors())
+             .map(x -> x.getIdentifier())
+             .collect(Collectors.toList())
     );
   }
 

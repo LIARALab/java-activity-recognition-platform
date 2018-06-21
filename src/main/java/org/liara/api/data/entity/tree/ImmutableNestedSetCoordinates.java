@@ -44,6 +44,21 @@ public class ImmutableNestedSetCoordinates extends NestedSetCoordinates
   }
 
   @Override
+  public ImmutableNestedSetCoordinates set (
+    final int start, final int end, final int depth
+  ) {
+    // TODO Auto-generated method stub
+    return new ImmutableNestedSetCoordinates(start, end, depth);
+  }
+
+  @Override
+  public ImmutableNestedSetCoordinates set (
+    @NonNull final NestedSetCoordinates coordinates
+  ) {
+    return new ImmutableNestedSetCoordinates(coordinates);
+  }
+
+  @Override
   public NestedSetCoordinates moveRight (final int move) {
     return new ImmutableNestedSetCoordinates(
       getStart() + move,

@@ -9,7 +9,7 @@ import org.springframework.lang.NonNull;
  * The identity transformation of a view, is the view.
  * The identity transformation applied to any other compatible transformation, is that transformation.
  * 
- * @author Cédric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
  *
  * @param <Input> The input type of the identity transformation.
  */

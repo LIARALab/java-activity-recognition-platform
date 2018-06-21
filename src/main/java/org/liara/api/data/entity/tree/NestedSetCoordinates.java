@@ -1,5 +1,7 @@
 package org.liara.api.data.entity.tree;
 
+import java.security.InvalidParameterException;
+
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
@@ -12,10 +14,13 @@ import com.google.common.base.Objects;
 @Embeddable
 public class NestedSetCoordinates
 {
+  @Column(name = "set_start", nullable = false, updatable = true, unique = false)
   private int _start;
-  
+
+  @Column(name = "set_end", nullable = false, updatable = true, unique = false)
   private int _end;
-  
+
+  @Column(name = "set_depth", nullable = false, updatable = true, unique = false)
   private int _depth;
   
   public NestedSetCoordinates () {
@@ -35,13 +40,42 @@ public class NestedSetCoordinates
     final int end,
     final int depth
   ) {
+    assertThatAreValidNestedSetCoordinates(start, end);
     _start = start;
     _end = end;
     _depth = depth;
   }
   
+  private void assertThatAreValidNestedSetCoordinates (
+    final int start, 
+    final int end
+  ) {
+    if (start >= end) {
+      throw new InvalidParameterException(
+        String.join(
+          "", 
+          "The given nested set coordinates are invalid because the set starting coordinate (",
+          String.valueOf(start), ") is greater or equal to the set ending coordinate (",
+          String.valueOf(end), ") a nested set end coordinate must be greater than the ",
+          "given starting coordinate."
+        )
+      );
+    }
+    
+    if ((end - start - 1) % 2 == 1) {
+      throw new InvalidParameterException(
+        String.join(
+          "", 
+          "The given nested set coordinates are invalid because the given ending coordinate ",
+          "induce an invalid set size : (end - start - 1), (", 
+          String.valueOf(end - start - 1), ") is not divisible by 2."
+        )
+      );
+    }
+  }
+
   public int getSize () {
-    return (_end - _start) << 1;
+    return (_end - _start - 1) >> 1;
   }
 
   @Column(name = "set_start", nullable = false, updatable = true, unique = false)
@@ -50,6 +84,7 @@ public class NestedSetCoordinates
   }
   
   public NestedSetCoordinates setStart (final int start) {
+    assertThatAreValidNestedSetCoordinates(start, _end);
     _start = start;
     return this;
   }
@@ -60,7 +95,23 @@ public class NestedSetCoordinates
   }
   
   public NestedSetCoordinates setEnd (final int end) {
+    assertThatAreValidNestedSetCoordinates(_start, end);
     _end = end;
+    return this;
+  }
+  
+  public NestedSetCoordinates set (final int start, final int end, final int depth) {
+    assertThatAreValidNestedSetCoordinates(start, end);
+    _start = start;
+    _end = end;
+    _depth = depth;
+    return this;
+  }
+  
+  public NestedSetCoordinates set (@NonNull final NestedSetCoordinates coordinates) {
+    _start = coordinates.getStart();
+    _end = coordinates.getEnd();
+    _depth = coordinates.getDepth();
     return this;
   }
 
@@ -83,7 +134,7 @@ public class NestedSetCoordinates
   }
   
   public boolean isChildSet (@NonNull final NestedSetCoordinates set) {
-    return _start < set.getStart() && _end > set.getEnd();
+    return _start < set.getStart() && _end > set.getEnd() && set.getDepth() > _depth;
   }
   
   public boolean isDirectChildSet (@NonNull final NestedSetCoordinates set) {
@@ -91,7 +142,7 @@ public class NestedSetCoordinates
   }
   
   public boolean isParentSet (@NonNull final NestedSetCoordinates set) {
-    return _start > set.getStart() && _end < set.getEnd();
+    return _start > set.getStart() && _end < set.getEnd() && set.getDepth() < _depth;
   }
   
   public boolean isDirectParentSet (@NonNull final NestedSetCoordinates set) {
@@ -100,7 +151,7 @@ public class NestedSetCoordinates
   
   @Override
   public int hashCode () {
-    return Objects.hashCode(_depth, _end, _start);
+    return Objects.hashCode(_start, _end, _depth);
   }
 
   @Override
@@ -110,8 +161,8 @@ public class NestedSetCoordinates
     
     final NestedSetCoordinates other = (NestedSetCoordinates) obj;
     return _depth == other.getDepth() && 
-           _end != other.getEnd() &&
-           _start != other.getStart();
+           _end == other.getEnd() &&
+           _start == other.getStart();
   }
 
   public NestedSetCoordinates setDefault () {

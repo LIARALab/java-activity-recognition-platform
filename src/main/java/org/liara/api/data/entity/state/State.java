@@ -27,6 +27,8 @@ import javax.persistence.Column;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 
 import org.liara.api.data.collection.EntityCollections;
@@ -41,6 +43,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "states")
@@ -55,8 +60,18 @@ public class State extends ApplicationEntity
   @ManyToOne(optional = false)
   @JoinColumn(name = "sensor_identifier", nullable = false, unique = false, updatable = true)
   private Sensor _sensor;
+
+  @ManyToMany()
+  @JoinTable(
+    name = "correlations"
+  )
+  private Set<State> _correlations;
   
-  public State () { }
+  public State () { 
+    _emittionDate = ZonedDateTime.now();
+    _sensor = null;
+    _correlations = new HashSet<>();
+  }
   
   public State (@NonNull final StateCreationSchema schema) {
     _sensor = EntityCollections.SENSORS.findByIdentifier(schema.getSensor()).get();
@@ -71,6 +86,28 @@ public class State extends ApplicationEntity
   @JsonIgnore
   public Sensor getSensor () {
     return _sensor;
+  }
+  
+  public void correlate (@NonNull final State state) {
+    if (!_correlations.contains(state)) {
+      _correlations.add(state);
+      state.correlate(this);
+    }
+  }
+  
+  public void decorrelate (@NonNull final State state) {
+    if (_correlations.contains(state)) {
+      _correlations.remove(state);
+      state.decorrelate(this);
+    }
+  }
+  
+  public Iterable<State> correlated () {
+    return Collections.unmodifiableSet(_correlations);
+  }
+  
+  public boolean isCorrelated (@NonNull final State state) {
+    return _correlations.contains(state);
   }
   
   public void setSensor (@Nullable final Sensor sensor) {
@@ -100,29 +137,5 @@ public class State extends ApplicationEntity
   @Override
   public StateSnapshot snapshot () {
     return new StateSnapshot(this);
-  }
-
-  @Override
-  public int hashCode () {
-    final int prime = 31;
-    int result = super.hashCode();
-    result = prime * result + ((_emittionDate == null) ? 0 : _emittionDate.hashCode());
-    result = prime * result + ((_sensor == null) ? 0 : _sensor.hashCode());
-    return result;
-  }
-
-  @Override
-  public boolean equals (Object obj) {
-    if (this == obj) return true;
-    if (!super.equals(obj)) return false;
-    if (getClass() != obj.getClass()) return false;
-    State other = (State) obj;
-    if (_emittionDate == null) {
-      if (other._emittionDate != null) return false;
-    } else if (!_emittionDate.equals(other._emittionDate)) return false;
-    if (_sensor == null) {
-      if (other._sensor != null) return false;
-    } else if (!_sensor.equals(other._sensor)) return false;
-    return true;
   }
 }

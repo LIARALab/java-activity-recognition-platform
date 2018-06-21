@@ -8,18 +8,9 @@ import javax.persistence.metamodel.StaticMetamodel;
 @StaticMetamodel(NestedSetCoordinates.class)
 public abstract class NestedSetCoordinates_ {
 
-	public static volatile SingularAttribute<NestedSetCoordinates, Boolean> directParentSet;
-	public static volatile SingularAttribute<NestedSetCoordinates, Integer> depth;
-	public static volatile SingularAttribute<NestedSetCoordinates, Integer> size;
-	public static volatile SingularAttribute<NestedSetCoordinates, Boolean> hasChildren;
-	public static volatile SingularAttribute<NestedSetCoordinates, NestedSetCoordinates> lastChildMarker;
-	public static volatile SingularAttribute<NestedSetCoordinates, Integer> start;
-	public static volatile SingularAttribute<NestedSetCoordinates, Integer> end;
-	public static volatile SingularAttribute<NestedSetCoordinates, NestedSetCoordinates> firstChildMarker;
-	public static volatile SingularAttribute<NestedSetCoordinates, Boolean> leaf;
-	public static volatile SingularAttribute<NestedSetCoordinates, Boolean> directChildSet;
-	public static volatile SingularAttribute<NestedSetCoordinates, Boolean> parentSet;
-	public static volatile SingularAttribute<NestedSetCoordinates, Boolean> childSet;
+	public static volatile SingularAttribute<NestedSetCoordinates, Integer> _end;
+	public static volatile SingularAttribute<NestedSetCoordinates, Integer> _start;
+	public static volatile SingularAttribute<NestedSetCoordinates, Integer> _depth;
 
 }
 

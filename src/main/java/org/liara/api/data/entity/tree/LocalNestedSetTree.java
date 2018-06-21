@@ -33,8 +33,8 @@ public class LocalNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
   }
   
   @Override
-  public long size () {
-    return _roots.last().getCoordinates().getEnd() << 1;
+  public long getSize () {
+    return _nodesByReference.size();
   }
 
   @Override
@@ -74,7 +74,8 @@ public class LocalNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
 
   @Override
   public int getSetEnd () {
-    return _roots.last().getCoordinates().getEnd() + 1;
+    if (getSize() <= 0) return 1;
+    else return _roots.last().getCoordinates().getEnd() + 1;
   }
 
   @Override
@@ -82,8 +83,7 @@ public class LocalNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
     if (!this.contains(node)) {
       final LocalNestedSetTreeNodeReference<TreeNode> reference = new LocalNestedSetTreeNodeReference<>(node);
       
-      reference.getCoordinates().setStart(getSetEnd())
-                                .setEnd(getSetEnd() + 1);
+      reference.getCoordinates().set(getSetEnd(), getSetEnd() + 1, 1);
       
       _roots.add(reference);
       _nodeByIdentifier.put(node.getIdentifier(), node);
@@ -97,9 +97,10 @@ public class LocalNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
     @NonNull final TreeNode node, 
     @NonNull final TreeNode parent
   ) {
-    if (Objects.equals(parent, null)) {
+    if (Objects.equals(parent, null) && (!contains(node) || getParentOf(node) != null)) {
+      if (contains(node)) removeNode(node);
       addNode(node);
-    } else if (!contains(node) || !getParentOf(node).equals(parent)) {
+    } else if (!contains(node) || !Objects.equals(getParentOf(node), parent)) {
       final LocalNestedSetTreeNodeReference<TreeNode> childReference;
         
       if (contains(node)) {
@@ -121,6 +122,8 @@ public class LocalNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
 
       _nodesByReference.put(childReference, node);
       _nodeByIdentifier.put(node.getIdentifier(), node);
+      
+      node.setTree(this);
     }
   }
 

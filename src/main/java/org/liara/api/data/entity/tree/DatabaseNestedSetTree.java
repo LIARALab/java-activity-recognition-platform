@@ -46,8 +46,8 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
       String.join(
         "", 
         "UPDATE ", _entity.getName(), " ", 
-        "SET coordinates.start = coordinates.start + 2 ",
-        "WHERE coordinates.start > :parentSetEnd"
+        "SET coordinates._start = coordinates._start + 2 ",
+        "WHERE coordinates._start > :parentSetEnd"
       )
     ).setParameter("parentSetEnd", parent.getCoordinates().getEnd())
      .executeUpdate();
@@ -56,8 +56,8 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
       String.join(
         "", 
         "UPDATE ", _entity.getName(), " ", 
-        "SET coordinates.end = coordinates.end + 2 ",
-        "WHERE coordinates.end >= :parentSetEnd"
+        "SET coordinates._end = coordinates._end + 2 ",
+        "WHERE coordinates._end >= :parentSetEnd"
       )
     ).setParameter("parentSetEnd", parent.getCoordinates().getEnd())
      .executeUpdate();
@@ -91,9 +91,10 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
     final TypedQuery<TreeNode> query = entityManager.createQuery(
       String.join(
         "", 
-        "SELECT ", _entity.getName(), " node ",
-        "WHERE node.coordinates.start > :parentSetStart ",
-        "  AND node.coordinates.end < :parentSetEnd "
+        "SELECT node",
+        "  FROM ", _entity.getName(), " node ",
+        " WHERE node._coordinates._start > :parentSetStart ",
+        "   AND node._coordinates._end < :parentSetEnd "
       ),
       _entity
     ).setParameter("parentSetStart", node.getCoordinates().getStart())
@@ -111,10 +112,11 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
     final TypedQuery<TreeNode> query = entityManager.createQuery(
       String.join(
         "", 
-        "SELECT ", _entity.getName(), " node ",
-        "WHERE node.coordinates.start > :parentSetStart ",
-        "  AND node.coordinates.end < :parentSetEnd ",
-        "  AND node.coordinates.depth == :parentDepth + 1"
+        "SELECT node ",
+        "  FROM ", _entity.getName(), " node ",
+        " WHERE node._coordinates._start > :parentSetStart ",
+        "   AND node._coordinates._end < :parentSetEnd ",
+        "   AND node._coordinates._depth = :parentDepth + 1"
       ),
       _entity
     ).setParameter("parentSetStart", node.getCoordinates().getStart())
@@ -139,8 +141,9 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
     final List<NestedSetCoordinates> results = entityManager.createQuery(
       String.join(
         "",
-        "SELECT", _entity.getName(), ".coordinates ",
-        "WHERE identifier = :identifier"
+        "SELECT node._coordinates ",
+        "  FROM ", _entity.getName(), " node",
+        " WHERE identifier = :identifier"
       ), NestedSetCoordinates.class
     ).setParameter("identifier", node.getIdentifier())
      .getResultList();
@@ -159,18 +162,19 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
   public int getDepthOf (@NonNull final TreeNode node) {
     final EntityManager entityManager = _entityManagerFactory.createEntityManager();
     
-    final List<Integer> results = entityManager.createQuery(
+    final int result = entityManager.createQuery(
       String.join(
         "",
-        "SELECT", _entity.getName(), ".coordinates.depth ",
-        "WHERE identifier = :identifier"
+        "SELECT node._coordinates._depth ",
+        "  FROM ", _entity.getName(), " node",
+        " WHERE identifier = :identifier"
       ), Integer.class
     ).setParameter("identifier", node.getIdentifier())
-     .getResultList();
+     .getFirstResult();
     
     entityManager.close();
     
-    return results.size() <= 0 ? null : results.get(0);
+    return result;
   }
 
   @Override
@@ -185,7 +189,7 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
   public Set<TreeNode> getNodes () {
     final EntityManager entityManager = _entityManagerFactory.createEntityManager();
     final TypedQuery<TreeNode> query = entityManager.createQuery(
-      String.join("", "SELECT ", _entity.getName()),
+      String.join("", "SELECT node FROM ", _entity.getName(), " node"),
       _entity
     );
     final Set<TreeNode> result = new HashSet<TreeNode>(query.getResultList());
@@ -199,10 +203,11 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
     final TypedQuery<TreeNode> query = entityManager.createQuery(
       String.join(
         "", 
-        "SELECT ", _entity.getName(), " node ",
-        "WHERE node.coordinates.start < :childSetStart ",
-        "  AND node.coordinates.end > :childSetEnd ",
-        "  AND node.coordinates.depth == :childDepth - 1"
+        "SELECT node ",
+        "  FROM ", _entity.getName(), " node ",
+        " WHERE node._coordinates._start < :childSetStart ",
+        "   AND node._coordinates._end > :childSetEnd ",
+        "   AND node._coordinates._depth = :childDepth - 1"
       ),
       _entity
     ).setParameter("childSetStart", node.getCoordinates().getStart())
@@ -221,9 +226,10 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
     final TypedQuery<TreeNode> query = entityManager.createQuery(
       String.join(
         "", 
-        "SELECT ", _entity.getName(), " node ",
-        "WHERE node.coordinates.start < :childSetStart ",
-        "  AND node.coordinates.end > :childSetEnd "
+        "SELECT node ",
+        "  FROM ", _entity.getName(), " node ",
+        " WHERE node._coordinates._start < :childSetStart ",
+        "   AND node._coordinates._end > :childSetEnd "
       ),
       _entity
     ).setParameter("childSetStart", node.getCoordinates().getStart())
@@ -239,7 +245,7 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
   public int getSetEnd () {
     final EntityManager entityManager = _entityManagerFactory.createEntityManager();
     final TypedQuery<Integer> query = entityManager.createQuery(
-      String.join("", "SELECT MAX(", _entity.getName(), ".coordinates.end) + 1"),
+      String.join("", "SELECT MAX(node._coordinates._end) + 1 FROM ", _entity.getName(), " node"),
       Integer.class
     );
     
@@ -253,18 +259,19 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
   public int getSetEndOf (@NonNull final TreeNode node) {
     final EntityManager entityManager = _entityManagerFactory.createEntityManager();
     
-    final List<Integer> results = entityManager.createQuery(
+    final int result = entityManager.createQuery(
       String.join(
         "",
-        "SELECT", _entity.getName(), ".coordinates.end ",
-        "WHERE identifier = :identifier"
+        "SELECT node._coordinates._end ",
+        "  FROM ", _entity.getName(), " node ",
+        " WHERE identifier = :identifier"
       ), Integer.class
     ).setParameter("identifier", node.getIdentifier())
-     .getResultList();
+     .getFirstResult();
     
     entityManager.close();
     
-    return results.size() <= 0 ? null : results.get(0);
+    return result;
   }
 
   @Override
@@ -276,18 +283,19 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
   public int getSetStartOf (@NonNull final TreeNode node) {
     final EntityManager entityManager = _entityManagerFactory.createEntityManager();
     
-    final List<Integer> results = entityManager.createQuery(
+    final int result = entityManager.createQuery(
       String.join(
         "",
-        "SELECT", _entity.getName(), ".coordinates.start ",
-        "WHERE identifier = :identifier"
+        "SELECT node._coordinates._start ",
+        "  FROM ", _entity.getName(), " node ",
+        " WHERE identifier = :identifier"
       ), Integer.class
     ).setParameter("identifier", node.getIdentifier())
-     .getResultList();
+     .getFirstResult();
     
     entityManager.close();
     
-    return results.size() <= 0 ? null : results.get(0);
+    return result;
   }
 
   @Override
@@ -298,9 +306,9 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
       String.join(
         "", 
         "UPDATE ", _entity.getName(), " ", 
-        "SET coordinates.start = coordinates.start - :removedLength, ",
-        "    coordinates.end = coordinates.end - :removedLength, ",
-        "WHERE coordinates.start > :removedSetEnd"
+        "SET _coordinates._start = _coordinates._start - :removedLength, ",
+        "    _coordinates._end = _coordinates._end - :removedLength, ",
+        "WHERE _coordinates._start > :removedSetEnd"
       )
     ).setParameter("removedLength", node.getCoordinates().getSize())
      .setParameter("removedSetEnd", node.getCoordinates().getEnd())
@@ -310,9 +318,9 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
       String.join(
         "", 
         "UPDATE ", _entity.getName(), " ", 
-        "SET coordinates.end = coordinates.end - :removedLength, ",
-        "WHERE coordinates.end > :removedSetEnd ",
-        "  AND coordinates.start < :removedSetStart"
+        "SET _coordinates._end = _coordinates._end - :removedLength, ",
+        "WHERE _coordinates._end > :removedSetEnd ",
+        "  AND _coordinates._start < :removedSetStart"
       )
     ).setParameter("removedLength", node.getCoordinates().getSize())
      .setParameter("removedSetEnd", node.getCoordinates().getEnd())
@@ -323,8 +331,8 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
       String.join(
         "", 
         "DELETE ", _entity.getName(), " node ", 
-        "WHERE node.coordinates.end <= :removedSetEnd ",
-        "  AND node.coordinates.start >= :removedSetStart"
+        "WHERE node._coordinates._end <= :removedSetEnd ",
+        "  AND node._coordinates._start >= :removedSetStart"
       )
     ).setParameter("removedSetStart", node.getCoordinates().getStart())
      .setParameter("removedSetEnd", node.getCoordinates().getEnd())
@@ -334,10 +342,10 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
   }
 
   @Override
-  public long size () {
+  public long getSize () {
     final EntityManager entityManager = _entityManagerFactory.createEntityManager();
     final long result = entityManager.createQuery(
-      String.join("", "SELECT COUNT(", _entity.getName(), ")"), 
+      String.join("", "SELECT COUNT(node) FROM ", _entity.getName(), " node"), 
       Long.class
     ).getSingleResult().longValue();
     

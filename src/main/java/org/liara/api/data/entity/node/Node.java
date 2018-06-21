@@ -24,15 +24,17 @@ package org.liara.api.data.entity.node;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.OneToMany;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 
-import org.hibernate.annotations.Formula;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
+import org.liara.api.data.entity.tree.LocalNestedSetTree;
 import org.liara.api.data.entity.tree.NestedSetCoordinates;
 import org.liara.api.data.entity.tree.NestedSetTree;
 import org.liara.api.data.entity.tree.NestedSetTreeNode;
@@ -43,37 +45,78 @@ import org.springframework.lang.Nullable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 @Entity
 @Table(name = "nodes")
 @UseCreationSchema(NodeCreationSchema.class)
-public class Node extends ApplicationEntity implements NestedSetTreeNode<Node>
+public class      Node 
+       extends    ApplicationEntity 
+       implements NestedSetTreeNode<Node>
 {
-  @Column(name = "name", nullable = false, updatable = true, unique = false)
-  @NonNull
-  private String                _name;
-
-  @Column(name = "type", nullable = false, updatable = false, unique = false)
-  @NonNull
-  private String                _type;
+  private static final WeakHashMap<NestedSetTree<Node>, Long> NEXT_IDENTIFIERS = new WeakHashMap<>();
   
   @NonNull
-  private NestedSetTree<Node> _tree;
+  @Column(name = "name", nullable = false, updatable = true, unique = false)
+  private String                _name;
 
-  @OneToMany(
-    cascade = CascadeType.ALL, 
-    fetch = FetchType.LAZY,
-    mappedBy = "_node"
-  )
-  private Set<Sensor>          _sensors;
+  @NonNull
+  @Column(name = "type", nullable = false, updatable = false, unique = false)
+  private String                _type;
 
+  @NonNull
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "_node")
+  private Set<Sensor>          _sensors = new HashSet<>();
+
+  @NonNull
   @OneToMany(mappedBy = "_node", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
-  private List<ActivationState> _presences;
-
-  public Node () { }
+  private Set<ActivationState> _presences = new HashSet<>();
+  
+  @NonNull
+  @Transient
+  private NestedSetTree<Node> _tree;
+  
+  @Nullable
+  @Embedded
+  private NestedSetCoordinates _coordinates;
+  
+  private static Long getNextNodeIdentifierForTree (@NonNull final NestedSetTree<Node> tree) {
+    final Long result;
+    
+    if (Node.NEXT_IDENTIFIERS.containsKey(tree)) {
+      result = Node.NEXT_IDENTIFIERS.get(tree);
+      Node.NEXT_IDENTIFIERS.put(
+        tree, 
+        Node.NEXT_IDENTIFIERS.get(tree)
+      );
+    } else {
+      result = 0L;
+      Node.NEXT_IDENTIFIERS.put(tree, 1L);
+    }
+    
+    return result;
+  }
+  
+  protected Node () {
+    super();
+    _tree = DatabaseNodeTree.getInstance();
+    _name = null;
+    _type = null;
+    _sensors = null;
+  }
+  
+  public Node (
+    @NonNull final LocalNestedSetTree<Node> tree,
+    @NonNull final NodeCreationSchema schema
+  ) {
+    super(Node.getNextNodeIdentifierForTree(tree));
+    setTree(tree);
+    _name = schema.getName();
+    _type = schema.getType();
+  }
   
   /**
    * Create a new node from a creation schema.
@@ -87,8 +130,6 @@ public class Node extends ApplicationEntity implements NestedSetTreeNode<Node>
   ) {
     _name = schema.getName();
     _type = schema.getType();
-    _sensors = Collections.emptySet();
-    _presences = Collections.emptyList();
   }
   
   /**
@@ -121,14 +162,14 @@ public class Node extends ApplicationEntity implements NestedSetTreeNode<Node>
   public void setName (@NonNull final String name) {
     _name = name;
   }
-
+  
   /**
    * Return all sensors directly attached to this node.
    * 
    * @return All sensors directly attached to this node.
    */
   @JsonIgnore
-  public Set<Sensor> getSensors () {
+  public Iterable<Sensor> sensors () {
     return Collections.unmodifiableSet(_sensors);
   }
   
@@ -156,12 +197,17 @@ public class Node extends ApplicationEntity implements NestedSetTreeNode<Node>
     }
   }
   
+  public boolean hasSensor (@NonNull final Sensor sensor) {
+    return _sensors.contains(sensor);
+  }
+  
   @Override
   public NodeSnapshot snapshot () {
     return new NodeSnapshot(this);
   }
 
   @Override
+  @JsonIgnore
   public NestedSetTree<Node> getTree () {
     return _tree;
   }
@@ -178,6 +224,9 @@ public class Node extends ApplicationEntity implements NestedSetTreeNode<Node>
       _tree = tree;
       
       if (!Objects.equals(_tree, null)) {
+        if (tree instanceof LocalNestedSetTree) {
+          setIdentifier(Node.getNextNodeIdentifierForTree(tree));
+        }
         _tree.addNode(this);
       }
     }
@@ -189,11 +238,13 @@ public class Node extends ApplicationEntity implements NestedSetTreeNode<Node>
   }
 
   @Override
+  @JsonIgnore
   public Set<Node> getChildren () {
     return _tree.getChildrenOf(this);
   }
 
   @Override
+  @JsonIgnore
   public Set<Node> getAllChildren () {
     return _tree.getAllChildrenOf(this);
   }
@@ -209,6 +260,7 @@ public class Node extends ApplicationEntity implements NestedSetTreeNode<Node>
   }
 
   @Override
+  @JsonIgnore
   public Node getParent () {
     return _tree.getParentOf(this);
   }

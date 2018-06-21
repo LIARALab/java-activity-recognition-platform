@@ -6,6 +6,8 @@ import java.util.function.Function;
 
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.node.NodeCreationSchema;
+import org.liara.api.data.entity.tree.LocalNestedSetTree;
+import org.liara.api.data.entity.tree.NestedSetTree;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.test.builder.sensor.MotionSensorBuilder;
 import org.liara.api.test.builder.sensor.SensorBuilder;
@@ -157,18 +159,24 @@ public abstract class NodeBuilder<Self extends NodeBuilder<Self>>
     return schema;
   }
   
-  /*
-  public Node build () {
-    final Node result = new Node(buildSchema());
+  public NestedSetTree<Node> build () {
+    final LocalNestedSetTree<Node> result = new LocalNestedSetTree<>();
+    
+    build(result);
+    
+    return result;
+  }
+  
+  public Node build (@NonNull final LocalNestedSetTree<Node> tree) {
+    final Node result = new Node(tree, buildSchema());
     
     for (final SensorBuilder<?> sensor : _sensors) {
       sensor.withParent(result);
-      result.getSensors().add(sensor.build());
+      //sensor.build();
     }
     
     return result;
   }
-  */
 
   public Node build (@NonNull final SchemaManager manager) {    
     final Node result = manager.execute(buildSchema());

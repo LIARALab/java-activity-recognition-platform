@@ -33,6 +33,8 @@ import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.EntityCollectionSubquery;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.node.Node_;
+import org.liara.api.data.entity.tree.NestedSetCoordinates_;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
@@ -54,8 +56,14 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
     final CriteriaBuilder builder = children.getManager().getCriteriaBuilder();
     
     children.andWhere(builder.and(
-      builder.lessThan(children.getEntity().get("_setStart"), related.get("_setStart")),
-      builder.greaterThan(children.getEntity().get("_setEnd"), related.get("_setEnd"))
+      builder.lessThan(
+        children.getEntity().get(Node_._coordinates).get(NestedSetCoordinates_._start), 
+        related.get(Node_._coordinates).get(NestedSetCoordinates_._start)
+      ),
+      builder.greaterThan(
+        children.getEntity().get(Node_._coordinates).get(NestedSetCoordinates_._end), 
+        related.get(Node_._coordinates).get(NestedSetCoordinates_._end)
+      )
     ));
   }
   
@@ -67,8 +75,14 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
     final CriteriaBuilder builder = children.getManager().getCriteriaBuilder();
     
     children.where(builder.and(
-      builder.greaterThan(children.getEntity().get("_setStart"), related.get("_setStart")),
-      builder.lessThan(children.getEntity().get("_setEnd"), related.get("_setEnd"))
+      builder.greaterThan(
+        children.getEntity().get(Node_._coordinates).get(NestedSetCoordinates_._start), 
+        related.get(Node_._coordinates).get(NestedSetCoordinates_._start)
+      ),
+      builder.lessThan(
+        children.getEntity().get(Node_._coordinates).get(NestedSetCoordinates_._end), 
+        related.get(Node_._coordinates).get(NestedSetCoordinates_._end)
+      )
     ));
   }
   
@@ -89,10 +103,10 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
           "deletionDate", (root) -> root.get("_deletionDate")
         ),
         APIRequestEntityFilterParserFactory.integer(
-          "setStart", (root) -> root.get("_setStart")
+          "setStart", (root) -> root.get(Node_._coordinates).get(NestedSetCoordinates_._start)
         ),
         APIRequestEntityFilterParserFactory.integer(
-          "setEnd", (root) -> root.get("_setEnd")
+          "setEnd", (root) -> root.get(Node_._coordinates).get(NestedSetCoordinates_._end)
         ),
         APIRequestEntityFilterParserFactory.integer(
           "depth", (root) -> root.get("_depth")
@@ -136,8 +150,8 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestOrderingProcessorFactory.field("creationDate", (root) -> root.get("_creationDate")),
       APIRequestOrderingProcessorFactory.field("updateDate", (root) -> root.get("_updateDate")),
       APIRequestOrderingProcessorFactory.field("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestOrderingProcessorFactory.field("setStart", (root) -> root.get("_setStart")),
-      APIRequestOrderingProcessorFactory.field("setEnd", (root) -> root.get("_setEnd")),
+      APIRequestOrderingProcessorFactory.field("setStart", (root) -> root.get(Node_._coordinates).get(NestedSetCoordinates_._start)),
+      APIRequestOrderingProcessorFactory.field("setEnd", (root) -> root.get(Node_._coordinates).get(NestedSetCoordinates_._end)),
       APIRequestOrderingProcessorFactory.field("depth", (root) -> root.get("_depth")),
       APIRequestOrderingProcessorFactory.field("name", (root) -> root.get("_name")),
       APIRequestOrderingProcessorFactory.field("type", (root) -> root.get("_type"))
@@ -151,8 +165,8 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestGroupingProcessorFactory.expression("creationDate", (root) -> root.get("_creationDate")),
       APIRequestGroupingProcessorFactory.expression("updateDate", (root) -> root.get("_updateDate")),
       APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestGroupingProcessorFactory.expression("setStart", (root) -> root.get("_setStart")),
-      APIRequestGroupingProcessorFactory.expression("setEnd", (root) -> root.get("_setEnd")),
+      APIRequestGroupingProcessorFactory.expression("setStart", (root) -> root.get(Node_._coordinates).get(NestedSetCoordinates_._start)),
+      APIRequestGroupingProcessorFactory.expression("setEnd", (root) -> root.get(Node_._coordinates).get(NestedSetCoordinates_._end)),
       APIRequestGroupingProcessorFactory.expression("depth", (root) -> root.get("_depth")),
       APIRequestGroupingProcessorFactory.expression("name", (root) -> root.get("_name")),
       APIRequestGroupingProcessorFactory.expression("type", (root) -> root.get("_type"))
