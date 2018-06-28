@@ -46,7 +46,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  * This base class support a standard application identifier field, and
  * declare usual entities lifecycle timestamps fields.
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  */
 @MappedSuperclass
 public class ApplicationEntity
@@ -74,7 +74,7 @@ public class ApplicationEntity
   @Nullable
   private ZonedDateTime _deletionDate;
 
-  private static Long getNextIdentifierFor(@NonNull final ApplicationEntity entity) {
+  public static Long getNextIdentifierFor(@NonNull final ApplicationEntity entity) {
     final Class<? extends ApplicationEntity> clazz = entity.getClass();
     final Long identifier;
     
@@ -94,14 +94,14 @@ public class ApplicationEntity
   }
   
   public ApplicationEntity () {
-    _identifier = ApplicationEntity.getNextIdentifierFor(this);
+    _identifier = null;
     _creationDate = ZonedDateTime.now();
     _updateDate = _creationDate;
     _deletionDate = null;
   }
   
-  public ApplicationEntity (final long identifier) {
-    _identifier = identifier;
+  public ApplicationEntity (final Long identifier) {
+    _identifier = (identifier == null) ? null : identifier.longValue();
     _creationDate = ZonedDateTime.now();
     _updateDate = _creationDate;
     _deletionDate = null;
@@ -116,7 +116,7 @@ public class ApplicationEntity
    * @return The entity identifier, unique for each entities into a given collection.
    */
   public Long getIdentifier () {
-    return _identifier.longValue();
+    return _identifier == null ? null : _identifier.longValue();
   }
   
   protected void setIdentifier (@NonNull final Long identifier) {

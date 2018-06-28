@@ -2,7 +2,7 @@ package org.liara.api.data.entity.state;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.data.collection.StateCollection;
+import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.schema.SchemaHandler;
 import org.liara.api.event.StateWasMutatedEvent;
 import org.liara.api.event.StateWillBeMutatedEvent;
@@ -17,24 +17,22 @@ public class StateMutationSchemaHandler
   private final ApplicationEventPublisher _eventPublisher;
   
   @NonNull
-  private final StateCollection _states;
+  private final EntityManager _manager;
   
   @Autowired
   public StateMutationSchemaHandler (
-    @NonNull final StateCollection states,
+    @NonNull final EntityManager manager,
     @NonNull final ApplicationEventPublisher eventPublisher
   ) {
     _eventPublisher = eventPublisher;
-    _states = states;
+    _manager = manager;
   }
   
   public State handle (@NonNull final StateMutationSchema schema) {
-    final EntityManager manager = _states.getManagerFactory().createEntityManager();
     _eventPublisher.publishEvent(new StateWillBeMutatedEvent(this, schema));
-    final State state = schema.apply(_states);
-    manager.merge(state);
+    final State state = schema.apply(EntityCollections.STATES);
+    _manager.merge(state);
     _eventPublisher.publishEvent(new StateWasMutatedEvent(this, state));
-    manager.close();
     return state;
   }
 }

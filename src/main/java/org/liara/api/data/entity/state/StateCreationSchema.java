@@ -1,9 +1,15 @@
 package org.liara.api.data.entity.state;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.schema.Schema;
 import org.liara.api.validation.IdentifierOfEntityInCollection;
@@ -24,9 +30,13 @@ public class StateCreationSchema
   @Nullable
   private Long _sensor = null;
   
+  @NonNull
+  private final Map<String, Long> _correlations = new HashMap<>();
+  
   public void clear () {
     _emittionDate = null;
     _sensor = null;
+    _correlations.clear();
   }
   
   @Required
@@ -64,6 +74,34 @@ public class StateCreationSchema
   
   public void setEmittionDate (@NonNull final Optional<ZonedDateTime> emittionDate) {
     _emittionDate = emittionDate.orElse(null);
+  }
+  
+  public void correlate (
+    @NonNull final String label, 
+    @NonNull final State state
+  ) {
+    _correlations.put(label, state.getIdentifier());
+  }
+  
+  public void decorrelate (@NonNull final String label) {
+    _correlations.remove(label);
+  }
+  
+  public Long getCorrelation (@NonNull final String label) {
+    return _correlations.get(label);
+  }
+  
+  public Map<String, Long> getCorrelations () {
+    return Collections.unmodifiableMap(_correlations);
+  }
+  
+  public Iterable<Map.Entry<String, Long>> correlations () {
+    return Collections.unmodifiableSet(_correlations.entrySet());
+  }
+  
+  @IdentifierOfEntityInCollection(collection = StateCollection.class)
+  public Set<Long> getCorrelated () {
+    return Collections.unmodifiableSet(new HashSet<>(_correlations.values()));
   }
   
   public State create () {

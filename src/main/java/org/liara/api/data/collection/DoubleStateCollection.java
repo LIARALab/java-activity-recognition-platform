@@ -25,7 +25,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
 
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
@@ -44,8 +44,8 @@ import org.springframework.stereotype.Component;
 public class DoubleStateCollection extends EntityCollection<DoubleState>
 {
   @Autowired
-  public DoubleStateCollection(@NonNull final EntityManagerFactory entityManagerFactory) {
-    super(entityManagerFactory, DoubleState.class);
+  public DoubleStateCollection(@NonNull final EntityManager entityManager) {
+    super(entityManager, DoubleState.class);
   }
 
   public DoubleStateCollection (

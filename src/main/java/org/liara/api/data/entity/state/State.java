@@ -23,6 +23,7 @@ package org.liara.api.data.entity.state;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
@@ -30,6 +31,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.MapKeyColumn;
 
 import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.entity.ApplicationEntity;
@@ -41,10 +43,12 @@ import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Objects;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 @Entity
@@ -61,21 +65,30 @@ public class State extends ApplicationEntity
   @JoinColumn(name = "sensor_identifier", nullable = false, unique = false, updatable = true)
   private Sensor _sensor;
 
-  @ManyToMany()
+  @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(
-    name = "correlations"
+    name = "correlations_of_states",
+    joinColumns = @JoinColumn(name = "target_identifier"),
+    inverseJoinColumns = @JoinColumn(name = "correlated_identifier")
   )
-  private Set<State> _correlations;
+  @MapKeyColumn(name = "label")
+  private Map<String, State> _correlations = new HashMap<>();
   
   public State () { 
     _emittionDate = ZonedDateTime.now();
     _sensor = null;
-    _correlations = new HashSet<>();
   }
   
   public State (@NonNull final StateCreationSchema schema) {
     _sensor = EntityCollections.SENSORS.findByIdentifier(schema.getSensor()).get();
     _emittionDate = schema.getEmittionDate();
+    
+    for (final Map.Entry<String, Long> correlation : schema.correlations()) {
+      correlate(
+        correlation.getKey(), 
+        EntityCollections.STATES.findByIdentifier(correlation.getValue()).get()
+      );
+    }
   }
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
@@ -88,26 +101,50 @@ public class State extends ApplicationEntity
     return _sensor;
   }
   
-  public void correlate (@NonNull final State state) {
-    if (!_correlations.contains(state)) {
-      _correlations.add(state);
-      state.correlate(this);
-    }
+  public void correlate (
+    @NonNull final String label, 
+    @NonNull final State state
+  ) {
+    final String unifiedLabel = label.toLowerCase().trim();
+    _correlations.put(unifiedLabel, state);
   }
   
-  public void decorrelate (@NonNull final State state) {
-    if (_correlations.contains(state)) {
-      _correlations.remove(state);
-      state.decorrelate(this);
-    }
+  public void decorrelate (
+    @NonNull final String label
+  ) {
+    final String unifiedLabel = label.toLowerCase().trim();
+    _correlations.remove(unifiedLabel);
   }
   
-  public Iterable<State> correlated () {
-    return Collections.unmodifiableSet(_correlations);
+  public Iterable<Map.Entry<String, State>> correlations () {
+    return Collections.unmodifiableSet(_correlations.entrySet());
+  }
+  
+  public State getCorrelation (@NonNull final String label) {
+    final String unifiedLabel = label.toLowerCase().trim();
+    return _correlations.get(unifiedLabel);
+  }
+
+  @JsonIgnore
+  public Set<Map.Entry<String, State>> getCorrelations () {
+    return Collections.unmodifiableSet(_correlations.entrySet());
+  }
+  
+  public boolean hasCorrelation (@NonNull final String label) {
+    final String unifiedLabel = label.toLowerCase().trim();
+    return _correlations.containsKey(unifiedLabel);
   }
   
   public boolean isCorrelated (@NonNull final State state) {
-    return _correlations.contains(state);
+    return _correlations.containsValue(state);
+  }
+  
+  public boolean isCorrelated (
+    @NonNull final String label,
+    @NonNull final State state
+  ) {
+    final String unifiedLabel = label.toLowerCase().trim();
+    return Objects.equal(_correlations.get(unifiedLabel), state);
   }
   
   public void setSensor (@Nullable final Sensor sensor) {
@@ -132,6 +169,11 @@ public class State extends ApplicationEntity
 
   public void setEmittionDate (@NonNull final ZonedDateTime emittionDate) {
     _emittionDate = emittionDate;
+  }
+
+  @JsonIgnore
+  public Long getNodeIdentifier () {
+    return _sensor.getNodeIdentifier();
   }
   
   @Override

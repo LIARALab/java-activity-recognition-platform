@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 /**
  * Any error related to a parameter of a given API Request.
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  */
 public class APIRequestParameterError extends APIRequestError
 {

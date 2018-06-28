@@ -27,7 +27,7 @@ import org.springframework.lang.NonNull;
 /**
  * A view over some datas.
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  * 
  * @param <Result> Result returned by this view.
  */

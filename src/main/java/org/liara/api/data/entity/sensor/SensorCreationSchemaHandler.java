@@ -15,6 +15,9 @@ import org.springframework.lang.NonNull;
 public class SensorCreationSchemaHandler
 {
   @NonNull
+  private final EntityManager _manager;
+  
+  @NonNull
   private final NodeCollection _nodes;
   
   @NonNull
@@ -22,23 +25,21 @@ public class SensorCreationSchemaHandler
   
   @Autowired
   public SensorCreationSchemaHandler (
+    @NonNull final EntityManager manager,
     @NonNull final NodeCollection nodes,
     @NonNull final ApplicationEventPublisher eventPublisher
   ) {
+    _manager = manager;
     _nodes = nodes;
     _eventPublisher = eventPublisher;
   }
   
   @Transactional
   public Sensor handle (@NonNull final SensorCreationSchema schema) {
-    final EntityManager manager = _nodes.getManagerFactory().createEntityManager();
-    
     _eventPublisher.publishEvent(new SensorWillBeCreatedEvent(this, schema));
     final Sensor sensor = new Sensor(schema, _nodes);
-    manager.persist(sensor);
+    _manager.persist(sensor);
     _eventPublisher.publishEvent(new SensorWasCreatedEvent(this, sensor));
-    
-    manager.close();
     
     return sensor;
   }

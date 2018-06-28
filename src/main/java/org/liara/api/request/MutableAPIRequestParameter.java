@@ -45,10 +45,7 @@ public class MutableAPIRequestParameter implements APIRequestParameter
     _request = null;
     _values = new ArrayList<>();
   }
-
-  /**
-   * @see java.util.Iterator#iterator()
-   */
+  
   @Override
   public Iterator<String> iterator () {
     return _values.iterator();

@@ -21,9 +21,7 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
-
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.liara.api.collection.EntityCollection;
@@ -45,8 +43,8 @@ public class NodeCollection extends EntityCollection<Node>
 {     
   @Autowired
   public NodeCollection (
-    @NonNull final EntityManagerFactory entityManagerFactory
-  ) { super(entityManagerFactory, Node.class); }
+    @NonNull final EntityManager entityManager
+  ) { super(entityManager, Node.class); }
 
   public NodeCollection (
     @NonNull final NodeCollection toCopy  
@@ -56,24 +54,6 @@ public class NodeCollection extends EntityCollection<Node>
     @NonNull final NodeCollection collection,
     @NonNull final EntityCollectionConjunctionOperator<Node> operator
   ) { super(collection, operator); }
-  
-  public int getRootSetEnd () {
-    if (getSize() <= 0) {
-      return 1;
-    } else {
-      final EntityManager manager = getManagerFactory().createEntityManager();
-      final int result = manager.createQuery(
-        "SELECT MAX(node._coordinates._end) + 1 FROM Node node",
-        Integer.class
-      ).getSingleResult().intValue();
-      manager.close();
-      return result;
-    }
-  }
-  
-  public int getRootSetStart () {
-    return 0;
-  }
   
   public NodeCollection deepChildrenOf (@NonNull final Node node) {
     final EntityCollectionOperator<Node> operator = query -> {

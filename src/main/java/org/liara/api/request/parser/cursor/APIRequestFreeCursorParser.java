@@ -58,13 +58,10 @@ import springfox.documentation.service.Parameter;
  * It allow the client to get any slice of data from a collection without any
  * restriction.
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  */
 public class APIRequestFreeCursorParser implements APIRequestParser<Cursor>, APIDocumentedRequestParser
 {
-  /**
-   * @see org.domus.api.request.parser.APIRequestParser#parse(org.domus.api.request.APIRequest);
-   */
   @Override
   public Cursor parse (@NonNull final APIRequest request) {
     int offset = 0;

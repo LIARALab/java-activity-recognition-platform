@@ -43,6 +43,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -53,6 +54,7 @@ import java.util.WeakHashMap;
 @Entity
 @Table(name = "nodes")
 @UseCreationSchema(NodeCreationSchema.class)
+@JsonPropertyOrder({ "identifier", "name", "type", "coordinates" })
 public class      Node 
        extends    ApplicationEntity 
        implements NestedSetTreeNode<Node>
@@ -101,11 +103,19 @@ public class      Node
   }
   
   protected Node () {
-    super();
+    super(null);
     _tree = DatabaseNodeTree.getInstance();
     _name = null;
     _type = null;
-    _sensors = null;
+    _coordinates = new NestedSetCoordinates();
+  }
+  
+  public Node (@NonNull final NodeCreationSchema schema) {
+    super(null);
+    _tree = DatabaseNodeTree.getInstance();
+    _name = schema.getName();
+    _type = schema.getType();
+    _coordinates = new NestedSetCoordinates();
   }
   
   public Node (
@@ -234,7 +244,11 @@ public class      Node
 
   @Override
   public NestedSetCoordinates getCoordinates () {
-    return _tree.getCoordinatesOf(this);
+    if (_tree == null) {
+      return new NestedSetCoordinates();
+    } else {
+      return _tree.getCoordinatesOf(this);
+    }
   }
 
   @Override

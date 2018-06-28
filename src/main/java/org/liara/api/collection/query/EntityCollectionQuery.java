@@ -47,7 +47,7 @@ import org.springframework.lang.NonNull;
 /**
  * A query over a colllection of a particular entity.
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  *
  * @param <Entity> The targeted entity.
  */
@@ -58,7 +58,7 @@ public interface EntityCollectionQuery<Entity, Output>
    * 
    * @param manager
    * @param query
-   * @param from
+   * @param entity
    * @return
    */
   public static <Entity, Result> EntityCollectionMainQuery<Entity, Result> from (
@@ -438,23 +438,11 @@ public interface EntityCollectionQuery<Entity, Output>
     return orderBy(orders);
   }
   
-  /**
-   * @see CriteriaQuery#getOrderList()
-   */
   public List<Order> getOrderList ();
   
-  /**
-   * @see AbstractQuery#distinct(boolean)
-   */
   public EntityCollectionQuery<Entity, Output> distinct (final boolean distinct);
 
-  /**
-   * @see AbstractQuery#isDistinct()
-   */
   public boolean isDistinct ();
 
-  /**
-   * @see AbstractQuery#getParameters()
-   */
   public Set<ParameterExpression<?>> getParameters ();
 }

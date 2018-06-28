@@ -19,27 +19,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.request.validator;
+package org.liara.api.validator;
 
-import java.util.List;
+import javax.annotation.Nullable;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-import org.liara.api.request.APIRequest;
-import org.liara.api.request.validator.error.APIRequestError;
+import org.liara.api.collection.EntityCollection;
+import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
 
-/**
- * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
- *
- *         An object that validate an API request.
- */
-@FunctionalInterface
-public interface APIRequestValidator
+public class      IterableOfIdentifierOfEntityInCollectionValidator
+       implements ConstraintValidator<IdentifierOfEntityInCollection, Iterable<Long>>
 {
-  /**
-   * Validate the given request.
-   * 
-   * @param request A request to validate.
-   * @return A list of errors if errors are spotted, an empty list otherwise.
-   */
-  public List<APIRequestError> validate (@NonNull final APIRequest request);
+  @Autowired
+  private ApplicationContext _context;
+  
+  private Class<? extends EntityCollection<?>> _collection;
+
+  @Override
+  public void initialize (@NonNull final IdentifierOfEntityInCollection constraintAnnotation) {
+    _collection = constraintAnnotation.collection();
+  }
+
+  @Override
+  public boolean isValid (
+    @Nullable final Iterable<Long> value, 
+    @NonNull final ConstraintValidatorContext context
+  ) {
+    if (value == null) return true;
+    
+    final EntityCollection<?> collection = _context.getBean(_collection);
+    return collection.containsEntitiesWithIdentifiers(value);
+  }
 }

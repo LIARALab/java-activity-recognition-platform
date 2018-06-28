@@ -47,7 +47,7 @@ import org.liara.api.filter.ast.CommonFilterNodeType;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(METHOD)
 /**
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  *
  */
 public @interface VisitCommonFilterNode

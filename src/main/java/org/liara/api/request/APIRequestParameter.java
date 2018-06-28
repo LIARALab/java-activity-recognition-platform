@@ -24,7 +24,7 @@ package org.liara.api.request;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  * 
  *         An helper interface that present a parameter of an API Request and
  *         all of its values.

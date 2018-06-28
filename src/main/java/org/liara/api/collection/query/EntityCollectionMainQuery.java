@@ -104,8 +104,7 @@ public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCol
   }
   
   public List<Output> fetchAllAndClose () {
-    final List<Output> result = getManager().createQuery(_query)
-                                            .getResultList();
+    final List<Output> result = fetchAll();
 
     getManager().close();
     
@@ -113,11 +112,42 @@ public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCol
   }
   
   public Optional<Output> fetchFirstAndClose () {
+    final Optional<Output> result = fetchFirst();
+    
+    getManager().close();
+    
+    return result;
+  }
+  
+  public Optional<Output> fetchOneAndClose (final int index) {
+    final Optional<Output> result = fetchOne(index);
+    
+    getManager().close();
+    
+    return result;
+  }
+  
+  public List<Output> fetchCursorAndClose (@NonNull final Cursor cursor) {
+    final List<Output> result = fetchCursor(cursor);
+    
+    getManager().close();
+    
+    return result;
+  }
+  
+
+  
+  public List<Output> fetchAll () {
+    final List<Output> result = getManager().createQuery(_query)
+                                            .getResultList();
+    
+    return result;
+  }
+  
+  public Optional<Output> fetchFirst () {
     final List<Output> result = getManager().createQuery(_query)
                                             .setMaxResults(1)
                                             .getResultList();
-    
-    getManager().close();
     
     if (result.size() > 0) {
       return Optional.ofNullable(result.get(0));
@@ -126,14 +156,12 @@ public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCol
     }
   }
   
-  public Optional<Output> fetchOneAndClose (final int index) {
+  public Optional<Output> fetchOne (final int index) {
     final List<Output> result = getManager().createQuery(_query)
                                             .setMaxResults(1)
                                             .setFirstResult(index)
                                             .getResultList();
     
-    getManager().close();
-    
     if (result.size() > 0) {
       return Optional.ofNullable(result.get(0));
     } else {
@@ -141,7 +169,7 @@ public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCol
     }
   }
   
-  public List<Output> fetchCursorAndClose (@NonNull final Cursor cursor) {
+  public List<Output> fetchCursor (@NonNull final Cursor cursor) {
     final TypedQuery<Output> query = getManager().createQuery(_query);
    
     query.setFirstResult(cursor.getOffset());
@@ -151,8 +179,6 @@ public class EntityCollectionMainQuery<Entity, Output> extends AbstractEntityCol
     }
     
     final List<Output> result = query.getResultList();
-    
-    getManager().close();
     
     return result;
   }

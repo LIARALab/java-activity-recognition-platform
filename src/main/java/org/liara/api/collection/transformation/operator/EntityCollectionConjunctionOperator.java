@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * An operator that is a list of operators to conjugate.
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  *
  * @param <Entity> Targeted entity of this operator.
  */
@@ -97,7 +97,7 @@ public class EntityCollectionConjunctionOperator<Entity>
   /**
    * Create a conjunction of the given operators (Preserve the order)
    * 
-   * @param operators Operators to conjugate.
+   * @param operator Operators to conjugate.
    */
   public EntityCollectionConjunctionOperator (
     @NonNull final EntityCollectionOperator<Entity> operator

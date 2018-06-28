@@ -31,12 +31,10 @@ import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
-import org.liara.api.data.collection.StateCollection;
-import org.liara.api.data.entity.ApplicationEntity_;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
-import org.liara.api.data.entity.state.State;
+import org.liara.api.data.entity.state.ActivationState_;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
@@ -56,61 +54,49 @@ public final class ActivationStateCollectionRequestConfiguration implements Coll
   @NonNull
   private final SimpleEntityFieldSelector<ActivationState, Join<ActivationState, Sensor>> _sensorJoin = root -> root.join("_sensor");
   
-  @NonNull
-  private final SimpleEntityFieldSelector<ActivationState, Join<ActivationState, State>> _startStateJoin = root -> root.join("_startState");
-
-  @NonNull
-  private final SimpleEntityFieldSelector<ActivationState, Join<ActivationState, State>> _endStateJoin = root -> root.join("_endState");
-  
   @Override
-  public APIRequestEntityCollectionOperatorParser<ActivationState> createFilterParser () {
+  public APIRequestEntityCollectionOperatorParser<ActivationState> createFilterParser () {    
     return new APIRequestEntityCollectionConjunctionOperatorParser<>(
       Arrays.asList(
         APIRequestEntityFilterParserFactory.integer(
           "identifier", (root) -> root.get("_identifier")
         ),
         APIRequestEntityFilterParserFactory.datetime(
-          "creationDate", (root) -> root.get(ApplicationEntity_._creationDate)
+          "creationDate", (root) -> root.get(ActivationState_._creationDate)
         ),
         APIRequestEntityFilterParserFactory.datetime(
-          "updateDate", (root) -> root.get(ApplicationEntity_._updateDate)
+          "updateDate", (root) -> root.get(ActivationState_._updateDate)
         ),
         APIRequestEntityFilterParserFactory.datetime(
-          "deletionDate", (root) -> root.get("_deletionDate")
+          "deletionDate", (root) -> root.get(ActivationState_._deletionDate)
         ),
         APIRequestEntityFilterParserFactory.datetime(
-          "start", (root) -> root.join("_startState").get("_emittionDate")
+          "start", (root) -> root.get(ActivationState_._start)
         ),
         APIRequestEntityFilterParserFactory.datetime(
-          "end", (root) -> root.join("_endState").get("_emittionDate")
+          "end", (root) -> root.get(ActivationState_._end)
         ),
         APIRequestEntityFilterParserFactory.datetime(
-          "emittionDate", (root) -> root.get("_emittionDate")
+          "emittionDate", (root) -> root.get(ActivationState_._emittionDate)
         ),
         APIRequestEntityFilterParserFactory.duration(
           "duration", ActivationState.DURATION_SELECTOR
         ),
         APIRequestEntityFilterParserFactory.callback(
-          "duration", request -> Operators.notNull("_endState")
+          "duration", request -> Operators.notNull(ActivationState_._end)
         ),
         APIRequestEntityFilterParserFactory.datetimeInRange(
           "date", 
-          (root) -> root.join("_startState").get("_emittionDate"), 
-          (root) -> root.join("_endState").get("_emittionDate")
+          (root) -> root.get(ActivationState_._start), 
+          (root) -> root.get(ActivationState_._end)
         ),
         APIRequestEntityFilterParserFactory.joinCollection(
           "node", _nodeJoin, NodeCollection.class
         ),
         APIRequestEntityFilterParserFactory.joinCollection(
           "sensor", _sensorJoin, SensorCollection.class
-        ),
-        APIRequestEntityFilterParserFactory.joinCollection(
-          "startState", _startStateJoin, StateCollection.class
-        ),
-        APIRequestEntityFilterParserFactory.joinCollection(
-          "endState", _endStateJoin, StateCollection.class
         )
-     )
+      )
     );
   }
 
@@ -127,9 +113,7 @@ public final class ActivationStateCollectionRequestConfiguration implements Coll
       APIRequestFilterValidatorFactory.duration("duration"),
       APIRequestFilterValidatorFactory.datetimeInRange("date"),
       APIRequestFilterValidatorFactory.includeCollection("node", NodeCollection.class),
-      APIRequestFilterValidatorFactory.includeCollection("sensor", SensorCollection.class),
-      APIRequestFilterValidatorFactory.includeCollection("startState", StateCollection.class),
-      APIRequestFilterValidatorFactory.includeCollection("endState", StateCollection.class)
+      APIRequestFilterValidatorFactory.includeCollection("sensor", SensorCollection.class)
     );
   }
 
@@ -149,10 +133,10 @@ public final class ActivationStateCollectionRequestConfiguration implements Coll
         "deletionDate", (root) -> root.get("_deletionDate")
       ),
       APIRequestOrderingProcessorFactory.field(
-        "start", (root) -> root.join("_startState").get("_emittionDate")
+        "start", (root) -> root.get("_start")
       ),
       APIRequestOrderingProcessorFactory.field(
-        "end", (root) -> root.join("_endState").get("_emittionDate")
+        "end", (root) -> root.get("_end")
       ),
       APIRequestOrderingProcessorFactory.field(
         "emittionDate", (root) -> root.get("_emittionDate")
@@ -168,12 +152,6 @@ public final class ActivationStateCollectionRequestConfiguration implements Coll
       ),
       APIRequestOrderingProcessorFactory.joinCollection(
         "sensor", _sensorJoin, SensorCollection.class
-      ),
-      APIRequestOrderingProcessorFactory.joinCollection(
-        "startState", _startStateJoin, StateCollection.class
-      ),
-      APIRequestOrderingProcessorFactory.joinCollection(
-        "endState", _endStateJoin, StateCollection.class
       )
     );
   }
@@ -190,13 +168,7 @@ public final class ActivationStateCollectionRequestConfiguration implements Coll
       APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
       APIRequestGroupingProcessorFactory.expression("duration", (query, queried) -> ActivationState.DURATION_SELECTOR.select(query, queried)),
       APIRequestGroupingProcessorFactory.joinCollection("node", _nodeJoin, NodeCollection.class),
-      APIRequestGroupingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class),
-      APIRequestGroupingProcessorFactory.joinCollection(
-        "startState", _startStateJoin, StateCollection.class
-      ),
-      APIRequestGroupingProcessorFactory.joinCollection(
-        "endState", _endStateJoin, StateCollection.class
-      )
+      APIRequestGroupingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
     );
   }
 }

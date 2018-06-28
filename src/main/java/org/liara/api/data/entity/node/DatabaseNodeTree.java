@@ -1,6 +1,6 @@
 package org.liara.api.data.entity.node;
 
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
 
 import org.liara.api.data.entity.tree.DatabaseNestedSetTree;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +23,8 @@ public class DatabaseNodeTree extends DatabaseNestedSetTree<Node>
   
   @Autowired
   public DatabaseNodeTree(
-    @NonNull final EntityManagerFactory entityManagerFactory
-  ) { super(entityManagerFactory, Node.class); }
+    @NonNull final EntityManager entityManager
+  ) { super(entityManager, Node.class); }
   
   @Autowired
   protected void registerInstance (@NonNull final DatabaseNodeTree tree) {

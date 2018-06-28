@@ -8,10 +8,13 @@ import javax.persistence.Embeddable;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.google.common.base.Objects;
 
 // @Formula("(SELECT (COUNT(*) - 1) FROM nodes AS parent WHERE set_start BETWEEN parent.set_start AND parent.set_end)")
 @Embeddable
+@JsonPropertyOrder({ "start", "end", "depth" })
 public class NestedSetCoordinates
 {
   @Column(name = "set_start", nullable = false, updatable = true, unique = false)
@@ -40,7 +43,7 @@ public class NestedSetCoordinates
     final int end,
     final int depth
   ) {
-    assertThatAreValidNestedSetCoordinates(start, end);
+    //assertThatAreValidNestedSetCoordinates(start, end);
     _start = start;
     _end = end;
     _depth = depth;
@@ -74,6 +77,7 @@ public class NestedSetCoordinates
     }
   }
 
+  @JsonIgnore
   public int getSize () {
     return (_end - _start - 1) >> 1;
   }
@@ -84,7 +88,7 @@ public class NestedSetCoordinates
   }
   
   public NestedSetCoordinates setStart (final int start) {
-    assertThatAreValidNestedSetCoordinates(start, _end);
+    //assertThatAreValidNestedSetCoordinates(start, _end);
     _start = start;
     return this;
   }
@@ -95,13 +99,13 @@ public class NestedSetCoordinates
   }
   
   public NestedSetCoordinates setEnd (final int end) {
-    assertThatAreValidNestedSetCoordinates(_start, end);
+    //assertThatAreValidNestedSetCoordinates(_start, end);
     _end = end;
     return this;
   }
   
   public NestedSetCoordinates set (final int start, final int end, final int depth) {
-    assertThatAreValidNestedSetCoordinates(start, end);
+    //assertThatAreValidNestedSetCoordinates(start, end);
     _start = start;
     _end = end;
     _depth = depth;
@@ -125,6 +129,7 @@ public class NestedSetCoordinates
     return this;
   }
   
+  @JsonIgnore
   public boolean isLeaf () {
     return _start + 1 == _end;
   }

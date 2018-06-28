@@ -25,7 +25,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
@@ -45,9 +45,9 @@ public class ActivityStateCollection extends EntityCollection<ActivityState>
 {
   @Autowired
   public ActivityStateCollection (
-    @NonNull final EntityManagerFactory entityManagerFactory
+    @NonNull final EntityManager entityManager
   ) { 
-    super(entityManagerFactory, ActivityState.class); 
+    super(entityManager, ActivityState.class); 
   }
   
   public ActivityStateCollection (

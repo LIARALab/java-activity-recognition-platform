@@ -21,11 +21,12 @@
  ******************************************************************************/
 package org.liara.api.collection;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.metamodel.EntityType;
 
@@ -39,7 +40,7 @@ import org.springframework.lang.NonNull;
 /**
  * A collection of entity.
  *
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  *
  * @param <Entity> Type of entity in the collection.
  */
@@ -50,7 +51,7 @@ public class EntityCollection<Entity>
    * Manager related to this collection.
    */
   @NonNull
-  private final EntityManagerFactory _entityManagerFactory;
+  private final EntityManager _entityManager;
   
   /**
    * Type of entity selected by this collection.
@@ -68,13 +69,13 @@ public class EntityCollection<Entity>
    * Create a collection for a given type and a given manager.
    * 
    * @param entity Entity type to store.
-   * @param entityManager Entity Manager that manage the given type.
+   * @param entityManagerFactory Entity Manager that manage the given type.
    */
   public EntityCollection (
-    @NonNull final EntityManagerFactory entityManagerFactory,
+    @NonNull final EntityManager entityManager,
     @NonNull final Class<Entity> entity
   ) {
-    _entityManagerFactory = entityManagerFactory;
+    _entityManager = entityManager;
     _contentType = entity;
     _operator = new EntityCollectionConjunctionOperator<>();
   }
@@ -87,7 +88,7 @@ public class EntityCollection<Entity>
   public EntityCollection (
     @NonNull final EntityCollection<Entity> collection
   ) {
-    _entityManagerFactory = collection.getManagerFactory();
+    _entityManager = collection._entityManager;
     _contentType = collection.getEntityType();
     _operator = new EntityCollectionConjunctionOperator<>(collection.getOperator().iterator());
   }
@@ -102,7 +103,7 @@ public class EntityCollection<Entity>
     @NonNull final EntityCollection<Entity> collection,
     @NonNull final EntityCollectionConjunctionOperator<Entity> operator
   ) {
-    _entityManagerFactory = collection.getManagerFactory();
+    _entityManager = collection._entityManager;
     _contentType = collection.getEntityType();
     _operator = operator;
   }
@@ -130,13 +131,46 @@ public class EntityCollection<Entity>
       )
     );
     
-    return query.fetchFirstAndClose();
+    return query.fetchFirst();
   }
   
   public <Identifier> boolean containsEntityWithIdentifier (
     @NonNull final Identifier identifier
   ) {
     return findByIdentifier(identifier).isPresent();
+  }
+  
+  public <Identifier> boolean containsEntitiesWithIdentifiers (
+    @NonNull final Iterable<Identifier> identifiers
+  ) {
+    final Set<Identifier> identifiersToFind = new HashSet<>();
+    identifiers.forEach(identifiersToFind::add);
+    return containsEntitiesWithIdentifiers(identifiersToFind);
+  }
+  
+  public <Identifier> boolean containsEntitiesWithIdentifiers (
+    @NonNull final Set<Identifier> identifiers
+  ) {    
+    if (identifiers.size() <= 0) {
+      return true;
+    } else {
+      final EntityCollectionMainQuery<Entity, Long> query = createCollectionQuery(Long.class);
+      query.select(query.getManager().getCriteriaBuilder().count(query.getEntity()));
+      
+      final EntityType<Entity> entityType = query.getManager()
+                                                 .getMetamodel()
+                                                 .entity(getEntityType());
+      
+      query.andWhere(
+        query.getEntity().get(
+          entityType.getId(
+            identifiers.iterator().next().getClass()
+          )
+        ).in(identifiers)
+      );
+      
+      return query.fetchFirst().get() == identifiers.size();
+    }
   }
   
   /**
@@ -191,10 +225,9 @@ public class EntityCollection<Entity>
   public <Result> EntityCollectionMainQuery<Entity, Result> createCollectionQuery (
     @NonNull final Class<Result> result
   ) {
-    final EntityManager manager = _entityManagerFactory.createEntityManager();
-    final CriteriaQuery<Result> query = manager.getCriteriaBuilder().createQuery(result);
+    final CriteriaQuery<Result> query = _entityManager.getCriteriaBuilder().createQuery(result);
     final EntityCollectionMainQuery<Entity, Result> collectionQuery = EntityCollectionQuery.from(
-      manager, query, query.from(getEntityType())
+      _entityManager, query, query.from(getEntityType())
     );
     
     _operator.apply(collectionQuery);
@@ -224,7 +257,7 @@ public class EntityCollection<Entity>
            .count(query.getEntity())
     );
     
-    return query.fetchFirstAndClose().get().longValue();
+    return query.fetchFirst().get().longValue();
   }
 
   @Override
@@ -232,7 +265,7 @@ public class EntityCollection<Entity>
     final EntityCollectionMainQuery<Entity, Entity> query = createCollectionQuery(getEntityType());
     query.select(query.getEntity());
     
-    return query.fetchAllAndClose();
+    return query.fetchAll();
   }
   
   /**
@@ -260,22 +293,13 @@ public class EntityCollection<Entity>
       /**
        * @todo Check long limit.
        */
-      return query.fetchOneAndClose((int) index).get();
+      return query.fetchOne((int) index).get();
     }
   }
   
   public Optional<Entity> first () {
     final EntityCollectionMainQuery<Entity, Entity> query = createCollectionQuery();    
-    return query.fetchOneAndClose(0);
-  }
-  
-  /**
-   * Return this collection's related manager factory.
-   * 
-   * @return This collection's related manager factory.
-   */
-  public EntityManagerFactory getManagerFactory () {
-    return _entityManagerFactory;
+    return query.fetchOne(0);
   }
   
   /**

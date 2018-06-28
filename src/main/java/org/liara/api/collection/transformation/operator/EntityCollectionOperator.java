@@ -36,7 +36,7 @@ import org.springframework.lang.NonNull;
 /**
  * An operator that can be applied to mutate a given entity collection query.
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  *
  * @param <Entity> Entity targeted by this operation.
  */

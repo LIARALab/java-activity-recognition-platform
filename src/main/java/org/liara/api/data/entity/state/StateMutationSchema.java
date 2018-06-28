@@ -1,8 +1,14 @@
 package org.liara.api.data.entity.state;
 
 import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
+import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.schema.Schema;
 import org.liara.api.validation.IdentifierOfEntityInCollection;
@@ -23,9 +29,17 @@ public class StateMutationSchema
   @Nullable
   private ZonedDateTime _emittionDate = null;
   
+  @NonNull
+  private final Map<String, Long> _correlations = new HashMap<>();
+  
+  @NonNull
+  private final Set<String> _decorrelations = new HashSet<>();
+  
   public void clear () {
     _identifier = null;
     _emittionDate = null;
+    _correlations.clear();
+    _decorrelations.clear();
   }
   
   @Required
@@ -64,8 +78,66 @@ public class StateMutationSchema
     _emittionDate = emittionDate.orElse(null);
   }
   
+  public void decorrelate (@NonNull final String label) {
+    if (_correlations.containsKey(label)) {
+      _correlations.remove(label);
+    }
+    
+    _decorrelations.add(label);
+  }
+  
+  public void correlate (
+    @NonNull final String label, 
+    @NonNull final Long state
+  ) {
+    if (_decorrelations.contains(label)) {
+      _decorrelations.remove(label);
+    }
+    
+    _correlations.put(label, state);
+  }
+  
+  public void correlate (
+    @NonNull final String label, 
+    @NonNull final State state
+  ) {
+    correlate(label, state.getIdentifier());
+  }
+  
+  public Set<String> getDecorrelations () {
+    return Collections.unmodifiableSet(_decorrelations);
+  }
+  
+  public Iterable<String> decorrelations () {
+    return Collections.unmodifiableSet(_decorrelations);
+  }
+  
+  public Map<String, Long> getCorrelations () {
+    return Collections.unmodifiableMap(_correlations);
+  }
+  
+  @IdentifierOfEntityInCollection(collection = StateCollection.class)
+  public Set<Long> getCorrelated () {
+    return Collections.unmodifiableSet(new HashSet<>(_correlations.values()));
+  }
+  
+  public Iterable<Map.Entry<String, Long>> correlations () {
+    return Collections.unmodifiableSet(_correlations.entrySet());
+  }
+  
   protected void apply (@NonNull final State state) {
     if (_emittionDate != null) state.setEmittionDate(_emittionDate);
+    
+    for (final String decorrelation : _decorrelations) {
+      state.decorrelate(decorrelation);
+    }
+    
+    for (final Map.Entry<String, Long> correlation : _correlations.entrySet()) {
+      state.correlate(
+        correlation.getKey(), 
+        EntityCollections.STATES.findByIdentifier(correlation.getValue()).get()
+      );
+    }
   }
   
   public State apply (@NonNull final StateCollection collection) {

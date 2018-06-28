@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.liara.api.collection.EntityCollection;
@@ -48,9 +48,9 @@ public class ActivationStateCollection extends EntityCollection<ActivationState>
 {
   @Autowired
   public ActivationStateCollection (
-    @NonNull final EntityManagerFactory entityManagerFactory
+    @NonNull final EntityManager entityManager
   ) { 
-    super(entityManagerFactory, ActivationState.class); 
+    super(entityManager, ActivationState.class); 
   }
   
   public ActivationStateCollection (

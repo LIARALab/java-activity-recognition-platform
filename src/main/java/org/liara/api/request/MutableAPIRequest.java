@@ -190,7 +190,7 @@ public class MutableAPIRequest implements APIRequest
   /**
    * Remove a parameter from the request.
    *
-   * @param name Name of the parameter to remove.
+   * @param parameter The parameter to remove.
    */
   public void removeParameter (@NonNull final MutableAPIRequestParameter parameter) {
     if (_parameters.containsValue(parameter)) {

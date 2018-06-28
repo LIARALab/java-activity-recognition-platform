@@ -28,7 +28,7 @@ import org.springframework.lang.NonNull;
 /**
  * Any error related to a value of a parameter of a request.
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  */
 public class APIRequestParameterValueError extends APIRequestParameterError
 {

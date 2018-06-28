@@ -49,6 +49,7 @@ import org.springframework.lang.Nullable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -81,7 +82,7 @@ public class      Sensor
     orphanRemoval = false,
     fetch = FetchType.LAZY
   )
-  private Set<State>   _states;
+  private Set<State>   _states = new HashSet<>();
 
   @ManyToOne(optional = false)
   @JoinColumn(name = "node_identifier", nullable = false, unique = false, updatable = false)

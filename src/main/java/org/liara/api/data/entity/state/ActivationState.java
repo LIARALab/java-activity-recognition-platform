@@ -24,6 +24,7 @@ package org.liara.api.data.entity.state;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -38,30 +39,28 @@ import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.schema.UseCreationSchema;
 import org.liara.api.data.schema.UseMutationSchema;
 import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @Entity
 @Table(name = "states_presence")
 @PrimaryKeyJoinColumn(name = "state_identifier")
 @UseCreationSchema(ActivationStateCreationSchema.class)
 @UseMutationSchema(ActivationStateMutationSchema.class)
+@JsonPropertyOrder({
+  "identifier", "emittionDate", "sensorIdentifier",
+  "start", "end", "duration", "milliseconds",
+  "nodeIdentifier"
+})
 public class ActivationState extends State
 {  
-  public static EntityFieldSelector<ActivationState, Expression<ZonedDateTime>> START_DATE = (query, queried) -> {
-    return queried.join("_startState").get("_emittionDate");
-  };
-  
-  public static EntityFieldSelector<ActivationState, Expression<ZonedDateTime>> END_DATE = (query, queried) -> {
-    return queried.join("_endState").get("_emittionDate");
-  };
-  
   public static EntityFieldSelector<ActivationState, Expression<Long>> DURATION_SELECTOR = (query, queried) -> {
     final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
-    final Expression<ZonedDateTime> start = START_DATE.select(query, queried);
-    final Expression<ZonedDateTime> end = END_DATE.select(query, queried);
+    final Expression<ZonedDateTime> start = queried.get(ActivationState_._start);
+    final Expression<ZonedDateTime> end = queried.get(ActivationState_._end);
     
     return builder.sum(
       builder.prod(
@@ -79,13 +78,11 @@ public class ActivationState extends State
     );
   };
   
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "start_state_identifier", nullable = false, unique = false, updatable = true)
-  private State _startState;
+  @Column(name = "start", nullable = false, unique = false, updatable = true)
+  private ZonedDateTime _start;
 
-  @ManyToOne(optional = true)
-  @JoinColumn(name = "end_state_identifier", nullable = true, unique = false, updatable = true)
-  private State _endState;
+  @Column(name = "end", nullable = true, unique = false, updatable = true)
+  private ZonedDateTime _end;
   
   @ManyToOne(optional = false)
   @JoinColumn(name = "node_identifier", nullable = false, unique = false, updatable = true)
@@ -96,22 +93,16 @@ public class ActivationState extends State
   public ActivationState (@NonNull final ActivationStateCreationSchema schema) {
     super (schema);
     
-    _startState = EntityCollections.STATES.findByIdentifier(schema.getStartState()).get();
-    
-    if (schema.getEndState() != null) {
-      _endState = EntityCollections.STATES.findByIdentifier(schema.getEndState()).get();
-    } else {
-      _endState = null;
-    }
-    
+    _start = schema.getStart();
+    _end = schema.getEnd();
     _node = EntityCollections.NODES.findByIdentifier(schema.getNode()).get();
   }
   
   public Duration getDuration () {
-    if (_endState == null) {
+    if (_end == null) {
       return null;
     } else {
-      return Duration.between(_startState.getEmittionDate(), _endState.getEmittionDate());
+      return Duration.between(_start, _end);
     }
   }
   
@@ -127,32 +118,18 @@ public class ActivationState extends State
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
   public ZonedDateTime getEnd () {
-    return (_endState == null) ? null : _endState.getEmittionDate();
+    return _end;
   }
   
-  @JsonIgnore
-  public State getEndState () {
-    return _endState;
-  }
-  
-  public Long getEndStateIdentifier () {
-    if (_endState == null) return null;
-    else return _endState.getIdentifier();
-  }
-  
-  public void setEndStateIdentifier (@Nullable final Long identifier) {
-    if (identifier == null) {
-      _endState = null;
-    } else {
-      _endState = EntityCollections.STATES.findByIdentifier(identifier).get();
-    }
+  public void setEnd (@NonNull final ZonedDateTime end) {
+    _end = end;
   }
 
-  @JsonIgnore
   public Node getNode () {
     return _node;
   }
   
+  @JsonProperty
   public Long getNodeIdentifier () {
     return _node.getIdentifier();
   }
@@ -161,34 +138,41 @@ public class ActivationState extends State
     _node = EntityCollections.NODES.findByIdentifier(node).get();
   }
 
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
-  public ZonedDateTime getStart () {
-    return _startState.getEmittionDate();
-  }
-  
-  @JsonIgnore
-  public State getStartState () {
-    return _startState;
-  }
-  
-  public Long getStartStateIdentifier () {
-    return _startState.getIdentifier();
-  }
-
-  public void setStartStateIdentifier (@NonNull final Long identifier) {
-    _startState = EntityCollections.STATES.findByIdentifier(identifier).get();
-  }
-  
-  public void setEndState (@Nullable final State state) {
-    _endState = state;
- }
-
   public void setNode (@NonNull final Node node) {
     _node = node;
   }
 
-  public void setStartState (@NonNull final State start) {
-    _startState = start;
+  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
+  public ZonedDateTime getStart () {
+    return _start;
+  }
+  
+  public void setStart (@NonNull final ZonedDateTime start) {
+    _start = start;
+  }
+  
+  @JsonIgnore
+  public State getStartState () {
+    return getCorrelation("start");
+  }
+  
+  @JsonIgnore
+  public Long getStartStateIdentifier () {
+    return getCorrelation("start").getIdentifier();
+  }
+  
+  @JsonIgnore
+  public State getEndState () {
+    if (_end == null) return null;
+    
+    return getCorrelation("end");
+  }
+  
+  @JsonIgnore
+  public Long getEndStateIdentifier () {
+    if (_end == null) return null;
+    
+    return getCorrelation("end").getIdentifier();
   }
   
   @Override

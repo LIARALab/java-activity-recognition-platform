@@ -36,7 +36,7 @@ import org.springframework.lang.NonNull;
  * Validate a request for a future parse with
  * org.domus.api.request.parser.FreeCursorParser
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  */
 public class APIRequestFreeCursorValidator implements APIRequestValidator
 {

@@ -26,7 +26,7 @@ import org.springframework.lang.NonNull;
 /**
  * A cursor that select a range of entities in a collection.
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  */
 public final class Cursor
 {

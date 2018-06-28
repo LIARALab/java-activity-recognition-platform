@@ -36,6 +36,7 @@ import javax.validation.Payload;
 
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.validator.IdentifierOfEntityInCollectionValidator;
+import org.liara.api.validator.IterableOfIdentifierOfEntityInCollectionValidator;
 import org.liara.api.validator.OptionalIdentifierOfEntityInCollectionValidator;
 
 @Retention(RUNTIME)
@@ -43,7 +44,8 @@ import org.liara.api.validator.OptionalIdentifierOfEntityInCollectionValidator;
 @Documented
 @Constraint(validatedBy = { 
   IdentifierOfEntityInCollectionValidator.class,
-  OptionalIdentifierOfEntityInCollectionValidator.class
+  OptionalIdentifierOfEntityInCollectionValidator.class,
+  IterableOfIdentifierOfEntityInCollectionValidator.class
 })
 public @interface IdentifierOfEntityInCollection
 {

@@ -50,7 +50,7 @@ import org.liara.api.filter.ast.ValueFilterNode;
 import org.springframework.lang.NonNull;
 
 /**
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  *
  */
 public class TextFilterParser implements FilterParser

@@ -24,7 +24,7 @@ package org.liara.api.data.collection;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Join;
 
@@ -48,8 +48,8 @@ public class SensorCollection extends EntityCollection<Sensor>
 { 
   @Autowired
   public SensorCollection (
-    @NonNull final EntityManagerFactory entityManagerFactory
-  ) { super(entityManagerFactory, Sensor.class); }
+    @NonNull final EntityManager entityManager
+  ) { super(entityManager, Sensor.class); }
   
   public SensorCollection (
     @NonNull final SensorCollection toCopy  

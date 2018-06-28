@@ -25,7 +25,7 @@ import org.liara.api.request.APIRequest;
 import org.springframework.lang.NonNull;
 
 /**
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  *
  *         An object that parse an APIRequest and output some result.
  *

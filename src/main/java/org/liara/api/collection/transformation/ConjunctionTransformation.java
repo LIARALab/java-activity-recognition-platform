@@ -27,7 +27,7 @@ import org.springframework.lang.NonNull;
 /**
  * A conjunction of two or more transformation.
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  *
  * @param <Input> Input view type.
  * @param <Chain> Intermediate view type.

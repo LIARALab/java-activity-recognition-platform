@@ -3,7 +3,7 @@ package org.liara.api.recognition.sensor.common.virtual.presence;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityManager;
 
 import org.liara.api.collection.Operators;
 import org.liara.api.collection.query.EntityCollectionMainQuery;
@@ -27,13 +27,13 @@ import org.springframework.stereotype.Component;
 public class DatabasePresenceSensorData implements PresenceSensorData
 {
   @NonNull
-  private final EntityManagerFactory _entityManagerFactory;
+  private final EntityManager _entityManager;
   
   @Autowired
   public DatabasePresenceSensorData (
-    @NonNull final EntityManagerFactory entityManagerFactory
+    @NonNull final EntityManager entityManager
   ) {
-    _entityManagerFactory = entityManagerFactory;
+    _entityManager = entityManager;
   }
   
   @Override
@@ -49,21 +49,21 @@ public class DatabasePresenceSensorData implements PresenceSensorData
     query.join(x -> x.join(BooleanState_._sensor))
          .join(x -> x.join(Sensor_._node));
     
-    return query.fetchAllAndClose();
+    return query.fetchAll().subList(3000, 4000);
   }
 
   public BooleanStateCollection getWatchedMotionTicksCollection (
     @NonNull final Sensor sensor
   ) {
-    return new BooleanStateCollection(_entityManagerFactory).of(
-      new SensorCollection(_entityManagerFactory).deepIn(sensor.getNode())
-                                                 .ofType(NativeMotionSensor.class)
+    return new BooleanStateCollection(_entityManager).of(
+      new SensorCollection(_entityManager).deepIn(sensor.getNode())
+                                          .ofType(NativeMotionSensor.class)
     ).apply(Operators.equal("_value", true));
   }
 
   @Override
   public boolean isTracked (@NonNull final Sensor sensor, @NonNull final State state) {
-    return new SensorCollection(_entityManagerFactory).deepIn(
+    return new SensorCollection(_entityManager).deepIn(
       sensor.getNode()
     ).containsEntityWithIdentifier(
       state.getSensorIdentifier()
@@ -76,7 +76,7 @@ public class DatabasePresenceSensorData implements PresenceSensorData
     @NonNull final ZonedDateTime date
   ) {
     return new ActivationStateCollection(
-      _entityManagerFactory
+      _entityManager
     ).of(sensor)
      .afterOrAt(date)
      .apply(Operators.orderAscendingBy("_emittionDate"))
@@ -90,7 +90,7 @@ public class DatabasePresenceSensorData implements PresenceSensorData
     @NonNull final ZonedDateTime date
   ) {
     return new ActivationStateCollection(
-      _entityManagerFactory
+      _entityManager
     ).of(sensor)
      .beforeOrAt(date)
      .apply(Operators.orderDescendingBy("_emittionDate"))

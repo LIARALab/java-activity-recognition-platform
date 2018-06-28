@@ -50,7 +50,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
 /**
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  *
  */
 @JsonIgnoreProperties({ "cause", "message", "stackTrace", "localizedMessage", "suppressed" })

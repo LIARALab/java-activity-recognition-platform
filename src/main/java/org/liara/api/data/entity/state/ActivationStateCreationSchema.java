@@ -1,9 +1,9 @@
 package org.liara.api.data.entity.state;
 
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 import org.liara.api.data.collection.NodeCollection;
-import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.schema.Schema;
 import org.liara.api.validation.IdentifierOfEntityInCollection;
@@ -20,10 +20,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 public class ActivationStateCreationSchema extends StateCreationSchema
 {
   @Nullable
-  private Long _startState;
+  private ZonedDateTime _start;
   
   @Nullable
-  private Long _endState;
+  private ZonedDateTime _end;
   
   @Nullable
   private Long _node;
@@ -31,46 +31,27 @@ public class ActivationStateCreationSchema extends StateCreationSchema
   public void clear () {
     super.clear();
     
-    _startState = null;
-    _endState = null;
+    _start = null;
+    _end = null;
     _node = null;
   }
   
   @Required
-  @IdentifierOfEntityInCollection(collection = StateCollection.class)
-  public Long getStartState () {
-    return _startState;
+  public ZonedDateTime getStart () {
+    return _start;
   }
   
-  @JsonSetter
-  public void setStartState (@Nullable final Long startState) {
-    _startState = startState;
-  }
-  
-  public void setStartState (@NonNull final Optional<Long> startState) {
-    _startState = startState.orElse(null);
-  }
-  
-  public void setStartState (@Nullable final State startState) {
-    _startState = startState == null ? null : startState.getIdentifier();
+  public void setStart (@Nullable final ZonedDateTime start) {
+    _start = start;
   }
   
   /* @TODO add after start test */
-  @IdentifierOfEntityInCollection(collection = StateCollection.class)
-  public Long getEndState () {
-    return _endState;
+  public ZonedDateTime getEnd () {
+    return _end;
   }
   
-  @JsonSetter
-  public void setEndState (@Nullable final Long endState) {
-    _endState = endState;
-  }
-  
-  public void setEndState (@NonNull final Optional<Long> endState) {
-    _endState = endState.orElse(null);
-  }
-  public void setEndState (@Nullable final State endState) {
-    _endState = endState == null ? null : endState.getIdentifier();
+  public void setEnd (@Nullable final ZonedDateTime end) {
+    _end = end;
   }
   
   @Required

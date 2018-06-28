@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
+import javax.persistence.metamodel.SingularAttribute;
 
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
@@ -75,12 +76,19 @@ public final class Operators
         field, 
         EntityCollectionOrderingOperator.Direction.DESC
     );
-  }
-  
-  
+  } 
   
   public static <Entity> EntityCollectionOperator<Entity> notNull (
     @NonNull final String field
+  ) {
+    return query -> {
+      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
+      query.andWhere(builder.isNotNull(query.getEntity().get(field)));
+    };
+  }
+  
+  public static <Entity, Field> EntityCollectionOperator<Entity> notNull (
+    @NonNull final SingularAttribute<? super Entity, Field> field
   ) {
     return query -> {
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();

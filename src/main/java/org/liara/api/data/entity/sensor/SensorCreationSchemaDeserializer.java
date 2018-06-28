@@ -86,14 +86,12 @@ public class SensorCreationSchemaDeserializer extends JsonDeserializer<SensorCre
     try {
       final Class<?> sensorType = Class.forName(result.getType());
       final UseSensorConfigurationOfType annotation = sensorType.getAnnotation(UseSensorConfigurationOfType.class);
-      
       if (annotation == null) {
         return null;
       } else if (configuration == null || (configuration.isValueNode() && ((ValueNode) configuration).isNull())) {
-        return (annotation == null) ? null : annotation.value().newInstance(); 
+        return annotation.value().newInstance(); 
       } else if (configuration.isObject()) {
-        return (annotation == null) ? null 
-                                    : mapper.treeToValue(configuration, annotation.value());
+        return mapper.treeToValue(configuration, annotation.value());
       } else {
         throw new Error("Invalid configuration node type.");
       }

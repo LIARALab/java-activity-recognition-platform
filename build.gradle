@@ -2,7 +2,7 @@ buildscript {
     repositories {
       mavenCentral()
       maven {
-        url "https://plugins.gradle.org/m2/"
+        url 'https://plugins.gradle.org/m2/'
       }
     }
     dependencies {
@@ -53,6 +53,8 @@ dependencies {
   
   compile 'com.google.guava:guava:24.1-jre'
   compile 'mysql:mysql-connector-java'
+  
+  compile 'javax.interceptor:javax.interceptor-api:3.1'
 
   testCompile 'org.springframework.boot:spring-boot-starter-test'
   testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
@@ -63,6 +65,14 @@ dependencies {
 
 jacocoTestReport {
   reports {
-    html.destination file("${buildDir}/reports/coverage")
+    html.destination file('${buildDir}/reports/coverage')
   }
+}
+
+javadoc {
+  source = sourceSets.main.allJava
+  destinationDir = reporting.file('docs')
+  options.docletpath = [file('D:\\dev\\doctorat\\json-doclet\\build\\libs\\json-doclet-all.jar')]
+  options.doclet = 'org.rnp.javadoc.json.JSONDocumentation'
+  classpath += sourceSets.main.runtimeClasspath
 }

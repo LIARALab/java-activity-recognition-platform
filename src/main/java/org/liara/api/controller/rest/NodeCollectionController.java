@@ -65,7 +65,7 @@ import io.swagger.annotations.Api;
 /**
  * A controller for all API endpoints that read, write or update information about nodes.
  * 
- * @author Cedric DEMONGIVERT <cedric.demongivert@gmail.com>
+ * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  */
 public final class NodeCollectionController extends BaseRestController
 {

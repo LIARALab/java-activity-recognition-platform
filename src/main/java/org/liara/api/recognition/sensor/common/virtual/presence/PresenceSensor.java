@@ -1,30 +1,38 @@
 package org.liara.api.recognition.sensor.common.virtual.presence;
 
+import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.Iterator;
-import java.util.Optional;
+import java.util.Objects;
 
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.ActivationStateCreationSchema;
 import org.liara.api.data.entity.state.ActivationStateMutationSchema;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.data.entity.state.StateDeletionSchema;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.event.StateWasCreatedEvent;
 import org.liara.api.event.StateWasMutatedEvent;
 import org.liara.api.event.StateWillBeMutatedEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.EmitStateOfType;
+import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
+import org.liara.api.recognition.sensor.configuration.PresenceSensorConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+@UseSensorConfigurationOfType(PresenceSensorConfiguration.class)
 @EmitStateOfType(ActivationState.class)
 @Component
 @Scope("prototype")
 public class PresenceSensor extends AbstractVirtualSensorHandler
-{  
+{   
   @NonNull
   private final SchemaManager _schemaManager;
   
@@ -40,41 +48,44 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
     _data = data;
   }
   
+  private Sensor getSensor () {
+    return getRunner().getSensor();
+  }
+  
+  private PresenceSensorConfiguration getConfiguration () {
+    return getSensor().getConfiguration()
+                      .as(PresenceSensorConfiguration.class);
+  }
+  
   @Override
   public void initialize (@NonNull final VirtualSensorRunner runner) {
     super.initialize(runner);
         
-    final ActivationStateCreationSchema creationSchema = new ActivationStateCreationSchema();
     final Iterator<BooleanState> ticks = _data.getTrackedMotionActivation(runner.getSensor()).iterator();
     
-    if (ticks.hasNext()) {
-      BooleanState last = ticks.next();
-      
-      while (ticks.hasNext()) {
-        final BooleanState next = ticks.next();
-        
-        if (!last.getSensor().getNodeIdentifier().equals(next.getSensor().getNodeIdentifier())) {
-          creationSchema.clear();
-          creationSchema.setEmittionDate(last.getEmittionDate());
-          creationSchema.setStartState(last);
-          creationSchema.setEndState(next);
-          creationSchema.setNode(last.getSensor().getNode());
-          creationSchema.setSensor(getRunner().getSensor());
-          
-          _schemaManager.execute(creationSchema);
-          
-          last = next;
-        }
-      }
-      
-      creationSchema.clear();
-      creationSchema.setEmittionDate(last.getEmittionDate());
-      creationSchema.setStartState(last);
-      creationSchema.setEndState(Optional.empty());
-      creationSchema.setNode(last.getSensor().getNode());
-      creationSchema.setSensor(getRunner().getSensor());
-      
-      _schemaManager.execute(creationSchema);
+    ActivationState currentState = null;
+    BooleanState previousTick = null;
+    
+    while (ticks.hasNext()) {
+      currentState = didInitializationTickDiscovered(
+        currentState, previousTick, previousTick = ticks.next()
+      );
+    }
+  }
+
+  private ActivationState didInitializationTickDiscovered (
+    @NonNull final ActivationState currentState,
+    @NonNull final BooleanState previousTick,
+    @NonNull final BooleanState discovered
+  ) {
+    if (currentState == null) {
+      return handlePresenceCreation(discovered, null, discovered.getNodeIdentifier());
+    } else if (Objects.equals(currentState.getNodeIdentifier(), discovered.getNodeIdentifier())) {
+      return checkOutdoor(previousTick, discovered, currentState);
+    } else {
+      handlePresenceMerging(currentState, discovered, discovered.getEmittionDate());
+      checkOutdoor(previousTick, discovered, currentState);
+      return handlePresenceCreation(discovered, null, discovered.getNodeIdentifier());
     }
   }
 
@@ -88,17 +99,17 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
   private boolean isValidInputTick (@NonNull final State state) {
     return state instanceof BooleanState &&
            ((BooleanState) state).getValue() == true &&
-           _data.isTracked(getRunner().getSensor(), state);
+           _data.isTracked(getSensor(), state);
   }
   
   private void handleTickDiscovery (@NonNull final BooleanState tick) {    
     final ActivationState before = _data.getActivationBefore(
-      getRunner().getSensor(), 
+      getSensor(), 
       tick.getEmittionDate()
     );
     
     final ActivationState after = _data.getActivationAfter(
-      getRunner().getSensor(), 
+      getSensor(), 
       tick.getEmittionDate()
     );
     
@@ -129,7 +140,7 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
     creation.setNode(tick.getSensor().getNode());
     creation.setStartState(tick);
     creation.setEndState(twin.getStartState());
-    creation.setSensor(getRunner().getSensor());
+    creation.setSensor(getSensor());
     
     _schemaManager.execute(creation);
     */
@@ -161,64 +172,60 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
     @NonNull final BooleanState tick, 
     @NonNull final ActivationState after
   ) {
-    //System.out.println("MIDDLE" + tick.getIdentifier());
-    if (tick.getSensor().getNodeIdentifier().equals(before.getNodeIdentifier())) return;
-    
-    final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
-    final ActivationStateCreationSchema creation = new ActivationStateCreationSchema();
-    BooleanState nextTick = _data.getTickAfter(getRunner().getSensor(), tick.getEmittionDate());
-    
-    // Twin ticks
-    if (nextTick.getEmittionDate().equals(after.getStartState().getEmittionDate())) { 
-      nextTick = (BooleanState) after.getStartState(); 
-    }
-        
-    
-    // merge
-    if (
-      nextTick.getIdentifier().equals(after.getStartStateIdentifier()) &&
-      tick.getSensor().getNodeIdentifier().equals(after.getNodeIdentifier())
+    if (Objects.equals(tick.getNodeIdentifier(), before.getNodeIdentifier())) {
+      handleIgnoredTick(tick, before);
+    } else if (Objects.equals(before.getNodeIdentifier(), getConfiguration().getOutdoorNode())) {
+      handleIgnoredTick(tick, forgetOutdoor(before));
+    } else if (
+      Objects.equals(
+        _data.getActivationBefore(getSensor(), before.getStart()).getNodeIdentifier(),
+        getConfiguration().getOutdoorNode()
+      )
     ) {
-      mutation.setIdentifier(after);
-      mutation.setStartState(tick);
-      mutation.setEmittionDate(tick.getEmittionDate());
+      handleIgnoredTick(tick, forgetOutdoor(_data.getActivationBefore(getSensor(), before.getStart())));
+    } else {
+      BooleanState nextTick = _data.getTickAfter(getSensor(), tick.getEmittionDate());
       
-      _schemaManager.execute(mutation);
-      
-      mutation.clear();
-      mutation.setIdentifier(before);
-      mutation.setEndState(tick);
-      
-      _schemaManager.execute(mutation);
-    }
-    // split
-    else {
-      creation.setStartState(tick);
-      creation.setEmittionDate(tick.getEmittionDate());
-      creation.setEndState(nextTick);
-      creation.setSensor(getRunner().getSensor());
-      creation.setNode(tick.getSensor().getNode());
-      
-      _schemaManager.execute(creation);
-      
-      mutation.setIdentifier(before);
-      mutation.setEndState(tick);
-      
-      _schemaManager.execute(mutation);
-      
-      // two split
-      if (!nextTick.getIdentifier().equals(after.getStartStateIdentifier())) {
-        creation.clear();
+      // Twin ticks
+      if (Objects.equals(nextTick.getEmittionDate(), after.getStart())) { 
+        nextTick = (BooleanState) after.getStartState(); 
+      }
+          
+      // merge
+      if (
+        Objects.equals(nextTick.getIdentifier(), after.getStartStateIdentifier()) &&
+        Objects.equals(tick.getNodeIdentifier(), after.getNodeIdentifier())
+      ) {
+        handlePresenceMerging(tick, after);
+        handlePresenceMerging(before, tick);
+      }
+      // split
+      else {
+        handlePresenceCreation(tick, nextTick, tick.getSensor().getNode());
+        handlePresenceMerging(before, tick);
         
-        creation.setStartState(nextTick);
-        creation.setEmittionDate(nextTick.getEmittionDate());
-        creation.setEndState(after.getStartState());
-        creation.setSensor(getRunner().getSensor());
-        creation.setNode(nextTick.getSensor().getNode());
-        
-        _schemaManager.execute(creation);
+        // two split
+        if (!Objects.equals(nextTick.getIdentifier(), after.getStartStateIdentifier())) {
+          handlePresenceCreation(nextTick, after.getStartState(), nextTick.getSensor().getNode());
+        }
       }
     }
+  }
+
+  private ActivationState forgetOutdoor (@NonNull final ActivationState outdoor) {
+    final ActivationState before = _data.getActivationBefore(getSensor(), outdoor.getStart());
+    final ActivationState after = _data.getActivationAfter(getSensor(), outdoor.getEnd());
+    
+    final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
+    mutation.setIdentifier(before.getIdentifier());
+    mutation.setEnd(after.getEnd());
+    mutation.correlate("end", after.getEndState());
+    
+    _schemaManager.execute(new StateDeletionSchema(outdoor));
+    _schemaManager.execute(new StateDeletionSchema(after));
+    _schemaManager.execute(mutation);
+   
+    return before;
   }
 
   /**
@@ -244,34 +251,29 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
     @NonNull final ActivationState before, 
     @NonNull final BooleanState tick
   ) {
-    //System.out.println("RIGHT" + tick.getIdentifier());
-    if (before.getNodeIdentifier().equals(tick.getSensor().getNodeIdentifier())) return;
-    
-    final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
-    final ActivationStateCreationSchema creation = new ActivationStateCreationSchema();
-    final BooleanState nextTick = _data.getTickAfter(getRunner().getSensor(), tick.getEmittionDate());
-    
-    mutation.setIdentifier(before);
-    mutation.setEndState(tick);
-    
-    _schemaManager.execute(mutation);
-    
-    creation.setEmittionDate(tick.getEmittionDate());
-    creation.setStartState(tick);
-    creation.setSensor(getRunner().getSensor());
-    creation.setNode(tick.getSensor().getNode());
-    creation.setEndState(nextTick);
-    
-    _schemaManager.execute(creation);
-    
-    if (nextTick != null) {
-      creation.clear();
-      creation.setEmittionDate(nextTick.getEmittionDate());
-      creation.setStartState(nextTick);
-      creation.setSensor(getRunner().getSensor());
-      creation.setNode(nextTick.getSensor().getNode());
+    // The previous presence is extended but not ended
+    if (
+      Objects.equals(
+        before.getNodeIdentifier(),
+        tick.getNodeIdentifier()
+      )
+    ) {
+      handleIgnoredTick(tick, before);
+    } else {
+      final BooleanState nextTick = _data.getTickAfter(getSensor(), tick.getEmittionDate());
       
-      _schemaManager.execute(creation);
+      handlePresenceMerging(before, tick);
+      handlePresenceCreation(
+        tick, nextTick, 
+        tick.getSensor().getNode()
+      );
+      
+      if (nextTick != null) {
+        handlePresenceCreation(
+          nextTick, null, 
+          nextTick.getSensor().getNode()
+        );
+      }
     }
   }
 
@@ -299,28 +301,21 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
     @NonNull final BooleanState tick,
     @NonNull final ActivationState next
   ) {
-    //System.out.println("LEFT " + tick.getIdentifier());
-    // Merging
-    if (next.getNodeIdentifier().equals(tick.getSensor().getNodeIdentifier())) {
-      final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
-      
-      mutation.setIdentifier(next);
-      mutation.setStartState(tick);
-      mutation.setEmittionDate(tick.getEmittionDate());
-      
-      _schemaManager.execute(mutation);
+    // Merging when both tick and next activation state target the same node.
+    if (
+      Objects.equals(
+        next.getNodeIdentifier(),
+        tick.getNodeIdentifier()
+      )
+    ) {
+      handlePresenceMerging(tick, next);
     } 
-    // Inserting
+    // Inserting a new presence when next activation state and discovered tick does not target the same node.
     else {
-      final ActivationStateCreationSchema creation = new ActivationStateCreationSchema();
-      
-      creation.setEmittionDate(tick.getEmittionDate());
-      creation.setStartState(tick);
-      creation.setEndState(next.getStartState());
-      creation.setNode(tick.getSensor().getNode());
-      creation.setSensor(getRunner().getSensor());
-      
-      _schemaManager.execute(creation);
+      handlePresenceCreation(
+        tick, next.getStartState(), 
+        tick.getSensor().getNode()
+      );
     }
   }
 
@@ -335,17 +330,199 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
    * @param tick Discovered tick.
    */
   private void handleEmptyCollectionSplit (
-    @NonNull final BooleanState tick
+    @NonNull final State tick
+  ) {
+    handlePresenceCreation(
+      tick, null, 
+      tick.getSensor().getNode()
+    );
+  }
+  
+  private void handlePresenceMerging (
+    @NonNull final State startState,
+    @NonNull final ActivationState next
+  ) {    
+    handlePresenceMerging(startState, startState.getEmittionDate(), next);
+    checkOutdoorRight(startState, next);
+  }
+
+  private void handlePresenceMerging (
+    @NonNull final State startState,
+    @NonNull final ZonedDateTime start,
+    @NonNull final ActivationState next
+  ) {
+    final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
+    
+    mutation.setIdentifier(next);
+    mutation.setStart(start);
+    mutation.correlate("start", startState);
+    mutation.setEmittionDate(startState.getEmittionDate());
+    
+    _schemaManager.execute(mutation);
+  }
+  
+  private void handlePresenceMerging (
+    @NonNull final ActivationState previous,
+    @NonNull final State endState
+  ) {    
+    handlePresenceMerging(previous, endState, endState.getEmittionDate());
+    checkOutdoorLeft(endState, previous);
+  }
+  
+  private void handlePresenceMerging (
+    @NonNull final ActivationState previous,
+    @NonNull final State endState,
+    @NonNull final ZonedDateTime end
+  ) {
+    final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
+    
+    mutation.setIdentifier(previous);
+    mutation.setEnd(end);
+    mutation.correlate("end", endState);
+    
+    _schemaManager.execute(mutation);
+  }
+
+  private void handlePresenceCreation (
+    @NonNull final State start, 
+    @NonNull final State end,
+    @NonNull final Node node
+  ) {
+    handlePresenceCreation(
+      start, 
+      end, 
+      node == null ? null : node.getIdentifier()
+    );
+  }
+  
+  private ActivationState handlePresenceCreation (
+    @NonNull final State start, 
+    @NonNull final State end,
+    @NonNull final Long node
+  ) {
+    ActivationState result = handlePresenceCreation(
+      start, end, 
+      start.getEmittionDate(), end == null ? null : end.getEmittionDate(), 
+      node
+    );
+    
+    // @TODO double check
+    if (end != null) {
+      result = checkOutdoorLeft(end, result);
+    }
+    
+    return result;
+  }
+  
+  private ActivationState handlePresenceCreation (
+    @NonNull final State startState, 
+    @NonNull final State endState,
+    @NonNull final ZonedDateTime start,
+    @NonNull final ZonedDateTime end,
+    @NonNull final Long node
   ) {
     final ActivationStateCreationSchema creation = new ActivationStateCreationSchema();
     
-    creation.setEmittionDate(tick.getEmittionDate());
-    creation.setStartState(tick);
-    creation.setEndState(Optional.empty());
-    creation.setNode(tick.getSensor().getNode());
-    creation.setSensor(getRunner().getSensor());
+    creation.setEmittionDate(start);
+    creation.setStart(start);
+    creation.correlate("start", startState);
     
-    _schemaManager.execute(creation);
+    if (end != null) {
+      creation.setEnd(end);
+      creation.correlate("end", endState);
+    }
+    
+    creation.setNode(node);
+    creation.setSensor(getSensor());
+    
+    return _schemaManager.execute(creation);
+  }
+
+  private ActivationState handleIgnoredTick (
+    @NonNull final BooleanState tick, 
+    @NonNull final ActivationState container
+  ) {
+    final ActivationState nextContainer;
+    
+    if (isPotentiallyOutdoor(container)) {
+      nextContainer = checkOutdoorLeft(tick, container);
+    } else {
+      nextContainer = container;
+    }
+    
+    if (isPotentiallyOutdoor(tick)) {
+      return checkOutdoorRight(tick, nextContainer);
+    } else {
+      return nextContainer; 
+    }
+  }
+
+  private ActivationState checkOutdoorRight (
+    @NonNull final State tick, 
+    @NonNull final ActivationState container
+  ) {
+    if (!isPotentiallyOutdoor(tick)) return container;
+    
+    final BooleanState next = _data.getTickAfter(getSensor(), tick.getEmittionDate());
+    
+    return checkOutdoor(tick, next, container);
+  }
+
+  private ActivationState checkOutdoorLeft (
+    @NonNull final State tick, 
+    @NonNull final ActivationState container
+  ) {
+    final BooleanState previous = _data.getTickBefore(getSensor(), tick.getEmittionDate());
+    if (!isPotentiallyOutdoor(previous)) { return container; }
+    
+    return checkOutdoor(previous, tick, container);
+  }
+
+  private ActivationState checkOutdoor (
+    @NonNull final State start, 
+    @NonNull final State end, 
+    @NonNull final ActivationState container
+  ) {
+    if (!isPotentiallyOutdoor(start)) { return container; }
+    
+    if (
+      end == null ||
+      Duration.between(start.getEmittionDate(), end.getEmittionDate())
+              .compareTo(Duration.ofMinutes(15)) < 0
+    ) { return container; }
+    
+    final State containerEnd = container.getEndState();
+    
+    handlePresenceMerging(
+      container, start, start.getEmittionDate().plusMinutes(2)
+    );
+    
+    handlePresenceCreation(
+      start, end, 
+      start.getEmittionDate().plusMinutes(2), end.getEmittionDate().minusMinutes(2), 
+      getConfiguration().getOutdoorNode()
+    );
+    
+    if (Objects.equals(end, containerEnd)) {
+      return handlePresenceCreation(
+        start, end, 
+        end.getEmittionDate().minusMinutes(2), 
+        end.getEmittionDate(),
+        container.getNodeIdentifier()
+      );
+    } else {
+      return handlePresenceCreation(
+        end, 
+        containerEnd, 
+        end.getEmittionDate().minusMinutes(2), 
+        end == null ? null : end.getEmittionDate(),
+        container.getNodeIdentifier()
+      );
+    }
+  }
+
+  private boolean isPotentiallyOutdoor (@NonNull final State tick) {
+    return getConfiguration().isPotentiallyOutdoorNode(tick.getNodeIdentifier());
   }
 
   @Override

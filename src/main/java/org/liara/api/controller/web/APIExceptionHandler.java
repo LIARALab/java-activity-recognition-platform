@@ -32,6 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.core.annotation.Order;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,12 +85,31 @@ public final class APIExceptionHandler
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Map<String, Object>> handleException (@NonNull final Exception exception) {
+    return new ResponseEntity<>(exceptionToMap(exception), HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+  
+  public Map<String, Object> exceptionToMap(@NonNull final Throwable exception) {
+    if (exception == null) return null;
+    
     final Map<String, Object> result = new HashMap<>();
     result.put("exception", exception.getClass());
-    result.put("localizedMessage", exception.getLocalizedMessage());
+    // result.put("localizedMessage", exception.getLocalizedMessage());
     result.put("message", exception.getMessage());
-    result.put("stackTrace", exception.getStackTrace());
-    result.put("cause", exception.getCause());
-    return new ResponseEntity<>(result, HttpStatus.INTERNAL_SERVER_ERROR);
+    
+    final List<String> stackTrace = new ArrayList<String>();
+    Arrays.asList(exception.getStackTrace()).forEach((StackTraceElement element) -> {
+      stackTrace.add(String.join(
+        "", 
+        "in ", element.getFileName(), 
+        " at line ", String.valueOf(element.getLineNumber()),
+        " into ", element.getClassName(), "#", element.getMethodName(), 
+        element.isNativeMethod() ? " (native method)" : ""
+      ));
+    });
+    
+    result.put("stackTrace", stackTrace);
+    result.put("cause", exceptionToMap(exception.getCause()));
+    
+    return result;
   }
 }

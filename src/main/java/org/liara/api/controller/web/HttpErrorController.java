@@ -50,9 +50,6 @@ public final class HttpErrorController implements ErrorController
     return "errors/http";
   }
 
-  /**
-   * @see
-   */
   public String getErrorPath () {
     return HttpErrorController.ERROR_PATH;
   }
