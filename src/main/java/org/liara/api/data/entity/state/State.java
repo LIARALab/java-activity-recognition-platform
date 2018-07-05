@@ -22,6 +22,7 @@
 package org.liara.api.data.entity.state;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.Table;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -33,7 +34,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 
-import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.schema.UseCreationSchema;
@@ -43,6 +43,7 @@ import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
 import java.time.ZonedDateTime;
@@ -50,6 +51,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "states")
@@ -79,14 +81,17 @@ public class State extends ApplicationEntity
     _sensor = null;
   }
   
-  public State (@NonNull final StateCreationSchema schema) {
-    _sensor = EntityCollections.SENSORS.findByIdentifier(schema.getSensor()).get();
+  public State ( 
+    @NonNull final EntityManager manager,
+    @NonNull final StateCreationSchema schema
+  ) {
+    _sensor = manager.find(Sensor.class, schema.getSensor());
     _emittionDate = schema.getEmittionDate();
     
     for (final Map.Entry<String, Long> correlation : schema.correlations()) {
       correlate(
-        correlation.getKey(), 
-        EntityCollections.STATES.findByIdentifier(correlation.getValue()).get()
+        correlation.getKey(),
+        manager.find(State.class, correlation.getValue())
       );
     }
   }
@@ -128,6 +133,13 @@ public class State extends ApplicationEntity
   @JsonIgnore
   public Set<Map.Entry<String, State>> getCorrelations () {
     return Collections.unmodifiableSet(_correlations.entrySet());
+  }
+  
+  @JsonProperty("correlations")
+  public Set<Object[]> getJSONCorrelations () {
+    return _correlations.entrySet().stream().map(entry -> {
+      return new Object[] { entry.getKey(), entry.getValue().getIdentifier() };
+    }).collect(Collectors.toSet());
   }
   
   public boolean hasCorrelation (@NonNull final String label) {

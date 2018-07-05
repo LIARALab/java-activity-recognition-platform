@@ -59,7 +59,7 @@ public class VirtualSensorManager
     }
     
     if (!_runners.containsValue(runner)) {
-      _logger.info("Registering new virtual sensor runner : " + runner.toString());
+      _logger.info("Registering new virtual sensor runner : " + runner.getHandler().getClass().getName() + "#" + runner.getSensor().getIdentifier());
       _runners.put(runner.getSensor().getIdentifier(), runner);
     }
   }

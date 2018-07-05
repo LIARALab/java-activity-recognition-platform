@@ -3,6 +3,8 @@ package org.liara.api.data.entity.state;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
+import javax.persistence.EntityManager;
+
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.schema.Schema;
@@ -78,7 +80,9 @@ public class ActivationStateCreationSchema extends StateCreationSchema
   }
 
   @Override
-  public ActivationState create () {
-    return new ActivationState(this);
+  public ActivationState create (
+    @NonNull final EntityManager manager
+  ) {
+    return new ActivationState(manager, this);
   }
 }

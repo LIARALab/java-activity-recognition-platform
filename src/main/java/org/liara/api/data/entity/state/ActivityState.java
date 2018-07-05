@@ -5,6 +5,7 @@ import java.time.ZonedDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
@@ -67,13 +68,16 @@ public class ActivityState extends State
     super();
   }
   
-  public ActivityState (@NonNull final ActivityStateCreationSchema schema) {
-    super (schema);
+  public ActivityState (
+    @NonNull final EntityManager manager,
+    @NonNull final ActivityStateCreationSchema schema
+  ) {
+    super (manager, schema);
     
     _tag = schema.getTag();
     _start = schema.getStart();
     _end = schema.getEnd();
-    _node = EntityCollections.NODES.findByIdentifier(schema.getNode()).get();
+    _node = manager.find(Node.class, schema.getNode());
   }
   
   public Duration getDuration () {

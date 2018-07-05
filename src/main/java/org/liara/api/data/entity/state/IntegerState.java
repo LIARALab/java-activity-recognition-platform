@@ -22,12 +22,15 @@
 package org.liara.api.data.entity.state;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
 import org.liara.api.data.schema.UseCreationSchema;
 import org.liara.api.data.schema.UseMutationSchema;
 import org.springframework.lang.NonNull;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.Column;
 
@@ -36,7 +39,7 @@ import javax.persistence.Column;
 @PrimaryKeyJoinColumn(name = "state_identifier")
 @UseCreationSchema(IntegerStateCreationSchema.class)
 @UseMutationSchema(IntegerStateMutationSchema.class)
-public class IntegerState extends State
+public class IntegerState extends NumericState
 {
   @Column(name = "value", nullable = false, updatable = true, unique = false)
   private int _value;
@@ -44,13 +47,20 @@ public class IntegerState extends State
   public IntegerState () { }
   
   public IntegerState (
+    @NonNull final EntityManager manager,
     @NonNull final IntegerStateCreationSchema schema
   ) {
-    super(schema);
+    super(manager, schema);
     _value = schema.getValue();
   }
 
   public int getValue () {
+    return _value;
+  }
+
+  @Override
+  @JsonIgnore
+  public Integer getNumber () {
     return _value;
   }
 

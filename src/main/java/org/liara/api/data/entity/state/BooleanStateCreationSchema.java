@@ -2,6 +2,8 @@ package org.liara.api.data.entity.state;
 
 import java.util.Optional;
 
+import javax.persistence.EntityManager;
+
 import org.liara.api.data.schema.Schema;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
@@ -33,7 +35,9 @@ public class BooleanStateCreationSchema extends StateCreationSchema
   }
 
   @Override
-  public BooleanState create () {
-    return new BooleanState(this);
+  public BooleanState create (
+    @NonNull final EntityManager manager
+  ) {
+    return new BooleanState(manager, this);
   }
 }

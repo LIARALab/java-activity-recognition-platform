@@ -58,7 +58,22 @@ public class TestSchemaManager implements SchemaManager
     return _handledSchemas;
   }
   
-  public void clear () {
+  public void reset () {
     _handledSchemas.clear();
   }
+
+  @Override
+  public void begin () { }
+
+  @Override
+  public void finish () { }
+
+  @Override
+  public void rollback () { }
+
+  @Override
+  public void flush () { }
+
+  @Override
+  public void clear () { }
 }

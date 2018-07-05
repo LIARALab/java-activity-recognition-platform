@@ -5,8 +5,10 @@ import org.liara.api.event.NodeWillBeCreatedEvent;
 import org.liara.api.event.SensorWasCreatedEvent;
 import org.liara.api.event.SensorWillBeCreatedEvent;
 import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateWasDeletedEvent;
 import org.liara.api.event.StateWasMutatedEvent;
 import org.liara.api.event.StateWillBeCreatedEvent;
+import org.liara.api.event.StateWillBeDeletedEvent;
 import org.liara.api.event.StateWillBeMutatedEvent;
 import org.springframework.lang.NonNull;
 
@@ -24,21 +26,25 @@ public interface VirtualSensorHandler
    */
   public void pause ();
   
-  public void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event);
+  public default void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event) {};
   
-  public void sensorWasCreated (@NonNull final SensorWasCreatedEvent event);
+  public default void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) {};
   
-  public void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event);
+  public default void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event) {};
   
-  public void nodeWasCreated (@NonNull final NodeWasCreatedEvent event);
+  public default void nodeWasCreated (@NonNull final NodeWasCreatedEvent event) {};
   
-  public void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event);
+  public default void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event) {};
   
-  public void stateWasCreated (@NonNull final StateWasCreatedEvent event);
+  public default void stateWasCreated (@NonNull final StateWasCreatedEvent event) {};
   
-  public void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event);
+  public default void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event) {};
   
-  public void stateWasMutated (@NonNull final StateWasMutatedEvent event);
+  public default void stateWasMutated (@NonNull final StateWasMutatedEvent event) {};
+  
+  public default void stateWillBeDeleted (@NonNull final StateWillBeDeletedEvent event) {};
+  
+  public default void stateWasDeleted (@NonNull final StateWasDeletedEvent event) {};
   
   /**
    * A method called when the given virtual sensor is restarted.

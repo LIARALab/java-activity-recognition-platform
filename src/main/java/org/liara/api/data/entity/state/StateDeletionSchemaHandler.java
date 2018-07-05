@@ -14,24 +14,22 @@ public class StateDeletionSchemaHandler
 {
   @NonNull
   private final ApplicationEventPublisher _eventPublisher;
-  
-  @NonNull
-  private final EntityManager _manager;
-  
+    
   @Autowired
   public StateDeletionSchemaHandler (
-    @NonNull final EntityManager manager,
     @NonNull final ApplicationEventPublisher eventPublisher
   ) {
     _eventPublisher = eventPublisher;
-    _manager = manager;
   }
   
-  public Object handle (@NonNull final StateDeletionSchema schema) {
+  public Object handle (
+    @NonNull final EntityManager manager,
+    @NonNull final StateDeletionSchema schema
+  ) {
     _eventPublisher.publishEvent(new StateWillBeDeletedEvent(this, schema));
-    final State toDelete = _manager.find(State.class, schema.getIdentifier());
+    final State toDelete = manager.find(State.class, schema.getIdentifier());
     final StateSnapshot snapshot = toDelete.snapshot();
-    _manager.remove(toDelete);
+    manager.remove(toDelete);
     _eventPublisher.publishEvent(new StateWasDeletedEvent(this, snapshot));
     return null;
   }

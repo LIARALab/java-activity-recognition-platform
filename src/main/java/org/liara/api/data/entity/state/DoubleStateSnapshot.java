@@ -2,7 +2,7 @@ package org.liara.api.data.entity.state;
 
 import org.springframework.lang.NonNull;
 
-public class DoubleStateSnapshot extends StateSnapshot
+public class DoubleStateSnapshot extends NumericStateSnapshot
 {
   private final double _value;
   

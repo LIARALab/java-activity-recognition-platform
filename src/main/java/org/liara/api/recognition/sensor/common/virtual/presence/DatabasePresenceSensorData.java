@@ -49,7 +49,7 @@ public class DatabasePresenceSensorData implements PresenceSensorData
     query.join(x -> x.join(BooleanState_._sensor))
          .join(x -> x.join(Sensor_._node));
     
-    return query.fetchAll().subList(3000, 4000);
+    return query.fetchAll();
   }
 
   public BooleanStateCollection getWatchedMotionTicksCollection (

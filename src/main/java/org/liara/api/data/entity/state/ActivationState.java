@@ -26,6 +26,7 @@ import java.time.ZonedDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
@@ -42,7 +43,6 @@ import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @Entity
@@ -90,12 +90,15 @@ public class ActivationState extends State
   
   public ActivationState () { }
   
-  public ActivationState (@NonNull final ActivationStateCreationSchema schema) {
-    super (schema);
+  public ActivationState (
+    @NonNull final EntityManager manager,
+    @NonNull final ActivationStateCreationSchema schema
+  ) {
+    super (manager, schema);
     
     _start = schema.getStart();
     _end = schema.getEnd();
-    _node = EntityCollections.NODES.findByIdentifier(schema.getNode()).get();
+    _node = manager.find(Node.class, schema.getNode());
   }
   
   public Duration getDuration () {
@@ -129,7 +132,6 @@ public class ActivationState extends State
     return _node;
   }
   
-  @JsonProperty
   public Long getNodeIdentifier () {
     return _node.getIdentifier();
   }
@@ -173,6 +175,19 @@ public class ActivationState extends State
     if (_end == null) return null;
     
     return getCorrelation("end").getIdentifier();
+  }
+
+  public boolean contains (@NonNull final State state) {
+    if (getStart() == null && getEnd() == null) {
+      return true;
+    } else if (getStart() != null && getEnd() == null) {
+      return state.getEmittionDate().compareTo(getStart()) >= 0;
+    } else if (getStart() == null && getEnd() != null) {
+      return state.getEmittionDate().compareTo(getEnd()) < 0;
+    } else {
+      return state.getEmittionDate().compareTo(getStart()) >= 0 && 
+             state.getEmittionDate().compareTo(getEnd()) < 0;
+    }
   }
   
   @Override

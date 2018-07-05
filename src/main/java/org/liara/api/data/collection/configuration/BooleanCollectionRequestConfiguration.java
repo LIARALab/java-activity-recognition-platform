@@ -66,7 +66,7 @@ public final class BooleanCollectionRequestConfiguration implements CollectionRe
         APIRequestEntityFilterParserFactory.datetime(
           "emittionDate", (root) -> root.get("_emittionDate")
         ),
-        APIRequestEntityFilterParserFactory.datetime(
+        APIRequestEntityFilterParserFactory.booleanValue(
           "value", (root) -> root.get("_value")
         ),
         APIRequestEntityFilterParserFactory.joinCollection(

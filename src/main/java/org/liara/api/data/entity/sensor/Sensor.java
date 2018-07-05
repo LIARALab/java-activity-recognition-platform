@@ -22,6 +22,7 @@
 package org.liara.api.data.entity.sensor;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.FetchType;
 import javax.persistence.Table;
 import javax.persistence.JoinColumn;
@@ -33,7 +34,6 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 
-import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.state.State;
@@ -47,6 +47,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -55,6 +56,7 @@ import java.util.Set;
 @Entity
 @Table(name = "sensors")
 @UseCreationSchema(SensorCreationSchema.class)
+@JsonPropertyOrder({ "identifier", "name", "type", "node_identifier", "configuration" })
 public class      Sensor 
        extends    ApplicationEntity
 {
@@ -99,7 +101,7 @@ public class      Sensor
   
   public Sensor (
     @NonNull final SensorCreationSchema schema,
-    @NonNull final NodeCollection nodes
+    @NonNull final EntityManager manager
   ) {
     _name = schema.getName();
     _type = schema.getType();
@@ -107,7 +109,8 @@ public class      Sensor
     _valueLabel = schema.getOptionalValueLabel().orElse("no-unit");
     _ipv4Address = schema.getIpv4Address();
     _ipv6Address = schema.getIpv6Address();
-    _node = nodes.findByIdentifier(schema.getParent()).get();
+    if (schema.getParent() == null) _node = null;
+    else _node = manager.find(Node.class, schema.getParent());
     _configuration = schema.getConfiguration();
   }
 

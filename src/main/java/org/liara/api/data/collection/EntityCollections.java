@@ -9,9 +9,6 @@ public class EntityCollections
 {
   @NonNull
   public static ActivityStateCollection ACTIVITIES;
-
-  @NonNull
-  public static BaseSleepingActivityStateCollection BASE_SLEEPING_ACTIVITIES;
   
   @NonNull
   public static ActivationStateCollection ACTIVATION_STATES;
@@ -81,12 +78,5 @@ public class EntityCollections
     @NonNull final ActivityStateCollection collection
   ) {
     ACTIVITIES = collection;
-  }
-  
-  @Autowired
-  public void registerBaseSleepingActivityCollection (
-    @NonNull final BaseSleepingActivityStateCollection collection
-  ) {
-    BASE_SLEEPING_ACTIVITIES = collection;
   }
 }

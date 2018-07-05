@@ -2,7 +2,7 @@ package org.liara.api.recognition.sensor.common.virtual.presence;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 
 import org.liara.api.data.entity.node.Node;
@@ -21,6 +21,7 @@ import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.EmitStateOfType;
 import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
+import org.liara.api.recognition.sensor.common.NativeMotionSensor;
 import org.liara.api.recognition.sensor.configuration.PresenceSensorConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -61,15 +62,25 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
   public void initialize (@NonNull final VirtualSensorRunner runner) {
     super.initialize(runner);
         
-    final Iterator<BooleanState> ticks = _data.getTrackedMotionActivation(runner.getSensor()).iterator();
+    final List<BooleanState> ticks = _data.getTrackedMotionActivation(runner.getSensor());
     
     ActivationState currentState = null;
-    BooleanState previousTick = null;
     
-    while (ticks.hasNext()) {
+    _schemaManager.clear();
+    _schemaManager.flush();
+    
+    for (int index = 0; index < ticks.size(); ++ index) {
       currentState = didInitializationTickDiscovered(
-        currentState, previousTick, previousTick = ticks.next()
+        currentState, 
+        (index == 0) ? null : ticks.get(index - 1), 
+        ticks.get(index)
       );
+      
+      if (index % 500 == 0) {
+        System.out.println(index + " / " + ticks.size());
+        _schemaManager.flush();
+        _schemaManager.clear();
+      }
     }
   }
 
@@ -98,6 +109,7 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
 
   private boolean isValidInputTick (@NonNull final State state) {
     return state instanceof BooleanState &&
+           NativeMotionSensor.class.isAssignableFrom(state.getSensor().getTypeClass()) &&
            ((BooleanState) state).getValue() == true &&
            _data.isTracked(getSensor(), state);
   }
@@ -515,7 +527,7 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
         end, 
         containerEnd, 
         end.getEmittionDate().minusMinutes(2), 
-        end == null ? null : end.getEmittionDate(),
+        containerEnd == null ? null : containerEnd.getEmittionDate(),
         container.getNodeIdentifier()
       );
     }

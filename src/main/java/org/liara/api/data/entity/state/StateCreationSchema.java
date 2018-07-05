@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.persistence.EntityManager;
+
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.entity.sensor.Sensor;
@@ -104,7 +106,9 @@ public class StateCreationSchema
     return Collections.unmodifiableSet(new HashSet<>(_correlations.values()));
   }
   
-  public State create () {
-    return new State(this);
+  public State create ( 
+    @NonNull final EntityManager manager
+  ) {
+    return new State(manager, this);
   }
 }

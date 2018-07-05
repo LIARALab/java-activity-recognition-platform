@@ -2,11 +2,14 @@ package org.liara.api.data.entity.state;
 
 import java.time.ZonedDateTime;
 
+import javax.persistence.EntityManager;
+
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.schema.Schema;
 import org.liara.api.validation.IdentifierOfEntityInCollection;
 import org.liara.api.validation.Required;
+import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -85,7 +88,9 @@ public class ActivityStateCreationSchema extends StateCreationSchema
   }
 
   @Override
-  public ActivityState create () {
-    return new ActivityState(this);
+  public ActivityState create (
+    @NonNull final EntityManager manager
+  ) {
+    return new ActivityState(manager, this);
   }
 }

@@ -4,6 +4,9 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Primary;
@@ -11,6 +14,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.BiMap;
@@ -24,6 +28,15 @@ public class AnnotationBasedSchemaManager implements SchemaManager
   private final ApplicationContext _context;
   
   @NonNull
+  private final EntityManager _entityManager;
+  
+  @Nullable
+  private EntityManager _current;
+  
+  @NonNull
+  private final EntityManagerFactory _entityManagerFactory;
+  
+  @NonNull
   private final BiMap<Class<?>, String> _handlers = HashBiMap.create();
   
   @NonNull
@@ -34,6 +47,9 @@ public class AnnotationBasedSchemaManager implements SchemaManager
     @NonNull final ApplicationContext context
   ) {
     _context = context;
+    _entityManager = context.getBean(EntityManager.class);
+    _entityManagerFactory = context.getBean(EntityManagerFactory.class);
+    _current = null;
   }
   
   @EventListener
@@ -71,6 +87,27 @@ public class AnnotationBasedSchemaManager implements SchemaManager
       }
     }
   }
+  
+  public void begin () {
+    if (_current != null) {
+      finish();
+    }
+    
+    _current = _entityManagerFactory.createEntityManager();
+    _current.getTransaction().begin();
+  }
+  
+  public void finish () {
+    _current.getTransaction().commit();
+    _current.close();
+    _current = null;
+  }
+  
+  public void rollback () {
+    _current.getTransaction().rollback();
+    _current.close();
+    _current = null;
+  }
 
   @Override
   public <Entity> Entity execute (@NonNull final Object schema) {
@@ -92,7 +129,11 @@ public class AnnotationBasedSchemaManager implements SchemaManager
     @NonNull final Object schema
   ) {
     try {
-      return method.invoke(handler, schema);
+      return method.invoke(
+        handler,
+        _current == null ? _entityManager : _current,
+        schema
+      );
     } catch (final Exception exception) {
       throw new Error(String.join(
         "", 
@@ -120,7 +161,7 @@ public class AnnotationBasedSchemaManager implements SchemaManager
     final Class<?> handledSchema = _handlers.inverse().get(handlerName);
     
     try {
-      return _context.getType(handlerName).getMethod("handle", handledSchema);
+      return _context.getType(handlerName).getMethod("handle", EntityManager.class, handledSchema);
     } catch (final Exception exception) {
       throw new Error(String.join(
         "", 
@@ -183,5 +224,19 @@ public class AnnotationBasedSchemaManager implements SchemaManager
         " class must be annotated with a schema annotation."
       ));
     }
+  }
+
+  @Override
+  public void flush () {
+    if (_current == null) {
+      _entityManager.flush();
+    } else _current.flush();
+  }
+
+  @Override
+  public void clear () {
+    if (_current == null) {
+      _entityManager.clear();
+    } else _current.clear();
   }
 }

@@ -75,9 +75,10 @@ public abstract class StateBuilder<Self extends StateBuilder<Self>>
     return schema;
   }
   
+  /*
   public State build () {
     return buildSchema().create();
-  }
+  }*/
 
   public State build (@NonNull final SchemaManager manager) {    
     return manager.execute(buildSchema());

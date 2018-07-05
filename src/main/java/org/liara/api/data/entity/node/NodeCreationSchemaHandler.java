@@ -1,5 +1,8 @@
 package org.liara.api.data.entity.node;
 
+import java.util.WeakHashMap;
+
+import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 
 import org.liara.api.collection.EntityNotFoundException;
@@ -14,29 +17,37 @@ import org.springframework.lang.NonNull;
 public class NodeCreationSchemaHandler
 {  
   @NonNull
-  private final DatabaseNodeTree _tree;
-  
-  @NonNull
   private final ApplicationEventPublisher _eventPublisher;
   
   @Autowired
   public NodeCreationSchemaHandler (
-    @NonNull final DatabaseNodeTree tree,
     @NonNull final ApplicationEventPublisher eventPublisher
   ) {
-    _tree = tree;
     _eventPublisher = eventPublisher;
   }
+  
+  @NonNull
+  private final WeakHashMap<EntityManager, DatabaseNodeTree> _trees = new WeakHashMap<>();
 
+  private DatabaseNodeTree getTree (@NonNull final EntityManager manager) {
+    if (!_trees.containsKey(manager)) {
+      _trees.put(manager, new DatabaseNodeTree(manager));
+    }
+    
+    return _trees.get(manager);
+  }
+  
   @Transactional
   public Node handle (
+    @NonNull final EntityManager manager,
     @NonNull final NodeCreationSchema schema
   ) throws EntityNotFoundException {
     _eventPublisher.publishEvent(new NodeWillBeCreatedEvent(this, schema));
     final Node node = new Node(schema);
-
-    _tree.addNode(
-      node, _tree.getNode(schema.getParent())
+    final DatabaseNodeTree tree = getTree(manager);
+    
+    tree.addNode(
+      node, tree.getNode(schema.getParent())
     );
     
     _eventPublisher.publishEvent(new NodeWasCreatedEvent(this, node));
