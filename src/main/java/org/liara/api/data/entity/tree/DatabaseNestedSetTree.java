@@ -234,9 +234,9 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
       Integer.class
     );
     
-    final int result = (query.getFirstResult() == 0) ? 1 : query.getSingleResult().intValue();
+    final List<Integer> result = query.getResultList();
     
-    return result;
+    return (result.size() <= 0) ? 1 : result.get(0).intValue();
   }
 
   @Override

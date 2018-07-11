@@ -8,7 +8,7 @@ import java.util.Set;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.recognition.sensor.SensorConfiguration;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -37,7 +37,7 @@ public class PresenceSensorConfiguration implements SensorConfiguration
     _potentiallyOutdoorNodes.addAll(nodes);
   }
   
-  @IdentifierOfEntityInCollection(collection = NodeCollection.class)
+  @ValidApplicationEntityReference(collection = NodeCollection.class)
   public Set<Long> getPotentiallyOutdoorNodes () {
     return Collections.unmodifiableSet(_potentiallyOutdoorNodes);
   }
@@ -64,7 +64,7 @@ public class PresenceSensorConfiguration implements SensorConfiguration
     _potentiallyOutdoorNodes.addAll(nodes);
   }
   
-  @IdentifierOfEntityInCollection(collection = NodeCollection.class)
+  @ValidApplicationEntityReference(collection = NodeCollection.class)
   public Long getOutdoorNode () {
     return _outdoorNode;
   }

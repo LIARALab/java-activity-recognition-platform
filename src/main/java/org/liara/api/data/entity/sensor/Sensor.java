@@ -22,7 +22,6 @@
 package org.liara.api.data.entity.sensor;
 
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.FetchType;
 import javax.persistence.Table;
 import javax.persistence.JoinColumn;
@@ -66,17 +65,8 @@ public class      Sensor
   @Column(name = "type", nullable = false, updatable = true, unique = false)
   private String        _type;
   
-  @Column(name = "value_unit", nullable = true, updatable = true, unique = false)
-  private String        _valueUnit;
-
-  @Column(name = "value_label", nullable = true, updatable = true, unique = false)
-  private String        _valueLabel;
-
-  @Column(name = "ipv4_address", nullable = true, updatable = true, unique = false)
-  private String        _ipv4Address;
-
-  @Column(name = "ipv6_address", nullable = true, updatable = true, unique = false)
-  private String        _ipv6Address;
+  @Column(name = "unit", nullable = true, updatable = true, unique = false)
+  private String        _unit;
 
   @OneToMany(
     mappedBy="_sensor", 
@@ -99,35 +89,12 @@ public class      Sensor
   
   public Sensor () { }
   
-  public Sensor (
-    @NonNull final SensorCreationSchema schema,
-    @NonNull final EntityManager manager
-  ) {
+  public Sensor (@NonNull final SensorCreationSchema schema) {
     _name = schema.getName();
     _type = schema.getType();
-    _valueUnit = schema.getOptionalValueUnit().orElse("no-unit");
-    _valueLabel = schema.getOptionalValueLabel().orElse("no-unit");
-    _ipv4Address = schema.getIpv4Address();
-    _ipv6Address = schema.getIpv6Address();
-    if (schema.getParent() == null) _node = null;
-    else _node = manager.find(Node.class, schema.getParent());
+    _unit = schema.getUnit();
+    _node = schema.getParent().resolve();
     _configuration = schema.getConfiguration();
-  }
-
-  public String getIpv4Address () {
-    return _ipv4Address;
-  }
-  
-  public void setIpv4Address (@NonNull final String ipv4Address) {
-    _ipv4Address = ipv4Address;
-  }
-
-  public String getIpv6Address () {
-    return _ipv6Address;
-  }
-
-  public void setIpv6Address (@NonNull final String ipv6Address) {
-    _ipv6Address = ipv6Address;
   }
 
   public String getName () {
@@ -139,14 +106,14 @@ public class      Sensor
   }
   
   @PrePersist
-  protected void onCreate () {
-    super.onCreate();
+  public void willBeCreated () {
+    super.willBeCreated();
     _virtual = isVirtual();
   }
   
   @PreUpdate
-  protected void onUpdate () {
-    super.onUpdate();
+  public void willBeUpdated () {
+    super.willBeUpdated();
     _virtual = isVirtual();
   }
 
@@ -241,20 +208,12 @@ public class      Sensor
     _type = type;
   }
 
-  public String getValueUnit () {
-    return _valueUnit;
+  public String getUnit () {
+    return _unit;
   }
   
-  public void setValueUnit (@NonNull final String valueUnit) {
-    _valueUnit = valueUnit;
-  }
-
-  public String getValueLabel () {
-    return _valueLabel;
-  }
-  
-  public void setValueLabel (@NonNull final String valueLabel) {
-    _valueLabel = valueLabel;
+  public void setUnit (@NonNull final String unit) {
+    _unit = unit;
   }
   
   public SensorConfiguration getConfiguration () {

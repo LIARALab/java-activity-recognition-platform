@@ -1,14 +1,25 @@
 package org.liara.api.recognition.sensor.common.virtual.conjunction;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
 
+import org.liara.api.data.entity.ApplicationEntity_;
 import org.liara.api.data.entity.state.ActivationState;
+import org.liara.api.data.entity.state.ActivationState_;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
@@ -30,79 +41,90 @@ public class DatabaseConjunctionToActivitySensorData implements ConjunctionToAct
 
   @Override
   public List<Conjunction> getConjunctions (
-    @NonNull final Collection<Long> inputs
-  ) {
-    final List<String> selections = inputs.stream().map(
-      sensorIdentifier -> "statesOfSensor" + sensorIdentifier 
-    ).collect(Collectors.toList());
+    @NonNull final Collection<Long> inputs,
+    @NonNull final Collection<Long> nodes
+  ) {    
+    final CriteriaBuilder builder = _entityManager.getCriteriaBuilder();
+    final CriteriaQuery<Tuple> query = builder.createTupleQuery();
     
-    final List<Long> sensors = new ArrayList<>(inputs);
-    
-    final StringBuilder query = new StringBuilder();
-    query.append("SELECT NEW ");
-    query.append(Conjunction.class.getName());
-    query.append("(");
-    
-    for (int index = 0; index < selections.size(); ++index) {
-      if (index > 0) query.append(", ");
-      query.append(selections.get(index));
-    }
-    
-    query.append(")");
-    query.append(" FROM ");
-    
-    for (int index = 0; index < selections.size(); ++index) {
-      if (index > 0) query.append(", ");
-      query.append(ActivationState.class.getName());
-      query.append(" ");
-      query.append(selections.get(index));
-    }
-    
-    query.append(", LEAST(");
-    for (int index = 0; index < selections.size(); ++index) {
-      if (index > 0) query.append(", ");
-      query.append(selections.get(index));
-      query.append("._end");
-    }    
-    query.append(") end ");
-    
-    query.append(", GREATEST(");
-    for (int index = 0; index < selections.size(); ++index) {
-      if (index > 0) query.append(", ");
-      query.append(selections.get(index));
-      query.append("._start");
-    }    
-    query.append(") start ");
-    
-    query.append(" WHERE ");
-    
-    for (int index = 0; index < selections.size(); ++index) {
-      if (index > 0) query.append(" AND ");
-      query.append(selections.get(index));
-      query.append("._sensor._identifier = :identifierOfSensor");
-      query.append(sensors.get(index));
-
-      query.append(" AND ");
-      query.append(selections.get(index));
-      query.append("._start <= end");
-      
-      query.append(" AND ");
-      query.append(selections.get(index));
-      query.append("._end >= start");
-    }
-    
-    final TypedQuery<Conjunction> typedQuery = _entityManager.createQuery(
-      query.toString(), Conjunction.class
+    final List<Map.Entry<Long, Root<ActivationState>>> selections = new ArrayList<>(
+      nodes.stream().collect(
+        Collectors.toMap(
+          nodeIdentifier -> nodeIdentifier,
+          nodeIdentifier -> query.from(ActivationState.class)
+        )
+      ).entrySet()
     );
     
-    for (int index = 0; index < selections.size(); ++index) {
-      typedQuery.setParameter(
-        "identifierOfSensor" + sensors.get(index), 
-        sensors.get(index)
-      );
-    } 
+    final Expression<ZonedDateTime> conjunctionEnd = builder.function(
+      "LEAST", ZonedDateTime.class,
+      selections.stream()
+                .map(entry -> entry.getValue().get(ActivationState_._end))
+                .collect(Collectors.toList())
+                .toArray(new Expression[selections.size()])
+    );
     
-    return typedQuery.getResultList();
+    final Expression<ZonedDateTime> conjunctionStart = builder.function(
+      "GREATEST", ZonedDateTime.class,
+      selections.stream()
+                .map(entry -> entry.getValue().get(ActivationState_._start))
+                .collect(Collectors.toList())
+                .toArray(new Expression[selections.size()])
+    );
+    
+    final List<Selection<?>> tupleSelection = new ArrayList<>();
+    selections.forEach(x -> tupleSelection.add(x.getValue()));
+    
+    query.multiselect(tupleSelection);
+    
+    final List<Predicate> predicates = new ArrayList<>();
+    
+    for (int index = 0; index < selections.size(); ++index) {
+      predicates.add(
+        selections.get(index)
+                  .getValue()
+                  .get(ActivationState_._sensor)
+                  .get(ApplicationEntity_._identifier)
+                  .in(inputs)
+      );
+      
+      predicates.add(
+        builder.equal(
+          selections.get(index)
+                    .getValue()
+                    .get(ActivationState_._node)
+                    .get(ApplicationEntity_._identifier),
+          selections.get(index).getKey()
+        )
+      );
+      
+      predicates.add(
+        builder.lessThanOrEqualTo(
+          selections.get(index)
+                    .getValue()
+                    .get(ActivationState_._start),
+          conjunctionEnd
+        )
+      );
+      
+      predicates.add(
+        builder.greaterThanOrEqualTo(
+          selections.get(index)
+                    .getValue()
+                    .get(ActivationState_._end),
+          conjunctionStart
+        )
+      );
+    }
+    
+    query.where(builder.and(predicates.toArray(new Predicate[predicates.size()])));
+    
+    final TypedQuery<Tuple> typedQuery = _entityManager.createQuery(query);
+    
+    return typedQuery.getResultList()
+                     .stream()
+                     .map(x -> new Conjunction(x))
+                     .collect(Collectors.toList());
   }
 
 }

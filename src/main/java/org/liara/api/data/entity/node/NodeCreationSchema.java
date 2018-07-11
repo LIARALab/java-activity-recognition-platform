@@ -23,9 +23,9 @@ package org.liara.api.data.entity.node;
 
 import java.util.Optional;
 
-import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.schema.Schema;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -43,9 +43,9 @@ public final class NodeCreationSchema
   @Required
   private String _type = null;
   
-  @Nullable
-  @IdentifierOfEntityInCollection(collection = NodeCollection.class)
-  private Long _parent = null;
+  @NonNull
+  @ValidApplicationEntityReference
+  private ApplicationEntityReference<Node> _parent = ApplicationEntityReference.empty(Node.class);
   
   /**
    * Return the name that will be assigned to the created node.
@@ -93,24 +93,17 @@ public final class NodeCreationSchema
     _type = type.orElse(null);
   }
   
-  public Long getParent () {
+  public ApplicationEntityReference<Node> getParent () {
     return _parent;
   }
   
   @JsonSetter
   public void setParent (final Long parent) {
-    _parent = parent;
+    _parent = ApplicationEntityReference.of(Node.class, parent);
   }
   
   public void setParent (@Nullable final Node parent) {
-    if (parent == null) {
-      _parent = null;
-    } else {
-      _parent = parent.getIdentifier();
-    }
-  }
-
-  public void setParent (@NonNull final Optional<Long> parent) {
-    _parent = parent.orElse(null);
+    _parent = (parent == null) ? ApplicationEntityReference.empty(Node.class) 
+                               : ApplicationEntityReference.of(parent);
   }
 }

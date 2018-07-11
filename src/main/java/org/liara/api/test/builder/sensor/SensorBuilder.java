@@ -39,16 +39,7 @@ public abstract class SensorBuilder<Self extends SensorBuilder<Self>>
   private String _name = "unnamed";
   
   @Nullable
-  private String _valueUnit = null;
-  
-  @Nullable
-  private String _valueLabel = null;
-  
-  @Nullable
-  private String _ipv4Address = null;
-  
-  @Nullable
-  private String _ipv6Address = null;
+  private String _unit = null;
   
   @Nullable
   private Node _parent = null;
@@ -72,23 +63,8 @@ public abstract class SensorBuilder<Self extends SensorBuilder<Self>>
     return self();
   }
   
-  public Self withValueUnit (@NonNull final String valueUnit) {
-    _valueUnit = valueUnit;
-    return self();
-  }
-  
-  public Self withValueLabel (@NonNull final String valueLabel) {
-    _valueLabel = valueLabel;
-    return self();
-  }
-  
-  public Self withIpv4Address (@NonNull final String ipv4Address) {
-    _ipv4Address = ipv4Address;
-    return self();
-  }
-  
-  public Self withIpv6Address (@NonNull final String ipv6Address) {
-    _ipv6Address = ipv6Address;
+  public Self withUnit (@NonNull final String unit) {
+    _unit = unit;
     return self();
   }
   
@@ -346,10 +322,7 @@ public abstract class SensorBuilder<Self extends SensorBuilder<Self>>
   public SensorCreationSchema buildSchema () {
     final SensorCreationSchema schema = new SensorCreationSchema();
     schema.setConfiguration(_configuration);
-    schema.setIpv4Address(_ipv4Address);
-    schema.setIpv6Address(_ipv6Address);
-    schema.setValueLabel(_valueLabel);
-    schema.setValueUnit(_valueUnit);
+    schema.setUnit(_unit);
     schema.setName(_name);
     schema.setParent(_parent);
     schema.setType(_type);

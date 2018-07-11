@@ -2,7 +2,6 @@ package org.liara.api.data.entity.state;
 
 import javax.persistence.EntityManager;
 
-import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.schema.SchemaHandler;
 import org.liara.api.event.StateWasMutatedEvent;
 import org.liara.api.event.StateWillBeMutatedEvent;
@@ -28,7 +27,7 @@ public class StateMutationSchemaHandler
     @NonNull final StateMutationSchema schema
   ) {
     _eventPublisher.publishEvent(new StateWillBeMutatedEvent(this, schema));
-    final State state = schema.apply(EntityCollections.STATES);
+    final State state = schema.apply();
     manager.merge(state);
     _eventPublisher.publishEvent(new StateWasMutatedEvent(this, state));
     return state;

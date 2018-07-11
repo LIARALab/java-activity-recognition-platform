@@ -1,14 +1,11 @@
 package org.liara.api.data.entity.state;
 
 import java.time.ZonedDateTime;
-import java.util.Optional;
 
-import javax.persistence.EntityManager;
-
-import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.schema.Schema;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -27,15 +24,15 @@ public class ActivationStateCreationSchema extends StateCreationSchema
   @Nullable
   private ZonedDateTime _end;
   
-  @Nullable
-  private Long _node;
+  @NonNull
+  private ApplicationEntityReference<Node> _node = ApplicationEntityReference.empty(Node.class);
   
   public void clear () {
     super.clear();
     
     _start = null;
     _end = null;
-    _node = null;
+    _node = ApplicationEntityReference.empty(Node.class);
   }
   
   @Required
@@ -57,32 +54,23 @@ public class ActivationStateCreationSchema extends StateCreationSchema
   }
   
   @Required
-  @IdentifierOfEntityInCollection(collection = NodeCollection.class)
-  public Long getNode () {
+  @ValidApplicationEntityReference
+  public ApplicationEntityReference<Node> getNode () {
     return _node;
   }
   
   @JsonSetter
   public void setNode (@Nullable final Long node) {
-    _node = node;
+    _node = ApplicationEntityReference.of(Node.class, node);
   }
   
   public void setNode (@Nullable final Node node) {
-    if (node == null) {
-      _node = null;
-    } else {
-      _node = node.getIdentifier();
-    }
-  }
-  
-  public void setNode (@NonNull final Optional<Long> node) {
-    _node = node.orElse(null);
+    _node = (node == null) ? ApplicationEntityReference.empty(Node.class)
+                           : ApplicationEntityReference.of(node);
   }
 
   @Override
-  public ActivationState create (
-    @NonNull final EntityManager manager
-  ) {
-    return new ActivationState(manager, this);
+  public ActivationState create () {
+    return new ActivationState(this);
   }
 }

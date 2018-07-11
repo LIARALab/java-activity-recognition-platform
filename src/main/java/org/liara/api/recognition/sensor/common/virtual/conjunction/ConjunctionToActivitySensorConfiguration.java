@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.recognition.sensor.SensorConfiguration;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -21,6 +21,9 @@ public class ConjunctionToActivitySensorConfiguration
   @NonNull
   private final Set<Long> _inputs = new HashSet<>();
   
+  @NonNull
+  private final Set<Long> _nodes = new HashSet<>();
+  
   public ConjunctionToActivitySensorConfiguration () {
     _tag = null;
   }
@@ -30,6 +33,7 @@ public class ConjunctionToActivitySensorConfiguration
   ) {
     _tag = toCopy.getTag();
     _inputs.addAll(toCopy.getInputs());
+    _nodes.addAll(toCopy.getNodes());
   }
   
   @Required
@@ -41,7 +45,7 @@ public class ConjunctionToActivitySensorConfiguration
     _tag = tag;
   }
   
-  @IdentifierOfEntityInCollection(collection = SensorCollection.class)
+  @ValidApplicationEntityReference(collection = SensorCollection.class)
   public Set<Long> getInputs () {
     return Collections.unmodifiableSet(_inputs);
   }
@@ -49,6 +53,16 @@ public class ConjunctionToActivitySensorConfiguration
   public void setInputs (@Nullable final Collection<Long> inputs) {
     _inputs.clear();
     if (inputs != null) _inputs.addAll(inputs);
+  }
+  
+  @ValidApplicationEntityReference(collection = SensorCollection.class)
+  public Set<Long> getNodes () {
+    return Collections.unmodifiableSet(_nodes);
+  }
+  
+  public void setNodes (@Nullable final Collection<Long> inputs) {
+    _nodes.clear();
+    if (inputs != null) _nodes.addAll(inputs);
   }
   
   public ConjunctionToActivitySensorConfiguration clone () {

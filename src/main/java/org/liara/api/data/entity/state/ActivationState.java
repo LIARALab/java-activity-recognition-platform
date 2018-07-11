@@ -26,7 +26,6 @@ import java.time.ZonedDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
@@ -91,14 +90,13 @@ public class ActivationState extends State
   public ActivationState () { }
   
   public ActivationState (
-    @NonNull final EntityManager manager,
     @NonNull final ActivationStateCreationSchema schema
   ) {
-    super (manager, schema);
+    super (schema);
     
     _start = schema.getStart();
     _end = schema.getEnd();
-    _node = manager.find(Node.class, schema.getNode());
+    _node = schema.getNode().resolve();
   }
   
   public Duration getDuration () {

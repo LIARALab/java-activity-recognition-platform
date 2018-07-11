@@ -7,5 +7,8 @@ import org.springframework.lang.NonNull;
 
 public interface ConjunctionToActivitySensorData
 {
-  public List<Conjunction> getConjunctions (@NonNull final Collection<Long> inputs);
+  public List<Conjunction> getConjunctions (
+    @NonNull final Collection<Long> inputs,
+    @NonNull final Collection<Long> nodes
+  );
 }

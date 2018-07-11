@@ -21,40 +21,40 @@
  ******************************************************************************/
 package org.liara.api.validator;
 
-import java.util.Optional;
-
 import javax.annotation.Nullable;
+import javax.persistence.EntityManager;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-import org.liara.api.collection.EntityCollection;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
 
-public class OptionalIdentifierOfEntityInCollectionValidator implements ConstraintValidator<IdentifierOfEntityInCollection, Optional<Long>>
+public class ApplicationEntityReferenceValidator implements ConstraintValidator<ValidApplicationEntityReference, ApplicationEntityReference<?>>
 {
-  @Autowired
-  private ApplicationContext _context;
-  
-  private Class<? extends EntityCollection<?>> _collection;
+  @NonNull
+  private final EntityManager _entityManager;
 
+  @Autowired 
+  public ApplicationEntityReferenceValidator(
+    @NonNull final EntityManager entityManager
+  ) { _entityManager = entityManager; }
+  
   @Override
-  public void initialize (@NonNull final IdentifierOfEntityInCollection constraintAnnotation) {
-    _collection = constraintAnnotation.collection();
+  public void initialize (@NonNull final ValidApplicationEntityReference constraintAnnotation) { 
+    
   }
 
   @Override
   public boolean isValid (
-    @Nullable final Optional<Long> value, 
+    @Nullable final ApplicationEntityReference<?> value, 
     @NonNull final ConstraintValidatorContext context
   ) {
-    if (value.isPresent()) {
-      final EntityCollection<?> collection = _context.getBean(_collection);
-      return collection.findByIdentifier(value.get()) != null;
-    } else {
+    if (value == null || value.isNull()) {
       return true;
+    } else {
+      return value.resolve(_entityManager) != null;
     }
   }
 }

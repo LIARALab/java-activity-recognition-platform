@@ -27,7 +27,7 @@ public class StateCreationSchemaHandler
     @NonNull final StateCreationSchema schema
   ) {    
     _publisher.publishEvent(new StateWillBeCreatedEvent(this, schema));
-    final State state = schema.create(manager);
+    final State state = schema.create();
     manager.persist(state);
     _publisher.publishEvent(new StateWasCreatedEvent(this, state));
     

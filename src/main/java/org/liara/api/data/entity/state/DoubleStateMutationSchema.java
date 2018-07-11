@@ -2,11 +2,7 @@ package org.liara.api.data.entity.state;
 
 import java.util.Optional;
 
-import org.liara.api.data.collection.DoubleStateCollection;
-import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.schema.Schema;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
-import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -39,15 +35,8 @@ public class DoubleStateMutationSchema extends StateMutationSchema
   }
   
   @Override
-  @IdentifierOfEntityInCollection(collection = DoubleStateCollection.class)
-  @Required
-  public Long getIdentifier () {
-    return super.getIdentifier();
-  }
-  
-  @Override
-  public DoubleState apply (@NonNull final StateCollection collection) {
-    final DoubleState result = (DoubleState) collection.findByIdentifier(getIdentifier()).get();
+  public DoubleState apply () {
+    final DoubleState result = (DoubleState) getState().resolve();
     
     apply(result);
     super.apply(result);

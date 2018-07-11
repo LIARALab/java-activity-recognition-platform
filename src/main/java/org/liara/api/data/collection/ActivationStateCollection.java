@@ -78,11 +78,11 @@ public class ActivationStateCollection extends EntityCollection<ActivationState>
         builder.or(
           builder.like(
             query.getEntity().join("_node").get("_type"),
-            "common/room/%"
+            "/common/room/%"
           ),
           builder.equal(
             query.getEntity().join("_node").get("_type"),
-            "common/room"
+            "/common/room"
           )
         )
       );
@@ -98,11 +98,11 @@ public class ActivationStateCollection extends EntityCollection<ActivationState>
         builder.or(
           builder.like(
             query.getEntity().join("_node").get("_type"),
-            "common/furniture/%"
+            "/common/furniture/%"
           ),
           builder.equal(
             query.getEntity().join("_node").get("_type"),
-            "common/furniture"
+            "/common/furniture"
           )
         )
       );

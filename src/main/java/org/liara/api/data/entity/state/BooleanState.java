@@ -22,7 +22,6 @@
 package org.liara.api.data.entity.state;
 
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
@@ -44,11 +43,8 @@ public class BooleanState extends State
   
   public BooleanState () { }
   
-  public BooleanState (
-    @NonNull final EntityManager manager,
-    @NonNull final BooleanStateCreationSchema schema
-  ) {
-    super(manager, schema);
+  public BooleanState (@NonNull final BooleanStateCreationSchema schema) {
+    super(schema);
     _value = schema.getValue();
   }
   

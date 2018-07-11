@@ -22,7 +22,6 @@
 package org.liara.api.data.entity.state;
 
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
@@ -46,11 +45,8 @@ public class DoubleState extends NumericState
   
   public DoubleState () { }
   
-  public DoubleState (
-    @NonNull final EntityManager manager,
-    @NonNull final DoubleStateCreationSchema schema
-  ) {
-    super(manager, schema);
+  public DoubleState (@NonNull final DoubleStateCreationSchema schema) {
+    super(schema);
     _value = schema.getValue();
   }
 

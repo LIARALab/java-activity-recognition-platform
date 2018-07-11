@@ -22,7 +22,6 @@
 package org.liara.api.data.entity.state;
 
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.Table;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -35,6 +34,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MapKeyColumn;
 
 import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.schema.UseCreationSchema;
 import org.liara.api.data.schema.UseMutationSchema;
@@ -77,21 +77,18 @@ public class State extends ApplicationEntity
   private Map<String, State> _correlations = new HashMap<>();
   
   public State () { 
-    _emittionDate = ZonedDateTime.now();
+    _emittionDate = null;
     _sensor = null;
   }
   
-  public State ( 
-    @NonNull final EntityManager manager,
-    @NonNull final StateCreationSchema schema
-  ) {
-    _sensor = manager.find(Sensor.class, schema.getSensor());
+  public State (@NonNull final StateCreationSchema schema) {
+    _sensor = schema.getSensor().resolve();
     _emittionDate = schema.getEmittionDate();
     
-    for (final Map.Entry<String, Long> correlation : schema.correlations()) {
+    for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : schema.correlations()) {
       correlate(
         correlation.getKey(),
-        manager.find(State.class, correlation.getValue())
+        correlation.getValue().resolve()
       );
     }
   }

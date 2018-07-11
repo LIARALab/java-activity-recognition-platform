@@ -2,8 +2,6 @@ package org.liara.api.data.entity.state;
 
 import java.util.Optional;
 
-import javax.persistence.EntityManager;
-
 import org.liara.api.data.schema.Schema;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
@@ -35,9 +33,7 @@ public class DoubleStateCreationSchema extends StateCreationSchema
   }
 
   @Override
-  public DoubleState create (
-    @NonNull final EntityManager manager
-  ) {
-    return new DoubleState(manager, this);
+  public DoubleState create () {
+    return new DoubleState(this);
   }
 }

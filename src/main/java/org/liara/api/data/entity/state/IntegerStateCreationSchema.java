@@ -2,8 +2,6 @@ package org.liara.api.data.entity.state;
 
 import java.util.Optional;
 
-import javax.persistence.EntityManager;
-
 import org.liara.api.data.schema.Schema;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
@@ -35,9 +33,7 @@ public class IntegerStateCreationSchema extends StateCreationSchema
   }
 
   @Override
-  public IntegerState create (
-    @NonNull final EntityManager manager
-  ) {
-    return new IntegerState(manager, this);
+  public IntegerState create () {
+    return new IntegerState(this);
   }
 }

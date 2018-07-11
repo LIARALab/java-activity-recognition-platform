@@ -22,7 +22,6 @@
 package org.liara.api.data.entity.state;
 
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
@@ -47,10 +46,9 @@ public class IntegerState extends NumericState
   public IntegerState () { }
   
   public IntegerState (
-    @NonNull final EntityManager manager,
     @NonNull final IntegerStateCreationSchema schema
   ) {
-    super(manager, schema);
+    super(schema);
     _value = schema.getValue();
   }
 

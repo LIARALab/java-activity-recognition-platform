@@ -2,7 +2,7 @@ package org.liara.api.recognition.sensor.configuration;
 
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.recognition.sensor.SensorConfiguration;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -20,7 +20,7 @@ public class TVSensorConfiguration implements SensorConfiguration
     _sourceSensorIdentifier = toCopy.getSourceSensorIdentifier();
   }
 
-  @IdentifierOfEntityInCollection(collection = SensorCollection.class)
+  @ValidApplicationEntityReference(collection = SensorCollection.class)
   @Required
   public Long getSourceSensorIdentifier () {
     return _sourceSensorIdentifier;

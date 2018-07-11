@@ -27,7 +27,7 @@ public class StateDeletionSchemaHandler
     @NonNull final StateDeletionSchema schema
   ) {
     _eventPublisher.publishEvent(new StateWillBeDeletedEvent(this, schema));
-    final State toDelete = manager.find(State.class, schema.getIdentifier());
+    final State toDelete = schema.getState().resolve();
     final StateSnapshot snapshot = toDelete.snapshot();
     manager.remove(toDelete);
     _eventPublisher.publishEvent(new StateWasDeletedEvent(this, snapshot));

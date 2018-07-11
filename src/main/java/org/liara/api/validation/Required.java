@@ -36,6 +36,8 @@ import javax.validation.Payload;
 
 import org.liara.api.validator.OptionalRequiredValidator;
 import org.liara.api.validator.OptionalStringRequiredValidator;
+import org.liara.api.validator.RequiredApplicationEntityReferenceValidator;
+import org.liara.api.validator.RequiredIterableApplicationEntityReferenceValidator;
 import org.liara.api.validator.RequiredValidator;
 import org.liara.api.validator.StringRequiredValidator;
 
@@ -46,7 +48,9 @@ import org.liara.api.validator.StringRequiredValidator;
   StringRequiredValidator.class,
   OptionalStringRequiredValidator.class,
   RequiredValidator.class,
-  OptionalRequiredValidator.class
+  OptionalRequiredValidator.class,
+  RequiredApplicationEntityReferenceValidator.class,
+  RequiredIterableApplicationEntityReferenceValidator.class
 })
 public @interface Required
 {

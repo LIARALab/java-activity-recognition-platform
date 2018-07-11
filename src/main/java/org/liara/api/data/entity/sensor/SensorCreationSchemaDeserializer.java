@@ -70,10 +70,7 @@ public class SensorCreationSchemaDeserializer extends JsonDeserializer<SensorCre
     final SensorCreationSchema result = _context.getBean(SensorCreationSchema.class);
     result.setName((node.hasNonNull("name")) ? node.get("name").asText() : null);
     result.setType((node.hasNonNull("type")) ? node.get("type").asText() : null);
-    result.setValueUnit((node.hasNonNull("valueUnit")) ? node.get("valueUnit").asText() : null);
-    result.setValueLabel((node.hasNonNull("valueLabel")) ? node.get("valueLabel").asText() : null);
-    result.setIpv4Address((node.hasNonNull("ipv4Address")) ? node.get("ipv4Address").asText() : null);
-    result.setIpv6Address((node.hasNonNull("ipv6Address")) ? node.get("ipv6Address").asText() : null);
+    result.setUnit((node.hasNonNull("unit")) ? node.get("unit").asText() : null);
     result.setParent((node.hasNonNull("parent")) ? node.get("parent").asLong() : null);
     return result;
   }

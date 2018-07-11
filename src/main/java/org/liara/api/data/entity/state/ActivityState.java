@@ -5,29 +5,28 @@ import java.time.ZonedDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 
 import org.liara.api.collection.query.selector.EntityFieldSelector;
-import org.liara.api.data.collection.EntityCollections;
-import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.schema.UseCreationSchema;
 import org.liara.api.data.schema.UseMutationSchema;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @Entity
 @Table(name = "states_activity")
 @PrimaryKeyJoinColumn(name = "state_identifier")
 @UseCreationSchema(ActivityStateCreationSchema.class)
 @UseMutationSchema(ActivityStateMutationSchema.class)
+@JsonPropertyOrder({
+  "identifier", "emittionDate", "sensorIdentifier",
+  "start", "end", "duration", "milliseconds"
+})
 public class ActivityState extends State
 {
   public static EntityFieldSelector<ActivityState, Expression<Long>> DURATION_SELECTOR = (query, queried) -> {
@@ -59,25 +58,17 @@ public class ActivityState extends State
 
   @Column(name = "end", nullable = true, updatable = true, unique = false)
   private ZonedDateTime _end;
-  
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "node_identifier", nullable = false, unique = false, updatable = true)
-  private Node _node;
 
   public ActivityState () { 
     super();
   }
   
-  public ActivityState (
-    @NonNull final EntityManager manager,
-    @NonNull final ActivityStateCreationSchema schema
-  ) {
-    super (manager, schema);
+  public ActivityState (@NonNull final ActivityStateCreationSchema schema) {
+    super (schema);
     
     _tag = schema.getTag();
     _start = schema.getStart();
     _end = schema.getEnd();
-    _node = manager.find(Node.class, schema.getNode());
   }
   
   public Duration getDuration () {
@@ -120,23 +111,6 @@ public class ActivityState extends State
 
   public void setEnd (@Nullable final ZonedDateTime end) {
     _end = end;
-  }
-
-  public Long getNodeIdentifier () {
-    return _node.getIdentifier();
-  }
-
-  public void setNodeIdentifier (@NonNull final Long identifier) {
-    _node = EntityCollections.NODES.findByIdentifier(identifier).get();
-  }
-  
-  @JsonIgnore
-  public Node getNode () {
-    return _node;
-  }
-
-  public void setNode (@NonNull final Node node) {
-   _node = node;
   }
   
   @Override

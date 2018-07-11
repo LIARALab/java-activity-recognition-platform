@@ -49,7 +49,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.WeakHashMap;
 
 @Entity
 @Table(name = "nodes")
@@ -58,9 +57,7 @@ import java.util.WeakHashMap;
 public class      Node 
        extends    ApplicationEntity 
        implements NestedSetTreeNode<Node>
-{
-  private static final WeakHashMap<NestedSetTree<Node>, Long> NEXT_IDENTIFIERS = new WeakHashMap<>();
-  
+{  
   @NonNull
   @Column(name = "name", nullable = false, updatable = true, unique = false)
   private String                _name;
@@ -85,25 +82,7 @@ public class      Node
   @Embedded
   private NestedSetCoordinates _coordinates;
   
-  private static Long getNextNodeIdentifierForTree (@NonNull final NestedSetTree<Node> tree) {
-    final Long result;
-    
-    if (Node.NEXT_IDENTIFIERS.containsKey(tree)) {
-      result = Node.NEXT_IDENTIFIERS.get(tree);
-      Node.NEXT_IDENTIFIERS.put(
-        tree, 
-        Node.NEXT_IDENTIFIERS.get(tree)
-      );
-    } else {
-      result = 0L;
-      Node.NEXT_IDENTIFIERS.put(tree, 1L);
-    }
-    
-    return result;
-  }
-  
   protected Node () {
-    super(null);
     _tree = DatabaseNodeTree.getInstance();
     _name = null;
     _type = null;
@@ -111,7 +90,6 @@ public class      Node
   }
   
   public Node (@NonNull final NodeCreationSchema schema) {
-    super(null);
     _tree = DatabaseNodeTree.getInstance();
     _name = schema.getName();
     _type = schema.getType();
@@ -122,7 +100,6 @@ public class      Node
     @NonNull final LocalNestedSetTree<Node> tree,
     @NonNull final NodeCreationSchema schema
   ) {
-    super(Node.getNextNodeIdentifierForTree(tree));
     setTree(tree);
     _name = schema.getName();
     _type = schema.getType();
@@ -234,9 +211,6 @@ public class      Node
       _tree = tree;
       
       if (!Objects.equals(_tree, null)) {
-        if (tree instanceof LocalNestedSetTree) {
-          setIdentifier(Node.getNextNodeIdentifierForTree(tree));
-        }
         _tree.addNode(this);
       }
     }

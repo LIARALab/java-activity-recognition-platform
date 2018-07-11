@@ -4,7 +4,6 @@ import java.time.ZonedDateTime;
 import javax.annotation.Generated;
 import javax.persistence.metamodel.SingularAttribute;
 import javax.persistence.metamodel.StaticMetamodel;
-import org.liara.api.data.entity.node.Node;
 
 @Generated(value = "org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor")
 @StaticMetamodel(ActivityState.class)
@@ -13,7 +12,6 @@ public abstract class ActivityState_ extends org.liara.api.data.entity.state.Sta
 	public static volatile SingularAttribute<ActivityState, ZonedDateTime> _end;
 	public static volatile SingularAttribute<ActivityState, ZonedDateTime> _start;
 	public static volatile SingularAttribute<ActivityState, String> _tag;
-	public static volatile SingularAttribute<ActivityState, Node> _node;
 
 }
 

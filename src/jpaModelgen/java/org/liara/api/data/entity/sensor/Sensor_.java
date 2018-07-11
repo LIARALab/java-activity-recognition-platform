@@ -11,13 +11,10 @@ import org.liara.api.data.entity.state.State;
 @StaticMetamodel(Sensor.class)
 public abstract class Sensor_ extends org.liara.api.data.entity.ApplicationEntity_ {
 
-	public static volatile SingularAttribute<Sensor, String> _ipv4Address;
+	public static volatile SingularAttribute<Sensor, String> _unit;
 	public static volatile SingularAttribute<Sensor, String> _name;
 	public static volatile SingularAttribute<Sensor, Boolean> _virtual;
-	public static volatile SingularAttribute<Sensor, String> _valueLabel;
 	public static volatile SingularAttribute<Sensor, String> _type;
-	public static volatile SingularAttribute<Sensor, String> _ipv6Address;
-	public static volatile SingularAttribute<Sensor, String> _valueUnit;
 	public static volatile SetAttribute<Sensor, State> _states;
 	public static volatile SingularAttribute<Sensor, Node> _node;
 

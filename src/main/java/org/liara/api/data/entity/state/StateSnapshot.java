@@ -2,13 +2,15 @@ package org.liara.api.data.entity.state;
 
 import java.time.ZonedDateTime;
 
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.ApplicationEntitySnapshot;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.springframework.lang.NonNull;
 
 public class StateSnapshot extends ApplicationEntitySnapshot
 {
   @NonNull
-  private final Long _sensor;
+  private final ApplicationEntityReference<Sensor> _sensor;
   
   @NonNull
   private final ZonedDateTime _emittionDate;
@@ -23,11 +25,11 @@ public class StateSnapshot extends ApplicationEntitySnapshot
   public StateSnapshot (@NonNull final State model) {
     super(model);
     
-    _sensor = model.getSensorIdentifier();
+    _sensor = ApplicationEntityReference.of(Sensor.class, model.getSensorIdentifier());
     _emittionDate = model.getEmittionDate();
   }
   
-  public Long getSensor () {
+  public ApplicationEntityReference<Sensor> getSensor () {
     return _sensor;
   }
   

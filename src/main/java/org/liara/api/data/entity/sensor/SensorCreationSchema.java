@@ -4,17 +4,16 @@ import java.util.Optional;
 
 import javax.validation.Valid;
 
-import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.schema.Schema;
 import org.liara.api.recognition.sensor.SensorConfiguration;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.liara.api.validation.SensorType;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
@@ -29,19 +28,10 @@ public class SensorCreationSchema
   private String _type = null;
   
   @NonNull
-  private String _valueUnit = null;
+  private String _unit = null;
   
   @NonNull
-  private String _valueLabel = null;
-  
-  @NonNull
-  private String _ipv4Address = null;
-  
-  @NonNull
-  private String _ipv6Address = null;
-  
-  @NonNull
-  private Long _parent = null;
+  private ApplicationEntityReference<Node> _parent = ApplicationEntityReference.of(Node.class, null);
   
   @NonNull
   private SensorConfiguration _configuration = null;
@@ -75,88 +65,33 @@ public class SensorCreationSchema
     _type = type.orElse(null);
   }
 
-  public String getValueUnit () {
-    return _valueUnit;
-  }
-  
-  @JsonIgnore
-  public Optional<String> getOptionalValueUnit () {
-    return Optional.ofNullable(_valueUnit);
-  }
-
-  @JsonSetter
-  public void setValueUnit (@Nullable final String valueUnit) {
-    _valueUnit = valueUnit;
-  }
-  
-  public void setValueUnit (@NonNull final Optional<String> valueUnit) {
-    _valueUnit = valueUnit.orElse(null);
-  }
-
-  public String getValueLabel () {
-    return _valueLabel;
-  }
-
-  @JsonIgnore
-  public Optional<String> getOptionalValueLabel () {
-    return Optional.ofNullable(_valueLabel);
+  public String getUnit () {
+    return _unit;
   }
   
   @JsonSetter
-  public void setValueLabel (@Nullable final String valueLabel) {
-    _valueLabel = valueLabel;
-  }
-
-  public void setValueLabel (@NonNull final Optional<String> valueLabel) {
-    _valueLabel = valueLabel.orElse(null);
-  }
-
-  public String getIpv4Address () {
-    return _ipv4Address;
+  public void setUnit (@Nullable final String unit) {
+    _unit = unit;
   }
   
-  @JsonSetter
-  public void setIpv4Address (@Nullable final String ipv4Address) {
-    _ipv4Address = ipv4Address;
+  public void setUnit (@NonNull final Optional<String> unit) {
+    _unit = unit.orElse(null);
   }
 
-  public void setIpv4Address (@NonNull final Optional<String> ipv4Address) {
-    _ipv4Address = ipv4Address.orElse(null);
-  }
-
-  public String getIpv6Address () {
-    return _ipv6Address;
-  }
-  
-  @JsonSetter
-  public void setIpv6Address (@Nullable final String ipv6Address) {
-    _ipv6Address = ipv6Address;
-  }
-
-  public void setIpv6Address (@NonNull final Optional<String> ipv6Address) {
-    _ipv6Address = ipv6Address.orElse(null);
-  }
-
-  @IdentifierOfEntityInCollection(collection = NodeCollection.class)
-  public Long getParent () {
+  @Required
+  @ValidApplicationEntityReference
+  public ApplicationEntityReference<Node> getParent () {
     return _parent;
   }
   
   @JsonSetter
-  public void setParent (@Nullable final Long parentIdentifier) {
-    _parent = parentIdentifier;
+  public void setParent (@Nullable final Long identifier) {
+    _parent = ApplicationEntityReference.of(Node.class, identifier);
   }
   
   public void setParent (@Nullable final Node parent) {
-    if (parent == null) {
-      _parent = null;
-    } else {
-      _parent = parent.getIdentifier();
-    }
-  }
-
-  public void setParent (@NonNull final Optional<Long> parentIdentifier) {
-    _parent = parentIdentifier.orElse(null);
+    _parent = (parent == null) ? ApplicationEntityReference.empty(Node.class)
+                               : ApplicationEntityReference.of(parent);
   }
 
   @Valid

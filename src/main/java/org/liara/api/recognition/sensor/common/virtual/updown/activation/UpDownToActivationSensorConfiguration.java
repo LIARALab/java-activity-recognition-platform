@@ -5,7 +5,7 @@ import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.recognition.sensor.SensorConfiguration;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -33,7 +33,7 @@ public class UpDownToActivationSensorConfiguration
     _activatedNode = toCopy.getActivatedNode();
   }
   
-  @IdentifierOfEntityInCollection(collection = SensorCollection.class)
+  @ValidApplicationEntityReference(collection = SensorCollection.class)
   @Required
   public Long getInputSensor () {
     return _inputSensor;
@@ -48,7 +48,7 @@ public class UpDownToActivationSensorConfiguration
     _inputSensor = (sensor == null) ? null : sensor.getIdentifier();
   }
   
-  @IdentifierOfEntityInCollection(collection = NodeCollection.class)
+  @ValidApplicationEntityReference(collection = NodeCollection.class)
   public Long getActivatedNode () {
     return _activatedNode;
   }

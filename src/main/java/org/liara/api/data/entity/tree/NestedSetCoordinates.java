@@ -1,7 +1,5 @@
 package org.liara.api.data.entity.tree;
 
-import java.security.InvalidParameterException;
-
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 
@@ -32,7 +30,9 @@ public class NestedSetCoordinates
     _depth = 1;
   }
   
-  public NestedSetCoordinates (@NonNull final NestedSetCoordinates toCopy) {
+  public NestedSetCoordinates (
+    @NonNull final NestedSetCoordinates toCopy
+  ) {
     _start = toCopy.getStart();
     _end = toCopy.getEnd();
     _depth = toCopy.getDepth();
@@ -43,38 +43,9 @@ public class NestedSetCoordinates
     final int end,
     final int depth
   ) {
-    //assertThatAreValidNestedSetCoordinates(start, end);
     _start = start;
     _end = end;
     _depth = depth;
-  }
-  
-  private void assertThatAreValidNestedSetCoordinates (
-    final int start, 
-    final int end
-  ) {
-    if (start >= end) {
-      throw new InvalidParameterException(
-        String.join(
-          "", 
-          "The given nested set coordinates are invalid because the set starting coordinate (",
-          String.valueOf(start), ") is greater or equal to the set ending coordinate (",
-          String.valueOf(end), ") a nested set end coordinate must be greater than the ",
-          "given starting coordinate."
-        )
-      );
-    }
-    
-    if ((end - start - 1) % 2 == 1) {
-      throw new InvalidParameterException(
-        String.join(
-          "", 
-          "The given nested set coordinates are invalid because the given ending coordinate ",
-          "induce an invalid set size : (end - start - 1), (", 
-          String.valueOf(end - start - 1), ") is not divisible by 2."
-        )
-      );
-    }
   }
 
   @JsonIgnore
@@ -88,7 +59,6 @@ public class NestedSetCoordinates
   }
   
   public NestedSetCoordinates setStart (final int start) {
-    //assertThatAreValidNestedSetCoordinates(start, _end);
     _start = start;
     return this;
   }
@@ -99,13 +69,11 @@ public class NestedSetCoordinates
   }
   
   public NestedSetCoordinates setEnd (final int end) {
-    //assertThatAreValidNestedSetCoordinates(_start, end);
     _end = end;
     return this;
   }
   
   public NestedSetCoordinates set (final int start, final int end, final int depth) {
-    //assertThatAreValidNestedSetCoordinates(start, end);
     _start = start;
     _end = end;
     _depth = depth;

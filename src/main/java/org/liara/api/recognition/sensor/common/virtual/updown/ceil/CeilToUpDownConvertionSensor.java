@@ -140,10 +140,10 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   ) {
     super.stateWillBeDeleted(event);
    
-    if (_data.getState(event.getState().getIdentifier()).getSensorIdentifier() == getInputSensor()) {
+    if (_data.getState(event.getState().getState()).getSensorIdentifier() == getInputSensor()) {
       inputStateWillBeDeleted(
         NumericState.class.cast(
-          _data.getState(event.getState().getIdentifier())
+          _data.getState(event.getState().getState())
         )
       );
     }
@@ -182,7 +182,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   
   private void delete (@NonNull final BooleanState correlated) {
     final StateDeletionSchema deletion = new StateDeletionSchema();
-    deletion.setIdentifier(correlated);
+    deletion.setState(correlated);
     _schemaManager.execute(deletion);
   }
 
@@ -192,7 +192,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final BooleanState correlated
   ) {
     final BooleanStateMutationSchema mutation = new BooleanStateMutationSchema();
-    mutation.setIdentifier(correlated.getIdentifier());
+    mutation.setState(correlated.getIdentifier());
     mutation.correlate("previous", current);
     mutation.setEmittionDate(interpolate(current, next));
     mutation.setValue(false);
@@ -205,7 +205,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final BooleanState correlated
   ) {
     final BooleanStateMutationSchema mutation = new BooleanStateMutationSchema();
-    mutation.setIdentifier(correlated.getIdentifier());
+    mutation.setState(correlated.getIdentifier());
     mutation.correlate("previous", current);
     mutation.setEmittionDate(interpolate(current, next));
     mutation.setValue(true);

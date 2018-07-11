@@ -5,7 +5,6 @@ import java.util.WeakHashMap;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 
-import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.data.schema.SchemaHandler;
 import org.liara.api.event.NodeWasCreatedEvent;
 import org.liara.api.event.NodeWillBeCreatedEvent;
@@ -41,15 +40,14 @@ public class NodeCreationSchemaHandler
   public Node handle (
     @NonNull final EntityManager manager,
     @NonNull final NodeCreationSchema schema
-  ) throws EntityNotFoundException {
+  ) {
     _eventPublisher.publishEvent(new NodeWillBeCreatedEvent(this, schema));
+    
     final Node node = new Node(schema);
     final DatabaseNodeTree tree = getTree(manager);
     
-    tree.addNode(
-      node, tree.getNode(schema.getParent())
-    );
-    
+    tree.addNode(node, schema.getParent().resolve(manager));
+   
     _eventPublisher.publishEvent(new NodeWasCreatedEvent(this, node));
     return node;
   }

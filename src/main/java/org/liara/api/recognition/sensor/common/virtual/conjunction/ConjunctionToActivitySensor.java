@@ -5,6 +5,7 @@ import java.util.List;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.ActivityState;
+import org.liara.api.data.entity.state.ActivityStateCreationSchema;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.event.StateWasCreatedEvent;
 import org.liara.api.event.StateWasMutatedEvent;
@@ -56,8 +57,26 @@ public class ConjunctionToActivitySensor
   ) {
     super.initialize(runner);
     
-    final List<Conjunction> _conjunctions = _data.getConjunctions(getConfiguration().getInputs());
+    final List<Conjunction> conjunctions = _data.getConjunctions(
+      getConfiguration().getInputs(),
+      getConfiguration().getNodes()
+    );
     
+    _schemaManager.flush();
+    _schemaManager.clear();
+    
+    for (int index = 0; index < conjunctions.size(); ++index) {
+      final Conjunction conjunction = conjunctions.get(index);
+      emit(conjunction);
+      
+      if (index % 500 == 0 && index != 0) {
+        _schemaManager.flush();
+        _schemaManager.clear();
+      }
+    }
+    
+    _schemaManager.flush();
+    _schemaManager.clear();
   }
 
   @Override
@@ -79,5 +98,23 @@ public class ConjunctionToActivitySensor
     @NonNull final StateWillBeDeletedEvent event
   ) {
     super.stateWillBeDeleted(event);
+  }
+
+  private void emit (
+    @NonNull final Conjunction conjunction
+  ) {
+    final ActivityStateCreationSchema creation = new ActivityStateCreationSchema();
+    
+    creation.setEmittionDate(conjunction.getEmittionDate());
+    creation.setStart(conjunction.getStart());
+    creation.setEnd(conjunction.getEnd());
+    creation.setTag(getConfiguration().getTag());
+    creation.setSensor(getSensor());
+    
+    for (final ActivationState state : conjunction.getStates()) {
+      creation.correlate("activationOf" + state.getNodeIdentifier(), state);
+    }
+    
+    _schemaManager.execute(creation);
   }
 }

@@ -1,14 +1,11 @@
 package org.liara.api.data.entity.state;
 
 import java.time.ZonedDateTime;
-import java.util.Optional;
 
-import org.liara.api.data.collection.ActivationStateCollection;
-import org.liara.api.data.collection.NodeCollection;
-import org.liara.api.data.collection.StateCollection;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.schema.Schema;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -27,8 +24,8 @@ public class ActivationStateMutationSchema extends StateMutationSchema
   @Nullable
   private ZonedDateTime _end = null;
   
-  @Nullable
-  private Long _node = null;
+  @NonNull
+  private ApplicationEntityReference<Node> _node = ApplicationEntityReference.empty(Node.class);
 
   @Override
   public void clear () {
@@ -36,7 +33,7 @@ public class ActivationStateMutationSchema extends StateMutationSchema
     
     _start = null;
     _end = null;
-    _node = null;
+    _node = ApplicationEntityReference.empty(Node.class);
   }
   
   @Required
@@ -56,44 +53,31 @@ public class ActivationStateMutationSchema extends StateMutationSchema
     _end = end;
   }
   
-  @IdentifierOfEntityInCollection(collection = NodeCollection.class)
-  public Long getNode () {
+  @ValidApplicationEntityReference
+  @Required
+  public ApplicationEntityReference<Node> getNode () {
     return _node;
   }
   
   @JsonSetter
   public void setNode (@Nullable final Long node) {
-    _node = node;
-  }
-  
-  public void setNode (@NonNull final Optional<Long> node) {
-    _node = node.orElse(null);
+    _node = ApplicationEntityReference.of(Node.class, node);
   }
   
   public void setNode (@Nullable final Node node) {
-    if (node == null) {
-      _node = null;
-    } else {
-      _node = node.getIdentifier();
-    }
+    _node = (node == null) ? ApplicationEntityReference.empty(Node.class)
+                           : ApplicationEntityReference.of(node);
   }
   
   protected void apply (@NonNull final ActivationState state) {
     if (_start != null) state.setStart(_start);
     if (_end != null) state.setEnd(_end);
-    if (_node != null) state.setNodeIdentifier(_node);
+    if (_node != null) state.setNode(_node.resolve());;
   }
   
   @Override
-  @IdentifierOfEntityInCollection(collection = ActivationStateCollection.class)
-  @Required
-  public Long getIdentifier () {
-    return super.getIdentifier();
-  }
-  
-  @Override
-  public ActivationState apply (@NonNull final StateCollection collection) {
-    final ActivationState result = (ActivationState) collection.findByIdentifier(getIdentifier()).get();
+  public ActivationState apply () {
+    final ActivationState result = (ActivationState) getState().resolve();
     
     apply(result);
     super.apply(result);

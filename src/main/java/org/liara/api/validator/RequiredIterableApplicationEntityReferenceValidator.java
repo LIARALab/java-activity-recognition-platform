@@ -25,33 +25,29 @@ import javax.annotation.Nullable;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-import org.liara.api.collection.EntityCollection;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 
-public class      IterableOfIdentifierOfEntityInCollectionValidator
-       implements ConstraintValidator<IdentifierOfEntityInCollection, Iterable<Long>>
+public class RequiredIterableApplicationEntityReferenceValidator 
+       implements ConstraintValidator<Required, Iterable<ApplicationEntityReference<?>>>
 {
-  @Autowired
-  private ApplicationContext _context;
-  
-  private Class<? extends EntityCollection<?>> _collection;
-
   @Override
-  public void initialize (@NonNull final IdentifierOfEntityInCollection constraintAnnotation) {
-    _collection = constraintAnnotation.collection();
+  public void initialize (@NonNull final Required constraintAnnotation) { 
+    
   }
 
   @Override
   public boolean isValid (
-    @Nullable final Iterable<Long> value, 
+    @Nullable final Iterable<ApplicationEntityReference<?>> value, 
     @NonNull final ConstraintValidatorContext context
   ) {
-    if (value == null) return true;
+    if (value == null) return false;
     
-    final EntityCollection<?> collection = _context.getBean(_collection);
-    return collection.containsEntitiesWithIdentifiers(value);
+    for (final ApplicationEntityReference<?> reference : value) {
+      if (reference == null || reference.isNull()) return false;
+    }
+    
+    return true;
   }
 }

@@ -2,11 +2,7 @@ package org.liara.api.data.entity.state;
 
 import java.util.Optional;
 
-import org.liara.api.data.collection.IntegerStateCollection;
-import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.schema.Schema;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
-import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -39,15 +35,8 @@ public class IntegerStateMutationSchema extends StateMutationSchema
   }
   
   @Override
-  @IdentifierOfEntityInCollection(collection = IntegerStateCollection.class)
-  @Required
-  public Long getIdentifier () {
-    return super.getIdentifier();
-  }
-  
-  @Override
-  public IntegerState apply (@NonNull final StateCollection collection) {
-    final IntegerState result = (IntegerState) collection.findByIdentifier(getIdentifier()).get();
+  public IntegerState apply () {
+    final IntegerState result = (IntegerState) getState().resolve();
     
     apply(result);
     super.apply(result);

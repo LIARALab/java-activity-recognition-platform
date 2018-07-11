@@ -8,13 +8,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.persistence.EntityManager;
-
-import org.liara.api.data.collection.SensorCollection;
-import org.liara.api.data.collection.StateCollection;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.schema.Schema;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -29,39 +26,32 @@ public class StateCreationSchema
   @Nullable
   private ZonedDateTime _emittionDate = null;
   
-  @Nullable
-  private Long _sensor = null;
+  @NonNull
+  private ApplicationEntityReference<Sensor> _sensor = ApplicationEntityReference.of(Sensor.class, null);
   
   @NonNull
-  private final Map<String, Long> _correlations = new HashMap<>();
+  private final Map<String, ApplicationEntityReference<State>> _correlations = new HashMap<>();
   
   public void clear () {
     _emittionDate = null;
-    _sensor = null;
+    _sensor = ApplicationEntityReference.of(Sensor.class, null);
     _correlations.clear();
   }
   
   @Required
-  @IdentifierOfEntityInCollection(collection = SensorCollection.class)
-  public Long getSensor () {
+  @ValidApplicationEntityReference
+  public ApplicationEntityReference<Sensor> getSensor () {
     return _sensor;
   }
   
   @JsonSetter
   public void setSensor (@Nullable final Long sensor) {
-    _sensor = sensor;
+    _sensor = ApplicationEntityReference.of(Sensor.class, sensor);
   }
   
   public void setSensor (@Nullable final Sensor sensor) {
-    if (sensor == null) {
-      _sensor = null;
-    } else {
-      _sensor = sensor.getIdentifier();
-    }
-  }
-  
-  public void setSensor (@NonNull final Optional<Long> sensor) {
-    _sensor = sensor.orElse(null);
+    _sensor = (sensor == null) ? ApplicationEntityReference.empty(Sensor.class)
+                               : ApplicationEntityReference.of(sensor);
   }
   
   @Required
@@ -82,33 +72,32 @@ public class StateCreationSchema
     @NonNull final String label, 
     @NonNull final State state
   ) {
-    _correlations.put(label, state.getIdentifier());
+    _correlations.put(label, ApplicationEntityReference.of(state));
   }
   
   public void decorrelate (@NonNull final String label) {
     _correlations.remove(label);
   }
   
-  public Long getCorrelation (@NonNull final String label) {
+  public ApplicationEntityReference<State> getCorrelation (@NonNull final String label) {
     return _correlations.get(label);
   }
   
-  public Map<String, Long> getCorrelations () {
+  public Map<String, ApplicationEntityReference<State>> getCorrelations () {
     return Collections.unmodifiableMap(_correlations);
   }
   
-  public Iterable<Map.Entry<String, Long>> correlations () {
+  public Iterable<Map.Entry<String, ApplicationEntityReference<State>>> correlations () {
     return Collections.unmodifiableSet(_correlations.entrySet());
   }
   
-  @IdentifierOfEntityInCollection(collection = StateCollection.class)
-  public Set<Long> getCorrelated () {
+  @ValidApplicationEntityReference
+  @Required
+  public Set<ApplicationEntityReference<State>> getCorrelated () {
     return Collections.unmodifiableSet(new HashSet<>(_correlations.values()));
   }
   
-  public State create ( 
-    @NonNull final EntityManager manager
-  ) {
-    return new State(manager, this);
+  public State create () {
+    return new State(this);
   }
 }

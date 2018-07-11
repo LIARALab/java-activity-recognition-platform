@@ -9,7 +9,7 @@ import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.recognition.sensor.SensorConfiguration;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -53,7 +53,7 @@ public class OneVsAllToUpDownMotionSensorConfiguration
     return Collections.unmodifiableSet(_ignoredInputs);
   }
   
-  @IdentifierOfEntityInCollection(collection = SensorCollection.class)
+  @ValidApplicationEntityReference(collection = SensorCollection.class)
   public Set<Long> getValidInputs () {
     return Collections.unmodifiableSet(_validInputs);
   }
@@ -79,7 +79,7 @@ public class OneVsAllToUpDownMotionSensorConfiguration
     return _ignoredInputs.contains(state.getSensorIdentifier());
   }
   
-  @IdentifierOfEntityInCollection(collection = SensorCollection.class)
+  @ValidApplicationEntityReference(collection = SensorCollection.class)
   public Set<Long> getIgnoredInputs () {
     return Collections.unmodifiableSet(_ignoredInputs);
   }

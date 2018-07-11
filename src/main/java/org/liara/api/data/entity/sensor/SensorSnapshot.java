@@ -21,16 +21,8 @@ public class SensorSnapshot extends ApplicationEntitySnapshot
   private final String     _type;
 
   @Nullable
-  private final String     _valueUnit;
+  private final String     _unit;
 
-  @Nullable
-  private final String     _valueLabel;
-
-  @Nullable
-  private final String     _ipv4Address;
-
-  @Nullable
-  private final String     _ipv6Address;
 
   @NonNull
   private final List<Long> _states;
@@ -43,10 +35,7 @@ public class SensorSnapshot extends ApplicationEntitySnapshot
     
     _name = toCopy.getName();
     _type = toCopy.getType();
-    _valueUnit = toCopy.getValueUnit();
-    _valueLabel = toCopy.getValueLabel();
-    _ipv4Address = toCopy.getIpv4Address();
-    _ipv6Address = toCopy.getIpv6Address();
+    _unit = toCopy.getUnit();
     _states = Collections.unmodifiableList(
       toCopy.getStates()
     );
@@ -58,10 +47,7 @@ public class SensorSnapshot extends ApplicationEntitySnapshot
     
     _name = model.getName();
     _type = model.getType();
-    _valueUnit = model.getValueUnit();
-    _valueLabel = model.getValueLabel();
-    _ipv4Address = model.getIpv4Address();
-    _ipv6Address = model.getIpv6Address();
+    _unit = model.getUnit();
     
     if (model.getStates() == null || model.getStates().size() == 0) {
       _states = Collections.unmodifiableList(Collections.emptyList());
@@ -85,20 +71,8 @@ public class SensorSnapshot extends ApplicationEntitySnapshot
     return _type;
   }
   
-  public String getValueUnit () {
-    return _valueUnit;
-  }
-  
-  public String getValueLabel () {
-    return _valueLabel;
-  }
-  
-  public String getIpv4Address () {
-    return _ipv4Address;
-  }
-  
-  public String getIpv6Address () {
-    return _ipv6Address;
+  public String getUnit () {
+    return _unit;
   }
  
   public List<Long> getStates () {

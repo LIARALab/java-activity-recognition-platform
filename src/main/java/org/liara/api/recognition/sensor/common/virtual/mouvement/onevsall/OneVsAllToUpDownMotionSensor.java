@@ -165,7 +165,7 @@ public class OneVsAllToUpDownMotionSensor
   ) {
     super.stateWillBeDeleted(event);
     
-    final State state = _data.fetch(event.getState().getIdentifier());
+    final State state = _data.fetch(event.getState().getState());
     
     if (
       NativeMotionSensor.class.isAssignableFrom(
@@ -178,7 +178,7 @@ public class OneVsAllToUpDownMotionSensor
   
   private void delete (@NonNull final State state) {
     _deletion.clear();
-    _deletion.setIdentifier(_data.fetchCorrelated(state, getSensor()));
+    _deletion.setState(_data.fetchCorrelated(state, getSensor()));
     
     _schemaManager.execute(_deletion);
   }
@@ -195,7 +195,7 @@ public class OneVsAllToUpDownMotionSensor
     final BooleanState correlated = _data.fetchCorrelated(state, getSensor());
     
     _mutation.clear();
-    _mutation.setIdentifier(correlated);
+    _mutation.setState(correlated);
     _mutation.setEmittionDate(state.getEmittionDate());
     _mutation.setValue(up);
     _mutation.correlate("base", state);

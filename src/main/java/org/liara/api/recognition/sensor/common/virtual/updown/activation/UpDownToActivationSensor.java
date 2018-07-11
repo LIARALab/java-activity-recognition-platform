@@ -254,7 +254,7 @@ public class UpDownToActivationSensor
   ) {
     super.stateWillBeDeleted(event);
     
-    final State state = _data.getState(event.getState().getIdentifier());
+    final State state = _data.getState(event.getState().getState());
     
     if (state.getSensorIdentifier() == getInputSensor()) {
       inputStateWillBeDeleted(BooleanState.class.cast(state));
@@ -322,7 +322,7 @@ public class UpDownToActivationSensor
       mutation.correlate("end", next);
     }
     
-    mutation.setIdentifier(current.getIdentifier());
+    mutation.setState(current.getIdentifier());
     
     _manager.execute(mutation);
   }
@@ -355,7 +355,7 @@ public class UpDownToActivationSensor
     @NonNull final ActivationState state
   ) {
     final ActivationStateMutationSchema schema = new ActivationStateMutationSchema();
-    schema.setIdentifier(state.getIdentifier());
+    schema.setState(state.getIdentifier());
     schema.setStart(current.getEmittionDate());
     schema.setEmittionDate(current.getEmittionDate());
     schema.correlate("start", current);

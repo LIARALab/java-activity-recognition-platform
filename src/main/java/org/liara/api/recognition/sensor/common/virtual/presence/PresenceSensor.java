@@ -229,7 +229,7 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
     final ActivationState after = _data.getActivationAfter(getSensor(), outdoor.getEnd());
     
     final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
-    mutation.setIdentifier(before.getIdentifier());
+    mutation.setState(before.getIdentifier());
     mutation.setEnd(after.getEnd());
     mutation.correlate("end", after.getEndState());
     
@@ -365,7 +365,7 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
   ) {
     final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
     
-    mutation.setIdentifier(next);
+    mutation.setState(next);
     mutation.setStart(start);
     mutation.correlate("start", startState);
     mutation.setEmittionDate(startState.getEmittionDate());
@@ -388,7 +388,7 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
   ) {
     final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
     
-    mutation.setIdentifier(previous);
+    mutation.setState(previous);
     mutation.setEnd(end);
     mutation.correlate("end", endState);
     

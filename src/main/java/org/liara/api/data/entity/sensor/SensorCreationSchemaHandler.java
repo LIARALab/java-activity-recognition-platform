@@ -31,7 +31,7 @@ public class SensorCreationSchemaHandler
     @NonNull final SensorCreationSchema schema
   ) {
     _eventPublisher.publishEvent(new SensorWillBeCreatedEvent(this, schema));
-    final Sensor sensor = new Sensor(schema, manager);
+    final Sensor sensor = new Sensor(schema);
     manager.persist(sensor);
     _eventPublisher.publishEvent(new SensorWasCreatedEvent(this, sensor));
     

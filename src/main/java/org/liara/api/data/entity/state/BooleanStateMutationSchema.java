@@ -2,11 +2,7 @@ package org.liara.api.data.entity.state;
 
 import java.util.Optional;
 
-import org.liara.api.data.collection.BooleanStateCollection;
-import org.liara.api.data.collection.StateCollection;
 import org.liara.api.data.schema.Schema;
-import org.liara.api.validation.IdentifierOfEntityInCollection;
-import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -34,20 +30,13 @@ public class BooleanStateMutationSchema extends StateMutationSchema
     _value = value.orElse(null);
   }
   
-  @Override
-  @IdentifierOfEntityInCollection(collection = BooleanStateCollection.class)
-  @Required
-  public Long getIdentifier () {
-    return super.getIdentifier();
-  }
-  
   protected void apply (@NonNull final BooleanState state) {
     if (_value != null) state.setValue(_value);
   }
   
   @Override
-  public BooleanState apply (@NonNull final StateCollection collection) {
-    final BooleanState result = (BooleanState) collection.findByIdentifier(getIdentifier()).get();
+  public BooleanState apply () {
+    final BooleanState result = (BooleanState) getState().resolve();
     
     apply(result);
     super.apply(result);
