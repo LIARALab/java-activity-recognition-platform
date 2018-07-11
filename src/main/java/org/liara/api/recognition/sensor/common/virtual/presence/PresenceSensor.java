@@ -22,7 +22,6 @@ import org.liara.api.recognition.sensor.EmitStateOfType;
 import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
 import org.liara.api.recognition.sensor.common.NativeMotionSensor;
-import org.liara.api.recognition.sensor.configuration.PresenceSensorConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
@@ -512,7 +511,7 @@ public class PresenceSensor extends AbstractVirtualSensorHandler
     handlePresenceCreation(
       start, end, 
       start.getEmittionDate().plusMinutes(2), end.getEmittionDate().minusMinutes(2), 
-      getConfiguration().getOutdoorNode()
+      getConfiguration().getOutdoorNode().getIdentifier()
     );
     
     if (Objects.equals(end, containerEnd)) {

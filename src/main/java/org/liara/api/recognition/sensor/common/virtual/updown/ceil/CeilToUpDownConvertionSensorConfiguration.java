@@ -1,6 +1,6 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.ceil;
 
-import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.recognition.sensor.SensorConfiguration;
 import org.liara.api.validation.ValidApplicationEntityReference;
@@ -15,14 +15,14 @@ public class CeilToUpDownConvertionSensorConfiguration implements SensorConfigur
   @NonNull
   private InterpolationType _interpolation;
   
-  @Nullable
-  private Long _inputSensor;
+  @NonNull
+  private ApplicationEntityReference<Sensor> _inputSensor;
   
   private double _ceil;
   
   public CeilToUpDownConvertionSensorConfiguration () {
     _interpolation = InterpolationType.NONE;
-    _inputSensor = null;
+    _inputSensor = ApplicationEntityReference.empty(Sensor.class);
     _ceil = 0;
   }
   
@@ -43,18 +43,19 @@ public class CeilToUpDownConvertionSensorConfiguration implements SensorConfigur
   }
   
   @Required
-  @ValidApplicationEntityReference(collection = SensorCollection.class)
-  public Long getInputSensor () {
+  @ValidApplicationEntityReference
+  public ApplicationEntityReference<Sensor> getInputSensor () {
     return _inputSensor;
   }
   
   @JsonSetter
   public void setInputSensor (@Nullable final Long sensor) {
-    _inputSensor = sensor;
+    _inputSensor = ApplicationEntityReference.of(Sensor.class, sensor);
   }
   
   public void setInputSensor (@Nullable final Sensor sensor) {
-    _inputSensor = (sensor == null) ? null : sensor.getIdentifier();
+    _inputSensor = (sensor == null) ? ApplicationEntityReference.empty(Sensor.class)
+                                    : ApplicationEntityReference.of(sensor);
   }
   
   @Required

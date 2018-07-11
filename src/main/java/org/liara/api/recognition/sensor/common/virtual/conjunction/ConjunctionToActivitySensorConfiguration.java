@@ -5,7 +5,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.recognition.sensor.SensorConfiguration;
 import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
@@ -19,10 +21,10 @@ public class ConjunctionToActivitySensorConfiguration
   private String _tag;
   
   @NonNull
-  private final Set<Long> _inputs = new HashSet<>();
+  private final Set<ApplicationEntityReference<Sensor>> _inputs = new HashSet<>();
   
   @NonNull
-  private final Set<Long> _nodes = new HashSet<>();
+  private final Set<ApplicationEntityReference<Node>> _nodes = new HashSet<>();
   
   public ConjunctionToActivitySensorConfiguration () {
     _tag = null;
@@ -45,24 +47,26 @@ public class ConjunctionToActivitySensorConfiguration
     _tag = tag;
   }
   
-  @ValidApplicationEntityReference(collection = SensorCollection.class)
-  public Set<Long> getInputs () {
+  @ValidApplicationEntityReference
+  @Required
+  public Set<ApplicationEntityReference<Sensor>> getInputs () {
     return Collections.unmodifiableSet(_inputs);
   }
   
   public void setInputs (@Nullable final Collection<Long> inputs) {
     _inputs.clear();
-    if (inputs != null) _inputs.addAll(inputs);
+    if (inputs != null) _inputs.addAll(ApplicationEntityReference.of(Sensor.class, inputs));
   }
   
-  @ValidApplicationEntityReference(collection = SensorCollection.class)
-  public Set<Long> getNodes () {
+  @ValidApplicationEntityReference
+  @Required
+  public Set<ApplicationEntityReference<Node>> getNodes () {
     return Collections.unmodifiableSet(_nodes);
   }
   
   public void setNodes (@Nullable final Collection<Long> inputs) {
     _nodes.clear();
-    if (inputs != null) _nodes.addAll(inputs);
+    if (inputs != null) _nodes.addAll(ApplicationEntityReference.of(Node.class, inputs));
   }
   
   public ConjunctionToActivitySensorConfiguration clone () {

@@ -1,7 +1,6 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.activation;
 
-import org.liara.api.data.collection.NodeCollection;
-import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.recognition.sensor.SensorConfiguration;
@@ -15,15 +14,15 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 public class UpDownToActivationSensorConfiguration
        implements SensorConfiguration
 {
-  @Nullable
-  private Long _inputSensor;
+  @NonNull
+  private ApplicationEntityReference<Sensor> _inputSensor;
   
-  @Nullable
-  private Long _activatedNode;
+  @NonNull
+  private ApplicationEntityReference<Node> _activatedNode;
   
   public UpDownToActivationSensorConfiguration () {
-    _inputSensor = null;
-    _activatedNode = null;
+    _inputSensor = ApplicationEntityReference.empty(Sensor.class);
+    _activatedNode = ApplicationEntityReference.empty(Node.class);
   }
   
   public UpDownToActivationSensorConfiguration (
@@ -33,33 +32,35 @@ public class UpDownToActivationSensorConfiguration
     _activatedNode = toCopy.getActivatedNode();
   }
   
-  @ValidApplicationEntityReference(collection = SensorCollection.class)
+  @ValidApplicationEntityReference
   @Required
-  public Long getInputSensor () {
+  public ApplicationEntityReference<Sensor> getInputSensor () {
     return _inputSensor;
   }
   
   @JsonSetter
   public void setInputSensor (@Nullable final Long sensor) {
-    _inputSensor = sensor;
+    _inputSensor = ApplicationEntityReference.of(Sensor.class, sensor);
   }
   
   public void setInputSensor (@Nullable final Sensor sensor) {
-    _inputSensor = (sensor == null) ? null : sensor.getIdentifier();
+    _inputSensor = (sensor == null) ? ApplicationEntityReference.empty(Sensor.class) 
+                                    : ApplicationEntityReference.of(sensor);
   }
   
-  @ValidApplicationEntityReference(collection = NodeCollection.class)
-  public Long getActivatedNode () {
+  @ValidApplicationEntityReference
+  public ApplicationEntityReference<Node> getActivatedNode () {
     return _activatedNode;
   }
   
   @JsonSetter
   public void setActivatedNode (@Nullable final Long node) {
-    _activatedNode = node;
+    _activatedNode = ApplicationEntityReference.of(Node.class, node);
   }
   
   public void setActivatedNode (@Nullable final Node node) {
-    _activatedNode = (node == null) ? null : node.getIdentifier();
+    _activatedNode = (node == null) ? ApplicationEntityReference.empty(Node.class)
+                                    : ApplicationEntityReference.of(node);
   }
   
   public UpDownToActivationSensorConfiguration clone () {

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.hibernate.cfg.NotYetImplementedException;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.BooleanStateCreationSchema;
@@ -54,7 +55,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     );
   }
   
-  public Long getInputSensor () {
+  public ApplicationEntityReference<Sensor> getInputSensor () {
     return getConfiguration().getInputSensor();
   }
   
@@ -76,7 +77,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   ) {
     super.initialize(runner);
     
-    final List<NumericState> states = _data.fetchAll(getInputSensor());
+    final List<NumericState> states = _data.fetchAll(getInputSensor().getIdentifier());
     
     if (states.size() > 0) {
       discover(null, states.get(0));
@@ -140,10 +141,10 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   ) {
     super.stateWillBeDeleted(event);
    
-    if (_data.getState(event.getState().getState()).getSensorIdentifier() == getInputSensor()) {
+    if (_data.getState(event.getState().getState().getIdentifier()).getSensorIdentifier() == getInputSensor().getIdentifier()) {
       inputStateWillBeDeleted(
         NumericState.class.cast(
-          _data.getState(event.getState().getState())
+          _data.getState(event.getState().getState().getIdentifier())
         )
       );
     }

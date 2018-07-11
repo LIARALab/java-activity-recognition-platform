@@ -165,7 +165,7 @@ public class OneVsAllToUpDownMotionSensor
   ) {
     super.stateWillBeDeleted(event);
     
-    final State state = _data.fetch(event.getState().getState());
+    final State state = event.getState().getState().resolve();
     
     if (
       NativeMotionSensor.class.isAssignableFrom(

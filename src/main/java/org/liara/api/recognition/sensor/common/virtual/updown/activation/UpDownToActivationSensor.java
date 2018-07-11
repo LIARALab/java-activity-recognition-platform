@@ -3,6 +3,8 @@ package org.liara.api.recognition.sensor.common.virtual.updown.activation;
 import java.util.List;
 import java.util.Objects;
 
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.ActivationStateCreationSchema;
@@ -57,14 +59,15 @@ public class UpDownToActivationSensor
     return getRunner().getSensor();
   }
   
-  public Long getInputSensor () {
+  public ApplicationEntityReference<Sensor> getInputSensor () {
     return getConfiguration().getInputSensor();
   }
   
-  public Long getActivatedNode () {
-    final Long result = getConfiguration().getActivatedNode();
+  public ApplicationEntityReference<Node> getActivatedNode () {
+    final ApplicationEntityReference<Node> result = getConfiguration().getActivatedNode();
     
-    return (result == null) ? getRunner().getSensor().getNodeIdentifier() : result;
+    return (result.isNull()) ? ApplicationEntityReference.of(getRunner().getSensor().getNode())
+                             : result;
   }
   
   @Override
@@ -73,7 +76,7 @@ public class UpDownToActivationSensor
   ) {
     super.initialize(runner);
     
-    final List<BooleanState> initializationStates = _data.fetchStates(getInputSensor());
+    final List<BooleanState> initializationStates = _data.fetchStates(getInputSensor().getIdentifier());
     ActivationState current = null;
     
     _manager.flush();
@@ -254,9 +257,9 @@ public class UpDownToActivationSensor
   ) {
     super.stateWillBeDeleted(event);
     
-    final State state = _data.getState(event.getState().getState());
+    final State state = _data.getState(event.getState().getState().getIdentifier());
     
-    if (state.getSensorIdentifier() == getInputSensor()) {
+    if (state.getSensorIdentifier() == getInputSensor().getIdentifier()) {
       inputStateWillBeDeleted(BooleanState.class.cast(state));
     }
   }
@@ -337,7 +340,7 @@ public class UpDownToActivationSensor
   ) {
     final ActivationStateCreationSchema creation = new ActivationStateCreationSchema();
     creation.setEmittionDate(start.getEmittionDate());
-    creation.setNode(getActivatedNode());
+    creation.setNode(getActivatedNode().resolve());
     creation.setSensor(getSensor());
     creation.setStart(start.getEmittionDate());
     creation.correlate("start", start);

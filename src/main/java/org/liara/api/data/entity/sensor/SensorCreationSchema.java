@@ -31,7 +31,7 @@ public class SensorCreationSchema
   private String _unit = null;
   
   @NonNull
-  private ApplicationEntityReference<Node> _parent = ApplicationEntityReference.of(Node.class, null);
+  private ApplicationEntityReference<Node> _parent = ApplicationEntityReference.empty(Node.class);
   
   @NonNull
   private SensorConfiguration _configuration = null;

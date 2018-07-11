@@ -1,5 +1,9 @@
 package org.liara.api.data.entity;
 
+import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import javax.persistence.EntityManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.google.common.collect.Streams;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -25,6 +30,24 @@ public class ApplicationEntityReference<Entity extends ApplicationEntity>
   
   @NonNull
   private final Long _identifier;
+  
+  public static <Entity extends ApplicationEntity> Collection<Long> identifiers (
+    @NonNull final Iterable<ApplicationEntityReference<Entity>> inputs
+  ) {
+    return Streams.stream(inputs).map(ApplicationEntityReference::getIdentifier).collect(Collectors.toList());
+  }
+  
+  public static <Entity extends ApplicationEntity> Collection<ApplicationEntityReference<Entity>> of (
+    @NonNull final Class<? extends Entity> type,
+    @NonNull final Iterable<Long> identifiers
+  ) {
+    return Streams.stream(identifiers).map(
+      (final Long identifier) -> {
+        final ApplicationEntityReference<Entity> reference = ApplicationEntityReference.of(type, identifier);
+        return reference;
+      }
+    ).collect(Collectors.toList());
+  }
   
   public static <Entity extends ApplicationEntity> ApplicationEntityReference<Entity> of (
     @NonNull final Entity entity
@@ -83,5 +106,22 @@ public class ApplicationEntityReference<Entity extends ApplicationEntity>
   @Autowired
   protected synchronized void registerDefaultEntityManager (@NonNull final EntityManager entityManager) {
     ApplicationEntityReference.SHARED_ENTITY_MANAGER = entityManager;
+  }
+
+  @Override
+  public int hashCode () {
+    return Objects.hash(_type, _identifier);
+  }
+
+  @Override
+  public boolean equals (@Nullable final Object object) {
+    if (this == object) return true;
+    if (object == null) return false;
+    if (!(object instanceof ApplicationEntityReference)) return false;
+    
+    ApplicationEntityReference<?> other = (ApplicationEntityReference<?>) object;
+   
+    return Objects.equals(_identifier, other.getIdentifier()) &&
+           Objects.equals(_type, other.getType());
   }
 }

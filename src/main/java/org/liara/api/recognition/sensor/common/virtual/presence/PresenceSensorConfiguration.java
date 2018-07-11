@@ -1,11 +1,11 @@
-package org.liara.api.recognition.sensor.configuration;
+package org.liara.api.recognition.sensor.common.virtual.presence;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.recognition.sensor.SensorConfiguration;
 import org.liara.api.validation.ValidApplicationEntityReference;
@@ -17,14 +17,14 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 public class PresenceSensorConfiguration implements SensorConfiguration
 {
   @NonNull
-  private final Set<Long> _potentiallyOutdoorNodes;
+  private final Set<ApplicationEntityReference<Node>> _potentiallyOutdoorNodes;
   
   @NonNull
-  private Long _outdoorNode;
+  private ApplicationEntityReference<Node> _outdoorNode;
   
   public PresenceSensorConfiguration () {
     _potentiallyOutdoorNodes = new HashSet<>();
-    _outdoorNode = null;
+    _outdoorNode = ApplicationEntityReference.empty(Node.class);
   }
   
   public PresenceSensorConfiguration (@NonNull final PresenceSensorConfiguration toCopy) {
@@ -34,48 +34,50 @@ public class PresenceSensorConfiguration implements SensorConfiguration
   
   public void setPotentiallyOutdoorNodes (@NonNull final Set<Long> nodes) {
     _potentiallyOutdoorNodes.clear();
-    _potentiallyOutdoorNodes.addAll(nodes);
+    _potentiallyOutdoorNodes.addAll(ApplicationEntityReference.of(Node.class, nodes));
   }
   
-  @ValidApplicationEntityReference(collection = NodeCollection.class)
-  public Set<Long> getPotentiallyOutdoorNodes () {
+  @ValidApplicationEntityReference
+  public Set<ApplicationEntityReference<Node>> getPotentiallyOutdoorNodes () {
     return Collections.unmodifiableSet(_potentiallyOutdoorNodes);
   }
   
-  public Iterable<Long> potentiallyOutdoorNodes () {
+  public Iterable<ApplicationEntityReference<Node>> potentiallyOutdoorNodes () {
     return Collections.unmodifiableSet(_potentiallyOutdoorNodes);
   }
   
   public boolean isPotentiallyOutdoorNode (@NonNull final Long node) {
-    return _potentiallyOutdoorNodes.contains(node);
+    return _potentiallyOutdoorNodes.contains(ApplicationEntityReference.of(Node.class, node));
   }
   
   public boolean isPotentiallyOutdoorNode (@NonNull final Node node) {
-    return _potentiallyOutdoorNodes.contains(node.getIdentifier());
+    return _potentiallyOutdoorNodes.contains(ApplicationEntityReference.of(node));
   }
   
   public void setPotentiallyOutdoorNodes (@NonNull final Iterable<Long> nodes) {
     _potentiallyOutdoorNodes.clear();
-    nodes.forEach(_potentiallyOutdoorNodes::add);
+    _potentiallyOutdoorNodes.addAll(ApplicationEntityReference.of(Node.class, nodes));
   }
   
   @JsonSetter
   public void setPotentiallyOutdoorNodes (@NonNull final Collection<Long> nodes) {
-    _potentiallyOutdoorNodes.addAll(nodes);
+    _potentiallyOutdoorNodes.clear();
+    _potentiallyOutdoorNodes.addAll(ApplicationEntityReference.of(Node.class, nodes));
   }
   
-  @ValidApplicationEntityReference(collection = NodeCollection.class)
-  public Long getOutdoorNode () {
+  @ValidApplicationEntityReference
+  public ApplicationEntityReference<Node> getOutdoorNode () {
     return _outdoorNode;
   }
   
   @JsonSetter
   public void setOutdoorNode (@Nullable final Long identifier) {
-    _outdoorNode = identifier;
+    _outdoorNode = ApplicationEntityReference.of(Node.class, identifier);
   }
   
   public void setOutdoorNode (@Nullable final Node node) {
-    _outdoorNode = node.getIdentifier();
+    _outdoorNode = (node == null) ? ApplicationEntityReference.empty(Node.class)
+                                  : ApplicationEntityReference.of(node);
   }
 
   @Override

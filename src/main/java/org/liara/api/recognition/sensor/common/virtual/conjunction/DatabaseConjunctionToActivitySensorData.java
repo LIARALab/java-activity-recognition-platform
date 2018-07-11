@@ -17,7 +17,10 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.ApplicationEntity_;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.ActivationState_;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +44,8 @@ public class DatabaseConjunctionToActivitySensorData implements ConjunctionToAct
 
   @Override
   public List<Conjunction> getConjunctions (
-    @NonNull final Collection<Long> inputs,
-    @NonNull final Collection<Long> nodes
+    @NonNull final Collection<ApplicationEntityReference<Sensor>> inputs,
+    @NonNull final Collection<ApplicationEntityReference<Node>> nodes
   ) {    
     final CriteriaBuilder builder = _entityManager.getCriteriaBuilder();
     final CriteriaQuery<Tuple> query = builder.createTupleQuery();
@@ -50,8 +53,8 @@ public class DatabaseConjunctionToActivitySensorData implements ConjunctionToAct
     final List<Map.Entry<Long, Root<ActivationState>>> selections = new ArrayList<>(
       nodes.stream().collect(
         Collectors.toMap(
-          nodeIdentifier -> nodeIdentifier,
-          nodeIdentifier -> query.from(ActivationState.class)
+          reference -> reference.getIdentifier(),
+          reference -> query.from(ActivationState.class)
         )
       ).entrySet()
     );
@@ -77,6 +80,7 @@ public class DatabaseConjunctionToActivitySensorData implements ConjunctionToAct
     
     query.multiselect(tupleSelection);
     
+    final Collection<Long> inputsIdentifiers = ApplicationEntityReference.identifiers(inputs); 
     final List<Predicate> predicates = new ArrayList<>();
     
     for (int index = 0; index < selections.size(); ++index) {
@@ -85,7 +89,7 @@ public class DatabaseConjunctionToActivitySensorData implements ConjunctionToAct
                   .getValue()
                   .get(ActivationState_._sensor)
                   .get(ApplicationEntity_._identifier)
-                  .in(inputs)
+                  .in(inputsIdentifiers)
       );
       
       predicates.add(

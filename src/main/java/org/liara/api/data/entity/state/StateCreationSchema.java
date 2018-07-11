@@ -27,14 +27,14 @@ public class StateCreationSchema
   private ZonedDateTime _emittionDate = null;
   
   @NonNull
-  private ApplicationEntityReference<Sensor> _sensor = ApplicationEntityReference.of(Sensor.class, null);
+  private ApplicationEntityReference<Sensor> _sensor = ApplicationEntityReference.empty(Sensor.class);
   
   @NonNull
   private final Map<String, ApplicationEntityReference<State>> _correlations = new HashMap<>();
   
   public void clear () {
     _emittionDate = null;
-    _sensor = ApplicationEntityReference.of(Sensor.class, null);
+    _sensor = ApplicationEntityReference.empty(Sensor.class);
     _correlations.clear();
   }
   
