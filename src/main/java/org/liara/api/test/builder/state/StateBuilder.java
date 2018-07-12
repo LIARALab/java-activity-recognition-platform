@@ -5,19 +5,14 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 
-import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.entity.state.StateCreationSchema;
-import org.liara.api.data.schema.SchemaManager;
+import org.liara.api.test.builder.entity.BaseEntityBuilder;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 public abstract class StateBuilder<Self extends StateBuilder<Self>>
+                extends BaseEntityBuilder<Self>
 {
-  public static BooleanStateBuilder createBoolean () {
-    return new BooleanStateBuilder();
-  }
-  
   @NonNull
   private static final DateTimeFormatter DEFAULT_FORMATTER = new DateTimeFormatterBuilder().appendPattern(
     "d-M-y[ H:m:s.S]"
@@ -29,18 +24,6 @@ public abstract class StateBuilder<Self extends StateBuilder<Self>>
   
   @Nullable
   private ZonedDateTime _emittionDate = null;
-  
-  @Nullable
-  private Sensor _sensor = null;
-  
-  public Self willBeBuild () {
-    return self();
-  }
-  
-  public Self withSource (@Nullable final Sensor source) {
-    _sensor = source;
-    return self();
-  }
   
   public Self withEmittionDate (@Nullable final ZonedDateTime emittionDate) {
     _emittionDate = emittionDate;
@@ -60,29 +43,17 @@ public abstract class StateBuilder<Self extends StateBuilder<Self>>
   public ZonedDateTime getEmittionDate () {
     return _emittionDate;
   }
-
-  public Sensor getSource () {
-    return _sensor;
-  }
   
-  public StateCreationSchema buildSchema () {
-    return apply(new StateCreationSchema());
-  }
-  
-  protected StateCreationSchema apply (@NonNull final StateCreationSchema schema) {
-    schema.setEmittionDate(_emittionDate);
-    schema.setSensor(_sensor);
-    return schema;
-  }
-  
-  /*
   public State build () {
-    return buildSchema().create();
-  }*/
-
-  public State build (@NonNull final SchemaManager manager) {    
-    return manager.execute(buildSchema());
+    final State result = new State();
+    
+    apply(result);
+    
+    return result;
   }
   
-  public abstract Self self ();
+  protected void apply (@NonNull final State state) {
+    super.apply(state);
+    state.setEmittionDate(_emittionDate);
+  }
 }

@@ -7,7 +7,8 @@ import javax.persistence.EntityManager;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.NumericState;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.repository.TimeSeries;
+import org.liara.api.data.repository.TimeSeriesRepository;
+import org.liara.api.data.repository.database.DatabaseTimeSeriesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
@@ -21,14 +22,14 @@ public class DatabaseCeilToUpDownConvertionSensorData implements CeilToUpDownCon
   private final EntityManager _manager;
   
   @NonNull
-  private final TimeSeries<NumericState> _timeSeries;
+  private final TimeSeriesRepository<NumericState> _timeSeries;
   
   @Autowired
   public DatabaseCeilToUpDownConvertionSensorData (
     @NonNull final EntityManager manager
   ) {
     _manager = manager;
-    _timeSeries = new TimeSeries<>(NumericState.class, _manager);
+    _timeSeries = new DatabaseTimeSeriesRepository<>(NumericState.class, _manager);
   }
   
   @Override

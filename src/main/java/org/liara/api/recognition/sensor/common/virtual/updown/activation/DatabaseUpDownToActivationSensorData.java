@@ -9,7 +9,8 @@ import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.repository.TimeSeries;
+import org.liara.api.data.repository.TimeSeriesRepository;
+import org.liara.api.data.repository.database.DatabaseTimeSeriesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
@@ -23,18 +24,18 @@ public class DatabaseUpDownToActivationSensorData implements UpDownToActivationS
   private final EntityManager _entityManager;
   
   @NonNull
-  private final TimeSeries<BooleanState> _flagTimeSeries;
+  private final TimeSeriesRepository<BooleanState> _flagTimeSeries;
   
   @NonNull
-  private final TimeSeries<ActivationState> _activationTimeSeries;
+  private final TimeSeriesRepository<ActivationState> _activationTimeSeries;
   
   @Autowired
   public DatabaseUpDownToActivationSensorData (
     @NonNull final EntityManager entityManager
   ) {
     _entityManager = entityManager;
-    _flagTimeSeries = new TimeSeries<>(BooleanState.class, _entityManager);
-    _activationTimeSeries = new TimeSeries<>(ActivationState.class, _entityManager);
+    _flagTimeSeries = new DatabaseTimeSeriesRepository<>(BooleanState.class, _entityManager);
+    _activationTimeSeries = new DatabaseTimeSeriesRepository<>(ActivationState.class, _entityManager);
   }
 
   @Override

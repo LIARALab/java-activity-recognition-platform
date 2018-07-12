@@ -111,6 +111,10 @@ public class ApplicationEntity
   public ZonedDateTime getCreationDate () {
     return _creationDate;
   }
+  
+  public void setCreationDate (@NonNull final ZonedDateTime date) {
+    _creationDate = date;
+  }
 
   /**
    * Return the deletion date of this entity from the application database.
@@ -133,6 +137,10 @@ public class ApplicationEntity
   public ZonedDateTime getDeletionDate () {
     return _deletionDate;
   }
+  
+  public void setDeletionDate (@Nullable final ZonedDateTime date) {
+    delete(date);
+  }
 
   /**
    * Return the last update date of this entity into the database.
@@ -150,6 +158,10 @@ public class ApplicationEntity
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
   public ZonedDateTime getUpdateDate () {
     return _updateDate;
+  }
+  
+  public void setUpdateDate (@Nullable final ZonedDateTime updateDate) {
+    _updateDate = updateDate;
   }
 
   /**
@@ -169,7 +181,13 @@ public class ApplicationEntity
    * @see #restore()
    */
   public void delete () {
-    if (_deletionDate == null) _deletionDate = ZonedDateTime.now();
+    if (_deletionDate == null) {
+      delete(ZonedDateTime.now());
+    }
+  }
+  
+  public void delete (@NonNull final ZonedDateTime date) {
+    _deletionDate = date;
   }
 
   /**

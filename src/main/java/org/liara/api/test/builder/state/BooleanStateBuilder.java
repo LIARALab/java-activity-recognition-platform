@@ -1,12 +1,19 @@
 package org.liara.api.test.builder.state;
 
-import org.liara.api.data.entity.state.BooleanStateCreationSchema;
+import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.schema.SchemaManager;
 import org.springframework.lang.NonNull;
 
 public class BooleanStateBuilder extends StateBuilder<BooleanStateBuilder>
 {
+  public static BooleanStateBuilder truthy () {
+    return new BooleanStateBuilder().withValue(true);
+  }
+  
+  public static BooleanStateBuilder falsy () {
+    return new BooleanStateBuilder().withValue(false);
+  }
+  
   private boolean _value = false;
   
   public BooleanStateBuilder withValue (final boolean value) {
@@ -14,17 +21,18 @@ public class BooleanStateBuilder extends StateBuilder<BooleanStateBuilder>
     return self();
   }
   
-  public void apply (@NonNull final BooleanStateCreationSchema schema) {
-    super.apply(schema);
-    schema.setValue(_value);
+  protected void apply (@NonNull final BooleanState state) {
+    super.apply(state);
+    state.setValue(_value);
   }
   
   @Override
-  public State build (@NonNull final SchemaManager manager) {
-    final BooleanStateCreationSchema schema = new BooleanStateCreationSchema();
-    apply(schema);
+  public State build () {
+    final BooleanState state = new BooleanState();
     
-    return manager.execute(schema);
+    apply(state);
+    
+    return state;
   }
 
   @Override
