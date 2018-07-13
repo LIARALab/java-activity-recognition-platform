@@ -1,7 +1,9 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.activation;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
@@ -13,6 +15,8 @@ import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.BooleanStateSnapshot;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.StateDeletionSchema;
+import org.liara.api.data.repository.ActivationsRepository;
+import org.liara.api.data.repository.TimeSeriesRepository;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.event.StateWasCreatedEvent;
 import org.liara.api.event.StateWasMutatedEvent;
@@ -38,15 +42,20 @@ public class UpDownToActivationSensor
   private final SchemaManager _manager;
   
   @NonNull
-  private final UpDownToActivationSensorData _data;
+  private final ActivationsRepository _activations;
+  
+  @NonNull
+  private final TimeSeriesRepository<BooleanState> _inputs;
   
   @Autowired
   public UpDownToActivationSensor (
     @NonNull final SchemaManager manager,
-    @NonNull final UpDownToActivationSensorData data
+    @NonNull final ActivationsRepository activations,
+    @NonNull final TimeSeriesRepository<BooleanState> inputs
   ) {
     _manager = manager;
-    _data = data;
+    _activations = activations;
+    _inputs = inputs;
   }
   
   public UpDownToActivationSensorConfiguration getConfiguration () {
@@ -76,7 +85,7 @@ public class UpDownToActivationSensor
   ) {
     super.initialize(runner);
     
-    final List<BooleanState> initializationStates = _data.fetchStates(getInputSensor().getIdentifier());
+    final List<BooleanState> initializationStates = _inputs.findAll(getInputSensor());
     ActivationState current = null;
     
     _manager.flush();
@@ -115,12 +124,15 @@ public class UpDownToActivationSensor
   }
 
   private void inputStateWasCreated (@NonNull final BooleanState current) {
-    final ActivationState previous = _data.previousActivation(current, getSensor());
+    final Optional<ActivationState> previous = _activations.at(
+      current.getEmittionDate(), 
+      ApplicationEntityReference.of(getSensor())
+    );
     
-    if (previous == null || !previous.contains(current)) {
-      onAloneInput(current);
+    if (previous.isPresent() && previous.get().contains(current)) {
+      onInnerInput(previous.get(), current);
     } else {
-      onInnerInput(previous, current);
+      onAloneInput(current);
     }
   }
 
@@ -129,14 +141,21 @@ public class UpDownToActivationSensor
   ) {
     if (!current.getValue()) return;
     
-    final BooleanState next = _data.next(current);
+    final Optional<BooleanState> next = _inputs.findNext(current);
     
-    if (next == null) {
+    if (!next.isPresent()) {
       begin(current);
-    } else if (next.getValue()) {
-      begin(current, _data.activationOf(next, getSensor()));
+    } else if (next.get().getValue()) {
+      begin(
+        current, 
+        _activations.findWithCorrelation(
+          "start", 
+          ApplicationEntityReference.of(next.get()), 
+          ApplicationEntityReference.of(getSensor())
+        ).get(0)
+      );
     } else {
-      create(current, next);
+      create(current, next.get());
     }
   }
 
@@ -147,16 +166,16 @@ public class UpDownToActivationSensor
     if (current.getValue()) return;
     
     final State endState = previous.getEndState();
-    final BooleanState nextState = _data.next(current);
+    final Optional<BooleanState> nextState = _inputs.findNext(current);
     
     finish(previous, current);
     
     if (endState == null) {
-      if (nextState != null) {
-        begin(nextState);
+      if (nextState.isPresent()) {
+        begin(nextState.get());
       }
-    } else if (nextState != null && !Objects.equals(nextState, endState)) {
-      create(nextState, endState);
+    } else if (nextState.isPresent() && !Objects.equals(nextState.get(), endState)) {
+      create(nextState.get(), endState);
     }
   }
 
@@ -182,14 +201,18 @@ public class UpDownToActivationSensor
     @NonNull final BooleanStateSnapshot previous,
     @NonNull final BooleanState next
   ) {
-    final ActivationState correlated = _data.correlatedState(next, getSensor());
+    final Optional<ActivationState> correlated = _activations.findFirstWithAnyCorrelation(
+      Arrays.asList("start", "end"), 
+      ApplicationEntityReference.of(next), 
+      ApplicationEntityReference.of(getSensor())
+    );
     
-    if (correlated == null) {
+    if (!correlated.isPresent()) {
       inputStateWasCreated(next);
     } else if (!Objects.equals(next.getEmittionDate(), previous.getEmittionDate())) {
-      onBoundaryLocationChange(correlated, next);
+      onBoundaryLocationChange(correlated.get(), next);
     } else if (next.getValue() != previous.getValue()) {
-      onBoundaryTypeChange(correlated, next);     
+      onBoundaryTypeChange(correlated.get(), next);     
     }
   }
 
@@ -198,7 +221,10 @@ public class UpDownToActivationSensor
     @NonNull final BooleanState changed
   ) {
     if (changed.equals(correlated.getStartState())) {
-      final BooleanState next = _data.next(correlated.getStart(), changed.getSensor());
+      final BooleanState next = _inputs.findNext(
+        correlated.getStart(),
+        ApplicationEntityReference.of(changed.getSensor())
+      ).orElse(null);
       
       if (Objects.equals(next, changed)) {
         if (!next.getValue()) {
@@ -216,10 +242,17 @@ public class UpDownToActivationSensor
         inputStateWasCreated(changed);
       }
     } else if (changed.equals(correlated.getEndState())) {
-      final BooleanState next = _data.next(correlated.getEnd(), changed.getSensor());
+      final BooleanState next = _inputs.findNext(
+        correlated.getEnd(), 
+        ApplicationEntityReference.of(changed.getSensor())
+      ).orElse(null);
       
       if (next != null && next.getValue()) {
-        merge(correlated, _data.correlatedState(next, getSensor()));
+        merge(correlated, _activations.findFirstWithAnyCorrelation(
+          Arrays.asList("start", "end"),
+          ApplicationEntityReference.of(next), 
+          ApplicationEntityReference.of(getSensor())
+        ).get());
       } else {
         finish(correlated, next);
       }
@@ -234,11 +267,15 @@ public class UpDownToActivationSensor
     @NonNull final ActivationState correlated, 
     @NonNull final BooleanState changed
   ) {
-    final BooleanState next = _data.next(changed);
+    final BooleanState next = _inputs.findNext(changed).orElse(null);
     
     if (changed.getValue()) {
       if (next.getValue()) {
-        merge(correlated, _data.correlatedState(next, getSensor()));
+        merge(correlated, _activations.findFirstWithAnyCorrelation(
+          Arrays.asList("start", "end"),
+          ApplicationEntityReference.of(next), 
+          ApplicationEntityReference.of(getSensor())
+        ).get());
       } else {
         finish(correlated, next);
       }
@@ -257,17 +294,23 @@ public class UpDownToActivationSensor
   ) {
     super.stateWillBeDeleted(event);
     
-    final State state = _data.getState(event.getState().getState().getIdentifier());
-    
-    if (state.getSensorIdentifier() == getInputSensor().getIdentifier()) {
-      inputStateWillBeDeleted(BooleanState.class.cast(state));
+    if (event.getState().getState().is(BooleanState.class)) {
+      final BooleanState state = _inputs.find(event.getState().getState().as(BooleanState.class)).get();
+      
+      if (state.getSensorIdentifier() == getInputSensor().getIdentifier()) {
+        inputStateWillBeDeleted(state);
+      }
     }
   }
 
   private void inputStateWillBeDeleted (
     @NonNull final BooleanState state
   ) {
-    final ActivationState correlated = _data.correlatedState(state, getSensor());
+    final ActivationState correlated = _activations.findFirstWithAnyCorrelation(
+      Arrays.asList("start", "end"),
+      ApplicationEntityReference.of(state), 
+      ApplicationEntityReference.of(getSensor())
+    ).get();
     
     if (correlated == null) {
       return;
@@ -280,11 +323,15 @@ public class UpDownToActivationSensor
     @NonNull final ActivationState correlated, 
     @NonNull final BooleanState state
   ) {
-    final BooleanState next = _data.next(state);
+    final BooleanState next = _inputs.findNext(state).orElse(null);
     
     if (Objects.equals(correlated.getEndState(), state)) {
       if (next != null && next.getValue()) {
-        merge(correlated, _data.correlatedState(next, getSensor()));
+        merge(correlated, _activations.findFirstWithAnyCorrelation(
+          Arrays.asList("start", "end"),
+          ApplicationEntityReference.of(next), 
+          ApplicationEntityReference.of(getSensor())
+        ).get());
       } else {
         finish(correlated, next);
       }

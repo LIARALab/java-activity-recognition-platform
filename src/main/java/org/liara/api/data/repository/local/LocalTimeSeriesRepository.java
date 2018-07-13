@@ -1,0 +1,327 @@
+package org.liara.api.data.repository.local;
+
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.repository.TimeSeriesRepository;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+public class LocalTimeSeriesRepository<TimeState extends State>
+       extends LocalApplicationEntityRepository<TimeState>
+       implements TimeSeriesRepository<TimeState>
+{  
+  
+  private static class Entry<TimeState extends State> implements Comparable<Entry<TimeState>> {
+    @NonNull
+    private final ZonedDateTime _emittion;
+    
+    @Nullable
+    private final TimeState _state;
+    
+    public Entry (@NonNull final TimeState state) {
+      _state = state;
+      _emittion = state.getEmittionDate();
+    }
+    
+    public Entry (@NonNull final ZonedDateTime emittion) {
+      _state = null;
+      _emittion = emittion;
+    }
+    
+    @Override
+    public int compareTo (@NonNull final Entry<TimeState> other) {
+      return this.getEmittion().compareTo(other.getEmittion());
+    }
+    
+    public ZonedDateTime getEmittion () {
+      return _emittion;
+    }
+    
+    public TimeState getState () {
+      return _state;
+    }
+
+    @Override
+    public boolean equals (@NonNull final Object object) {
+      if (object == this) return true;
+      if (object == null) return false;
+      
+      if (object instanceof Entry) {
+        final Entry<?> other = Entry.class.cast(object);
+        
+        return Objects.equals(_emittion, other.getEmittion());
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public int hashCode () {
+      return Objects.hash(_emittion);
+    }
+  }
+  
+  @NonNull
+  private final Map<Long, TreeSet<Entry<TimeState>>> _statesBySensors = new HashMap<>();
+  
+  @NonNull
+  private final Map<String, Map<Long, Set<Long>>> _correlations = new HashMap<>();
+  
+  @Override
+  public List<TimeState> findPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference<Sensor> sensor, 
+    final int count
+  ) {
+    if (!_statesBySensors.containsKey(sensor.getIdentifier())) {
+      return Collections.emptyList();
+    }
+    
+    final List<TimeState> result = new ArrayList<>();
+
+    _statesBySensors.get(sensor.getIdentifier())
+                    .headSet(new Entry<>(date))
+                    .stream().forEach(x -> result.add(x.getState()));
+    
+    if (count < result.size()) {
+      return result.subList(result.size() - count, result.size());
+    } else {
+      return result;
+    }
+  }
+
+  @Override
+  public List<TimeState> findNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference<Sensor> sensor, 
+    final int count
+  ) {
+    if (!_statesBySensors.containsKey(sensor.getIdentifier())) {
+      return Collections.emptyList();
+    }
+    
+    final List<TimeState> result = new ArrayList<>();
+
+    _statesBySensors.get(sensor.getIdentifier())
+                    .tailSet(new Entry<>(date))
+                    .stream().forEach(x -> result.add(x.getState()));
+    
+    if (count < result.size()) {
+      return result.subList(0, count);
+    } else {
+      return result;
+    }
+  }
+
+  @Override
+  public List<TimeState> find (
+    @NonNull final ApplicationEntityReference<Sensor> sensor, 
+    final int offset, 
+    final int count
+  ) {
+    final List<TimeState> result = findAll(sensor);
+    
+    if (offset + count >= result.size()) {
+      return result.subList(offset, result.size());
+    }
+    
+    return result.subList(offset, offset + count);
+  }
+
+  @Override
+  public List<TimeState> findAll (
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  ) {
+    if (!_statesBySensors.containsKey(sensor.getIdentifier())) {
+      return Collections.emptyList();
+    }
+    
+    final List<TimeState> result = new ArrayList<>();
+    _statesBySensors.get(
+      sensor.getIdentifier()
+    ).stream().forEach(x -> result.add(x.getState()));
+    
+    return result;
+  }
+
+  @Override
+  public List<TimeState> findWithCorrelation (
+    @NonNull final String name,
+    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  ) {
+    if (!_correlations.containsKey(name)) {
+      return Collections.emptyList();
+    }
+    
+    if (!_correlations.get(name).containsKey(correlated.getIdentifier())) {
+      return Collections.emptyList();
+    }
+    
+    final List<TimeState> results = new ArrayList<>();
+    
+    for (final Long potentialResult : _correlations.get(name).get(correlated.getIdentifier())) {
+      final TimeState state = find(potentialResult).get();
+      
+      if (state.getSensorIdentifier() == sensor.getIdentifier()) {
+        results.add(state);
+      }
+    }
+    
+    return results;
+  }
+
+  @Override
+  public List<TimeState> findWithCorrelations (
+    @NonNull final Map<String, ApplicationEntityReference<State>> correlations,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  ) {
+    Set<Long> potentialResults = null;
+    
+    for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : correlations.entrySet()) {
+      if (!_correlations.containsKey(correlation.getKey())) {
+        return Collections.emptyList();
+      }
+      
+      if (!_correlations.get(correlation.getKey()).containsKey(correlation.getValue().getIdentifier())) {
+        return Collections.emptyList();
+      }
+      
+      if (potentialResults == null) {
+        potentialResults = new HashSet<>(
+          _correlations.get(correlation.getKey())
+                       .get(correlation.getValue().getIdentifier())
+        );
+      } else {
+        potentialResults.retainAll(
+          _correlations.get(correlation.getKey())
+                       .get(correlation.getValue().getIdentifier())
+        );
+      }
+    }
+    
+    if (potentialResults.size() <= 0) {
+      return Collections.emptyList();
+    }
+    
+    final List<TimeState> results = new ArrayList<>();
+    
+    for (final Long potentialResult : potentialResults) {
+      final TimeState state = find(potentialResult).get();
+      
+      if (state.getSensorIdentifier() == sensor.getIdentifier()) {
+        results.add(state);
+      }
+    }
+    
+    return results;
+  }
+
+  @Override
+  public List<TimeState> findWithAnyCorrelation (
+    @NonNull final Collection<String> keys,
+    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  )
+  {
+    final Set<Long> potentialResults = new HashSet<>();
+    
+    for (final String key : keys) {
+      if (!_correlations.containsKey(key)) {
+        return Collections.emptyList();
+      }
+      
+      if (_correlations.get(key).containsKey(correlated.getIdentifier())) {
+        potentialResults.addAll(_correlations.get(key).get(correlated.getIdentifier()));
+      }
+    }
+    
+    if (potentialResults.size() <= 0) {
+      return Collections.emptyList();
+    }
+    
+    final List<TimeState> results = new ArrayList<>();
+    
+    for (final Long potentialResult : potentialResults) {
+      final TimeState state = find(potentialResult).get();
+      
+      if (state.getSensorIdentifier() == sensor.getIdentifier()) {
+        results.add(state);
+      }
+    }
+    
+    return results;
+  }
+
+  @Override
+  public void add (@NonNull final TimeState entity) {
+    super.add(entity);
+    
+    if (!_statesBySensors.containsKey(entity.getSensorIdentifier())) {
+      _statesBySensors.put(entity.getSensorIdentifier(), new TreeSet<Entry<TimeState>>());
+    }
+    
+    _statesBySensors.get(entity.getSensorIdentifier()).add(new Entry<>(entity));
+    
+    for (final Map.Entry<String, State> correlation : entity.correlations()) {
+      if (!_correlations.containsKey(correlation.getKey())) {
+        _correlations.put(correlation.getKey(), new HashMap<>());
+      }
+      
+      final Map<Long, Set<Long>> correlationsByKey = _correlations.get(correlation.getKey());
+      
+      if (!correlationsByKey.containsKey(correlation.getValue().getIdentifier())) {
+        correlationsByKey.put(correlation.getValue().getIdentifier(), new HashSet<>());
+      }
+      
+      correlationsByKey.get(correlation.getValue().getIdentifier()).add(
+        entity.getIdentifier()
+      );
+    }
+  }
+
+  @Override
+  public void remove (@NonNull final TimeState entity) {
+    _statesBySensors.get(entity.getSensorIdentifier()).remove(new Entry<>(entity));
+    
+    if (_statesBySensors.get(entity.getSensorIdentifier()).size() <= 0) {
+      _statesBySensors.remove(entity.getSensorIdentifier());
+    }
+    
+    for (final Map.Entry<String, State> correlation : entity.correlations()) {
+      _correlations.get(
+        correlation.getKey()
+      ).get(correlation.getValue().getIdentifier())
+       .remove(entity.getIdentifier());
+      
+      if (_correlations.get(correlation.getKey()).get(correlation.getValue().getIdentifier()).size() <= 0) {
+        _correlations.get(correlation.getKey()).remove(correlation.getValue().getIdentifier());
+      }
+      
+      if (_correlations.get(correlation.getKey()).size() <= 0) {
+        _correlations.remove(correlation.getKey());
+      }
+    }
+    
+    super.remove(entity);
+  }
+  
+  @Override
+  public void clear () {
+    super.clear();
+    _statesBySensors.clear();
+  }
+}

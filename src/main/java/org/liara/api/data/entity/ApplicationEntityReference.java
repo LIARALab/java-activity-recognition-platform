@@ -124,4 +124,14 @@ public class ApplicationEntityReference<Entity extends ApplicationEntity>
     return Objects.equals(_identifier, other.getIdentifier()) &&
            Objects.equals(_type, other.getType());
   }
+
+  public boolean is (@NonNull final Class<?> type) {
+    return type == _type && type.isAssignableFrom(_type);
+  }
+  
+  public <Type extends ApplicationEntity> ApplicationEntityReference<Type> as (
+    @NonNull final Class<Type> type
+  ) {
+    return ApplicationEntityReference.of(type, _identifier);
+  }
 }

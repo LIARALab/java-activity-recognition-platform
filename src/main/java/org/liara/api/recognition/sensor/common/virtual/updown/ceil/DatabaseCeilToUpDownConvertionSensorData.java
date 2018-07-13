@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.NumericState;
 import org.liara.api.data.entity.state.State;
@@ -52,7 +54,7 @@ public class DatabaseCeilToUpDownConvertionSensorData implements CeilToUpDownCon
   public List<NumericState> fetchAll (
     @NonNull final Long sensor
   ) {
-    return _timeSeries.findAll(sensor);
+    return _timeSeries.findAll(ApplicationEntityReference.of(Sensor.class, sensor));
   }
 
   @Override

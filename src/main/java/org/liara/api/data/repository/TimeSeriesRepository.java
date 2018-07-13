@@ -1,7 +1,9 @@
 package org.liara.api.data.repository;
 
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.liara.api.data.entity.ApplicationEntityReference;
@@ -10,6 +12,7 @@ import org.liara.api.data.entity.state.State;
 import org.springframework.lang.NonNull;
 
 public interface TimeSeriesRepository<TimeState extends State>
+       extends ApplicationEntityRepository<TimeState>
 {
 
   public Optional<TimeState> find (
@@ -102,4 +105,53 @@ public interface TimeSeriesRepository<TimeState extends State>
   public List<TimeState> findAll (
     @NonNull final ApplicationEntityReference<Sensor> sensor
   );
+  
+  public List<TimeState> findWithCorrelation (
+    @NonNull final String name,
+    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  );
+  
+  public List<TimeState> findWithCorrelations (
+    @NonNull final Map<String, ApplicationEntityReference<State>> correlations,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  );
+  
+  public default Optional<TimeState> findFirstWithCorrelation (
+    @NonNull final String name,
+    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  ) {
+    final List<TimeState> results = findWithCorrelation(name, correlated, sensor);
+    
+    return (results.size() > 0) ? Optional.ofNullable(results.get(0)) 
+                                : Optional.empty(); 
+  }
+  
+  public default Optional<TimeState> findFirstWithCorrelations (
+    @NonNull final Map<String, ApplicationEntityReference<State>> correlations,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  ) {
+    final List<TimeState> results = findWithCorrelations(correlations, sensor);
+    
+    return (results.size() > 0) ? Optional.ofNullable(results.get(0)) 
+                                : Optional.empty();
+  }
+  
+  public List<TimeState> findWithAnyCorrelation (
+    @NonNull final Collection<String> keys,
+    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  );
+  
+  public default Optional<TimeState> findFirstWithAnyCorrelation (
+    @NonNull final Collection<String> keys,
+    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  ) {
+    final List<TimeState> results = findWithAnyCorrelation(keys, correlated, sensor);
+    
+    return (results.size() > 0) ? Optional.ofNullable(results.get(0)) 
+                                : Optional.empty();
+  }
 }

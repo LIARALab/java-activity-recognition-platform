@@ -1,14 +1,24 @@
 package org.liara.api.data.repository.database;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.MapJoin;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.sensor.Sensor_;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.data.entity.state.State_;
 import org.liara.api.data.repository.TimeSeriesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -121,5 +131,93 @@ public class DatabaseTimeSeriesRepository<TimeState extends State> implements Ti
     return Optional.ofNullable(
       _entityManager.find(reference.getType(), reference.getIdentifier())
     );
+  }
+
+  @Override
+  public List<TimeState> findWithCorrelation (
+    @NonNull final String key, 
+    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  ) {
+    return _entityManager.createQuery(
+      String.join(
+        "", 
+        "SELECT state ",
+        "  FROM ", _stateType.getName(), " state ",
+        " WHERE state._correlations[:key] = :correlated",
+        "   AND state._sensor._identifier = :sensor"
+      ), _stateType
+    ).setParameter("correlated", correlated.getIdentifier())
+     .setParameter("sensor", sensor.getIdentifier())
+     .setParameter("key", key)
+     .getResultList();
+  }
+
+  @Override
+  public List<TimeState> findWithCorrelations (
+    @NonNull final Map<String, ApplicationEntityReference<State>> correlations,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  ) {
+    final CriteriaBuilder builder = _entityManager.getCriteriaBuilder();
+    final CriteriaQuery<TimeState> query = builder.createQuery(_stateType);
+    
+    final Root<TimeState> root = query.from(_stateType);
+    final MapJoin<TimeState, String, State> rootCorrelations = root.join(
+      root.getModel().getDeclaredMap(
+        "_correlations", String.class, State.class
+      )
+    );
+    
+    final List<Predicate> predicates = new ArrayList<>();
+    
+    for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : correlations.entrySet()) {
+      predicates.add(builder.equal(
+        rootCorrelations.on(
+          builder.equal(rootCorrelations.key(), correlation.getKey())
+        ).value().get(Sensor_._identifier), 
+        correlation.getValue().getIdentifier()
+      ));
+    }
+    
+    predicates.add(builder.equal(
+      root.get(State_._sensor).get(Sensor_._identifier),
+      sensor.getIdentifier()
+    ));
+    
+    query.where(builder.and(predicates.toArray(new Predicate[predicates.size()])));
+    
+    return _entityManager.createQuery(query).getResultList();
+  }
+
+  @Override
+  public List<TimeState> findWithAnyCorrelation (
+    @NonNull final Collection<String> keys,
+    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<Sensor> sensor
+  )
+  {
+    return _entityManager.createQuery(
+      String.join(
+        "", 
+        "SELECT state ",
+        "  FROM ", _stateType.getName(), " state ",
+        " WHERE KEY(state._correlations) IN :keys ",
+        "   AND state._correlations._identifier = :correlated ",
+        "   AND state._sensor._identifier = :sensor "
+      ), _stateType
+    ).setParameter("correlated", correlated.getIdentifier())
+     .setParameter("sensor", sensor.getIdentifier())
+     .setParameter("keys", keys)
+     .getResultList();
+  }
+
+  @Override
+  public List<TimeState> findAll () {
+    return _entityManager.createQuery(
+      String.join(
+        "",
+        "SELECT state FROM ", _stateType.getName(), " state"
+      ), _stateType
+    ).getResultList();
   }
 }
