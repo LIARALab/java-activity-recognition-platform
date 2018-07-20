@@ -58,6 +58,17 @@ public class VirtualSensorRunner
     return result;
   }
   
+  public static VirtualSensorRunner unbound (
+    @NonNull final Sensor sensor,
+    @NonNull final VirtualSensorHandler handler
+  ) {
+    if (!sensor.isVirtual()) {
+      throw new Error("Unnable to instanciate a runner for a non-virtual sensor.");
+    }
+    
+    return new VirtualSensorRunner(null, sensor, handler);
+  }
+  
   public static VirtualSensorRunner restart (
     @NonNull final VirtualSensorManager manager,
     @NonNull final Sensor sensor
@@ -79,7 +90,7 @@ public class VirtualSensorRunner
     _state = VirtualSensorRunnerState.INSTANCIATED;
   }
   
-  protected void initialize () {
+  public void initialize () {
     if (_state == VirtualSensorRunnerState.INSTANCIATED) {
       _state = VirtualSensorRunnerState.INITIALIZING;
       _handler.initialize(this);
@@ -93,7 +104,7 @@ public class VirtualSensorRunner
     }
   }
   
-  protected void resume () {
+  public void resume () {
     switch (_state) {
       case INSTANCIATED:
       case PAUSED:

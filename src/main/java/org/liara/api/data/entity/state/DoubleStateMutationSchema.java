@@ -30,7 +30,7 @@ public class DoubleStateMutationSchema extends StateMutationSchema
     _value = value.orElse(null);
   }
   
-  protected void apply (@NonNull final DoubleState state) {
+  public void apply (@NonNull final DoubleState state) {
     if (_value != null) state.setValue(_value);
   }
   

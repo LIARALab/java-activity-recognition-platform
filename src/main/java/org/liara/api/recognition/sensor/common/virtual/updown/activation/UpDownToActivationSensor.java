@@ -16,6 +16,7 @@ import org.liara.api.data.entity.state.BooleanStateSnapshot;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.StateDeletionSchema;
 import org.liara.api.data.repository.ActivationsRepository;
+import org.liara.api.data.repository.ApplicationEntityRepository;
 import org.liara.api.data.repository.TimeSeriesRepository;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.event.StateWasCreatedEvent;
@@ -42,20 +43,25 @@ public class UpDownToActivationSensor
   private final SchemaManager _manager;
   
   @NonNull
-  private final ActivationsRepository _activations;
+  private final ActivationsRepository _outputs;
   
   @NonNull
   private final TimeSeriesRepository<BooleanState> _inputs;
   
+  @NonNull
+  private final ApplicationEntityRepository<Node> _nodes;
+  
   @Autowired
   public UpDownToActivationSensor (
     @NonNull final SchemaManager manager,
+    @NonNull final TimeSeriesRepository<BooleanState> inputs,
     @NonNull final ActivationsRepository activations,
-    @NonNull final TimeSeriesRepository<BooleanState> inputs
+    @NonNull final ApplicationEntityRepository<Node> nodes
   ) {
     _manager = manager;
-    _activations = activations;
     _inputs = inputs;
+    _outputs = activations;
+    _nodes = nodes;
   }
   
   public UpDownToActivationSensorConfiguration getConfiguration () {
@@ -72,11 +78,11 @@ public class UpDownToActivationSensor
     return getConfiguration().getInputSensor();
   }
   
-  public ApplicationEntityReference<Node> getActivatedNode () {
+  public Node getActivatedNode () {
     final ApplicationEntityReference<Node> result = getConfiguration().getActivatedNode();
     
-    return (result.isNull()) ? ApplicationEntityReference.of(getRunner().getSensor().getNode())
-                             : result;
+    return (result.isNull()) ? getRunner().getSensor().getNode()
+                             : _nodes.find(result).get();
   }
   
   @Override
@@ -116,17 +122,22 @@ public class UpDownToActivationSensor
   ) {
     super.stateWasCreated(event);
     
-    if (event.getState().getSensor() == getInputSensor()) {
+    if (
+      Objects.equals(
+        event.getState().getSensor(), 
+        getInputSensor()
+      )
+    ) {
       inputStateWasCreated(BooleanState.class.cast(
         event.getState().getModel()
       ));
     }
   }
 
-  private void inputStateWasCreated (@NonNull final BooleanState current) {
-    final Optional<ActivationState> previous = _activations.at(
+  public void inputStateWasCreated (@NonNull final BooleanState current) {
+    final Optional<ActivationState> previous = _outputs.findAt(
       current.getEmittionDate(), 
-      ApplicationEntityReference.of(getSensor())
+      getSensor().getReference()
     );
     
     if (previous.isPresent() && previous.get().contains(current)) {
@@ -139,19 +150,18 @@ public class UpDownToActivationSensor
   private void onAloneInput (
     @NonNull final BooleanState current
   ) {
-    if (!current.getValue()) return;
+    if (current.getValue() == false) return;
     
     final Optional<BooleanState> next = _inputs.findNext(current);
     
-    if (!next.isPresent()) {
+    if (next.isPresent() == false) {
       begin(current);
     } else if (next.get().getValue()) {
       begin(
         current, 
-        _activations.findWithCorrelation(
-          "start", 
-          ApplicationEntityReference.of(next.get()), 
-          ApplicationEntityReference.of(getSensor())
+        _outputs.findWithCorrelation(
+          "start", next.get().getReference(), 
+          getSensor().getReference()
         ).get(0)
       );
     } else {
@@ -185,31 +195,31 @@ public class UpDownToActivationSensor
   ) {
     super.stateWasMutated(event);
     
-    if (event.getState().getSensor() == getInputSensor()) {
+    if (Objects.equals(event.getNewValue().getSensor(), getInputSensor())) {
       inputStateWasMutated(
-        BooleanStateSnapshot.class.cast(
-          event.getState()
-        ),
+        BooleanStateSnapshot.class.cast(event.getOldValue()),
         BooleanState.class.cast(
-          event.getState().getModel()
+          event.getNewValue().getModel()
         )
       );
     }
   }
   
-  private void inputStateWasMutated (
+  public void inputStateWasMutated (
     @NonNull final BooleanStateSnapshot previous,
     @NonNull final BooleanState next
   ) {
-    final Optional<ActivationState> correlated = _activations.findFirstWithAnyCorrelation(
+    final Optional<ActivationState> correlated = _outputs.findFirstWithAnyCorrelation(
       Arrays.asList("start", "end"), 
-      ApplicationEntityReference.of(next), 
-      ApplicationEntityReference.of(getSensor())
+      next.getReference(), getSensor().getReference()
     );
     
-    if (!correlated.isPresent()) {
+    if (correlated.isPresent() == false) {
       inputStateWasCreated(next);
-    } else if (!Objects.equals(next.getEmittionDate(), previous.getEmittionDate())) {
+    } else if (
+      Objects.equals(next.getEmittionDate(), previous.getEmittionDate()) == false &&
+      next.getValue() == previous.getValue()
+    ) {
       onBoundaryLocationChange(correlated.get(), next);
     } else if (next.getValue() != previous.getValue()) {
       onBoundaryTypeChange(correlated.get(), next);     
@@ -220,72 +230,113 @@ public class UpDownToActivationSensor
     @NonNull final ActivationState correlated, 
     @NonNull final BooleanState changed
   ) {
-    if (changed.equals(correlated.getStartState())) {
-      final BooleanState next = _inputs.findNext(
-        correlated.getStart(),
-        ApplicationEntityReference.of(changed.getSensor())
-      ).orElse(null);
-      
-      if (Objects.equals(next, changed)) {
-        if (!next.getValue()) {
-          onBoundaryTypeChange(correlated, changed);
-        } else {
-          begin(changed, correlated);
-        }
-      } else {
-        if (next != null && next.getValue()) {
-          begin(next, correlated);
-        } else {
-          delete(correlated);
-        }
-        
-        inputStateWasCreated(changed);
-      }
-    } else if (changed.equals(correlated.getEndState())) {
-      final BooleanState next = _inputs.findNext(
-        correlated.getEnd(), 
-        ApplicationEntityReference.of(changed.getSensor())
-      ).orElse(null);
-      
-      if (next != null && next.getValue()) {
-        merge(correlated, _activations.findFirstWithAnyCorrelation(
-          Arrays.asList("start", "end"),
-          ApplicationEntityReference.of(next), 
-          ApplicationEntityReference.of(getSensor())
-        ).get());
-      } else {
-        finish(correlated, next);
-      }
-      
-      if (!Objects.equals(next, changed)) {
-        inputStateWasCreated(changed);
-      }
+    if (changed.equals(correlated.getCorrelation("start"))) {
+      onStartBoundaryLocationChange(correlated, changed);
+    } else {
+      onEndBoundaryLocationChange(correlated, changed);
+    }
+  }
+
+  private void onEndBoundaryLocationChange (
+    @NonNull final ActivationState correlated, 
+    @NonNull final BooleanState changed
+  ) {
+    final BooleanState next = _inputs.findNext(
+      correlated.getEnd(), 
+      ApplicationEntityReference.of(changed.getSensor())
+    ).orElse(null);
+    
+    final BooleanState previous = _inputs.findPrevious(
+      correlated.getEnd(), 
+      ApplicationEntityReference.of(changed.getSensor())
+    ).orElse(null);
+    
+    if (Objects.equals(next, changed) || Objects.equals(previous, changed)) {
+      finish(correlated, next);
+    } else  {
+      resolveHardEndMutation(correlated, changed, next);
+    }
+  }
+
+  private void onStartBoundaryLocationChange (
+    @NonNull final ActivationState correlated, 
+    @NonNull final BooleanState changed
+  ) {
+    final BooleanState next = _inputs.findNext(
+      correlated.getStart(),
+      changed.getSensor().getReference()
+    ).orElse(null);
+   
+    final BooleanState previous = _inputs.findPrevious(
+      correlated.getStart(),
+      changed.getSensor().getReference()
+    ).orElse(null);
+    
+    if (Objects.equals(next, changed) || Objects.equals(previous, changed)) {
+      begin(changed, correlated);
+    } else  {
+      resolveHardStartMutation(correlated, changed, next);
     }
   }
 
   private void onBoundaryTypeChange (
     @NonNull final ActivationState correlated, 
     @NonNull final BooleanState changed
-  ) {
-    final BooleanState next = _inputs.findNext(changed).orElse(null);
-    
-    if (changed.getValue()) {
-      if (next.getValue()) {
-        merge(correlated, _activations.findFirstWithAnyCorrelation(
-          Arrays.asList("start", "end"),
-          ApplicationEntityReference.of(next), 
-          ApplicationEntityReference.of(getSensor())
-        ).get());
-      } else {
-        finish(correlated, next);
-      }
+  ) {    
+    if (Objects.equals(changed, correlated.getCorrelation("start"))) {
+      onStartBoundaryTypeChange(correlated, changed);
     } else {
-      if (next.getValue()) {
-        begin(next, correlated);
-      } else {
-        delete(correlated);
-      }
+      onEndBoundaryTypeChange(correlated, changed);
     }
+  }
+
+  private void onEndBoundaryTypeChange (
+    @NonNull final ActivationState correlated, 
+    @NonNull final BooleanState changed
+  ) {
+    final BooleanState next = _inputs.findNext((BooleanState) correlated.getCorrelation("end")).orElse(null);
+    resolveHardEndMutation(correlated, changed, next);
+  }
+
+  private void onStartBoundaryTypeChange (
+    @NonNull final ActivationState correlated, 
+    @NonNull final BooleanState changed
+  ) {
+    final BooleanState next = _inputs.findNext((BooleanState) correlated.getCorrelation("start")).orElse(null);
+    resolveHardStartMutation(correlated, changed, next);
+  }
+
+  private void resolveHardStartMutation (
+    @NonNull final ActivationState correlated,
+    @NonNull final BooleanState changed,
+    @Nullable final BooleanState next
+  ) {
+    if (next != null && next.getValue()) {
+      begin(next, correlated);
+    } else {
+      delete(correlated);
+    }
+    
+    inputStateWasCreated(changed);
+  }
+
+
+  private void resolveHardEndMutation (
+    @NonNull final ActivationState correlated,
+    @NonNull final BooleanState changed,
+    @Nullable final BooleanState next
+  ) {
+    if (next != null && next.getValue()) {
+      merge(correlated, _outputs.findFirstWithAnyCorrelation(
+        Arrays.asList("start", "end"),
+        ApplicationEntityReference.of(next), 
+        ApplicationEntityReference.of(getSensor())
+      ).get());
+    } else {
+      finish(correlated, next);
+    }
+    
+    inputStateWasCreated(changed);
   }
 
   @Override
@@ -303,19 +354,17 @@ public class UpDownToActivationSensor
     }
   }
 
-  private void inputStateWillBeDeleted (
+  public void inputStateWillBeDeleted (
     @NonNull final BooleanState state
   ) {
-    final ActivationState correlated = _activations.findFirstWithAnyCorrelation(
+    final Optional<ActivationState> correlated = _outputs.findFirstWithAnyCorrelation(
       Arrays.asList("start", "end"),
       ApplicationEntityReference.of(state), 
       ApplicationEntityReference.of(getSensor())
-    ).get();
+    );
     
-    if (correlated == null) {
-      return;
-    } else {
-      onBoundaryDeletion(correlated, state);
+    if (correlated.isPresent()) {
+      onBoundaryDeletion(correlated.get(), state);
     }
   }
 
@@ -327,7 +376,7 @@ public class UpDownToActivationSensor
     
     if (Objects.equals(correlated.getEndState(), state)) {
       if (next != null && next.getValue()) {
-        merge(correlated, _activations.findFirstWithAnyCorrelation(
+        merge(correlated, _outputs.findFirstWithAnyCorrelation(
           Arrays.asList("start", "end"),
           ApplicationEntityReference.of(next), 
           ApplicationEntityReference.of(getSensor())
@@ -387,7 +436,7 @@ public class UpDownToActivationSensor
   ) {
     final ActivationStateCreationSchema creation = new ActivationStateCreationSchema();
     creation.setEmittionDate(start.getEmittionDate());
-    creation.setNode(getActivatedNode().resolve());
+    creation.setNode(getActivatedNode());
     creation.setSensor(getSensor());
     creation.setStart(start.getEmittionDate());
     creation.correlate("start", start);

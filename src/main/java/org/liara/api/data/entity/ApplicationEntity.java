@@ -22,6 +22,7 @@
 package org.liara.api.data.entity;
 
 import java.time.ZonedDateTime;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
@@ -35,6 +36,7 @@ import javax.persistence.PreUpdate;
 
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.liara.api.utils.Beans;
 import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -49,6 +51,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
  */
 @MappedSuperclass
 public class ApplicationEntity
+       implements Cloneable
 {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -79,6 +82,13 @@ public class ApplicationEntity
     _creationDate = null;
     _updateDate = null;
     _deletionDate = null;
+  }
+  
+  public ApplicationEntity (@NonNull final ApplicationEntity toCopy) {
+    _identifier = toCopy.getIdentifier();
+    _creationDate = toCopy.getCreationDate();
+    _updateDate = toCopy.getUpdateDate();
+    _deletionDate = toCopy.getDeletionDate();
   }
   
   /**
@@ -235,7 +245,8 @@ public class ApplicationEntity
    */
   @Override
   public int hashCode () {
-    return Objects.hash(getClass(), getIdentifier());
+    if (getIdentifier() == null) return super.hashCode();
+    else return Objects.hash(getClass(), getIdentifier());
   }
 
   /**
@@ -247,10 +258,25 @@ public class ApplicationEntity
     if (object == null) return false;
     if (!getClass().isAssignableFrom(object.getClass())) return false;
     ApplicationEntity other = (ApplicationEntity) object;
-    return Objects.equals(getIdentifier(), other.getIdentifier());
+    
+    if (getIdentifier() == null) return false;
+    else return Objects.equals(getIdentifier(), other.getIdentifier());
+  }
+  
+  public boolean lookLike (@NonNull final Map<String, ?> values) {
+    return Beans.lookLike(this, values);
   }
   
   public ApplicationEntitySnapshot snapshot () {
     return new ApplicationEntitySnapshot(this);
+  }
+  
+  public ApplicationEntityReference<? extends ApplicationEntity> getReference () {
+    return ApplicationEntityReference.of(this);
+  }
+
+  @Override
+  protected ApplicationEntity clone () {
+    return new ApplicationEntity(this);
   }
 }

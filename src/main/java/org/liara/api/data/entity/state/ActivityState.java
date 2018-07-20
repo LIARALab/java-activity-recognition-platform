@@ -11,6 +11,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 
 import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.schema.UseCreationSchema;
 import org.liara.api.data.schema.UseMutationSchema;
 import org.springframework.lang.NonNull;
@@ -61,14 +62,9 @@ public class ActivityState extends State
 
   public ActivityState () { 
     super();
-  }
-  
-  public ActivityState (@NonNull final ActivityStateCreationSchema schema) {
-    super (schema);
-    
-    _tag = schema.getTag();
-    _start = schema.getStart();
-    _end = schema.getEnd();
+    _tag = null;
+    _start = null;
+    _end = null;
   }
   
   public Duration getDuration () {
@@ -116,5 +112,10 @@ public class ActivityState extends State
   @Override
   public ActivityStateSnapshot snapshot () {
     return new ActivityStateSnapshot(this);
+  }
+  
+  @Override
+  public ApplicationEntityReference<? extends ActivityState> getReference () {
+    return ApplicationEntityReference.of(this);
   }
 }

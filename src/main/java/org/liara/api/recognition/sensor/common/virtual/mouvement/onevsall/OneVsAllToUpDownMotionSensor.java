@@ -133,12 +133,12 @@ public class OneVsAllToUpDownMotionSensor
     
     if (
       NativeMotionSensor.class.isAssignableFrom(
-        event.getState().getModel().getSensor().getTypeClass()
+        event.getNewValue().getModel().getSensor().getTypeClass()
       )
     ) {
       onMotionStateWasMutated(
-        BooleanStateSnapshot.class.cast(event.getState()),
-        BooleanState.class.cast(event.getState().getModel())
+        BooleanStateSnapshot.class.cast(event.getOldValue()),
+        BooleanState.class.cast(event.getNewValue().getModel())
       );
     }
   }

@@ -25,9 +25,9 @@ import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.schema.UseCreationSchema;
 import org.liara.api.data.schema.UseMutationSchema;
-import org.springframework.lang.NonNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -43,11 +43,8 @@ public class DoubleState extends NumericState
   @Column(name = "value", updatable = true, nullable = false, unique = false)
   private double _value;
   
-  public DoubleState () { }
-  
-  public DoubleState (@NonNull final DoubleStateCreationSchema schema) {
-    super(schema);
-    _value = schema.getValue();
+  public DoubleState () { 
+    _value = 0d;
   }
 
   public double getValue () {
@@ -67,5 +64,10 @@ public class DoubleState extends NumericState
   @Override
   public DoubleStateSnapshot snapshot () {
     return new DoubleStateSnapshot(this);
+  } 
+  
+  @Override
+  public ApplicationEntityReference<? extends DoubleState> getReference () {
+    return ApplicationEntityReference.of(this);
   }
 }

@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,50 +21,50 @@ import com.google.common.collect.Streams;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @JsonPropertyOrder({ "type", "identifier" })
-public class ApplicationEntityReference<Entity extends ApplicationEntity>
+public class ApplicationEntityReference<ReferencedEntity extends ApplicationEntity>
 {
   @Nullable
   private static EntityManager SHARED_ENTITY_MANAGER;
    
   @NonNull
-  private final Class<? extends Entity> _type;
+  private final Class<? extends ReferencedEntity> _type;
   
   @NonNull
   private final Long _identifier;
   
-  public static <Entity extends ApplicationEntity> Collection<Long> identifiers (
-    @NonNull final Iterable<ApplicationEntityReference<Entity>> inputs
+  public static <ReferencedEntity extends ApplicationEntity> Collection<Long> identifiers (
+    @NonNull final Iterable<ApplicationEntityReference<ReferencedEntity>> inputs
   ) {
     return Streams.stream(inputs).map(ApplicationEntityReference::getIdentifier).collect(Collectors.toList());
   }
   
-  public static <Entity extends ApplicationEntity> Collection<ApplicationEntityReference<Entity>> of (
-    @NonNull final Class<? extends Entity> type,
+  public static <ReferencedEntity extends ApplicationEntity> Collection<ApplicationEntityReference<ReferencedEntity>> of (
+    @NonNull final Class<? extends ReferencedEntity> type,
     @NonNull final Iterable<Long> identifiers
   ) {
     return Streams.stream(identifiers).map(
       (final Long identifier) -> {
-        final ApplicationEntityReference<Entity> reference = ApplicationEntityReference.of(type, identifier);
+        final ApplicationEntityReference<ReferencedEntity> reference = ApplicationEntityReference.of(type, identifier);
         return reference;
       }
     ).collect(Collectors.toList());
   }
   
-  public static <Entity extends ApplicationEntity> ApplicationEntityReference<Entity> of (
-    @NonNull final Entity entity
+  public static <ReferencedEntity extends ApplicationEntity> ApplicationEntityReference<ReferencedEntity> of (
+    @NonNull final ReferencedEntity entity
   ) { return new ApplicationEntityReference<>(entity); }
   
-  public static <Entity extends ApplicationEntity> ApplicationEntityReference<Entity> of (
-    @NonNull final Class<? extends Entity> type,
+  public static <ReferencedEntity extends ApplicationEntity> ApplicationEntityReference<ReferencedEntity> of (
+    @NonNull final Class<? extends ReferencedEntity> type,
     @Nullable final Long identifier
   ) { return new ApplicationEntityReference<>(type, identifier); }
   
-  public static <Entity extends ApplicationEntity> ApplicationEntityReference<Entity> empty (
-    @NonNull final Class<? extends Entity> type
+  public static <ReferencedEntity extends ApplicationEntity> ApplicationEntityReference<ReferencedEntity> empty (
+    @NonNull final Class<? extends ReferencedEntity> type
   ) { return new ApplicationEntityReference<>(type, null); }
   
   public ApplicationEntityReference (
-    @NonNull final Class<? extends Entity> type,
+    @NonNull final Class<? extends ReferencedEntity> type,
     @Nullable final Long identifier
   ) {
      _type = type;
@@ -72,13 +73,13 @@ public class ApplicationEntityReference<Entity extends ApplicationEntity>
   
   @SuppressWarnings("unchecked") // entity is an instance of Entity, so entity.getClass() is Class<? extends Entity)
   public ApplicationEntityReference(
-    @NonNull final Entity entity
+    @NonNull final ReferencedEntity entity
   ) {
-    _type = (Class<? extends Entity>) entity.getClass();
+    _type = (Class<? extends ReferencedEntity>) entity.getClass();
     _identifier = entity.getIdentifier();
   }
   
-  public Class<? extends Entity> getType () {
+  public Class<? extends ReferencedEntity> getType () {
     return _type;
   }
   
@@ -90,14 +91,27 @@ public class ApplicationEntityReference<Entity extends ApplicationEntity>
     return _identifier == null;
   }
   
+  @SuppressWarnings("unchecked")
+  protected Class<? extends ApplicationEntity> getTypeOf (@NonNull final Class<? extends ApplicationEntity> subType) {
+    if (!subType.isAnnotationPresent(Entity.class)) return null;
+    
+    Class<? extends ApplicationEntity> result = subType;
+    
+    while (result.getSuperclass().isAnnotationPresent(Entity.class)) {
+      result = (Class<? extends ApplicationEntity>) result.getSuperclass();
+    }
+    
+    return result;
+  }
+  
   @JsonIgnore
-  public Entity resolve () {
+  public ReferencedEntity resolve () {
     if (_identifier == null) return null;
     
     return ApplicationEntityReference.SHARED_ENTITY_MANAGER.find(_type, _identifier);
   }
   
-  public Entity resolve (@NonNull final EntityManager entityManager) {
+  public ReferencedEntity resolve (@NonNull final EntityManager entityManager) {
     if (_identifier == null) return null;
     
     return entityManager.find(_type, _identifier);
@@ -110,7 +124,7 @@ public class ApplicationEntityReference<Entity extends ApplicationEntity>
 
   @Override
   public int hashCode () {
-    return Objects.hash(_type, _identifier);
+    return Objects.hash(getTypeOf(_type), _identifier);
   }
 
   @Override
@@ -122,7 +136,24 @@ public class ApplicationEntityReference<Entity extends ApplicationEntity>
     ApplicationEntityReference<?> other = (ApplicationEntityReference<?>) object;
    
     return Objects.equals(_identifier, other.getIdentifier()) &&
-           Objects.equals(_type, other.getType());
+           Objects.equals(getTypeOf(_type), getTypeOf(other.getType()));
+  }
+  
+  @Override
+  public String toString () {
+    if (isNull()) {
+      return String.join(
+        "", 
+        ApplicationEntityReference.class.getName(),
+        "[", _type.getName(), "@null]"
+      );
+    }
+    
+    return String.join(
+      "", 
+      ApplicationEntityReference.class.getName(),
+      "[", _type.getName(), "@", _identifier.toString(), "]"
+    );
   }
 
   public boolean is (@NonNull final Class<?> type) {

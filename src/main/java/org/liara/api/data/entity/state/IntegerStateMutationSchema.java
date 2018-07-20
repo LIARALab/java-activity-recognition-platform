@@ -30,7 +30,7 @@ public class IntegerStateMutationSchema extends StateMutationSchema
     _value = value.orElse(null);
   }
   
-  protected void apply (@NonNull final IntegerState state) {
+  public void apply (@NonNull final IntegerState state) {
     if (_value != null) state.setValue(_value);
   }
   

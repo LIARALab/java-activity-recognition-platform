@@ -9,18 +9,20 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.ApplicationSchema;
 import org.liara.api.data.schema.Schema;
 import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @Schema(State.class)
 @JsonDeserialize(using = StateMutationSchemaDeserializer.class)
-public class StateMutationSchema
+public class StateMutationSchema implements ApplicationSchema
 {
   @NonNull
   private ApplicationEntityReference<? extends State> _state = ApplicationEntityReference.empty(State.class);
@@ -100,12 +102,25 @@ public class StateMutationSchema
     return Collections.unmodifiableSet(_decorrelations);
   }
   
+  @JsonIgnore
+  public Map<String, Boolean> getDecorrelationsMap () {
+    final Map<String, Boolean> result = new HashMap<>();
+    for (final String decorrelation : _decorrelations) {
+      result.put(decorrelation, true);
+    }
+    return result;
+  }
+  
   public Iterable<String> decorrelations () {
     return Collections.unmodifiableSet(_decorrelations);
   }
   
   public Map<String, ApplicationEntityReference<State>> getCorrelations () {
     return Collections.unmodifiableMap(_correlations);
+  }
+ 
+  public ApplicationEntityReference<State> getCorrelation (@NonNull final String name) {
+    return _correlations.get(name);
   }
   
   @ValidApplicationEntityReference
@@ -118,7 +133,7 @@ public class StateMutationSchema
     return Collections.unmodifiableSet(_correlations.entrySet());
   }
   
-  protected void apply (@NonNull final State state) {
+  public void apply (@NonNull final State state) {
     if (_emittionDate != null) state.setEmittionDate(_emittionDate);
     
     for (final String decorrelation : _decorrelations) {

@@ -32,9 +32,9 @@ import javax.persistence.Embedded;
 
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
-import org.liara.api.data.entity.tree.LocalNestedSetTree;
 import org.liara.api.data.entity.tree.NestedSetCoordinates;
 import org.liara.api.data.entity.tree.NestedSetTree;
 import org.liara.api.data.entity.tree.NestedSetTreeNode;
@@ -45,9 +45,12 @@ import org.springframework.lang.Nullable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 @Entity
@@ -57,7 +60,7 @@ import java.util.Set;
 public class      Node 
        extends    ApplicationEntity 
        implements NestedSetTreeNode<Node>
-{  
+{
   @NonNull
   @Column(name = "name", nullable = false, updatable = true, unique = false)
   private String                _name;
@@ -82,6 +85,12 @@ public class      Node
   @Embedded
   private NestedSetCoordinates _coordinates;
   
+  public static Node createLocal () {
+    final Node result = new Node();
+    result._tree = null;
+    return result;
+  }
+  
   protected Node () {
     _tree = DatabaseNodeTree.getInstance();
     _name = null;
@@ -94,15 +103,6 @@ public class      Node
     _name = schema.getName();
     _type = schema.getType();
     _coordinates = new NestedSetCoordinates();
-  }
-  
-  public Node (
-    @NonNull final LocalNestedSetTree<Node> tree,
-    @NonNull final NodeCreationSchema schema
-  ) {
-    setTree(tree);
-    _name = schema.getName();
-    _type = schema.getType();
   }
   
   /**
@@ -128,6 +128,14 @@ public class      Node
    */
   public String getType () {
     return _type;
+  }
+  
+  public void setType (@NonNull final Class<?> type) {
+    _type = type.getName();
+  }
+  
+  public void setType (@NonNull final String type) {
+    _type = type;
   }
 
   /**
@@ -236,6 +244,50 @@ public class      Node
   public Set<Node> getAllChildren () {
     return _tree.getAllChildrenOf(this);
   }
+  
+  public List<Node> getChildrenWithName (@NonNull final String name) {
+    final List<Node> results = new ArrayList<>();
+    
+    for (final Node node : getChildren()) {
+      if (node.getName().equals(name)) {
+        results.add(node);
+      }
+    }
+    
+    return results;
+  }
+  
+  public Optional<Node> getFirstChildWithName (@NonNull final String name) {
+    for (final Node node : getChildren()) {
+      if (node.getName().equals(name)) {
+        return Optional.ofNullable(node);
+      }
+    }
+    
+    return Optional.empty();
+  }
+  
+  public List<Sensor> getSensorsWithName (@NonNull final String name) {
+    final List<Sensor> results = new ArrayList<>();
+    
+    for (final Sensor sensor : _sensors) {
+      if (sensor.getName().equals(name)) {
+        results.add(sensor);
+      }
+    }
+    
+    return results;
+  }
+  
+  public Optional<Sensor> getFirstSensorWithName (@NonNull final String name) {
+    for (final Sensor sensor : _sensors) {
+      if (sensor.getName().equals(name)) {
+        return Optional.ofNullable(sensor);
+      }
+    }
+    
+    return Optional.empty();
+  }
 
   @Override
   public void addChild (@NonNull final Node node) {
@@ -256,5 +308,10 @@ public class      Node
   @Override
   public void setParent (@NonNull final Node node) {
     _tree.addNode(this, node);
+  }  
+  
+  @Override
+  public ApplicationEntityReference<? extends Node> getReference () {
+    return ApplicationEntityReference.of(this);
   }
 }

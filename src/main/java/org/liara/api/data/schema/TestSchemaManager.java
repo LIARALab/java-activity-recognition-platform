@@ -47,11 +47,45 @@ public class TestSchemaManager implements SchemaManager
     _handledSchemas.add(schema);
     final Function<Object, Object> handler = getHandlerFor(schema);
     
-    return (Entity) handler.apply(schema);
+    if (handler == null) {
+      return null;
+    } else {
+      return (Entity) handler.apply(schema);
+    }
   }
   
   public int getHandledSchemaCount () {
     return _handledSchemas.size();
+  }
+  
+  public Object getHandledSchema (final int index) {
+    return _handledSchemas.get(index);
+  }
+  
+  public Object getAt (final int index) {
+    return getHandledSchema(index);
+  }
+  
+  public <HandledSchema> HandledSchema getHandledSchema (
+    final int index,
+    @NonNull final Class<? extends HandledSchema> type
+  ) {
+    return type.cast(getHandledSchema(index));
+  }
+
+  
+  public <HandledSchema> HandledSchema getAt (
+    final int index,
+    @NonNull final Class<? extends HandledSchema> type
+  ) {
+    return getHandledSchema(index, type);
+  }
+  
+  public boolean hasHandledSchemaOfType (
+    final int index,
+    @NonNull final Class<?> type
+  ) {
+    return type.isInstance(getHandledSchema(index));
   }
   
   public List<Object> getHandledSchemas () {

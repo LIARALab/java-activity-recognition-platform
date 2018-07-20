@@ -13,5 +13,13 @@ public interface ApplicationEntityRepository<Entity extends ApplicationEntity>
     @NonNull final ApplicationEntityReference<Entity> reference
   );
   
+  public default Entity getAt (@NonNull final ApplicationEntityReference<Entity> reference) {
+    return find(reference).get();
+  }
+  
   public List<Entity> findAll ();
+  
+  public default List<Entity> getAt () {
+    return findAll();
+  }
 }

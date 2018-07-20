@@ -31,9 +31,4 @@ public class DoubleStateCreationSchema extends StateCreationSchema
   public void setValue (@NonNull final Optional<Double> value) {
     _value = value.orElse(null);
   }
-
-  @Override
-  public DoubleState create () {
-    return new DoubleState(this);
-  }
 }

@@ -117,10 +117,10 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   ) {
    super.stateWasMutated(event);
    
-   if (event.getState().getSensor() == getInputSensor()) {
+   if (event.getNewValue().getSensor() == getInputSensor()) {
      inputStateWasMutated(
-       NumericStateSnapshot.class.cast(event.getState()),
-       NumericState.class.cast(event.getState().getModel())
+       NumericStateSnapshot.class.cast(event.getOldValue()),
+       NumericState.class.cast(event.getNewValue().getModel())
      );
    }
   }

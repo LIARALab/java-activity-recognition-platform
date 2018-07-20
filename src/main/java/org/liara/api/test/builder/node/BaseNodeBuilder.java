@@ -5,16 +5,23 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.node.NodeCreationSchema;
-import org.liara.api.data.entity.tree.LocalNestedSetTree;
-import org.liara.api.test.builder.entity.BaseEntityBuilder;
-import org.liara.api.test.builder.sensor.BaseSensorBuilder;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.tree.NestedSetTree;
+import org.liara.api.test.builder.Builder;
+import org.liara.api.test.builder.IdentityBuilder;
+import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-public abstract class BaseNodeBuilder<Self extends BaseNodeBuilder<Self>> 
-                extends BaseEntityBuilder<Self>
+public abstract class BaseNodeBuilder<
+                        Self extends BaseNodeBuilder<Self, Entity>,
+                        Entity extends Node
+                      > 
+                extends BaseApplicationEntityBuilder<Self, Entity>
 {  
+  @Nullable
+  private NestedSetTree<Node> _tree;
+  
   @Nullable
   private String _name;
   
@@ -22,7 +29,12 @@ public abstract class BaseNodeBuilder<Self extends BaseNodeBuilder<Self>>
   private String _type;
   
   @NonNull
-  private final Set<BaseSensorBuilder<?>> _sensors = new HashSet<>();
+  private final Set<Builder<?, ? extends Sensor>> _sensors = new HashSet<>();
+  
+  public Self withTree (@Nullable final NestedSetTree<Node> tree) {
+    _tree = tree;
+    return self();
+  }
   
   public Self withType (@Nullable final String type) {
     _type = type;
@@ -34,11 +46,15 @@ public abstract class BaseNodeBuilder<Self extends BaseNodeBuilder<Self>>
     return self();
   }
   
-  public <SubBuilder extends BaseSensorBuilder<?>> SubBuilder with (
+  public <SubBuilder extends Builder<?, ? extends Sensor>> Self withSensor (
     @NonNull final SubBuilder builder
   ) {
     _sensors.add(builder);
-    return builder;
+    return self();
+  }
+  
+  public Self withSensor (@NonNull final Sensor sensor) {
+    return withSensor(IdentityBuilder.of(sensor));
   }
   
   public String getName () {
@@ -49,31 +65,18 @@ public abstract class BaseNodeBuilder<Self extends BaseNodeBuilder<Self>>
     return _type;
   }
   
-  public Set<BaseSensorBuilder<?>> getSensors () {
+  public Set<Builder<?, ? extends Sensor>> getSensors () {
     return Collections.unmodifiableSet(_sensors);
   }
   
-  public NodeCreationSchema buildSchema () {
-    final NodeCreationSchema schema = new NodeCreationSchema();
-    schema.setName(_name);
-    schema.setType(_type);
+  public void apply (@NonNull final Entity node) {
+    super.apply(node);
+    node.setName(_name);
+    node.setType(_type);
+    node.setTree(_tree);
     
-    return schema;
-  }
-  
-  public Node build () {
-    return build(new LocalNestedSetTree<>());
-  }
-  
-  public Node build (@NonNull final LocalNestedSetTree<Node> tree) {
-    final Node result = new Node(tree, buildSchema());
-    
-    super.apply(result);
-    
-    for (final BaseSensorBuilder<?> sensor : _sensors) {
-      result.addSensor(sensor.build());
+    for (final Builder<?, ? extends Sensor> sensor : _sensors) {
+      node.addSensor(sensor.build());
     }
-    
-    return result;
   }
 }

@@ -7,17 +7,21 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.State;
 import org.liara.api.recognition.sensor.SensorConfiguration;
-import org.liara.api.test.builder.entity.BaseEntityBuilder;
-import org.liara.api.test.builder.state.StateBuilder;
+import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
+import org.liara.api.test.builder.state.BaseStateBuilder;
 import org.liara.api.utils.Closures;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import groovy.lang.Closure;
 
-public abstract class BaseSensorBuilder<Self extends BaseSensorBuilder<Self>>
-                extends BaseEntityBuilder<Self>
+public abstract class BaseSensorBuilder<
+                        Self extends BaseSensorBuilder<Self, Entity>,
+                        Entity extends Sensor
+                      >
+                extends BaseApplicationEntityBuilder<Self, Entity>
 {
   public static SensorBuilder createMotionSensor (
     @NonNull final Closure<?> closure
@@ -32,10 +36,10 @@ public abstract class BaseSensorBuilder<Self extends BaseSensorBuilder<Self>>
   }
   
   @Nullable
-  private StateBuilder<?> _beforeLastDefinedState = null;
+  private BaseStateBuilder<?, ? extends State> _beforeLastDefinedState = null;
   
   @Nullable
-  private StateBuilder<?> _lastDefinedState = null;
+  private BaseStateBuilder<?, ? extends State> _lastDefinedState = null;
   
   @Nullable
   private String _type = null;
@@ -50,7 +54,7 @@ public abstract class BaseSensorBuilder<Self extends BaseSensorBuilder<Self>>
   private SensorConfiguration _configuration = null;
   
   @NonNull
-  private final Set<StateBuilder<?>> _states = new HashSet<>();
+  private final Set<BaseStateBuilder<?, ? extends State>> _states = new HashSet<>();
   
   public Self withType (@Nullable final Class<?> type) {
     _type = type.getName();
@@ -72,16 +76,16 @@ public abstract class BaseSensorBuilder<Self extends BaseSensorBuilder<Self>>
     return self();
   }
   
-  public <SubBuilder extends StateBuilder<?>> SubBuilder with (
+  public <SubBuilder extends BaseStateBuilder<?, ? extends State>> Self with (
     @NonNull final SubBuilder builder
   ) {
     _states.add(builder);
     _beforeLastDefinedState = _lastDefinedState;
     _lastDefinedState = builder;
-    return builder;
+    return self();
   }
   
-  public <SubBuilder extends StateBuilder<?>> SubBuilder andWith (
+  public <SubBuilder extends BaseStateBuilder<?, ? extends State>> Self andWith (
     @NonNull final SubBuilder builder
   ) {
     return with(builder);
@@ -148,19 +152,16 @@ public abstract class BaseSensorBuilder<Self extends BaseSensorBuilder<Self>>
     return self();
   }
   
-  public Sensor build () {
-    final Sensor sensor = new Sensor();
-    
+  public void apply (@NonNull final Entity sensor) {    
     super.apply(sensor);
     
     sensor.setName(_name);
     sensor.setType(_type);
     sensor.setUnit(_unit);
+    sensor.setConfiguration(_configuration);
     
-    for (final StateBuilder<?> state : _states) {
+    for (final BaseStateBuilder<?, ? extends State> state : _states) {
       sensor.addState(state.build());
     }
-    
-    return sensor;
   }
 }

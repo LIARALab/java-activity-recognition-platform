@@ -34,6 +34,7 @@ import javax.persistence.Column;
 import javax.persistence.Convert;
 
 import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.schema.UseCreationSchema;
@@ -220,8 +221,17 @@ public class      Sensor
     return _configuration;
   }
   
+  public void setConfiguration (@Nullable final SensorConfiguration configuration) {
+    _configuration = configuration;
+  }
+  
   @Override
   public SensorSnapshot snapshot () {
     return new SensorSnapshot(this);
+  }  
+  
+  @Override
+  public ApplicationEntityReference<Sensor> getReference () {
+    return ApplicationEntityReference.of(this);
   }
 }

@@ -9,8 +9,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
@@ -22,8 +24,7 @@ import org.springframework.lang.Nullable;
 public class LocalTimeSeriesRepository<TimeState extends State>
        extends LocalApplicationEntityRepository<TimeState>
        implements TimeSeriesRepository<TimeState>
-{  
-  
+{
   private static class Entry<TimeState extends State> implements Comparable<Entry<TimeState>> {
     @NonNull
     private final ZonedDateTime _emittion;
@@ -80,6 +81,18 @@ public class LocalTimeSeriesRepository<TimeState extends State>
   @NonNull
   private final Map<String, Map<Long, Set<Long>>> _correlations = new HashMap<>();
   
+  public LocalTimeSeriesRepository(
+    @NonNull final LocalEntityManager parent,
+    @NonNull final Class<TimeState> type
+  ) {
+    super(type);
+    setParent(parent);
+  }
+  
+  public LocalTimeSeriesRepository(@NonNull final Class<TimeState> type) {
+    super(type);
+  }
+  
   @Override
   public List<TimeState> findPrevious (
     @NonNull final ZonedDateTime date, 
@@ -93,7 +106,7 @@ public class LocalTimeSeriesRepository<TimeState extends State>
     final List<TimeState> result = new ArrayList<>();
 
     _statesBySensors.get(sensor.getIdentifier())
-                    .headSet(new Entry<>(date))
+                    .headSet(new Entry<>(date), false)
                     .stream().forEach(x -> result.add(x.getState()));
     
     if (count < result.size()) {
@@ -116,7 +129,7 @@ public class LocalTimeSeriesRepository<TimeState extends State>
     final List<TimeState> result = new ArrayList<>();
 
     _statesBySensors.get(sensor.getIdentifier())
-                    .tailSet(new Entry<>(date))
+                    .tailSet(new Entry<>(date), false)
                     .stream().forEach(x -> result.add(x.getState()));
     
     if (count < result.size()) {
@@ -160,7 +173,7 @@ public class LocalTimeSeriesRepository<TimeState extends State>
   @Override
   public List<TimeState> findWithCorrelation (
     @NonNull final String name,
-    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<? extends State> correlated,
     @NonNull final ApplicationEntityReference<Sensor> sensor
   ) {
     if (!_correlations.containsKey(name)) {
@@ -183,15 +196,32 @@ public class LocalTimeSeriesRepository<TimeState extends State>
     
     return results;
   }
+  
+  public Set<TimeState> findWithCorrelation (
+    @NonNull final String name
+  ) {
+    if (!_correlations.containsKey(name)) {
+      return Collections.emptySet();
+    }
+    
+    final Set<Long> results = new HashSet<>();
+    
+    _correlations.get(name).values().forEach(results::addAll);
+    
+    return results.stream()
+                  .map(this::find)
+                  .map(Optional::get)
+                  .collect(Collectors.toSet());                 
+  }
 
   @Override
   public List<TimeState> findWithCorrelations (
-    @NonNull final Map<String, ApplicationEntityReference<State>> correlations,
+    @NonNull final Map<String, ApplicationEntityReference<? extends State>> correlations,
     @NonNull final ApplicationEntityReference<Sensor> sensor
   ) {
     Set<Long> potentialResults = null;
     
-    for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : correlations.entrySet()) {
+    for (final Map.Entry<String, ApplicationEntityReference<? extends State>> correlation : correlations.entrySet()) {
       if (!_correlations.containsKey(correlation.getKey())) {
         return Collections.emptyList();
       }
@@ -233,7 +263,7 @@ public class LocalTimeSeriesRepository<TimeState extends State>
   @Override
   public List<TimeState> findWithAnyCorrelation (
     @NonNull final Collection<String> keys,
-    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<? extends State> correlated,
     @NonNull final ApplicationEntityReference<Sensor> sensor
   )
   {
@@ -267,8 +297,8 @@ public class LocalTimeSeriesRepository<TimeState extends State>
   }
 
   @Override
-  public void add (@NonNull final TimeState entity) {
-    super.add(entity);
+  protected void entityWasAdded (@NonNull final TimeState entity) {
+    if (isRegistered(entity)) return;
     
     if (!_statesBySensors.containsKey(entity.getSensorIdentifier())) {
       _statesBySensors.put(entity.getSensorIdentifier(), new TreeSet<Entry<TimeState>>());
@@ -294,7 +324,9 @@ public class LocalTimeSeriesRepository<TimeState extends State>
   }
 
   @Override
-  public void remove (@NonNull final TimeState entity) {
+  protected void entityWasRemoved (@NonNull final TimeState entity) {
+    if (!isRegistered(entity)) return;
+    
     _statesBySensors.get(entity.getSensorIdentifier()).remove(new Entry<>(entity));
     
     if (_statesBySensors.get(entity.getSensorIdentifier()).size() <= 0) {
@@ -302,26 +334,34 @@ public class LocalTimeSeriesRepository<TimeState extends State>
     }
     
     for (final Map.Entry<String, State> correlation : entity.correlations()) {
-      _correlations.get(
-        correlation.getKey()
-      ).get(correlation.getValue().getIdentifier())
-       .remove(entity.getIdentifier());
-      
-      if (_correlations.get(correlation.getKey()).get(correlation.getValue().getIdentifier()).size() <= 0) {
-        _correlations.get(correlation.getKey()).remove(correlation.getValue().getIdentifier());
-      }
-      
-      if (_correlations.get(correlation.getKey()).size() <= 0) {
-        _correlations.remove(correlation.getKey());
-      }
+      decorrelate(entity, correlation.getKey(), correlation.getValue());
     }
     
     super.remove(entity);
   }
   
-  @Override
-  public void clear () {
-    super.clear();
-    _statesBySensors.clear();
+  private void decorrelate (
+    @NonNull final TimeState state, 
+    @NonNull final String key, 
+    @NonNull final State correlation
+  ) {
+    if (_correlations.containsKey(key) && _correlations.get(key).containsKey(correlation.getIdentifier())) {
+      _correlations.get(key)
+                   .get(correlation.getIdentifier())
+                   .remove(state.getIdentifier());
+      
+      if (_correlations.get(key).get(correlation.getIdentifier()).size() <= 0) {
+      _correlations.get(key).remove(correlation.getIdentifier());
+      }
+      
+      if (_correlations.get(key).size() <= 0) {
+      _correlations.remove(key);
+      }
+    }
+  }
+  
+  private boolean isRegistered (@NonNull final TimeState entity) {
+    return _statesBySensors.containsKey(entity.getSensorIdentifier())
+        && _statesBySensors.get(entity.getSensorIdentifier()).contains(new Entry<State>(entity));
   }
 }

@@ -13,7 +13,10 @@ public class StateWasMutatedEvent extends ApplicationEvent
   private static final long serialVersionUID = 8116556813252780522L;
   
   @NonNull
-  private final StateSnapshot _state;
+  private final StateSnapshot _oldValue;
+  
+  @NonNull
+  private final StateSnapshot _newValue;
   
   /**
    * 
@@ -22,13 +25,19 @@ public class StateWasMutatedEvent extends ApplicationEvent
    */
   public StateWasMutatedEvent(
     @NonNull final Object source,
-    @NonNull final State state
+    @NonNull final StateSnapshot oldValue,
+    @NonNull final State newValue
   ) {
     super(source);
-    _state = state.snapshot();
+    _oldValue = oldValue;
+    _newValue = newValue.snapshot();
   }
 
-  public StateSnapshot getState () {
-    return _state;
+  public StateSnapshot getNewValue () {
+    return _newValue;
+  }
+  
+  public StateSnapshot getOldValue () {
+    return _oldValue;
   }
 }

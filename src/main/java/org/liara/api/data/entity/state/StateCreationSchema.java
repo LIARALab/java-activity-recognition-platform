@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.ApplicationSchema;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.schema.Schema;
 import org.liara.api.validation.ValidApplicationEntityReference;
@@ -21,7 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 @Schema(State.class)
 @JsonDeserialize(using = StateCreationSchemaDeserializer.class)
-public class StateCreationSchema
+public class StateCreationSchema implements ApplicationSchema
 {
   @Nullable
   private ZonedDateTime _emittionDate = null;
@@ -95,9 +96,5 @@ public class StateCreationSchema
   @Required
   public Set<ApplicationEntityReference<State>> getCorrelated () {
     return Collections.unmodifiableSet(new HashSet<>(_correlations.values()));
-  }
-  
-  public State create () {
-    return new State(this);
   }
 }

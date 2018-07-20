@@ -28,7 +28,7 @@ public class DatabaseActivationRepository
   }
 
   @Override
-  public Optional<ActivationState> at (
+  public Optional<ActivationState> findAt (
     @NonNull final ZonedDateTime area, 
     @NonNull final ApplicationEntityReference<Sensor> sensor
   ) {

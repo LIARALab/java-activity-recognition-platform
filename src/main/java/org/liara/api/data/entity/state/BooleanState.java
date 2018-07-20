@@ -25,9 +25,9 @@ import javax.persistence.Entity;
 import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.schema.UseCreationSchema;
 import org.liara.api.data.schema.UseMutationSchema;
-import org.springframework.lang.NonNull;
 
 import javax.persistence.Column;
 
@@ -41,11 +41,8 @@ public class BooleanState extends State
   @Column(name = "value", nullable = false, unique = false, updatable = true)
   private boolean _value;
   
-  public BooleanState () { }
-  
-  public BooleanState (@NonNull final BooleanStateCreationSchema schema) {
-    super(schema);
-    _value = schema.getValue();
+  public BooleanState () { 
+    _value = false;
   }
   
   public boolean getValue () {
@@ -59,5 +56,10 @@ public class BooleanState extends State
   @Override
   public BooleanStateSnapshot snapshot () {
     return new BooleanStateSnapshot(this);
+  } 
+  
+  @Override
+  public ApplicationEntityReference<? extends BooleanState> getReference () {
+    return ApplicationEntityReference.of(this);
   }
 }

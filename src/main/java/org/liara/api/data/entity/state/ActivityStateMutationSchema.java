@@ -58,7 +58,7 @@ public class ActivityStateMutationSchema extends StateMutationSchema
     _tag = tag;
   }
   
-  protected void apply (@NonNull final ActivityState state) {
+  public void apply (@NonNull final ActivityState state) {
     if (_start != null) state.setStart(_start);
     if (_end != null) state.setEnd(_end);
     if (_tag != null) state.setTag(_tag);

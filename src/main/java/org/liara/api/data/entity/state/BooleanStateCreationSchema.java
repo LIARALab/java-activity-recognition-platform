@@ -31,9 +31,4 @@ public class BooleanStateCreationSchema extends StateCreationSchema
   public void setValue (@NonNull final Optional<Boolean> value) {
     _value = value.orElse(null);
   }
-
-  @Override
-  public BooleanState create () {
-    return new BooleanState(this);
-  }
 }

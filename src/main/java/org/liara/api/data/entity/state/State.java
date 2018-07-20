@@ -74,23 +74,12 @@ public class State extends ApplicationEntity
     inverseJoinColumns = @JoinColumn(name = "correlated_identifier")
   )
   @MapKeyColumn(name = "label")
-  private Map<String, State> _correlations = new HashMap<>();
+  private Map<String, State> _correlations;
   
   public State () { 
     _emittionDate = null;
     _sensor = null;
-  }
-  
-  public State (@NonNull final StateCreationSchema schema) {
-    _sensor = schema.getSensor().resolve();
-    _emittionDate = schema.getEmittionDate();
-    
-    for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : schema.correlations()) {
-      correlate(
-        correlation.getKey(),
-        correlation.getValue().resolve()
-      );
-    }
+    _correlations = new HashMap<>();
   }
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
@@ -188,5 +177,10 @@ public class State extends ApplicationEntity
   @Override
   public StateSnapshot snapshot () {
     return new StateSnapshot(this);
+  }  
+  
+  @Override
+  public ApplicationEntityReference<? extends State> getReference () {
+    return ApplicationEntityReference.of(this);
   }
 }

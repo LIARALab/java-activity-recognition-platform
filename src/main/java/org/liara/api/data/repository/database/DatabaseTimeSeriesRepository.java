@@ -136,7 +136,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State> implements Ti
   @Override
   public List<TimeState> findWithCorrelation (
     @NonNull final String key, 
-    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<? extends State> correlated,
     @NonNull final ApplicationEntityReference<Sensor> sensor
   ) {
     return _entityManager.createQuery(
@@ -155,7 +155,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State> implements Ti
 
   @Override
   public List<TimeState> findWithCorrelations (
-    @NonNull final Map<String, ApplicationEntityReference<State>> correlations,
+    @NonNull final Map<String, ApplicationEntityReference<? extends State>> correlations,
     @NonNull final ApplicationEntityReference<Sensor> sensor
   ) {
     final CriteriaBuilder builder = _entityManager.getCriteriaBuilder();
@@ -170,7 +170,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State> implements Ti
     
     final List<Predicate> predicates = new ArrayList<>();
     
-    for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : correlations.entrySet()) {
+    for (final Map.Entry<String, ApplicationEntityReference<? extends State>> correlation : correlations.entrySet()) {
       predicates.add(builder.equal(
         rootCorrelations.on(
           builder.equal(rootCorrelations.key(), correlation.getKey())
@@ -192,7 +192,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State> implements Ti
   @Override
   public List<TimeState> findWithAnyCorrelation (
     @NonNull final Collection<String> keys,
-    @NonNull final ApplicationEntityReference<State> correlated,
+    @NonNull final ApplicationEntityReference<? extends State> correlated,
     @NonNull final ApplicationEntityReference<Sensor> sensor
   )
   {

@@ -68,9 +68,4 @@ public class ActivationStateCreationSchema extends StateCreationSchema
     _node = (node == null) ? ApplicationEntityReference.empty(Node.class)
                            : ApplicationEntityReference.of(node);
   }
-
-  @Override
-  public ActivationState create () {
-    return new ActivationState(this);
-  }
 }

@@ -1,7 +1,10 @@
-package org.liara.api.data.entity.state;
+package org.liara.api.data.entity.state.handler;
 
 import javax.persistence.EntityManager;
 
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.entity.state.StateDeletionSchema;
+import org.liara.api.data.entity.state.StateSnapshot;
 import org.liara.api.data.schema.SchemaHandler;
 import org.liara.api.event.StateWasDeletedEvent;
 import org.liara.api.event.StateWillBeDeletedEvent;

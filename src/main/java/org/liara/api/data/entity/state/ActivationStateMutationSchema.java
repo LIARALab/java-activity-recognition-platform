@@ -69,7 +69,7 @@ public class ActivationStateMutationSchema extends StateMutationSchema
                            : ApplicationEntityReference.of(node);
   }
   
-  protected void apply (@NonNull final ActivationState state) {
+  public void apply (@NonNull final ActivationState state) {
     if (_start != null) state.setStart(_start);
     if (_end != null) state.setEnd(_end);
     if (_node != null) state.setNode(_node.resolve());;

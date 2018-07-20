@@ -1,11 +1,12 @@
 package org.liara.api.test.builder.node;
 
+import org.liara.api.data.entity.node.Node;
 import org.liara.api.utils.Closures;
 import org.springframework.lang.NonNull;
 
 import groovy.lang.Closure;
 
-public class NodeBuilder extends CompositeNodeBuilder<NodeBuilder>
+public class NodeBuilder extends CompositeNodeBuilder<NodeBuilder, Node>
 {
   /**
    * Configure a new house and return the resulting builder.
@@ -67,5 +68,12 @@ public class NodeBuilder extends CompositeNodeBuilder<NodeBuilder>
   @Override
   public NodeBuilder self () {
     return this;
+  }
+
+  @Override
+  public Node build () {
+    final Node node = Node.createLocal();
+    super.apply(node);
+    return node;
   }
 }

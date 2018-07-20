@@ -31,9 +31,4 @@ public class IntegerStateCreationSchema extends StateCreationSchema
   public void setValue (@NonNull final Optional<Integer> value) {
     _value = value.orElse(null);
   }
-
-  @Override
-  public IntegerState create () {
-    return new IntegerState(this);
-  }
 }

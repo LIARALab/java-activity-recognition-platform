@@ -35,6 +35,7 @@ import javax.persistence.criteria.Expression;
 
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.data.collection.EntityCollections;
+import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.schema.UseCreationSchema;
 import org.liara.api.data.schema.UseMutationSchema;
@@ -87,16 +88,10 @@ public class ActivationState extends State
   @JoinColumn(name = "node_identifier", nullable = false, unique = false, updatable = true)
   private Node _node;
   
-  public ActivationState () { }
-  
-  public ActivationState (
-    @NonNull final ActivationStateCreationSchema schema
-  ) {
-    super (schema);
-    
-    _start = schema.getStart();
-    _end = schema.getEnd();
-    _node = schema.getNode().resolve();
+  public ActivationState () {
+    _start = null;
+    _end = null;
+    _node = null;
   }
   
   public Duration getDuration () {
@@ -176,20 +171,29 @@ public class ActivationState extends State
   }
 
   public boolean contains (@NonNull final State state) {
+    return contains(state.getEmittionDate());
+  }
+  
+  public boolean contains (@NonNull final ZonedDateTime date) {
     if (getStart() == null && getEnd() == null) {
       return true;
     } else if (getStart() != null && getEnd() == null) {
-      return state.getEmittionDate().compareTo(getStart()) >= 0;
+      return date.compareTo(getStart()) >= 0;
     } else if (getStart() == null && getEnd() != null) {
-      return state.getEmittionDate().compareTo(getEnd()) < 0;
+      return date.compareTo(getEnd()) < 0;
     } else {
-      return state.getEmittionDate().compareTo(getStart()) >= 0 && 
-             state.getEmittionDate().compareTo(getEnd()) < 0;
+      return date.compareTo(getStart()) >= 0 && 
+             date.compareTo(getEnd()) < 0;
     }
   }
   
   @Override
   public ActivationStateSnapshot snapshot () {
     return new ActivationStateSnapshot(this);
+  }
+  
+  @Override
+  public ApplicationEntityReference<? extends ActivationState> getReference () {
+    return ApplicationEntityReference.of(this);
   }
 }

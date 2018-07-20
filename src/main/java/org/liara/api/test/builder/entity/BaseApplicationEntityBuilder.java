@@ -3,10 +3,16 @@ package org.liara.api.test.builder.entity;
 import java.time.ZonedDateTime;
 
 import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.test.builder.Builder;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-public abstract class BaseEntityBuilder<Self extends BaseEntityBuilder<Self>>
+public abstract class BaseApplicationEntityBuilder<
+                        Self extends BaseApplicationEntityBuilder<Self, Entity>, 
+                        Entity extends ApplicationEntity
+                      >
+                implements Builder<Self, Entity>
 {
   @Nullable
   private Long _identifier;
@@ -45,6 +51,14 @@ public abstract class BaseEntityBuilder<Self extends BaseEntityBuilder<Self>>
     entity.setCreationDate(_creationDate);
     entity.setUpdateDate(_updateDate);
     entity.setDeletionDate(_deletionDate);
+  }
+  
+  public abstract Entity build ();
+  
+  public Entity buildIn (@NonNull final LocalEntityManager manager) {
+    final Entity result = build();
+    manager.add(result);
+    return result;
   }
   
   public abstract Self self ();

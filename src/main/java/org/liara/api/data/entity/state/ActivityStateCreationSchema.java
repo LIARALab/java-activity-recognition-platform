@@ -56,9 +56,4 @@ public class ActivityStateCreationSchema extends StateCreationSchema
   public void setTag (@Nullable final String tag) {
     _tag = tag;
   }
-
-  @Override
-  public ActivityState create () {
-    return new ActivityState(this);
-  }
 }

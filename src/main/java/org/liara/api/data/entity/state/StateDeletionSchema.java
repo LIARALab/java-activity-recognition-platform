@@ -1,6 +1,7 @@
 package org.liara.api.data.entity.state;
 
 import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.ApplicationSchema;
 import org.liara.api.data.schema.Schema;
 import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
@@ -10,7 +11,7 @@ import org.springframework.lang.Nullable;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
 @Schema(State.class)
-public class StateDeletionSchema
+public class StateDeletionSchema implements ApplicationSchema
 {
   @NonNull
   private ApplicationEntityReference<State> _state;

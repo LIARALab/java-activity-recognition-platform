@@ -26,6 +26,16 @@ public class UpDownToActivationSensorConfiguration
   }
   
   public UpDownToActivationSensorConfiguration (
+    @Nullable final Sensor inputSensor,
+    @Nullable final Node activatedNode
+  ) {
+    _inputSensor = ApplicationEntityReference.empty(Sensor.class);
+    _activatedNode = ApplicationEntityReference.empty(Node.class);
+    setInputSensor(inputSensor);
+    setActivatedNode(activatedNode);
+  }
+  
+  public UpDownToActivationSensorConfiguration (
     @NonNull final UpDownToActivationSensorConfiguration toCopy
   ) {
     _inputSensor = toCopy.getInputSensor();
