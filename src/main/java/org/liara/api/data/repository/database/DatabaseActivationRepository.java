@@ -22,7 +22,7 @@ public class DatabaseActivationRepository
   public DatabaseActivationRepository(
     @NonNull final EntityManager entityManager
   ) {
-    super(ActivationState.class, entityManager);
+    super(entityManager, ActivationState.class);
     
     _entityManager = entityManager;
   }

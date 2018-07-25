@@ -7,11 +7,14 @@ import java.util.Set;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.tree.NestedSetTree;
+import org.liara.api.data.repository.local.LocalEntityManager;
 import org.liara.api.test.builder.Builder;
 import org.liara.api.test.builder.IdentityBuilder;
 import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+
+import com.google.common.collect.Streams;
 
 public abstract class BaseNodeBuilder<
                         Self extends BaseNodeBuilder<Self, Entity>,
@@ -78,5 +81,13 @@ public abstract class BaseNodeBuilder<
     for (final Builder<?, ? extends Sensor> sensor : _sensors) {
       node.addSensor(sensor.build());
     }
+  }
+
+  @Override
+  public Entity buildFor (@NonNull final LocalEntityManager entityManager) {
+    final Entity result = super.buildFor(entityManager);
+    entityManager.addAll(result.sensors());
+    Streams.stream(result.sensors()).forEach(x -> entityManager.addAll(x.states()));
+    return result;
   }
 }

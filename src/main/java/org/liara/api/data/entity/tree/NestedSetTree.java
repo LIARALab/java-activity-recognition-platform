@@ -48,4 +48,6 @@ public interface NestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
   public void removeNode (@NonNull final TreeNode node);
   
   public void clear ();
+
+  public TreeNode getRoot (@NonNull final TreeNode node);
 }

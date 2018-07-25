@@ -202,4 +202,15 @@ public class LocalNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
   public int getDepthOf (@NonNull final TreeNode node) {
     return _nodesByReference.inverse().get(node).getCoordinates().getDepth();
   }
+
+  @Override
+  public TreeNode getRoot (@NonNull final TreeNode node) {
+    TreeNode result = node;
+    
+    while (result.getParent() != null) {
+      result = result.getParent();
+    }
+    
+    return result;
+  }
 }

@@ -5,9 +5,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.MapJoin;
@@ -29,7 +30,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope("prototype")
 @Primary
-public class DatabaseTimeSeriesRepository<TimeState extends State> implements TimeSeriesRepository<TimeState>
+public class DatabaseTimeSeriesRepository<TimeState extends State>
+       extends DatabaseApplicationEntityRepository<TimeState>
+       implements TimeSeriesRepository<TimeState>
 {
   @NonNull
   private final EntityManager _entityManager;
@@ -39,9 +42,10 @@ public class DatabaseTimeSeriesRepository<TimeState extends State> implements Ti
   
   @Autowired
   public DatabaseTimeSeriesRepository (
-    @NonNull final Class<TimeState> stateType,
-    @NonNull final EntityManager entityManager
-  ) { 
+    @NonNull final EntityManager entityManager,
+    @NonNull final Class<TimeState> stateType
+  ) {
+    super(entityManager, stateType);
     _entityManager = entityManager;
     _stateType = stateType;
   }
@@ -125,15 +129,6 @@ public class DatabaseTimeSeriesRepository<TimeState extends State> implements Ti
   }
 
   @Override
-  public Optional<TimeState> find (
-    @NonNull final ApplicationEntityReference<TimeState> reference
-  ) {
-    return Optional.ofNullable(
-      _entityManager.find(reference.getType(), reference.getIdentifier())
-    );
-  }
-
-  @Override
   public List<TimeState> findWithCorrelation (
     @NonNull final String key, 
     @NonNull final ApplicationEntityReference<? extends State> correlated,
@@ -212,12 +207,103 @@ public class DatabaseTimeSeriesRepository<TimeState extends State> implements Ti
   }
 
   @Override
-  public List<TimeState> findAll () {
+  public List<TimeState> findAll (
+    @NonNull final Collection<ApplicationEntityReference<Sensor>> sensors
+  ) {
     return _entityManager.createQuery(
       String.join(
-        "",
-        "SELECT state FROM ", _stateType.getName(), " state"
+        "", 
+        "SELECT state ",
+        "  FROM ", _stateType.getName(), " state ",
+        " WHERE state._sensor._identifier IN :sensors ",
+        " ORDER BY state._emittionDate ASC"
       ), _stateType
+    ).setParameter(
+      "sensors", 
+      sensors.stream()
+             .map(ApplicationEntityReference::getIdentifier)
+             .collect(Collectors.toList())
     ).getResultList();
+  }
+  
+  @Override
+  public List<TimeState> findPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors, 
+    final int count
+  ) {
+    return findAllPreviousQuery(date, inputSensors).setMaxResults(count)
+                                                   .getResultList();
+  }
+  
+
+  @Override
+  public List<TimeState> findNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors, 
+    final int count
+  ) {
+    return findAllNextQuery(date, inputSensors).setMaxResults(count)
+                                               .getResultList();
+  }
+
+  @Override
+  public List<TimeState> findAllNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  ) {
+    return findAllNextQuery(date, inputSensors).getResultList();
+  }
+  
+  @Override
+  public List<TimeState> findAllPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  ) {
+    return findAllPreviousQuery(date, inputSensors).getResultList();
+  }
+  
+  private TypedQuery<TimeState> findAllNextQuery (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  ) {
+    return _entityManager.createQuery(
+      String.join(
+        "", 
+        "SELECT state ",
+        "  FROM ", _stateType.getName(), " state ",
+        " WHERE state._emittionDate > :date ",
+        "   AND state._sensor._identifier IN :sensors ",
+        " ORDER BY state._emittionDate ASC"
+      ), _stateType
+    ).setParameter("date", date)
+     .setParameter(
+       "sensors", 
+       inputSensors.stream()
+                   .map(ApplicationEntityReference::getIdentifier)
+                   .collect(Collectors.toSet())
+     );
+  }
+
+  private TypedQuery<TimeState> findAllPreviousQuery (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  ) {
+    return _entityManager.createQuery(
+      String.join(
+        "", 
+        "SELECT state ",
+        "  FROM ", _stateType.getName(), " state ",
+        " WHERE state._emittionDate < :date ",
+        "   AND state._sensor._identifier IN :sensors ",
+        " ORDER BY state._emittionDate DESC"
+      ), _stateType
+    ).setParameter("date", date)
+     .setParameter(
+       "sensors", 
+       inputSensors.stream()
+                   .map(ApplicationEntityReference::getIdentifier)
+                   .collect(Collectors.toSet())
+     );
   }
 }

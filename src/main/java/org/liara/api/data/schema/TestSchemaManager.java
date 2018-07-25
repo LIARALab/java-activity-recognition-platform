@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.liara.api.utils.Beans;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -94,6 +95,27 @@ public class TestSchemaManager implements SchemaManager
   
   public void reset () {
     _handledSchemas.clear();
+  }
+  
+  public boolean hasHandled (@NonNull final List<Map<String, ?>> descriptors) {
+    if (getHandledSchemaCount() < descriptors.size()) return false;
+    
+    for (int index = 0; index < descriptors.size(); ++index) {
+      final Map<String, ?> descriptor = descriptors.get(index);
+      
+      if (descriptor.containsKey("class")) {
+        final Class<?> type = (Class<?>) descriptor.get("class");
+        if (hasHandledSchemaOfType(index, type) == false) {
+          return false;
+        }
+      }
+      
+      if (Beans.lookLike(getHandledSchema(index), descriptor) == false) {
+        return false;
+      }
+    }
+    
+    return true;
   }
 
   @Override

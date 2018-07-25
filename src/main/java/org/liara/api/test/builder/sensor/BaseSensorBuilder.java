@@ -1,19 +1,20 @@
 package org.liara.api.test.builder.sensor;
 
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.data.repository.local.LocalEntityManager;
 import org.liara.api.recognition.sensor.SensorConfiguration;
+import org.liara.api.test.builder.Builder;
+import org.liara.api.test.builder.IdentityBuilder;
 import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
-import org.liara.api.test.builder.state.BaseStateBuilder;
 import org.liara.api.utils.Closures;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+
+import com.google.common.collect.Streams;
 
 import groovy.lang.Closure;
 
@@ -34,13 +35,7 @@ public abstract class BaseSensorBuilder<
   public static SensorBuilder createMotionSensor () {
     return new SensorBuilder();
   }
-  
-  @Nullable
-  private BaseStateBuilder<?, ? extends State> _beforeLastDefinedState = null;
-  
-  @Nullable
-  private BaseStateBuilder<?, ? extends State> _lastDefinedState = null;
-  
+
   @Nullable
   private String _type = null;
   
@@ -54,7 +49,7 @@ public abstract class BaseSensorBuilder<
   private SensorConfiguration _configuration = null;
   
   @NonNull
-  private final Set<BaseStateBuilder<?, ? extends State>> _states = new HashSet<>();
+  private final Set<Builder<?, ? extends State>> _states = new HashSet<>();
   
   public Self withType (@Nullable final Class<?> type) {
     _type = type.getName();
@@ -76,79 +71,24 @@ public abstract class BaseSensorBuilder<
     return self();
   }
   
-  public <SubBuilder extends BaseStateBuilder<?, ? extends State>> Self with (
-    @NonNull final SubBuilder builder
-  ) {
-    _states.add(builder);
-    _beforeLastDefinedState = _lastDefinedState;
-    _lastDefinedState = builder;
+  public Self withRawStates (@NonNull final Iterable<State> states) {
+    Streams.stream(states).map(x -> IdentityBuilder.of(x))
+                          .forEach(_states::add);
     return self();
   }
   
-  public <SubBuilder extends BaseStateBuilder<?, ? extends State>> Self andWith (
-    @NonNull final SubBuilder builder
-  ) {
-    return with(builder);
-  }
-  
-  public Self after (
-    final int duration,
-    @NonNull final TemporalUnit unit
-  ) {
-    if (_beforeLastDefinedState == null) {
-      throw new IllegalStateException(String.join(
-        "",
-        "Invalid invocation of after : the current sensor builder ",
-        "does not have any previous state registered in."
-      ));
-    }
-    
-    _lastDefinedState.withEmittionDate(
-      _beforeLastDefinedState.getEmittionDate().plus(duration, unit)
-    );
-    
+  public Self withStates (@NonNull final Iterable<Builder<?, State>> states) {
+    Streams.stream(states).forEach(_states::add);
     return self();
   }
   
-  public Self afterMilliseconds (final int duration) {
-    return after(duration, ChronoUnit.MILLIS);
+  public Self withState (@NonNull final Builder<?, State> state) {
+    _states.add(state);
+    return self();
   }
   
-  public Self afterSeconds (final int duration) {
-    return after(duration, ChronoUnit.SECONDS);
-  }
-  
-  public Self afterMinutes (final int duration) {
-    return after(duration, ChronoUnit.MINUTES);
-  }
-  
-  public Self afterHours (final int duration) {
-    return after(duration, ChronoUnit.HOURS);
-  }
-  
-  public Self afterDays (final int duration) {
-    return after(duration, ChronoUnit.DAYS);
-  }
-  
-  public Self afterMonths (final int duration) {
-    return after(duration, ChronoUnit.MONTHS);
-  }
-  
-  public Self afterYears (final int duration) {
-    return after(duration, ChronoUnit.YEARS);
-  }
-  
-  public Self at (@NonNull final ZonedDateTime date) {
-    if (_lastDefinedState == null) {
-      throw new IllegalStateException(String.join(
-        "",
-        "Invalid call to at : the current builder instance does not ",
-        "have any state added yet."
-      ));
-    }
-    
-    _lastDefinedState.withEmittionDate(date);
-    
+  public Self withRawState (@NonNull final State state) {
+    _states.add(IdentityBuilder.of(state));
     return self();
   }
   
@@ -160,8 +100,15 @@ public abstract class BaseSensorBuilder<
     sensor.setUnit(_unit);
     sensor.setConfiguration(_configuration);
     
-    for (final BaseStateBuilder<?, ? extends State> state : _states) {
+    for (final Builder<?, ? extends State> state : _states) {
       sensor.addState(state.build());
     }
+  }
+
+  @Override
+  public Entity buildFor (@NonNull final LocalEntityManager entityManager) {
+    final Entity result = super.buildFor(entityManager);
+    entityManager.addAll(result.states());
+    return result;
   }
 }

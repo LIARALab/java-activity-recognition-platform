@@ -54,6 +54,11 @@ public class StateMutationSchema implements ApplicationSchema
                              : ApplicationEntityReference.of(state);
   }
   
+  public void setState (@Nullable final ApplicationEntityReference<? extends State> state) {
+    _state = (state == null) ? ApplicationEntityReference.empty(State.class)
+                             : state;
+  }
+  
   @JsonSetter
   public void setState (@Nullable final Long identifier) {
     _state = ApplicationEntityReference.of(State.class, identifier);

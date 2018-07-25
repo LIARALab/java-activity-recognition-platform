@@ -316,4 +316,17 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
       Long.class
     ).getSingleResult().longValue();
   }
+
+  @Override
+  public TreeNode getRoot (@NonNull final TreeNode node) {
+    return _entityManager.createQuery(
+      String.join(
+        "", 
+        "SELECT node FROM ", _entity.getName(), " node ",
+        " WHERE node._coordinates._end >= :childSetEnd ",
+        "   AND node._coordinates._start <= :childSetStart ",
+        "   AND node._coordinates._depth = 0"
+      ), _entity
+    ).getSingleResult();
+  }
 }

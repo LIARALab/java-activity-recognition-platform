@@ -28,4 +28,23 @@ public final class Beans
     
     return true;
   }
+  
+  public static <T> T instanciate (
+    @NonNull final Class<T> type,
+    @NonNull final Map<String, ?> values 
+  ) {
+    try {
+      final T result = type.newInstance();
+      
+      final BeanWrapper bean = new BeanWrapperImpl(result);
+      
+      for (final Map.Entry<String, ?> value : values.entrySet()) {
+        bean.setPropertyValue(value.getKey(), value.getValue());
+      }
+      
+      return result;
+    } catch (final Exception exception) {
+      throw new Error(exception);
+    }
+  }
 }

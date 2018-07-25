@@ -1,19 +1,32 @@
 package org.liara.api.data.entity.state;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.liara.api.data.schema.Schema;
+import org.liara.api.utils.Beans;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.Streams;
 
 @Schema(BooleanState.class)
 @JsonDeserialize(using = JsonDeserializer.None.class)
 public class BooleanStateMutationSchema extends StateMutationSchema
 {
+  public static BooleanStateMutationSchema create (@NonNull final Map<String, ?> values) {
+    return Beans.instanciate(BooleanStateMutationSchema.class, values);
+  }
+  
+  public static List<BooleanStateMutationSchema> create (@NonNull final Iterable<Map<String, ?>> values) {
+    return Streams.stream(values).map(BooleanStateMutationSchema::create).collect(Collectors.toList());
+  }
+  
   @Nullable
   private Boolean _value = null;
   

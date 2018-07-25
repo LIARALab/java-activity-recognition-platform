@@ -31,7 +31,7 @@ public class DatabaseCeilToUpDownConvertionSensorData implements CeilToUpDownCon
     @NonNull final EntityManager manager
   ) {
     _manager = manager;
-    _timeSeries = new DatabaseTimeSeriesRepository<>(NumericState.class, _manager);
+    _timeSeries = new DatabaseTimeSeriesRepository<>(_manager, NumericState.class);
   }
   
   @Override

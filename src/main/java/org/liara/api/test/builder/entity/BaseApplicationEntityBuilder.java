@@ -54,10 +54,10 @@ public abstract class BaseApplicationEntityBuilder<
   }
   
   public abstract Entity build ();
-  
-  public Entity buildIn (@NonNull final LocalEntityManager manager) {
+
+  public Entity buildFor (@NonNull final LocalEntityManager entityManager) {
     final Entity result = build();
-    manager.add(result);
+    entityManager.add(result);
     return result;
   }
   

@@ -93,11 +93,18 @@ public class LocalTimeSeriesRepository<TimeState extends State>
     super(type);
   }
   
+  private int sortByDateAscending (@NonNull final TimeState left, @NonNull final TimeState right) {
+    return left.getEmittionDate().compareTo(right.getEmittionDate());
+  }
+  
+  private int sortByDateDescending (@NonNull final TimeState left, @NonNull final TimeState right) {
+    return -sortByDateAscending(left, right);
+  }
+
   @Override
-  public List<TimeState> findPrevious (
+  public List<TimeState> findAllPrevious (
     @NonNull final ZonedDateTime date, 
-    @NonNull final ApplicationEntityReference<Sensor> sensor, 
-    final int count
+    @NonNull final ApplicationEntityReference<Sensor> sensor
   ) {
     if (!_statesBySensors.containsKey(sensor.getIdentifier())) {
       return Collections.emptyList();
@@ -109,18 +116,30 @@ public class LocalTimeSeriesRepository<TimeState extends State>
                     .headSet(new Entry<>(date), false)
                     .stream().forEach(x -> result.add(x.getState()));
     
+    Collections.sort(result, this::sortByDateDescending);
+    
+    return result;
+  }
+  
+  @Override
+  public List<TimeState> findPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference<Sensor> sensor, 
+    final int count
+  ) {
+    final List<TimeState> result = findAllPrevious(date, sensor);
+    
     if (count < result.size()) {
-      return result.subList(result.size() - count, result.size());
+      return result.subList(0, count);
     } else {
       return result;
     }
   }
-
+  
   @Override
-  public List<TimeState> findNext (
+  public List<TimeState> findAllNext (
     @NonNull final ZonedDateTime date, 
-    @NonNull final ApplicationEntityReference<Sensor> sensor, 
-    final int count
+    @NonNull final ApplicationEntityReference<Sensor> sensor
   ) {
     if (!_statesBySensors.containsKey(sensor.getIdentifier())) {
       return Collections.emptyList();
@@ -131,6 +150,17 @@ public class LocalTimeSeriesRepository<TimeState extends State>
     _statesBySensors.get(sensor.getIdentifier())
                     .tailSet(new Entry<>(date), false)
                     .stream().forEach(x -> result.add(x.getState()));
+    
+    return result;
+  }
+
+  @Override
+  public List<TimeState> findNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference<Sensor> sensor, 
+    final int count
+  ) {
+    final List<TimeState> result = findAllNext(date, sensor);
     
     if (count < result.size()) {
       return result.subList(0, count);
@@ -363,5 +393,85 @@ public class LocalTimeSeriesRepository<TimeState extends State>
   private boolean isRegistered (@NonNull final TimeState entity) {
     return _statesBySensors.containsKey(entity.getSensorIdentifier())
         && _statesBySensors.get(entity.getSensorIdentifier()).contains(new Entry<State>(entity));
+  }
+
+  @Override
+  public List<TimeState> findAll (@NonNull final Collection<ApplicationEntityReference<Sensor>> sensors) {
+    final List<TimeState> result = new ArrayList<TimeState>();
+    final Set<ApplicationEntityReference<Sensor>> uniqueSensors = new HashSet<>(sensors);
+    
+    uniqueSensors.stream().map(this::findAll).forEach(states -> result.addAll(states));
+    
+    Collections.sort(result, this::sortByDateAscending);
+    
+    return result;
+  }
+
+  @Override
+  public List<TimeState> findPrevious (
+    @NonNull final ZonedDateTime date,
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors, 
+    final int count
+  ) {
+    final List<TimeState> result = new ArrayList<>(count * inputSensors.size());
+    
+    new HashSet<>(
+        inputSensors
+    ).stream().map(reference -> findPrevious(date, reference, count))
+     .forEach(result::addAll);
+    
+    Collections.sort(result, this::sortByDateDescending);
+    
+    return result.subList(0, count);
+  }
+
+  @Override
+  public List<TimeState> findNext (
+    @NonNull final ZonedDateTime date,
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors, 
+    final int count
+  ) {
+    final List<TimeState> result = new ArrayList<>(count * inputSensors.size());
+    
+    new HashSet<>(
+        inputSensors
+    ).stream().map(reference -> findNext(date, reference, count))
+     .forEach(result::addAll);
+    
+    Collections.sort(result, this::sortByDateAscending);
+    
+    return result.subList(0, count);
+  }
+
+  @Override
+  public List<TimeState> findAllNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  ) {
+    final List<TimeState> result = new ArrayList<>();
+    
+    inputSensors.stream()
+                .map(x -> this.findAllNext(date, x))
+                .forEach(x -> result.addAll(x));
+    
+    Collections.sort(result, this::sortByDateAscending);
+    
+    return result;
+  }
+
+  @Override
+  public List<TimeState> findAllPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  ) {
+    final List<TimeState> result = new ArrayList<>();
+    
+    inputSensors.stream()
+                .map(x -> this.findAllPrevious(date, x))
+                .forEach(x -> result.addAll(x));
+    
+    Collections.sort(result, this::sortByDateDescending);
+    
+    return result;
   }
 }

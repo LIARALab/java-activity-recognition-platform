@@ -2,12 +2,14 @@ package org.liara.api.data.repository;
 
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.State;
 import org.springframework.lang.NonNull;
 
@@ -114,6 +116,10 @@ public interface TimeSeriesRepository<TimeState extends State>
   public List<TimeState> findAll (
     @NonNull final ApplicationEntityReference<Sensor> sensor
   );
+
+  public List<TimeState> findAll (
+    @NonNull final Collection<ApplicationEntityReference<Sensor>> sensors
+  );
   
   public List<TimeState> findWithCorrelation (
     @NonNull final String name,
@@ -201,4 +207,90 @@ public interface TimeSeriesRepository<TimeState extends State>
     
     return Optional.empty();
   }
+
+  public default Optional<TimeState> findPrevious (
+    @NonNull final BooleanState created, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  ) {
+    return findPrevious(created.getEmittionDate(), inputSensors);
+  }
+
+  public default Optional<TimeState> findPrevious (
+    @NonNull final ZonedDateTime emittionDate, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  ) {
+    final List<TimeState> result = findPrevious(emittionDate, inputSensors, 1);
+    
+    if (result.size() <= 0) return Optional.empty();
+    else return Optional.ofNullable(result.get(0));
+  }
+
+  public default List<TimeState> findPrevious (
+    @NonNull final BooleanState created, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
+   final int count
+  ) {
+    return findPrevious(created.getEmittionDate(), inputSensors, count);
+  }
+
+  public List<TimeState> findPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
+    final int count
+  );
+  
+  public default Optional<TimeState> findNext (
+    @NonNull final BooleanState created, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  ) {
+    return findNext(created.getEmittionDate(), inputSensors);
+  }
+
+  public default Optional<TimeState> findNext (
+    @NonNull final ZonedDateTime emittionDate, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  ) {
+    final List<TimeState> result = findNext(emittionDate, inputSensors, 1);
+    
+    if (result.size() <= 0) return Optional.empty();
+    else return Optional.ofNullable(result.get(0));
+  }
+
+  public default List<TimeState> findNext (
+    @NonNull final BooleanState created, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
+   final int count
+  ) {
+    return findNext(created.getEmittionDate(), inputSensors, count);
+  }
+
+  public List<TimeState> findNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
+    final int count
+  );
+  
+  public default List<TimeState> findAllNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference<Sensor> inputSensor
+  ) {
+    return findAllNext(date, Collections.singletonList(inputSensor));
+  }
+
+  public List<TimeState> findAllNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  );
+  
+  public default List<TimeState> findAllPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference<Sensor> inputSensor
+  ) {
+    return findAllNext(date, Collections.singletonList(inputSensor));
+  }
+
+  public List<TimeState> findAllPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+  );
 }

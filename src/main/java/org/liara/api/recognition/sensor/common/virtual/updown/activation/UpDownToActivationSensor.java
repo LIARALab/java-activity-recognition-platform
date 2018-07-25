@@ -252,7 +252,7 @@ public class UpDownToActivationSensor
     ).orElse(null);
     
     if (Objects.equals(next, changed) || Objects.equals(previous, changed)) {
-      finish(correlated, next);
+      finish(correlated, changed);
     } else  {
       resolveHardEndMutation(correlated, changed, next);
     }
@@ -302,7 +302,10 @@ public class UpDownToActivationSensor
     @NonNull final ActivationState correlated, 
     @NonNull final BooleanState changed
   ) {
-    final BooleanState next = _inputs.findNext((BooleanState) correlated.getCorrelation("start")).orElse(null);
+    final BooleanState next = _inputs.findNext(
+      correlated.getStart(), 
+      changed.getSensor().getReference()
+    ).orElse(null);
     resolveHardStartMutation(correlated, changed, next);
   }
 

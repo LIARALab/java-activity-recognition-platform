@@ -153,6 +153,11 @@ public class      Sensor
     return Collections.unmodifiableSet(_states);
   }
   
+  @JsonIgnore
+  public Iterable<State> states () {
+    return getStates();
+  }
+  
   public void addState (@NonNull final State state) {
     if (!_states.contains(state)) {
       _states.add(state);
@@ -233,5 +238,9 @@ public class      Sensor
   @Override
   public ApplicationEntityReference<Sensor> getReference () {
     return ApplicationEntityReference.of(this);
+  }
+
+  public boolean isOfType (@NonNull final Class<?> type) {
+    return type.isAssignableFrom(getTypeClass());
   }
 }

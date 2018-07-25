@@ -168,6 +168,11 @@ public class      Node
     return Collections.unmodifiableSet(_sensors);
   }
   
+  @JsonIgnore
+  public Set<Sensor> getSensors () {
+    return Collections.unmodifiableSet(_sensors);
+  }
+  
   /**
    * Add a sensor to this node.
    * 
@@ -238,6 +243,11 @@ public class      Node
   public Set<Node> getChildren () {
     return _tree.getChildrenOf(this);
   }
+  
+  @JsonIgnore
+  public Iterable<Node> children () {
+    return getChildren();
+  }
 
   @Override
   @JsonIgnore
@@ -278,6 +288,20 @@ public class      Node
     
     return results;
   }
+ 
+  public Optional<Sensor> getFirstSensorWithName (@NonNull final List<String> name) {
+    Optional<Node> parent = Optional.ofNullable(this);
+    
+    for (int index = 0; index < name.size() - 1 && parent.isPresent(); ++index) {
+      parent = parent.get().getFirstChildWithName(name.get(index));
+    }
+    
+    if (parent.isPresent()) {
+      return parent.get().getFirstSensorWithName(name.get(name.size() - 1));
+    } else {
+      return Optional.empty(); 
+    }
+  }
   
   public Optional<Sensor> getFirstSensorWithName (@NonNull final String name) {
     for (final Sensor sensor : _sensors) {
@@ -313,5 +337,9 @@ public class      Node
   @Override
   public ApplicationEntityReference<? extends Node> getReference () {
     return ApplicationEntityReference.of(this);
+  }
+
+  public Node getRoot () {
+    return _tree.getRoot(this);
   }
 }
