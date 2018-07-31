@@ -16,8 +16,8 @@ import org.liara.api.data.entity.state.BooleanStateSnapshot;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.StateDeletionSchema;
 import org.liara.api.data.repository.ActivationsRepository;
-import org.liara.api.data.repository.ApplicationEntityRepository;
-import org.liara.api.data.repository.TimeSeriesRepository;
+import org.liara.api.data.repository.BooleanStateRepository;
+import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.event.StateWasCreatedEvent;
 import org.liara.api.event.StateWasMutatedEvent;
@@ -46,21 +46,21 @@ public class UpDownToActivationSensor
   private final ActivationsRepository _outputs;
   
   @NonNull
-  private final TimeSeriesRepository<BooleanState> _inputs;
+  private final BooleanStateRepository _inputs;
   
   @NonNull
-  private final ApplicationEntityRepository<Node> _nodes;
+  private final NodeRepository _nodes;
   
   @Autowired
   public UpDownToActivationSensor (
     @NonNull final SchemaManager manager,
-    @NonNull final TimeSeriesRepository<BooleanState> inputs,
-    @NonNull final ActivationsRepository activations,
-    @NonNull final ApplicationEntityRepository<Node> nodes
+    @NonNull final BooleanStateRepository inputs,
+    @NonNull final ActivationsRepository outputs,
+    @NonNull final NodeRepository nodes
   ) {
     _manager = manager;
     _inputs = inputs;
-    _outputs = activations;
+    _outputs = outputs;
     _nodes = nodes;
   }
   

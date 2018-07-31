@@ -1,4 +1,4 @@
-package org.liara.api.recognition.sensor.common.virtual.conjunction;
+package org.liara.api.data;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;

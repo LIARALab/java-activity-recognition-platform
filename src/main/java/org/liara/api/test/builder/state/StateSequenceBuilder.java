@@ -3,9 +3,8 @@ package org.liara.api.test.builder.state;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.liara.api.data.entity.state.State;
@@ -37,7 +36,7 @@ public class StateSequenceBuilder implements Builder<StateSequenceBuilder, List<
   private BaseStateBuilder<?, ? extends State> _lastDefinedState = null;
 
   @NonNull
-  private final Set<BaseStateBuilder<?, ? extends State>> _states = new HashSet<>();
+  private final List<BaseStateBuilder<?, ? extends State>> _states = new ArrayList<>();
   
   public <SubBuilder extends BaseStateBuilder<?, ? extends State>> StateSequenceBuilder with (
     @NonNull final SubBuilder builder

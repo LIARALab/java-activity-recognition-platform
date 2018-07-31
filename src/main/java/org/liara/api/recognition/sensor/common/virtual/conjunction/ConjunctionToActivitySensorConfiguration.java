@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.recognition.sensor.SensorConfiguration;
 import org.liara.api.validation.ValidApplicationEntityReference;
@@ -23,9 +22,6 @@ public class ConjunctionToActivitySensorConfiguration
   @NonNull
   private final Set<ApplicationEntityReference<Sensor>> _inputs = new HashSet<>();
   
-  @NonNull
-  private final Set<ApplicationEntityReference<Node>> _nodes = new HashSet<>();
-  
   public ConjunctionToActivitySensorConfiguration () {
     _tag = null;
   }
@@ -35,7 +31,6 @@ public class ConjunctionToActivitySensorConfiguration
   ) {
     _tag = toCopy.getTag();
     _inputs.addAll(toCopy.getInputs());
-    _nodes.addAll(toCopy.getNodes());
   }
   
   @Required
@@ -56,17 +51,6 @@ public class ConjunctionToActivitySensorConfiguration
   public void setInputs (@Nullable final Collection<Long> inputs) {
     _inputs.clear();
     if (inputs != null) _inputs.addAll(ApplicationEntityReference.of(Sensor.class, inputs));
-  }
-  
-  @ValidApplicationEntityReference
-  @Required
-  public Set<ApplicationEntityReference<Node>> getNodes () {
-    return Collections.unmodifiableSet(_nodes);
-  }
-  
-  public void setNodes (@Nullable final Collection<Long> inputs) {
-    _nodes.clear();
-    if (inputs != null) _nodes.addAll(ApplicationEntityReference.of(Node.class, inputs));
   }
   
   public ConjunctionToActivitySensorConfiguration clone () {

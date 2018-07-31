@@ -1,4 +1,4 @@
-package org.liara.api.recognition.sensor.common.virtual.conjunction;
+package org.liara.api.data.repository.database;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -17,12 +17,13 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
+import org.liara.api.data.Conjunction;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.ApplicationEntity_;
-import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.ActivationState_;
+import org.liara.api.data.repository.ConjunctionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
@@ -30,13 +31,13 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Primary
-public class DatabaseConjunctionToActivitySensorData implements ConjunctionToActivitySensorData
+public class DatabaseConjunctionRepository implements ConjunctionRepository
 {
   @NonNull
   private final EntityManager _entityManager;
   
   @Autowired
-  public DatabaseConjunctionToActivitySensorData (
+  public DatabaseConjunctionRepository (
     @NonNull final EntityManager entityManager
   ) {
     _entityManager = entityManager;
@@ -44,14 +45,13 @@ public class DatabaseConjunctionToActivitySensorData implements ConjunctionToAct
 
   @Override
   public List<Conjunction> getConjunctions (
-    @NonNull final Collection<ApplicationEntityReference<Sensor>> inputs,
-    @NonNull final Collection<ApplicationEntityReference<Node>> nodes
+    @NonNull final Collection<ApplicationEntityReference<Sensor>> inputs
   ) {    
     final CriteriaBuilder builder = _entityManager.getCriteriaBuilder();
     final CriteriaQuery<Tuple> query = builder.createTupleQuery();
     
     final List<Map.Entry<Long, Root<ActivationState>>> selections = new ArrayList<>(
-      nodes.stream().collect(
+      inputs.stream().collect(
         Collectors.toMap(
           reference -> reference.getIdentifier(),
           reference -> query.from(ActivationState.class)
@@ -80,23 +80,14 @@ public class DatabaseConjunctionToActivitySensorData implements ConjunctionToAct
     
     query.multiselect(tupleSelection);
     
-    final Collection<Long> inputsIdentifiers = ApplicationEntityReference.identifiers(inputs); 
     final List<Predicate> predicates = new ArrayList<>();
     
     for (int index = 0; index < selections.size(); ++index) {
       predicates.add(
-        selections.get(index)
-                  .getValue()
-                  .get(ActivationState_._sensor)
-                  .get(ApplicationEntity_._identifier)
-                  .in(inputsIdentifiers)
-      );
-      
-      predicates.add(
         builder.equal(
           selections.get(index)
                     .getValue()
-                    .get(ActivationState_._node)
+                    .get(ActivationState_._sensor)
                     .get(ApplicationEntity_._identifier),
           selections.get(index).getKey()
         )

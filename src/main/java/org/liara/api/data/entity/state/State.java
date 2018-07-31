@@ -183,4 +183,14 @@ public class State extends ApplicationEntity
   public ApplicationEntityReference<? extends State> getReference () {
     return ApplicationEntityReference.of(this);
   }
+
+  @Override
+  public String toString () {
+    return String.join(
+      "", 
+      super.toString(), "[",
+      "sensor : ", _sensor == null ? null : _sensor.toString(), ", ",
+      "emittionDate : ", _emittionDate == null ? null : _emittionDate.toString(), "]"
+    );
+  }
 }

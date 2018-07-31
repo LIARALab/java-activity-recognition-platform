@@ -29,7 +29,7 @@ public class LocalTimeSeriesRepositorySpecification
     final SensorBuilder builder = new SensorBuilder()
     
     for (int index = 0; index < count; ++index) {
-      builder.with(
+      builder.withState(
         BooleanStateBuilder.create({
           withValue index % 2 == 0
           withEmittionDate start.plus(duration.multipliedBy(index))
@@ -51,7 +51,7 @@ public class LocalTimeSeriesRepositorySpecification
     final SensorBuilder builder = new SensorBuilder()
         
     for (int index = 0; index < flags.size(); index += 2) {
-      builder.with(
+      builder.withState(
         ActivityStateBuilder.create {
           withTag tag
           withEmittionDate flags.get(index).getEmittionDate()
@@ -118,7 +118,7 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to get states that was emitted before another state" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<BooleanState> repository = new LocalTimeSeriesRepository<BooleanState>(
+      final LocalTimeSeriesRepository<BooleanState> repository = LocalTimeSeriesRepository.create(
         new LocalEntityManager(), BooleanState.class
       )
       final List<List<BooleanState>> sensorsStates = generateUpDownSensors(10, 30)
@@ -143,7 +143,7 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to get states that was emitted after another state" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<BooleanState> repository = new LocalTimeSeriesRepository<BooleanState>(
+      final LocalTimeSeriesRepository<BooleanState> repository = LocalTimeSeriesRepository.create(
         new LocalEntityManager(), BooleanState.class
       )
       final List<List<BooleanState>> sensorsStates = generateUpDownSensors(10, 30)
@@ -168,7 +168,7 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to get all states that was emitted by a given sensor" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<BooleanState> repository = new LocalTimeSeriesRepository<BooleanState>(
+      final LocalTimeSeriesRepository<BooleanState> repository = LocalTimeSeriesRepository.create(
         new LocalEntityManager(), BooleanState.class
       )
       final List<List<BooleanState>> sensorsStates = generateUpDownSensors(10, 30)
@@ -189,7 +189,7 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to get a slice of states that was emitted by a given sensor" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<BooleanState> repository = new LocalTimeSeriesRepository<BooleanState>(
+      final LocalTimeSeriesRepository<BooleanState> repository = LocalTimeSeriesRepository.create(
         new LocalEntityManager(), BooleanState.class
       )
       final List<List<BooleanState>> sensorsStates = generateUpDownSensors(10, 30)
@@ -219,7 +219,7 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find a state of a given sensor with a particular correlation" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<ActivityState> repository = new LocalTimeSeriesRepository<>(
+      final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
         new LocalEntityManager(), ActivityState.class
       )
       final List<List<ActivityState>> sensorsStates = generateActivitySensors(
@@ -252,7 +252,7 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find all states of with a correlation" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<ActivityState> repository = new LocalTimeSeriesRepository<>(
+      final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
         new LocalEntityManager(), ActivityState.class
       )
       final List<List<ActivityState>> sensorsStates = generateActivitySensors(
@@ -281,7 +281,7 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find a state of a given sensor with a bunch of correlations" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<ActivityState> repository = new LocalTimeSeriesRepository<>(
+      final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
         new LocalEntityManager(), ActivityState.class
       )
       final List<List<ActivityState>> sensorsStates = generateActivitySensors(
@@ -312,7 +312,7 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find a state of a given sensor with a correlation with a particular value" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<ActivityState> repository = new LocalTimeSeriesRepository<>(
+      final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
         new LocalEntityManager(), ActivityState.class
       )
       final List<List<ActivityState>> sensorsStates = generateActivitySensors(

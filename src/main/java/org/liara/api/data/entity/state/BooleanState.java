@@ -62,4 +62,12 @@ public class BooleanState extends State
   public ApplicationEntityReference<? extends BooleanState> getReference () {
     return ApplicationEntityReference.of(this);
   }
+
+  @Override
+  public String toString () {
+    return String.join(
+      "",
+      super.toString(), "[value : ", this.getValue() ? "true" : "false", "]"
+    );
+  }
 }

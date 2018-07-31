@@ -80,13 +80,14 @@ public class LocalTimeSeriesRepository<TimeState extends State>
   
   @NonNull
   private final Map<String, Map<Long, Set<Long>>> _correlations = new HashMap<>();
-  
-  public LocalTimeSeriesRepository(
-    @NonNull final LocalEntityManager parent,
+
+  public static <TimeState extends State> LocalTimeSeriesRepository<TimeState> create (
+    @NonNull final LocalEntityManager entityManager,
     @NonNull final Class<TimeState> type
   ) {
-    super(type);
-    setParent(parent);
+    final LocalTimeSeriesRepository<TimeState> result = new LocalTimeSeriesRepository<>(type);
+    result.setParent(entityManager);
+    return result;
   }
   
   public LocalTimeSeriesRepository(@NonNull final Class<TimeState> type) {
@@ -327,7 +328,7 @@ public class LocalTimeSeriesRepository<TimeState extends State>
   }
 
   @Override
-  protected void entityWasAdded (@NonNull final TimeState entity) {
+  protected void trackedEntityWasAdded (@NonNull final TimeState entity) {
     if (isRegistered(entity)) return;
     
     if (!_statesBySensors.containsKey(entity.getSensorIdentifier())) {
@@ -354,7 +355,7 @@ public class LocalTimeSeriesRepository<TimeState extends State>
   }
 
   @Override
-  protected void entityWasRemoved (@NonNull final TimeState entity) {
+  protected void trackedEntityWasRemoved (@NonNull final TimeState entity) {
     if (!isRegistered(entity)) return;
     
     _statesBySensors.get(entity.getSensorIdentifier()).remove(new Entry<>(entity));

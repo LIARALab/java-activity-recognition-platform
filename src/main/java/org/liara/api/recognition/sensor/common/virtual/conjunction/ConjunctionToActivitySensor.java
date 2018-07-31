@@ -2,10 +2,13 @@ package org.liara.api.recognition.sensor.common.virtual.conjunction;
 
 import java.util.List;
 
+import org.liara.api.data.Conjunction;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.ActivityState;
 import org.liara.api.data.entity.state.ActivityStateCreationSchema;
+import org.liara.api.data.repository.ConjunctionRepository;
+import org.liara.api.data.repository.TimeSeriesRepository;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.event.StateWasCreatedEvent;
 import org.liara.api.event.StateWasMutatedEvent;
@@ -30,15 +33,20 @@ public class ConjunctionToActivitySensor
   private final SchemaManager _schemaManager;
   
   @NonNull
-  private final ConjunctionToActivitySensorData _data;
+  private final ConjunctionRepository _conjunctions;
+  
+  @NonNull
+  private final TimeSeriesRepository<ActivityState> _outputs;
   
   @Autowired
   public ConjunctionToActivitySensor(
     @NonNull final SchemaManager schemaManager,
-    @NonNull final ConjunctionToActivitySensorData data
+    @NonNull final ConjunctionRepository conjunctions,
+    @NonNull final TimeSeriesRepository<ActivityState> outputs
   ) {
     _schemaManager = schemaManager;
-    _data = data;
+    _conjunctions = conjunctions;
+    _outputs = outputs;
   }
   
   public Sensor getSensor () {
@@ -57,9 +65,8 @@ public class ConjunctionToActivitySensor
   ) {
     super.initialize(runner);
     
-    final List<Conjunction> conjunctions = _data.getConjunctions(
-      getConfiguration().getInputs(),
-      getConfiguration().getNodes()
+    final List<Conjunction> conjunctions = _conjunctions.getConjunctions(
+      getConfiguration().getInputs()
     );
     
     _schemaManager.flush();

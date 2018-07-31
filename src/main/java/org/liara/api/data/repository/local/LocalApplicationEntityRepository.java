@@ -9,40 +9,30 @@ import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.repository.ApplicationEntityRepository;
 import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 import com.google.common.collect.Streams;
 
 public class LocalApplicationEntityRepository<Entity extends ApplicationEntity> 
-       implements ApplicationEntityRepository<Entity>, LocalEntityManagerListener
+       extends BaseLocalRepository
+       implements ApplicationEntityRepository<Entity>
 {
   @NonNull
-  private final Class<Entity> _type;
+  final Class<Entity> _type;
   
-  @Nullable
-  private LocalEntityManager _parent;
-  
-  public static <StoredEntity extends ApplicationEntity> LocalApplicationEntityRepository<StoredEntity> of (
+  public static <StoredEntity extends ApplicationEntity> LocalApplicationEntityRepository<StoredEntity> from (
     @NonNull final LocalEntityManager parent,
     @NonNull final Class<StoredEntity> type
   ) {
-    return new LocalApplicationEntityRepository<>(parent, type);
+    final LocalApplicationEntityRepository<StoredEntity> result = new LocalApplicationEntityRepository<>(type);
+    result.setParent(parent);
+    return result;
   }
   
   public LocalApplicationEntityRepository (
     @NonNull final Class<Entity> type
   ) {
+    super();
     _type = type;
-    _parent = null;
-  }
-  
-  public LocalApplicationEntityRepository(
-    @NonNull final LocalEntityManager parent,
-    @NonNull final Class<Entity> type
-  ) {
-    _type = type;
-    _parent = parent;
-    parent.addListener(this);
   }
   
   @Override
@@ -53,25 +43,25 @@ public class LocalApplicationEntityRepository<Entity extends ApplicationEntity>
   }
   
   public Optional<Entity> find (@NonNull final Long identifier) {
-    if (_parent == null) return Optional.empty();
-    return _parent.find(_type, identifier);
+    if (getParent() == null) return Optional.empty();
+    return getParent().find(_type, identifier);
   }
 
   @Override
   public List<Entity> findAll () {
-    if (_parent == null) return Collections.emptyList();
-    return _parent.findAll(_type);
+    if (getParent() == null) return Collections.emptyList();
+    return getParent().findAll(_type);
   }
 
   public void addAll (@NonNull final Iterable<Entity> entities) {
-    if (_parent != null) {
-      _parent.addAll(entities);
+    if (getParent() != null) {
+      getParent().addAll(entities);
     }
   }
   
   public void addAll (@NonNull final Iterator<Entity> entities) {
-    if (_parent != null) {
-      _parent.addAll(entities);
+    if (getParent() != null) {
+      getParent().addAll(entities);
     }
   }
   
@@ -84,66 +74,46 @@ public class LocalApplicationEntityRepository<Entity extends ApplicationEntity>
   }
   
   public boolean contains (@NonNull final Entity entity) {
-    if (_parent == null) return false;
-    return _parent.contains(_type, entity.getIdentifier());
+    if (getParent() == null) return false;
+    return getParent().contains(_type, entity.getIdentifier());
   }
   
   public boolean contains (@NonNull final Long identifier) {
-    if (_parent == null) return false;
-    return _parent.contains(_type, identifier);
+    if (getParent() == null) return false;
+    return getParent().contains(_type, identifier);
   }
   
   public void clear () {
-    _parent.clear(_type);
+    getParent().clear(_type);
   }
   
   public int size () {
-    return _parent.size(_type);
+    return getParent().size(_type);
   }
 
   @Override
-  public LocalEntityManager getParent () {
-    return _parent;
-  }
-
-  @Override
-  public void setParent (@Nullable final LocalEntityManager parent) {
-    if (_parent != parent) {
-      if (_parent != null) {
-        final LocalEntityManager oldParent = _parent;
-        _parent = null;
-        oldParent.removeListener(this);
-      }
-      
-      _parent = parent;
-      
-      if (_parent != null) {
-        _parent.addListener(this);
-      }
-    }
-  }
-
-  @Override
-  public void add (@NonNull final ApplicationEntity entity) {
-    if (_type.isAssignableFrom(entity.getClass()) && _parent != null) {
-      _parent.add(entity);
-      entityWasAdded(_type.cast(entity));
-    }
-  }
-
-  protected void entityWasAdded (@NonNull final Entity entity) {
+  protected void entityWasAdded (@NonNull final ApplicationEntity entity) {
+    super.entityWasAdded(entity);
     
+    if (_type.isAssignableFrom(entity.getClass()) && getParent() != null) {
+      trackedEntityWasAdded(_type.cast(entity));
+    }
   }
   
+  protected void trackedEntityWasAdded (@NonNull final Entity entity) {
+    
+  }
+
   @Override
-  public void remove (@NonNull final ApplicationEntity entity) {
-    if (_type.isAssignableFrom(entity.getClass()) && _parent != null) {
-      _parent.remove(entity);
-      entityWasRemoved(_type.cast(entity));
+  protected void entityWasRemoved (@NonNull final ApplicationEntity entity) {
+    super.entityWasRemoved(entity);
+    
+    if (_type.isAssignableFrom(entity.getClass()) && getParent() != null) {
+      trackedEntityWasRemoved(_type.cast(entity));
     }
   }
 
-  protected void entityWasRemoved (@NonNull final Entity entity) {
+  protected void trackedEntityWasRemoved (@NonNull final Entity entity) {
     
   }
 }

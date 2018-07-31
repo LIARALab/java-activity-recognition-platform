@@ -33,6 +33,14 @@ public class OneVsAllToUpDownMotionSensorConfiguration
     _ignoredInputs.addAll(toCopy.getIgnoredInputs());
   }
   
+  public OneVsAllToUpDownMotionSensorConfiguration (
+    @NonNull final Collection<ApplicationEntityReference<Sensor>> validInputs,
+    @NonNull final Collection<ApplicationEntityReference<Sensor>> ignoredInputs
+  ) {
+    _validInputs.addAll(validInputs);
+    _ignoredInputs.addAll(ignoredInputs);
+  }
+  
   public boolean isValidInput (@NonNull final Sensor sensor) {
     return _validInputs.contains(ApplicationEntityReference.of(sensor));
   }
@@ -42,7 +50,7 @@ public class OneVsAllToUpDownMotionSensorConfiguration
   }
 
   public boolean isValidInput (@NonNull final State state) {
-    return _validInputs.contains(ApplicationEntityReference.of(state));
+    return _validInputs.contains(ApplicationEntityReference.of(state.getSensor()));
   }
   
   public Iterable<ApplicationEntityReference<Sensor>> validInputs () {

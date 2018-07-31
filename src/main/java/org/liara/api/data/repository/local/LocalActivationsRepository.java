@@ -13,12 +13,14 @@ public class LocalActivationsRepository
        extends LocalTimeSeriesRepository<ActivationState>
        implements ActivationsRepository
 {
-  public LocalActivationsRepository() {
-    super(ActivationState.class);
+  public static LocalActivationsRepository from (@NonNull final LocalEntityManager parent) {
+    final LocalActivationsRepository result = new LocalActivationsRepository();
+    parent.addListener(result);
+    return result;
   }
   
-  public LocalActivationsRepository (@NonNull final LocalEntityManager parent) {
-    super(parent, ActivationState.class);
+  public LocalActivationsRepository() {
+    super(ActivationState.class);
   }
 
   @Override

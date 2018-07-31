@@ -27,7 +27,7 @@ public class LocalApplicationEntityRepositorySpecification
   
   def "it allows you to instanciate an empty repository for a given entity type" () {
     expect: "to instanciate an empty repository when the default constructor is invoked"
-      final LocalApplicationEntityRepository<Sensor> repository = new LocalApplicationEntityRepository<>(
+      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
         new LocalEntityManager(), Sensor.class
       )
       
@@ -37,7 +37,7 @@ public class LocalApplicationEntityRepositorySpecification
   
   def "it allows you to register new entities one by one into the repository" () {
     given: "an empty repository"
-      final LocalApplicationEntityRepository<Sensor> repository = new LocalApplicationEntityRepository<>(
+      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
         new LocalEntityManager(), Sensor.class
       )
       
@@ -56,7 +56,7 @@ public class LocalApplicationEntityRepositorySpecification
   
   def "it allows you to register a bunch of entities into the repository" () {
     given: "an empty repository"
-      final LocalApplicationEntityRepository<Sensor> repository = new LocalApplicationEntityRepository<>(
+      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
         new LocalEntityManager(), Sensor.class  
       )
       
@@ -75,7 +75,7 @@ public class LocalApplicationEntityRepositorySpecification
   
   def "it allows you to register an iterator of entities into the repository" () {
     given: "an empty repository"
-      final LocalApplicationEntityRepository<Sensor> repository = new LocalApplicationEntityRepository<>(
+      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
         new LocalEntityManager(), Sensor.class  
       )
     
@@ -94,7 +94,7 @@ public class LocalApplicationEntityRepositorySpecification
   
   def "it allows you to remove entities one by one from the repository" () {
     given: "a repository with some entities registered in"
-      final LocalApplicationEntityRepository<Sensor> repository = new LocalApplicationEntityRepository<>(
+      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
         new LocalEntityManager(), Sensor.class 
       )
       final List<Sensor> entities = generateEntities(20)
@@ -116,7 +116,7 @@ public class LocalApplicationEntityRepositorySpecification
   
   def "it allows you to remove a bunch of entities from the repository" () {
     given: "a repository with some entities registered in"
-      final LocalApplicationEntityRepository<Sensor> repository = new LocalApplicationEntityRepository<>(
+      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
         new LocalEntityManager(), Sensor.class
       )
       final List<Sensor> entities = generateEntities(20)
@@ -138,7 +138,7 @@ public class LocalApplicationEntityRepositorySpecification
   
   def "it allows you to remove an iterator of entities from the repository" () {
     given: "a repository with some entities registered in"
-      final LocalApplicationEntityRepository<Sensor> repository = new LocalApplicationEntityRepository<>(
+      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
         new LocalEntityManager(), Sensor.class
       )
       final List<Sensor> entities = generateEntities(20)
@@ -160,7 +160,7 @@ public class LocalApplicationEntityRepositorySpecification
   
   def "it allows you to clear the repository of its entities" () {
     given: "a repository with some entities registered in"
-      final LocalApplicationEntityRepository<Sensor> repository = new LocalApplicationEntityRepository<>(
+      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
         new LocalEntityManager(), Sensor.class
       )
       final List<Sensor> entities = generateEntities(20)
@@ -177,7 +177,7 @@ public class LocalApplicationEntityRepositorySpecification
   
   def "it allows to retrieve all entities of the repository" () {
     given: "a repository with some entities registered in"
-      final LocalApplicationEntityRepository<Sensor> repository = new LocalApplicationEntityRepository<>(
+      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
         new LocalEntityManager(), Sensor.class 
       )
       final List<Sensor> entities = generateEntities(20)
@@ -193,7 +193,7 @@ public class LocalApplicationEntityRepositorySpecification
   
   def "it allows to retrieve an entity of the repository by using a reference over it" () {
     given: "a repository with some entities registered in"
-      final LocalApplicationEntityRepository<Sensor> repository = new LocalApplicationEntityRepository<>(
+      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
         new LocalEntityManager(), Sensor.class
       )
       final List<Sensor> entities = generateEntities(20)
@@ -220,7 +220,7 @@ public class LocalApplicationEntityRepositorySpecification
   
   def "it allows to check if the repository contains an entity by using its identifier" () {
     expect: "to return true if the entity is registered into the repository, false otherwise"
-      final LocalApplicationEntityRepository<Sensor> repository = new LocalApplicationEntityRepository<>(
+      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
         new LocalEntityManager(), Sensor.class
       )
       final List<Sensor> entities = generateEntities(20)

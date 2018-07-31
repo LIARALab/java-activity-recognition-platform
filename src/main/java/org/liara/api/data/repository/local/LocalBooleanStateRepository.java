@@ -15,8 +15,14 @@ public class LocalBooleanStateRepository
        extends LocalTimeSeriesRepository<BooleanState>
        implements BooleanStateRepository
 {
-  public LocalBooleanStateRepository(@NonNull final LocalEntityManager parent) {
-    super(parent, BooleanState.class);
+  public static LocalBooleanStateRepository from (@NonNull final LocalEntityManager parent) {
+    final LocalBooleanStateRepository result = new LocalBooleanStateRepository();
+    result.setParent(parent);
+    return result;
+  }
+  
+  public LocalBooleanStateRepository() {
+    super(BooleanState.class);
   }
 
   @Override

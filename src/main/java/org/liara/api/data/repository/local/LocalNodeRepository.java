@@ -1,25 +1,39 @@
 package org.liara.api.data.repository.local;
 
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.tree.LocalNestedSetTree;
 import org.liara.api.data.entity.tree.NestedSetCoordinates;
 import org.liara.api.data.entity.tree.NestedSetTree;
+import org.liara.api.data.repository.NodeRepository;
 import org.springframework.lang.NonNull;
 
 public class LocalNodeRepository
        extends LocalApplicationEntityRepository<Node>
-       implements NestedSetTree<Node>
+       implements NestedSetTree<Node>, NodeRepository
 {
+  @NonNull
+  public static final WeakHashMap<NestedSetTree<Node>, LocalNodeRepository> REPOSITORIES = new WeakHashMap<>();
+  
+  public static LocalNodeRepository of (@NonNull final Node node) {
+    return REPOSITORIES.get(node.getTree());
+  }
+  
   @NonNull
   private final LocalNestedSetTree<Node> _tree;
   
-  public LocalNodeRepository(
-    @NonNull final LocalEntityManager parent
-  ) {
-    super(parent, Node.class);
+  public static LocalNodeRepository from (@NonNull final LocalEntityManager manager) {
+    final LocalNodeRepository result = new LocalNodeRepository();
+    manager.addListener(result);
+    return result;
+  }
+  
+  public LocalNodeRepository() {
+    super(Node.class);
     _tree = new LocalNestedSetTree<>();
+    REPOSITORIES.put(_tree, this);
   }
 
   @Override
@@ -121,16 +135,16 @@ public class LocalNodeRepository
   }
 
   @Override
-  protected void entityWasAdded (@NonNull final Node entity) {
-    super.entityWasAdded(entity);
+  protected void trackedEntityWasAdded (@NonNull final Node entity) {
+    super.trackedEntityWasAdded(entity);
     if (!_tree.contains(entity)) {
       _tree.addNode(entity);
     }
   }
 
   @Override
-  protected void entityWasRemoved (@NonNull final Node entity) {
-    super.entityWasRemoved(entity);
+  protected void trackedEntityWasRemoved (@NonNull final Node entity) {
+    super.trackedEntityWasRemoved(entity);
     if (_tree.contains(entity)) {
       _tree.removeNode(entity);
     }

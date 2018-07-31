@@ -46,15 +46,6 @@ public class OneVsAllToUpDownMotionSensor
   @NonNull
   private final SensorRepository _sensors;
   
-  @NonNull
-  private final StateDeletionSchema _deletion = new StateDeletionSchema();
-
-  @NonNull
-  private final BooleanStateMutationSchema _mutation = new BooleanStateMutationSchema();
-  
-  @NonNull
-  private final BooleanStateCreationSchema _creation = new BooleanStateCreationSchema();
-  
   @Autowired
   public OneVsAllToUpDownMotionSensor (
     @NonNull final SchemaManager schemaManager,
@@ -101,23 +92,11 @@ public class OneVsAllToUpDownMotionSensor
     
     BooleanState previous = null;
     
-    for (int index = 1; index < states.size(); ++index) {
+    for (int index = 0; index < states.size(); ++index) {
       final BooleanState current = states.get(index);
-
-      if (
-        configuration.isValidInput(current) && (
-          previous == null || 
-          configuration.isInvalidInput(previous)
-        )
-      ) {
-        emit(current, true);
-      } else if (
-        configuration.isInvalidInput(current) && (
-          previous == null || 
-          configuration.isValidInput(previous)
-        )
-      ) {
-        emit(current, false);
+      
+      if (previous == null || areOfSameType(previous, current) == false) {
+        emit(current, configuration.isValidInput(current));
       }
       
       previous = current;
@@ -147,9 +126,11 @@ public class OneVsAllToUpDownMotionSensor
     }
   }
 
-  private void onMotionStateWasCreated (
+  public void onMotionStateWasCreated (
     @NonNull final BooleanState created
   ) {
+    if (created.getValue() == false) return;
+    
     final List<ApplicationEntityReference<Sensor>> inputSensors = getInputSensors();
     final Optional<BooleanState> previous = _flags.findPreviousWithValue(created, inputSensors, true);
     final Optional<BooleanState> next = _flags.findNextWithValue(created, inputSensors, true);
@@ -212,11 +193,15 @@ public class OneVsAllToUpDownMotionSensor
     }
   }
 
-  private void onMotionStateWasMutated (
+  public void onMotionStateWasMutated (
     @NonNull final BooleanStateSnapshot base, 
     @NonNull final BooleanState updated
   ) {
-    if (base.hasCorrelation("base")) {
+    final Optional<BooleanState> correlation = _flags.findFirstWithCorrelation(
+      "base", updated.getReference(), getSensor().getReference()
+    );
+    
+    if (correlation.isPresent()) {
       onCorrelledMotionStateWasMutated(base, updated);
     } else if (updated.getValue()) {
       onMotionStateWasCreated(updated);
@@ -231,12 +216,8 @@ public class OneVsAllToUpDownMotionSensor
     final Optional<BooleanState> previous = _flags.findPreviousWithValue(base.getEmittionDate(), inputSensors, true);
     final Optional<BooleanState> next = _flags.findNextWithValue(base.getEmittionDate(), inputSensors, true);
     
-    if (previous.isPresent() == false) {
-      onLeftCorreledMotionStateWasMutated(updated, next);
-    } else if (Objects.equals(previous.get(), updated)) {
+    if (previous.isPresent() && Objects.equals(previous.get(), updated)) {
       move(updated, updated);
-    } else if (areOfSameType(previous.get(), updated)) {
-      onMotionStateWasCreated(updated);
     } else {
       onRightCorreledMotionStateWasMutated(updated, next);
     }
@@ -260,27 +241,7 @@ public class OneVsAllToUpDownMotionSensor
       onMotionStateWasCreated(updated);
     }
   }
-
-  private void onLeftCorreledMotionStateWasMutated (
-    @NonNull final BooleanState updated, 
-    @NonNull final Optional<BooleanState> next
-  ) {
-    if (next.isPresent() == false) {
-      if (updated.getValue()) move(updated, updated);
-      else delete(updated);
-      onMotionStateWasCreated(updated);
-    } else if (next.get().equals(updated)) {
-      move(updated, updated);
-    } else {
-      if (areOfSameType(updated, next.get())) {
-        move(updated, next.get());
-      } else {
-        delete(updated);
-      }
-      onMotionStateWasCreated(updated);
-    }
-  }
-
+  
   @Override
   public void stateWillBeDeleted (
     @NonNull final StateWillBeDeletedEvent event
@@ -299,8 +260,10 @@ public class OneVsAllToUpDownMotionSensor
     }    
   }
   
-  private void onMotionStateWillBeDeleted (@NonNull final BooleanState state) {
-    if (state.hasCorrelation("base") == false) return;
+  public void onMotionStateWillBeDeleted (@NonNull final BooleanState state) {
+    if (_flags.findFirstWithCorrelation(
+      "base", state.getReference(), getSensor().getReference()
+    ).isPresent() == false) return;
     
     final List<ApplicationEntityReference<Sensor>> inputs = getInputSensors();
     final Optional<BooleanState> previous = _flags.findPreviousWithValue(
@@ -313,7 +276,7 @@ public class OneVsAllToUpDownMotionSensor
     
     if (previous.isPresent() == false) {
       onLeftMotionStateWillBeDeleted(state, next);
-    } else if (areOfSameType(previous.get(), state) == false) {
+    } else {
       onRightMotionStateWillBeDeleted(state, next);
     }
   }
@@ -346,31 +309,28 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void delete (@NonNull final BooleanState state) {
-    _deletion.clear();
-    _deletion.setState(state.getCorrelation("base"));
-    _schemaManager.execute(_deletion);
+    _schemaManager.execute(new StateDeletionSchema(
+      _flags.findFirstWithCorrelation(
+        "base", state.getReference(), getSensor().getReference()
+      ).get()
+    ));
   }
 
   private void move (
     @NonNull final BooleanState from, 
     @NonNull final BooleanState to
   ) {
-    final State toMove = from.getCorrelation("base");
-    
+    final State toMove = _flags.findFirstWithCorrelation(
+      "base", from.getReference(), getSensor().getReference()
+    ).get();
+
+    final BooleanStateMutationSchema mutation = new BooleanStateMutationSchema();
+    mutation.setState(toMove);
+    mutation.setEmittionDate(to.getEmittionDate());
     if (Objects.equals(from, to) == false) {
-      _mutation.clear();
-      _mutation.setState(from);
-      _mutation.decorrelate("base");
-      _schemaManager.execute(_mutation);
+      mutation.correlate("base", to);
     }
-    
-    _mutation.clear();
-    _mutation.setState(toMove);
-    _mutation.setEmittionDate(to.getEmittionDate());
-    if (Objects.equals(from, to) == false) {
-      _mutation.correlate("base", to);
-    }
-    _schemaManager.execute(_mutation);
+    _schemaManager.execute(mutation);
   }
 
   private void emit (@NonNull final BooleanState created) {
@@ -378,12 +338,12 @@ public class OneVsAllToUpDownMotionSensor
   }
   
   private void emit (@NonNull final State state, final boolean up) {
-    _creation.clear();
-    _creation.setEmittionDate(state.getEmittionDate());
-    _creation.setSensor(getSensor());
-    _creation.setValue(up);
-    _creation.correlate("base", state);
+    final BooleanStateCreationSchema creation = new BooleanStateCreationSchema();
+    creation.setEmittionDate(state.getEmittionDate());
+    creation.setSensor(getSensor());
+    creation.setValue(up);
+    creation.correlate("base", state);
     
-    _schemaManager.execute(_creation);
+    _schemaManager.execute(creation);
   }
 }
