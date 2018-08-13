@@ -1,15 +1,11 @@
 package org.liara.api.data;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import javax.persistence.Tuple;
-
 import org.liara.api.data.entity.state.ActivationState;
 import org.springframework.lang.NonNull;
+
+import javax.persistence.Tuple;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 public class Conjunction
 {
@@ -27,6 +23,14 @@ public class Conjunction
       _states.add(tuple.get(index, ActivationState.class));
     }
   }
+
+  public Conjunction (@NonNull final Collection<ActivationState> states) {
+    _states.addAll(states);
+  }
+
+  public boolean contains (@NonNull final ActivationState state) {
+    return _states.contains(state);
+  }
   
   public List<ActivationState> getStates () {
     return Collections.unmodifiableList(_states);
@@ -36,8 +40,11 @@ public class Conjunction
     ZonedDateTime result = _states.get(0).getStart();
     
     for (final ActivationState state : _states) {
-      if (state.getStart().compareTo(result) > 0) {
-        result = state.getStart();
+      if (state.getStart() != null) {
+        if (result == null || state.getStart()
+                                   .compareTo(result) > 0) {
+          result = state.getStart();
+        }
       }
     }
     
@@ -48,8 +55,11 @@ public class Conjunction
     ZonedDateTime result = _states.get(0).getEnd();
     
     for (final ActivationState state : _states) {
-      if (state.getEnd().compareTo(result) < 0) {
-        result = state.getEnd();
+      if (state.getEnd() != null) {
+        if (result == null || state.getEnd()
+                                   .compareTo(result) < 0) {
+          result = state.getEnd();
+        }
       }
     }
     
@@ -66,5 +76,30 @@ public class Conjunction
     }
     
     return result;
+  }
+
+  @Override
+  public boolean equals (@NonNull final Object other) {
+    if (other == null) return false;
+    if (other == this) return true;
+
+    if (other instanceof Conjunction) {
+      final Conjunction otherConjunction = Conjunction.class.cast(other);
+
+      for (final ActivationState state : _states) {
+        if (otherConjunction.contains(state) == false) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  @Override
+  public int hashCode () {
+    return Objects.hashCode(_states);
   }
 }

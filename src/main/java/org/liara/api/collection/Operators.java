@@ -1,11 +1,5 @@
 package org.liara.api.collection;
 
-import java.util.List;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-import javax.persistence.metamodel.SingularAttribute;
-
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
@@ -13,6 +7,11 @@ import org.liara.api.collection.transformation.operator.ordering.EntityCollectio
 import org.liara.api.collection.transformation.operator.ordering.EntityCollectionOrderingOperator;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.springframework.lang.NonNull;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import javax.persistence.metamodel.SingularAttribute;
+import java.util.List;
 
 public final class Operators
 {

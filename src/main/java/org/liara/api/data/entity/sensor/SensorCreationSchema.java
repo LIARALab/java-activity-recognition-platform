@@ -1,25 +1,25 @@
 package org.liara.api.data.entity.sensor;
 
-import java.util.Optional;
-
-import javax.validation.Valid;
-
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.liara.api.data.entity.ApplicationEntityCreationSchema;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.schema.Schema;
 import org.liara.api.recognition.sensor.SensorConfiguration;
-import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.liara.api.validation.SensorType;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import javax.validation.Valid;
+import java.util.Optional;
 
 @Schema(Sensor.class)
 @JsonDeserialize(using = SensorCreationSchemaDeserializer.class)
 public class SensorCreationSchema
+  extends ApplicationEntityCreationSchema
 {
   @NonNull
   private String _name = null;

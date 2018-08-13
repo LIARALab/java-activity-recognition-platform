@@ -5,7 +5,7 @@ import org.springframework.lang.Nullable;
 public class ValueView<T> implements View<T>
 {
   public static <T> ValueView<T> of (@Nullable final T value) {
-    return new ValueView<T>(value);
+    return new ValueView<>(value);
   }
   
   @Nullable

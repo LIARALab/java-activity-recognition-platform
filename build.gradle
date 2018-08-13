@@ -1,27 +1,14 @@
-buildscript {
-    repositories {
-      mavenCentral()
-      maven {
-        url 'https://plugins.gradle.org/m2/'
-      }
-    }
-    dependencies {
-      classpath 'org.springframework.boot:spring-boot-gradle-plugin:2.0.0.RELEASE'
-      classpath 'gradle.plugin.at.comm_unity.gradle.plugins:jpamodelgen-plugin:1.1.4'
-    }
-}
-
 plugins {
   id 'com.palantir.git-version' version '0.10.1'
   id 'com.github.ksoichiro.console.reporter' version '0.5.0'
+  id 'groovy'
+  id 'jacoco'
+  id 'org.springframework.boot' version '2.0.4.RELEASE'
+  id 'io.spring.dependency-management' version '1.0.6.RELEASE'
+  id 'eclipse'
+  id 'idea'
+  id 'at.comm_unity.gradle.plugins.jpamodelgen' version '1.1.4'
 }
-
-apply plugin: 'groovy'
-apply plugin: 'jacoco'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-apply plugin: 'eclipse'
-apply plugin: 'at.comm_unity.gradle.plugins.jpamodelgen'
 
 defaultTasks 'clean', 'test', 'jacocoTestReport', 'build'
 
