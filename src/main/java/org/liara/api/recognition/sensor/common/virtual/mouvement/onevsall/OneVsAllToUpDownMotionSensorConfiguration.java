@@ -1,10 +1,6 @@
 package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonSetter;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.State;
@@ -13,7 +9,10 @@ import org.liara.api.validation.ValidApplicationEntityReference;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class OneVsAllToUpDownMotionSensorConfiguration
        implements SensorConfiguration
@@ -67,11 +66,11 @@ public class OneVsAllToUpDownMotionSensorConfiguration
   }
   
   @JsonSetter
-  public void setValidInputs (@Nullable final Collection<Long> inputs) {
+  public void setValidInputs (@Nullable final Collection<ApplicationEntityReference<Sensor>> inputs) {
     _validInputs.clear();
-    
+
     if (inputs != null) {
-      _validInputs.addAll(ApplicationEntityReference.of(Sensor.class, inputs));
+      _validInputs.addAll(inputs);
     }
   }
   
@@ -93,11 +92,11 @@ public class OneVsAllToUpDownMotionSensorConfiguration
   }
   
   @JsonSetter
-  public void setIgnoredInputs (@Nullable final Collection<Long> ignored) {
+  public void setIgnoredInputs (@Nullable final Collection<ApplicationEntityReference<Sensor>> ignored) {
     _ignoredInputs.clear();
     
     if (ignored != null) {
-      _ignoredInputs.addAll(ApplicationEntityReference.of(Sensor.class, ignored));
+      _ignoredInputs.addAll(ignored);
     }
   }
   

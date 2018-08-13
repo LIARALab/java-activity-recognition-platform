@@ -1,12 +1,10 @@
 package org.liara.api.data.entity;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.collect.Streams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -14,13 +12,17 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.google.common.collect.Streams;
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @JsonPropertyOrder({ "type", "identifier" })
+@JsonDeserialize(using = ApplicationEntityReferenceDeserializer.class)
+@JsonSerialize(using = ApplicationEntityReferenceSerializer.class)
 public class ApplicationEntityReference<ReferencedEntity extends ApplicationEntity>
 {
   @Nullable

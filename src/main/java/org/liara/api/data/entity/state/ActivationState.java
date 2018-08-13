@@ -21,18 +21,9 @@
  ******************************************************************************/
 package org.liara.api.data.entity.state;
 
-import java.time.Duration;
-import java.time.ZonedDateTime;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.Table;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.entity.ApplicationEntityReference;
@@ -41,9 +32,11 @@ import org.liara.api.data.schema.UseCreationSchema;
 import org.liara.api.data.schema.UseMutationSchema;
 import org.springframework.lang.NonNull;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import javax.persistence.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "states_presence")
@@ -126,7 +119,8 @@ public class ActivationState extends State
   }
   
   public Long getNodeIdentifier () {
-    return _node.getIdentifier();
+    if (_node == null) return null;
+    else return _node.getIdentifier();
   }
 
   public void setNodeIdentifier (@NonNull final Long node) {

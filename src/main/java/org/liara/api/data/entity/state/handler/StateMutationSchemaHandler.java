@@ -1,7 +1,5 @@
 package org.liara.api.data.entity.state.handler;
 
-import javax.persistence.EntityManager;
-
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.StateMutationSchema;
 import org.liara.api.data.entity.state.StateSnapshot;
@@ -11,6 +9,9 @@ import org.liara.api.event.StateWillBeMutatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
+
+import javax.persistence.EntityManager;
+import java.time.ZonedDateTime;
 
 @SchemaHandler(StateMutationSchema.class)
 public class StateMutationSchemaHandler
@@ -31,7 +32,8 @@ public class StateMutationSchemaHandler
   ) {
     _eventPublisher.publishEvent(new StateWillBeMutatedEvent(this, schema));
     final StateSnapshot oldValue = schema.getState().resolve(manager).snapshot();
-    final State state = schema.apply();
+    final State         state    = schema.apply(manager);
+    state.setUpdateDate(ZonedDateTime.now());
     manager.merge(state);
     _eventPublisher.publishEvent(new StateWasMutatedEvent(this, oldValue, state));
     return state;

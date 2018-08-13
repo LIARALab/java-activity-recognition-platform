@@ -1,10 +1,5 @@
 package org.liara.api.data.entity.state.handler;
 
-import java.time.ZonedDateTime;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.StateCreationSchema;
@@ -13,6 +8,10 @@ import org.liara.api.event.StateWillBeCreatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
+
+import javax.persistence.EntityManager;
+import java.time.ZonedDateTime;
+import java.util.Map;
 
 public class BaseStateCreationSchemaHandler<Schema extends StateCreationSchema>
 {  
@@ -32,8 +31,8 @@ public class BaseStateCreationSchemaHandler<Schema extends StateCreationSchema>
     @NonNull final State state
   ) {
     state.setCreationDate(ZonedDateTime.now());
+    state.setUpdateDate(ZonedDateTime.now());
     state.setDeletionDate(null);
-    state.setUpdateDate(null);
     state.setEmittionDate(schema.getEmittionDate());
     state.setIdentifier(null);
     state.setSensor(schema.getSensor().resolve(manager));
@@ -51,8 +50,8 @@ public class BaseStateCreationSchemaHandler<Schema extends StateCreationSchema>
     apply(manager, schema, state);
     return state;
   }
-  
-  public State handle (
+
+  protected State handle (
     @NonNull final EntityManager manager,
     @NonNull final Schema schema
   ) {    

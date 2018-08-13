@@ -1,7 +1,5 @@
 package org.liara.api.data.entity;
 
-import org.liara.api.data.entity.sensor.SensorCreationSchema;
-import org.liara.api.data.schema.SchemaHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
@@ -9,7 +7,6 @@ import org.springframework.lang.NonNull;
 import javax.persistence.EntityManager;
 import java.time.ZonedDateTime;
 
-@SchemaHandler(SensorCreationSchema.class)
 public class ApplicationEntityCreationSchemaHandler<CreationSchema extends ApplicationEntityCreationSchema>
 {
   @NonNull

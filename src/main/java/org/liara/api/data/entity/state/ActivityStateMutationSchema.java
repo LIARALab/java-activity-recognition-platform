@@ -1,14 +1,14 @@
 package org.liara.api.data.entity.state;
 
-import java.time.ZonedDateTime;
-
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.liara.api.data.schema.Schema;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import javax.persistence.EntityManager;
+import java.time.ZonedDateTime;
 
 @Schema(ActivityState.class)
 @JsonDeserialize(using = JsonDeserializer.None.class)
@@ -57,19 +57,23 @@ public class ActivityStateMutationSchema extends StateMutationSchema
   public void setTag (@Nullable final String tag) {
     _tag = tag;
   }
-  
-  public void apply (@NonNull final ActivityState state) {
+
+  public void apply (
+    @NonNull final ActivityState state,
+    @NonNull final EntityManager manager
+  )
+  {
     if (_start != null) state.setStart(_start);
     if (_end != null) state.setEnd(_end);
     if (_tag != null) state.setTag(_tag);
   }
   
   @Override
-  public ActivityState apply () {
+  public ActivityState apply (@NonNull final EntityManager manager) {
     final ActivityState result = (ActivityState) getState().resolve();
-    
-    apply(result);
-    super.apply(result);
+
+    apply(result, manager);
+    super.apply(result, manager);
     
     return result;
   }

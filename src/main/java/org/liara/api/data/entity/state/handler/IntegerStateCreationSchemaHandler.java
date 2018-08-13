@@ -1,7 +1,5 @@
 package org.liara.api.data.entity.state.handler;
 
-import javax.persistence.EntityManager;
-
 import org.liara.api.data.entity.state.IntegerState;
 import org.liara.api.data.entity.state.IntegerStateCreationSchema;
 import org.liara.api.data.entity.state.State;
@@ -9,6 +7,8 @@ import org.liara.api.data.schema.SchemaHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
+
+import javax.persistence.EntityManager;
 
 @SchemaHandler(IntegerStateCreationSchema.class)
 public class IntegerStateCreationSchemaHandler
@@ -37,6 +37,12 @@ public class IntegerStateCreationSchemaHandler
     apply(manager, schema, result);
     return result;
   }
-  
-  
+
+  public State handle (
+    @NonNull final EntityManager manager,
+    @NonNull final IntegerStateCreationSchema schema
+  )
+  {
+    return super.handle(manager, schema);
+  }
 }

@@ -21,15 +21,8 @@
  ******************************************************************************/
 package org.liara.api.data.entity.node;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.OneToMany;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Embedded;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.ApplicationEntityReference;
@@ -42,16 +35,8 @@ import org.liara.api.data.schema.UseCreationSchema;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import javax.persistence.*;
+import java.util.*;
 
 @Entity
 @Table(name = "nodes")
@@ -339,6 +324,7 @@ public class      Node
     return ApplicationEntityReference.of(this);
   }
 
+  @JsonIgnore
   public Node getRoot () {
     return _tree.getRoot(this);
   }

@@ -1,20 +1,9 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.activation;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.state.ActivationState;
-import org.liara.api.data.entity.state.ActivationStateCreationSchema;
-import org.liara.api.data.entity.state.ActivationStateMutationSchema;
-import org.liara.api.data.entity.state.BooleanState;
-import org.liara.api.data.entity.state.BooleanStateSnapshot;
-import org.liara.api.data.entity.state.State;
-import org.liara.api.data.entity.state.StateDeletionSchema;
+import org.liara.api.data.entity.state.*;
 import org.liara.api.data.repository.ActivationsRepository;
 import org.liara.api.data.repository.BooleanStateRepository;
 import org.liara.api.data.repository.NodeRepository;
@@ -31,6 +20,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @UseSensorConfigurationOfType(UpDownToActivationSensorConfiguration.class)
 @EmitStateOfType(ActivationState.class)
@@ -80,7 +74,7 @@ public class UpDownToActivationSensor
   
   public Node getActivatedNode () {
     final ApplicationEntityReference<Node> result = getConfiguration().getActivatedNode();
-    
+
     return (result.isNull()) ? getRunner().getSensor().getNode()
                              : _nodes.find(result).get();
   }

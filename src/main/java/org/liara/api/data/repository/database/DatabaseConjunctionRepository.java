@@ -1,22 +1,5 @@
 package org.liara.api.data.repository.database;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Tuple;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Selection;
-
 import org.liara.api.data.Conjunction;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.ApplicationEntity_;
@@ -26,10 +9,23 @@ import org.liara.api.data.entity.state.ActivationState_;
 import org.liara.api.data.repository.ConjunctionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Tuple;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Component
+@Scope("prototype")
 @Primary
 public class DatabaseConjunctionRepository implements ConjunctionRepository
 {

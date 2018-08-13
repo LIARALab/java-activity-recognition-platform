@@ -42,7 +42,7 @@ public class      Sensor
     orphanRemoval = false,
     fetch = FetchType.LAZY
   )
-  private Set<State>   _states = new HashSet<>();
+  private Set<State> _states;
 
   @ManyToOne(optional = false)
   @JoinColumn(name = "node_identifier", nullable = false, unique = false, updatable = false)
@@ -54,15 +54,14 @@ public class      Sensor
   
   @Column(name = "is_virtual_sensor", nullable = false, updatable = true, unique = false)
   private boolean _virtual;
-  
-  public Sensor () { }
-  
-  public Sensor (@NonNull final SensorCreationSchema schema) {
-    _name = schema.getName();
-    _type = schema.getType();
-    _unit = schema.getUnit();
-    _node = schema.getParent().resolve();
-    _configuration = schema.getConfiguration();
+
+  public Sensor () {
+    _name = null;
+    _type = null;
+    _unit = null;
+    _states = new HashSet<>();
+    _node = null;
+    _configuration = null;
   }
 
   public String getName () {

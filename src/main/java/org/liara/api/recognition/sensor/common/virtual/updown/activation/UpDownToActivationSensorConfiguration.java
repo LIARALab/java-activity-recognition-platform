@@ -1,15 +1,14 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.activation;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.recognition.sensor.SensorConfiguration;
-import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 public class UpDownToActivationSensorConfiguration
        implements SensorConfiguration
@@ -49,8 +48,8 @@ public class UpDownToActivationSensorConfiguration
   }
   
   @JsonSetter
-  public void setInputSensor (@Nullable final Long sensor) {
-    _inputSensor = ApplicationEntityReference.of(Sensor.class, sensor);
+  public void setInputSensor (@Nullable final ApplicationEntityReference<Sensor> sensor) {
+    _inputSensor = sensor;
   }
   
   public void setInputSensor (@Nullable final Sensor sensor) {
@@ -64,8 +63,8 @@ public class UpDownToActivationSensorConfiguration
   }
   
   @JsonSetter
-  public void setActivatedNode (@Nullable final Long node) {
-    _activatedNode = ApplicationEntityReference.of(Node.class, node);
+  public void setActivatedNode (@Nullable final ApplicationEntityReference<Node> node) {
+    _activatedNode = node;
   }
   
   public void setActivatedNode (@Nullable final Node node) {

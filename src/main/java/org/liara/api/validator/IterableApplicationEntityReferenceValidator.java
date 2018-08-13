@@ -21,18 +21,18 @@
  ******************************************************************************/
 package org.liara.api.validator;
 
-import javax.annotation.Nullable;
-import javax.persistence.EntityManager;
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
-
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.validation.ValidApplicationEntityReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 
-public class IterableApplicationEntityReferenceValidator 
-       implements ConstraintValidator<ValidApplicationEntityReference, Iterable<ApplicationEntityReference<?>>>
+import javax.annotation.Nullable;
+import javax.persistence.EntityManager;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+
+public class IterableApplicationEntityReferenceValidator
+  implements ConstraintValidator<ValidApplicationEntityReference, Iterable<? extends ApplicationEntityReference>>
 {
   @NonNull
   private final EntityManager _entityManager;
@@ -49,7 +49,7 @@ public class IterableApplicationEntityReferenceValidator
 
   @Override
   public boolean isValid (
-    @Nullable final Iterable<ApplicationEntityReference<?>> value, 
+    @Nullable final Iterable<? extends ApplicationEntityReference> value,
     @NonNull final ConstraintValidatorContext context
   ) {
     if (value == null) return true;

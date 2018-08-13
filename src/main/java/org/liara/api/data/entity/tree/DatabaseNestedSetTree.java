@@ -1,15 +1,14 @@
 package org.liara.api.data.entity.tree;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>> 
        implements NestedSetTree<TreeNode>
@@ -321,12 +320,20 @@ public class DatabaseNestedSetTree<TreeNode extends NestedSetTreeNode<TreeNode>>
   public TreeNode getRoot (@NonNull final TreeNode node) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT node FROM ", _entity.getName(), " node ",
         " WHERE node._coordinates._end >= :childSetEnd ",
-        "   AND node._coordinates._start <= :childSetStart ",
-        "   AND node._coordinates._depth = 0"
-      ), _entity
-    ).getSingleResult();
+        "   AND node._coordinates._start <= :childSetStart ", "   AND node._coordinates._depth = 1"
+      ), _entity)
+                         .setParameter(
+                           "childSetEnd",
+                           node.getCoordinates()
+                               .getEnd()
+                         )
+                         .setParameter(
+                           "childSetStart",
+                           node.getCoordinates()
+                               .getStart()
+                         ).getSingleResult();
   }
 }

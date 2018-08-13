@@ -1,19 +1,19 @@
 package org.liara.api.data.entity.state;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.Streams;
 import org.liara.api.data.schema.Schema;
 import org.liara.api.utils.Beans;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.collect.Streams;
+import javax.persistence.EntityManager;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Schema(BooleanState.class)
 @JsonDeserialize(using = JsonDeserializer.None.class)
@@ -42,17 +42,21 @@ public class BooleanStateMutationSchema extends StateMutationSchema
   public void setValue (@NonNull final Optional<Boolean> value) {
     _value = value.orElse(null);
   }
-  
-  public void apply (@NonNull final BooleanState state) {
+
+  public void apply (
+    @NonNull final BooleanState state,
+    @NonNull final EntityManager manager
+  )
+  {
     if (_value != null) state.setValue(_value);
   }
   
   @Override
-  public BooleanState apply () {
+  public BooleanState apply (@NonNull final EntityManager manager) {
     final BooleanState result = (BooleanState) getState().resolve();
-    
-    apply(result);
-    super.apply(result);
+
+    apply(result, manager);
+    super.apply(result, manager);
     
     return result;
   }

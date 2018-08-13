@@ -21,18 +21,10 @@
  ******************************************************************************/
 package org.liara.api.data.entity.state;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapKeyColumn;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
@@ -41,11 +33,7 @@ import org.liara.api.data.schema.UseMutationSchema;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Objects;
-
+import javax.persistence.*;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -69,9 +57,7 @@ public class State extends ApplicationEntity
 
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(
-    name = "correlations_of_states",
-    joinColumns = @JoinColumn(name = "target_identifier"),
-    inverseJoinColumns = @JoinColumn(name = "correlated_identifier")
+    name = "correlations_of_states", joinColumns = @JoinColumn(name = "master_identifier"), inverseJoinColumns = @JoinColumn(name = "slave_identifier")
   )
   @MapKeyColumn(name = "label")
   private Map<String, State> _correlations;

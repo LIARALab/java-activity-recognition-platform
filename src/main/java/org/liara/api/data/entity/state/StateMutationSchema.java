@@ -1,24 +1,19 @@
 package org.liara.api.data.entity.state;
 
-import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.ApplicationSchema;
-import org.liara.api.data.schema.Schema;
-import org.liara.api.validation.ValidApplicationEntityReference;
-import org.liara.api.validation.Required;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.ApplicationSchema;
+import org.liara.api.data.schema.Schema;
+import org.liara.api.validation.Required;
+import org.liara.api.validation.ValidApplicationEntityReference;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import javax.persistence.EntityManager;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 @Schema(State.class)
 @JsonDeserialize(using = StateMutationSchemaDeserializer.class)
@@ -137,8 +132,12 @@ public class StateMutationSchema implements ApplicationSchema
   public Iterable<Map.Entry<String, ApplicationEntityReference<State>>> correlations () {
     return Collections.unmodifiableSet(_correlations.entrySet());
   }
-  
-  public void apply (@NonNull final State state) {
+
+  public void apply (
+    @NonNull final State state,
+    @NonNull final EntityManager manager
+  )
+  {
     if (_emittionDate != null) state.setEmittionDate(_emittionDate);
     
     for (final String decorrelation : _decorrelations) {
@@ -147,15 +146,16 @@ public class StateMutationSchema implements ApplicationSchema
     
     for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : _correlations.entrySet()) {
       state.correlate(
-        correlation.getKey(), 
-        correlation.getValue().resolve()
+        correlation.getKey(),
+        correlation.getValue()
+                   .resolve(manager)
       );
     }
   }
-  
-  public State apply () {
+
+  public State apply (@NonNull final EntityManager manager) {
     final State state = getState().resolve();
-    apply(state);
+    apply(state, manager);
     return state;
   }
 }

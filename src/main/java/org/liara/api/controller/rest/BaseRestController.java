@@ -21,10 +21,6 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.transformation.MapValueTransformation;
@@ -38,6 +34,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+
 public class BaseRestController
 {
   public <Entity> ResponseEntity<List<Entity>> indexCollection (
@@ -46,6 +45,7 @@ public class BaseRestController
   ) throws InvalidAPIRequestException {
     final APIRequest apiRequest = APIRequest.from(request);
     final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefaultConfigurationOf(collection);
+    configuration.validate(apiRequest);
     final EntityCollection<Entity> fullCollection = configuration.getOperator(apiRequest).apply(collection);
     final List<Entity> content = configuration.getCursor(apiRequest)
                                               .apply(fullCollection)
@@ -76,7 +76,7 @@ public class BaseRestController
   {
     final APIRequest apiRequest = APIRequest.from(request);
     final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefaultConfigurationOf(collection);
-    
+    configuration.validate(apiRequest);
     final EntityCollection<Entity> filtered = configuration.getOperator(apiRequest).apply(collection);
     final EntityCollectionAggregation<Entity, AggregationType> aggregationResult = aggregation.apply(filtered);
     

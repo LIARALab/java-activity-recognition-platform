@@ -1,16 +1,16 @@
 package org.liara.api.data.entity.node;
 
-import java.util.WeakHashMap;
-
-import javax.persistence.EntityManager;
-import javax.transaction.Transactional;
-
 import org.liara.api.data.schema.SchemaHandler;
 import org.liara.api.event.NodeWasCreatedEvent;
 import org.liara.api.event.NodeWillBeCreatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
+
+import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
+import java.time.ZonedDateTime;
+import java.util.WeakHashMap;
 
 @SchemaHandler(NodeCreationSchema.class)
 public class NodeCreationSchemaHandler
@@ -44,8 +44,11 @@ public class NodeCreationSchemaHandler
     _eventPublisher.publishEvent(new NodeWillBeCreatedEvent(this, schema));
     
     final Node node = new Node(schema);
+    node.setCreationDate(ZonedDateTime.now());
+    node.setUpdateDate(ZonedDateTime.now());
+    node.setDeletionDate(null);
+
     final DatabaseNodeTree tree = getTree(manager);
-    
     tree.addNode(node, schema.getParent().resolve(manager));
    
     _eventPublisher.publishEvent(new NodeWasCreatedEvent(this, node));

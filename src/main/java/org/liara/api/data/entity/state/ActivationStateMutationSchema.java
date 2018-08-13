@@ -1,18 +1,18 @@
 package org.liara.api.data.entity.state;
 
-import java.time.ZonedDateTime;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.schema.Schema;
-import org.liara.api.validation.ValidApplicationEntityReference;
-import org.liara.api.validation.Required;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
-
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.schema.Schema;
+import org.liara.api.validation.Required;
+import org.liara.api.validation.ValidApplicationEntityReference;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import javax.persistence.EntityManager;
+import java.time.ZonedDateTime;
 
 @Schema(ActivationState.class)
 @JsonDeserialize(using = JsonDeserializer.None.class)
@@ -68,19 +68,23 @@ public class ActivationStateMutationSchema extends StateMutationSchema
     _node = (node == null) ? ApplicationEntityReference.empty(Node.class)
                            : ApplicationEntityReference.of(node);
   }
-  
-  public void apply (@NonNull final ActivationState state) {
+
+  public void apply (
+    @NonNull final ActivationState state,
+    @NonNull final EntityManager manager
+  )
+  {
     if (_start != null) state.setStart(_start);
     if (_end != null) state.setEnd(_end);
-    if (_node != null) state.setNode(_node.resolve());;
+    if (!_node.isNull()) state.setNode(_node.resolve(manager));
   }
   
   @Override
-  public ActivationState apply () {
-    final ActivationState result = (ActivationState) getState().resolve();
-    
-    apply(result);
-    super.apply(result);
+  public ActivationState apply (@NonNull final EntityManager manager) {
+    final ActivationState result = (ActivationState) getState().resolve(manager);
+
+    apply(result, manager);
+    super.apply(result, manager);
     
     return result;
   }
