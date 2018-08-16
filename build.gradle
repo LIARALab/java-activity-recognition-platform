@@ -65,11 +65,3 @@ jacocoTestReport {
     html.destination file('${buildDir}/reports/coverage')
   }
 }
-
-javadoc {
-  source = sourceSets.main.allJava
-  destinationDir = reporting.file('docs')
-  options.docletpath = [file('D:\\dev\\doctorat\\json-doclet\\build\\libs\\json-doclet-all.jar')]
-  options.doclet = 'org.rnp.javadoc.json.JSONDocumentationDoclet'
-  classpath += sourceSets.main.runtimeClasspath
-}
