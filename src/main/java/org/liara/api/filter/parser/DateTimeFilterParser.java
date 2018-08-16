@@ -71,7 +71,7 @@ public class DateTimeFilterParser implements FilterParser
 
   @NonNull
   public static final Pattern           DATE_PATTERN                = Pattern
-    .compile("((\\[(?<dateFormat>[^\\]]*?)\\]\\[(?<dateValue>[^\\]]*?)\\])|\\[(?<standardDate>[^\\]]*?)\\])");
+    .compile("((\\((?<dateFormat>[^\\)]*?)\\)\\((?<dateValue>[^\\)]*?)\\))|\\((?<standardDate>[^\\)]*?)\\))");
 
   @NonNull
   public static final Pattern           UNGROUPED_DATE_PATTERN      = Pattern
@@ -79,7 +79,7 @@ public class DateTimeFilterParser implements FilterParser
 
   @NonNull
   public static final Pattern           BETWEEN_PATTERN             = Pattern
-    .compile("((\\[(?<dateFormat>[^\\]]*?)\\])?\\[(?<firstDateValue>[^\\]]*?)\\]\\:\\[(?<secondDateValue>[^\\]]*?)\\])");
+    .compile("((\\((?<dateFormat>[^\\)]*?)\\))?\\((?<firstDateValue>[^\\)]*?)\\)\\:\\((?<secondDateValue>[^\\)]*?)\\))");
   
   @NonNull
   public static final Pattern UNGROUPED_BETWEEN_PATTERN = Pattern.compile(

@@ -3,7 +3,7 @@ package org.liara.api.collection.transformation
 import org.liara.api.collection.view.ValueView
 import spock.lang.Specification
 
-public class TransformationSpecification extends Specification
+class TransformationSpecification extends Specification
 {
   def "it can be defined as a lambda" () {
     given: "a lambda transformation"
@@ -17,7 +17,7 @@ public class TransformationSpecification extends Specification
     then: "we expect that the result view was transformed accordingly"
       result.get() == 10
   }
-  
+  /*
   def "it can be applied to another transformation in order to create a transformation chain" () {
     given: "two lambda transformation"
       final Transformation<ValueView<Number>, ValueView<Number>> powTransformation = {
@@ -42,5 +42,5 @@ public class TransformationSpecification extends Specification
           )
         )
       ).get().equals("20") == true
-  }
+  }*/
 }
