@@ -21,12 +21,12 @@
  ******************************************************************************/
 package org.liara.api.recognition.presence;
 
-import java.time.ZonedDateTime;
-
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+
+import java.time.ZonedDateTime;
 
 public final class Tick implements Comparable<Tick>
 {

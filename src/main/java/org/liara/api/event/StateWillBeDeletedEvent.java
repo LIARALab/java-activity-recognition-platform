@@ -1,6 +1,6 @@
 package org.liara.api.event;
 
-import org.liara.api.data.entity.state.StateDeletionSchema;
+import org.liara.api.data.schema.StateDeletionSchema;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.lang.NonNull;
 

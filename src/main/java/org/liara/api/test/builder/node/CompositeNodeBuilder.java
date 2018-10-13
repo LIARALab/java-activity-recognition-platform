@@ -1,16 +1,15 @@
 package org.liara.api.test.builder.node;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.liara.api.data.entity.node.Node;
+import com.google.common.collect.Streams;
+import org.liara.api.data.entity.Node;
 import org.liara.api.data.repository.local.LocalEntityManager;
 import org.liara.api.test.builder.Builder;
 import org.liara.api.test.builder.IdentityBuilder;
 import org.springframework.lang.NonNull;
 
-import com.google.common.collect.Streams;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class CompositeNodeBuilder<
                         Self extends CompositeNodeBuilder<Self, Entity>,

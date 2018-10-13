@@ -1,7 +1,6 @@
 package org.liara.api.request
 
 import org.mockito.Mockito
-
 import spock.lang.Specification
 
 public class ImmutableAPIRequestParameterSpecificiation extends Specification
@@ -15,8 +14,8 @@ public class ImmutableAPIRequestParameterSpecificiation extends Specification
       
     and: "a value"
       final String value = "value"
-      
-    when: "we create a new instance of ImmutableAPIRequestParameter with the given data"
+
+    when: "we instantiate a new instance of ImmutableAPIRequestParameter with the given data"
       final ImmutableAPIRequestParameter parameter = new ImmutableAPIRequestParameter(request, name, value)
     
     then: "the new instance must have a valid request, name and values"
@@ -35,8 +34,8 @@ public class ImmutableAPIRequestParameterSpecificiation extends Specification
       
     and: "an array of values"
       final String[] values = ["first", "second", "third", "last"]
-      
-    when: "we create a new instance of ImmutableAPIRequestParameter with the given data"
+
+    when: "we instantiate a new instance of ImmutableAPIRequestParameter with the given data"
       final ImmutableAPIRequestParameter parameter = new ImmutableAPIRequestParameter(request, name, values)
     
     then: "the new instance must have a valid request, name and values"
@@ -58,8 +57,8 @@ public class ImmutableAPIRequestParameterSpecificiation extends Specification
       
     and: "a collection of values"
       final Collection<String> values = ["first", "second", "third", "last"]
-      
-    when: "we create a new instance of ImmutableAPIRequestParameter with the given data"
+
+    when: "we instantiate a new instance of ImmutableAPIRequestParameter with the given data"
       final ImmutableAPIRequestParameter parameter = new ImmutableAPIRequestParameter(request, name, values)
     
     then: "the new instance must have a valid request, name and values"
@@ -81,8 +80,8 @@ public class ImmutableAPIRequestParameterSpecificiation extends Specification
       
     and: "an iterable of values"
       final List<String> values = ["first", "second", "third", "last"]
-      
-    when: "we create a new instance of ImmutableAPIRequestParameter with the given data"
+
+    when: "we instantiate a new instance of ImmutableAPIRequestParameter with the given data"
       final ImmutableAPIRequestParameter parameter = new ImmutableAPIRequestParameter(
         request, name, values as Iterable<String>
       )
@@ -107,8 +106,8 @@ public class ImmutableAPIRequestParameterSpecificiation extends Specification
     and: "an iterator of values"
       final List<String> values = ["first", "second", "third", "last"]
       final Iterator<String> iterator = values.iterator() as Iterator<String>
-      
-    when: "we create a new instance of ImmutableAPIRequestParameter with the given data"
+
+    when: "we instantiate a new instance of ImmutableAPIRequestParameter with the given data"
       final ImmutableAPIRequestParameter parameter = new ImmutableAPIRequestParameter(
         request, name, iterator
       )
@@ -132,8 +131,8 @@ public class ImmutableAPIRequestParameterSpecificiation extends Specification
       final ImmutableAPIRequestParameter parameter = new ImmutableAPIRequestParameter(
         baseRequest, "base", ["first", "second", "third", "last"] as String[]
       )
-      
-    when: "we create a new instance of ImmutableAPIRequestParameter with the given parameter"
+
+    when: "we instantiate a new instance of ImmutableAPIRequestParameter with the given parameter"
       final ImmutableAPIRequestParameter copy = new ImmutableAPIRequestParameter(
         copyRequest, parameter
       )

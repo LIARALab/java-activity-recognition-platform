@@ -1,12 +1,11 @@
 package org.liara.api.test.builder.sensor;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.liara.api.data.entity.sensor.Sensor;
+import com.google.common.collect.Streams;
+import groovy.lang.Closure;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.local.LocalEntityManager;
-import org.liara.api.recognition.sensor.SensorConfiguration;
 import org.liara.api.test.builder.Builder;
 import org.liara.api.test.builder.IdentityBuilder;
 import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
@@ -14,9 +13,8 @@ import org.liara.api.utils.Closures;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.google.common.collect.Streams;
-
-import groovy.lang.Closure;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class BaseSensorBuilder<
                         Self extends BaseSensorBuilder<Self, Entity>,

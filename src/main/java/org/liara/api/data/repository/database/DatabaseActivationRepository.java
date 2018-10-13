@@ -1,7 +1,7 @@
 package org.liara.api.data.repository.database;
 
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.repository.ActivationsRepository;
 import org.springframework.context.annotation.Primary;
@@ -41,11 +41,11 @@ public class DatabaseActivationRepository
       "",
       "SELECT activation ",
       "FROM ", ActivationState.class.getName(), " activation ",
-      "WHERE activation._start <= :area ",
+      "WHERE activation.start <= :area ",
       "  AND ( ",
-      "       activation._end IS NULL ",
-      "    OR activation._end >= :area ",
-      "  ) AND activation._sensor._identifier = :sensor"
+      "       activation.end IS NULL ",
+      "    OR activation.end >= :area ",
+      "  ) AND activation.sensor.identifier = :sensor"
     ), ActivationState.class).setParameter("area", area)
                                                        .setParameter("sensor", sensor.getIdentifier())
                                                        .getResultList();

@@ -21,53 +21,48 @@
  ******************************************************************************/
 package org.liara.api.data.entity.state;
 
-import javax.persistence.Entity;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.Table;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.schema.UseCreationSchema;
-import org.liara.api.data.schema.UseMutationSchema;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import javax.persistence.Column;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "states_double")
 @PrimaryKeyJoinColumn(name = "state_identifier")
-@UseCreationSchema(DoubleStateCreationSchema.class)
-@UseMutationSchema(DoubleStateMutationSchema.class)
-public class DoubleState extends NumericState
+public class DoubleState
+  extends NumericState
 {
+  @Nullable
+  private Double _value;
+
+  public DoubleState () {
+    super();
+    _value = null;
+  }
+
+  public DoubleState (@NonNull final DoubleState toCopy) {
+    super(toCopy);
+    _value = toCopy.getValue();
+  }
+
   @Column(name = "value", updatable = true, nullable = false, unique = false)
-  private double _value;
-  
-  public DoubleState () { 
-    _value = 0d;
-  }
-
-  public double getValue () {
+  public @Nullable Double getValue () {
     return _value;
   }
 
-  @Override
-  @JsonIgnore
-  public Double getNumber () {
-    return _value;
-  }
-
-  public void setValue (final double value) {
+  public void setValue (@Nullable final Double value) {
     _value = value;
   }
-  
+
   @Override
-  public DoubleStateSnapshot snapshot () {
-    return new DoubleStateSnapshot(this);
-  } 
-  
-  @Override
-  public ApplicationEntityReference<? extends DoubleState> getReference () {
+  @Transient
+  public @NonNull ApplicationEntityReference<? extends DoubleState> getReference () {
     return ApplicationEntityReference.of(this);
+  }
+
+  @Override
+  public @NonNull DoubleState clone () {
+    return new DoubleState(this);
   }
 }

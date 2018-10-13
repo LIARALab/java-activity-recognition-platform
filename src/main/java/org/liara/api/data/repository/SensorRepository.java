@@ -1,11 +1,11 @@
 package org.liara.api.data.repository;
 
-import java.util.List;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Node;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.springframework.lang.NonNull;
+
+import java.util.List;
 
 public interface SensorRepository extends ApplicationEntityRepository<Sensor>
 {

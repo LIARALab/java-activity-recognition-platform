@@ -1,6 +1,6 @@
 package org.liara.api.event;
 
-import org.liara.api.data.entity.node.NodeCreationSchema;
+import org.liara.api.data.schema.NodeCreationSchema;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.lang.NonNull;
 

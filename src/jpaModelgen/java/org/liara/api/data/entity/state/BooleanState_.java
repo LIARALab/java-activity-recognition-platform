@@ -8,7 +8,7 @@ import javax.persistence.metamodel.StaticMetamodel;
 @StaticMetamodel(BooleanState.class)
 public abstract class BooleanState_ extends org.liara.api.data.entity.state.State_ {
 
-	public static volatile SingularAttribute<BooleanState, Boolean> _value;
+  public static volatile SingularAttribute<BooleanState, Boolean> value;
 
 }
 

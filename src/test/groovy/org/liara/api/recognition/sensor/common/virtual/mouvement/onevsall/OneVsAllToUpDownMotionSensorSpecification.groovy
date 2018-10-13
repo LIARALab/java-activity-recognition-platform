@@ -1,31 +1,18 @@
 package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall
 
-import java.time.Duration
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.util.List
-import java.util.stream.Collectors
-
-import org.liara.api.data.entity.sensor.Sensor
-import org.liara.api.data.entity.ApplicationEntityReference
-import org.liara.api.data.entity.node.Node
+import org.liara.api.data.entity.Node
+import org.liara.api.data.entity.Sensor
+import org.liara.api.data.entity.reference.ApplicationEntityReference
 import org.liara.api.data.entity.state.BooleanState
-import org.liara.api.data.entity.state.BooleanStateCreationSchema
-import org.liara.api.data.entity.state.BooleanStateMutationSchema
 import org.liara.api.data.entity.state.BooleanStateSnapshot
 import org.liara.api.data.entity.state.State
-import org.liara.api.data.entity.state.StateDeletionSchema
-import org.liara.api.data.entity.state.StateMutationSchema
-import org.liara.api.data.entity.state.handler.LocalBooleanStateCreationSchemaHandler
-import org.liara.api.data.entity.state.handler.LocalBooleanStateMutationSchemaHandler
-import org.liara.api.data.entity.tree.LocalNestedSetTree
-import org.liara.api.data.repository.local.LocalApplicationEntityRepository
+import org.liara.api.data.handler.LocalBooleanStateCreationSchemaHandler
+import org.liara.api.data.handler.LocalBooleanStateMutationSchemaHandler
 import org.liara.api.data.repository.local.LocalBooleanStateRepository
 import org.liara.api.data.repository.local.LocalEntityManager
 import org.liara.api.data.repository.local.LocalNodeRepository
 import org.liara.api.data.repository.local.LocalSensorRepository
-import org.liara.api.data.schema.SchemaManager
-import org.liara.api.data.schema.TestSchemaManager
+import org.liara.api.data.schema.*
 import org.liara.api.event.StateWasCreatedEvent
 import org.liara.api.event.StateWasMutatedEvent
 import org.liara.api.event.StateWillBeDeletedEvent
@@ -37,6 +24,11 @@ import org.liara.api.test.builder.state.StateSequenceBuilder
 import org.mockito.Mockito
 import org.springframework.lang.NonNull
 import spock.lang.Specification
+
+import java.time.Duration
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.stream.Collectors
 
 public class OneVsAllToUpDownMotionSensorSpecification
        extends Specification
@@ -931,8 +923,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
           at startDate + Duration.ofMinutes(7)
         }).build()
       ).get(0)
-      
-    then: "we expect that the underlying handler will create two flags"
+
+    then: "we expect that the underlying handler will instantiate two flags"
       schemaManager.handledSchemaCount == 2
       
       schemaManager.hasHandled([
@@ -1002,8 +994,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
           "emittionDate": flags[kitchenSensor, 1].emittionDate - Duration.ofMinutes(2)
         ])
       ]);
-      
-    then: "we expect that the underlying handler will create two flags"
+
+    then: "we expect that the underlying handler will instantiate two flags"
       Mockito.verify(runner.handler as OneVsAllToUpDownMotionSensor)
              .onMotionStateWasCreated(mutations[0])
   }
@@ -1060,8 +1052,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
           "value": false
         ])
       ]);
-      
-    then: "we expect that the underlying handler will create two flags"
+
+    then: "we expect that the underlying handler will instantiate two flags"
       Mockito.verify(runner.handler as OneVsAllToUpDownMotionSensor, Mockito.never())
              .onMotionStateWasCreated(mutations[0])
   }

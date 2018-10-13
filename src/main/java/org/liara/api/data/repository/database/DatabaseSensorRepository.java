@@ -1,17 +1,16 @@
 package org.liara.api.data.repository.database;
 
-import java.util.List;
-
-import javax.persistence.EntityManager;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Node;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.repository.SensorRepository;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import java.util.List;
 
 @Component
 @Scope("prototype")

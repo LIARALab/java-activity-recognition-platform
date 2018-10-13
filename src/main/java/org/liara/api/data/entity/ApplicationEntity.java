@@ -1,53 +1,71 @@
 package org.liara.api.data.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.liara.api.utils.Beans;
-import org.springframework.lang.NonNull;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
-import javax.annotation.Nullable;
 import javax.persistence.*;
 import java.time.ZonedDateTime;
-import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Base class for all application entities.
- * 
- * This base class support a standard application identifier field, and
- * declare usual entities lifecycle timestamps fields.
- * 
+ *
+ * This base class declare an identifier field and common entities lifecycle timestamps fields.
+ *
  * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  */
 @MappedSuperclass
 public class ApplicationEntity
        implements Cloneable
 {
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "identifier", nullable = false, updatable = false, unique = true)
   @Nullable
-  private Long          _identifier;
+  private Long _identifier;
 
-  @Column(name = "created_at", nullable = false, updatable = false, unique = false)
-  @ColumnDefault(value = "CURRENT_TIMESTAMP")
+  @Nullable
+  private UUID _uuid;
+
   @Nullable
   private ZonedDateTime _creationDate;
 
-  @Column(name = "updated_at", nullable = false, updatable = true, unique = false)
-  @ColumnDefault(value = "CURRENT_TIMESTAMP")
-  @UpdateTimestamp
   @Nullable
   private ZonedDateTime _updateDate;
 
-  @Column(name = "deleted_at", nullable = true, updatable = true, unique = false)
   @Nullable
   private ZonedDateTime _deletionDate;
-  
+
   /**
-   * Instanciate a new empty application entity.
+   * Return the base type of this entity.
+   *
+   * The base type of this entity is the class that define this entity root table.
+   *
+   * If the given entity class does not have a base type, the ApplicationEntity class will be returned by this method.
+   *
+   * @param entityClass An entity type to evaluate.
+   * @return The given entity type's base type.
+   */
+  public static @NonNull Class<? extends ApplicationEntity> getBaseTypeOf (
+    @NonNull final Class<? extends ApplicationEntity> entityClass
+  )
+  {
+    @NonNull Class<? extends ApplicationEntity>  clazz      = entityClass;
+    @Nullable Class<? extends ApplicationEntity> lastEntity = null;
+
+    while (clazz != ApplicationEntity.class) {
+      if (clazz.isAnnotationPresent(Entity.class)) lastEntity = clazz;
+      clazz = (Class<? extends ApplicationEntity>) clazz.getSuperclass();
+    }
+
+    return (lastEntity == null) ? ApplicationEntity.class : clazz;
+  }
+
+  /**
+   * Instantiate a new empty application entity.
    */
   public ApplicationEntity () {
     _identifier = null;
@@ -57,7 +75,7 @@ public class ApplicationEntity
   }
 
   /**
-   * Instanciate a clone of another application entity.
+   * Instantiate a clone of another application entity.
    *
    * @param toCopy Application entity to clone.
    */
@@ -67,89 +85,122 @@ public class ApplicationEntity
     _updateDate = toCopy.getUpdateDate();
     _deletionDate = toCopy.getDeletionDate();
   }
-  
+
   /**
-   * Entity identifier. 
-   * 
-   * Unique for all entities into a given collection, an unsaved entity will
-   * return a null identifier.
-   * 
+   * Entity identifier.
+   * Unique for all entities into a given collection, an unsaved entity will return a null identifier.
+   *
    * @return The entity identifier, unique for each entities into a given collection.
    */
-  public Long getIdentifier () {
-    return _identifier == null ? null : _identifier.longValue();
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = "identifier", nullable = false, updatable = false, unique = true)
+  public @Nullable Long getIdentifier () {
+    return _identifier;
   }
-  
-  public void setIdentifier (@NonNull final Long identifier) {
+
+  public void setIdentifier (@Nullable @NonNegative final Long identifier) {
     _identifier = identifier;
+  }
+
+  @Column(name = "uuid", nullable = false, updatable = true, unique = true)
+  public @Nullable UUID getUUID () {
+    return _uuid;
+  }
+
+  public void setUUID (@Nullable final UUID uuid) {
+    _uuid = uuid;
   }
 
   /**
    * Return the date of the first insertion of this entity into the application database.
-   * 
-   * This getter will return null if the entity was not already inserted into the database. The creation 
-   * date is automatically initialized at the first entity insertion into the database. 
+   *
+   * This getter will return null if the entity was not already inserted into the database. The creation date is
+   * automatically initialized at the first entity insertion into the database.
    * 
    * This date use by default the time zone of the server that run the application.
    *
    * @return The date of the first insertion of this entity into the application database.
    */
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
-  public ZonedDateTime getCreationDate () {
+  @Column(name = "created_at", nullable = false, updatable = false, unique = false)
+  @ColumnDefault(value = "CURRENT_TIMESTAMP")
+  public @Nullable ZonedDateTime getCreationDate () {
     return _creationDate;
   }
-  
-  public void setCreationDate (@NonNull final ZonedDateTime date) {
+
+  public void setCreationDate (@Nullable final ZonedDateTime date) {
     _creationDate = date;
   }
 
   /**
    * Return the date of deletion of this entity from the application database.
-   * 
-   * This date allow the application to support soft-delete functionality : in order to not erase
-   * entities from the database, the application ignore entries with a non-null deletion date by default.
-   * 
-   * The deletion date is automatically initialized after a call of delete method, and automatically removed 
-   * after a call of the restore method. Do not forget to update the current entity and all entities impacted 
-   * by a deletion or a restoration operation.
+   *
+   * This date allow the application to support soft-delete functionality : in order to not erase entities from the
+   * database, the application ignore entries with a non-null deletion date by default.
+   *
+   * The deletion date is automatically initialized after a call of delete method, and automatically removed after a
+   * call of the restore method. Do not forget to update the current entity and all entities impacted by a deletion or a
+   * restoration operation.
    * 
    * This date use by default the time zone of the server that run the application.
    *
    * @return The date of deletion of this entity from the application database.
    */
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
-  public ZonedDateTime getDeletionDate () {
+  @Column(name = "deleted_at", nullable = true, updatable = true, unique = false)
+  public @Nullable ZonedDateTime getDeletionDate () {
     return _deletionDate;
   }
-  
+
   public void setDeletionDate (@Nullable final ZonedDateTime date) {
     _deletionDate = date;
   }
 
   /**
    * Return the last update date of this entity into the database.
-   * 
-   * Return the date of the last mutation of this entity into the database. This date is
-   * a read-only field automatically setted before any insertion or update operations.
-   * 
-   * If the entity was not already inserted into the application database, this getter will
-   * return null.
+   *
+   * Return the date of the last mutation of this entity into the database. This date is a read-only field automatically
+   * set before any insertion or update operations.
+   *
+   * If the entity was not already inserted into the application database, this getter will return null.
    * 
    * This date use by default the time zone of the server that run the application.
-   * 
+   *
    * @return The date of the last mutation of this entity into the database.
    */
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
-  public ZonedDateTime getUpdateDate () {
+  @Column(name = "updated_at", nullable = false, updatable = true, unique = false)
+  @ColumnDefault(value = "CURRENT_TIMESTAMP")
+  @UpdateTimestamp
+  public @Nullable ZonedDateTime getUpdateDate () {
     return _updateDate;
   }
-  
+
   public void setUpdateDate (@Nullable final ZonedDateTime updateDate) {
     _updateDate = updateDate;
   }
 
+  /**
+   * Return the base type of this entity.
+   * <p>
+   * The base type of this entity is the class that define this entity root table.
+   * <p>
+   * If this entity does not have a base type, the ApplicationEntity class will be returned by this method.
+   *
+   * @return This entity base type.
+   */
   @JsonIgnore
-  public ApplicationEntityReference<? extends ApplicationEntity> getReference () {
+  @Transient
+  public @NonNull Class<? extends ApplicationEntity> getBaseClass () {
+    return ApplicationEntity.getBaseTypeOf(getClass());
+  }
+
+  /**
+   * Return a reference on this entity.
+   *
+   * @return A reference on this entity.
+   */
+  @JsonIgnore
+  @Transient
+  public @NonNull ApplicationEntityReference<? extends ApplicationEntity> getReference () {
     return ApplicationEntityReference.of(this);
   }
 
@@ -159,33 +210,34 @@ public class ApplicationEntity
   @Override
   public int hashCode () {
     if (getIdentifier() == null) return super.hashCode();
-    else return Objects.hash(getClass(), getIdentifier());
+    else return Objects.hash(getBaseClass(), getIdentifier());
   }
 
   /**
    * @see Object#equals(Object)
    */
   @Override
-  public boolean equals (@Nullable final Object object) {
-    if (this == object) return true;
-    if (object == null) return false;
-    if (!getClass().isAssignableFrom(object.getClass())) return false;
-    ApplicationEntity other = (ApplicationEntity) object;
-    
-    if (getIdentifier() == null) return false;
-    else return Objects.equals(getIdentifier(), other.getIdentifier());
-  }
-  
-  public boolean lookLike (@NonNull final Map<String, ?> values) {
-    return Beans.lookLike(this, values);
-  }
-  
-  public ApplicationEntitySnapshot snapshot () {
-    return new ApplicationEntitySnapshot(this);
+  public boolean equals (@Nullable final Object other) {
+    if (this == other) return true;
+    if (other == null) return false;
+
+    if (other instanceof ApplicationEntity) {
+      @NonNull final ApplicationEntity otherEntity = (ApplicationEntity) other;
+
+      return Objects.equals(getBaseClass(), otherEntity.getBaseClass()) &&
+             Objects.equals(_identifier, otherEntity.getIdentifier());
+    }
+
+    return false;
   }
 
+  /**
+   * @see Cloneable#clone()
+   */
   @Override
-  protected ApplicationEntity clone () {
+  protected @NonNull ApplicationEntity clone ()
+  throws CloneNotSupportedException
+  {
     return new ApplicationEntity(this);
   }
 }

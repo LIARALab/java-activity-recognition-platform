@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `states_activity` (
   `start` datetime(6) NOT NULL,
   `end` datetime(6) NOT NULL,
   `tag` varchar(200) NOT NULL,
-  PRIMARY KEY (`identifier`)
+  PRIMARY KEY (`identifier`),
   KEY `state_activity_to_state` (`state_identifier`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

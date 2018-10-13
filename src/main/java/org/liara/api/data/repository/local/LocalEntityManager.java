@@ -1,22 +1,12 @@
 package org.liara.api.data.repository.local;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.WeakHashMap;
-
-import javax.persistence.Entity;
-
+import com.google.common.collect.Streams;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.springframework.lang.NonNull;
 
-import com.google.common.collect.Streams;
+import javax.persistence.Entity;
+import java.util.*;
 
 public class LocalEntityManager
 {

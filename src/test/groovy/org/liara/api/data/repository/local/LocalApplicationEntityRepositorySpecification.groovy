@@ -1,15 +1,12 @@
 package org.liara.api.data.repository.local
 
 import org.liara.api.data.entity.ApplicationEntity
-import org.liara.api.data.entity.ApplicationEntityReference
-import org.liara.api.data.entity.sensor.Sensor
-import org.liara.api.data.repository.ApplicationEntityRepository
-import org.liara.api.test.builder.entity.ApplicationEntityBuilder
+import org.liara.api.data.entity.Sensor
+import org.liara.api.data.entity.reference.ApplicationEntityReference
 import org.liara.api.test.builder.sensor.SensorBuilder
-
 import spock.lang.Specification
 
-public class LocalApplicationEntityRepositorySpecification 
+public class LocalApplicationEntityRepositorySpecification
        extends Specification
 {
   def List<Sensor> generateEntities (final int count) {

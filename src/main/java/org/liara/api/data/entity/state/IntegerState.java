@@ -21,53 +21,51 @@
  ******************************************************************************/
 package org.liara.api.data.entity.state;
 
-import javax.persistence.Entity;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.Table;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.schema.UseCreationSchema;
-import org.liara.api.data.schema.UseMutationSchema;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import javax.persistence.Column;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "states_integer")
 @PrimaryKeyJoinColumn(name = "state_identifier")
-@UseCreationSchema(IntegerStateCreationSchema.class)
-@UseMutationSchema(IntegerStateMutationSchema.class)
-public class IntegerState extends NumericState
+public class IntegerState
+  extends NumericState
 {
-  @Column(name = "value", nullable = false, updatable = true, unique = false)
-  private int _value;
-  
-  public IntegerState () { 
-    _value = 0;
+  @Nullable
+  private Integer _value;
+
+  public IntegerState () {
+    super();
+    _value = null;
   }
 
-  public int getValue () {
+  public IntegerState (@NonNull final IntegerState toCopy) {
+    super(toCopy);
+    _value = toCopy.getValue();
+  }
+
+  @Column(name = "value", updatable = true, nullable = false, unique = false)
+  public @Nullable Integer getValue () {
     return _value;
   }
 
-  public void setValue (final int value) {
+  public void setValue (
+    @Nullable final Integer value
+  )
+  {
     _value = value;
   }
 
   @Override
-  @JsonIgnore
-  public Integer getNumber () {
-    return _value;
-  }
-  
-  @Override
-  public IntegerStateSnapshot snapshot () {
-    return new IntegerStateSnapshot(this);
-  }  
-  
-  @Override
-  public ApplicationEntityReference<? extends IntegerState> getReference () {
+  @Transient
+  public @NonNull ApplicationEntityReference<? extends IntegerState> getReference () {
     return ApplicationEntityReference.of(this);
+  }
+
+  @Override
+  public @NonNull IntegerState clone () {
+    return new IntegerState(this);
   }
 }

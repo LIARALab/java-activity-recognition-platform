@@ -1,19 +1,14 @@
 package org.liara.api.data.repository;
 
-import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
+import groovy.lang.Range;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.State;
 import org.springframework.lang.NonNull;
 
-import groovy.lang.Range;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 public interface TimeSeriesRepository<TimeState extends State>
        extends ApplicationEntityRepository<TimeState>

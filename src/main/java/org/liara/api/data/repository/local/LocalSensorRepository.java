@@ -1,22 +1,14 @@
 package org.liara.api.data.repository.local;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Node;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.repository.SensorRepository;
 import org.springframework.lang.NonNull;
+
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class LocalSensorRepository
        extends LocalApplicationEntityRepository<Sensor>

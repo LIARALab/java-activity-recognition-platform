@@ -1,9 +1,9 @@
 package org.liara.api.data.repository.database;
 
 import org.liara.api.data.Conjunction;
-import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.ApplicationEntity_;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.ActivationState_;
 import org.liara.api.data.repository.ConjunctionRepository;
@@ -57,16 +57,14 @@ public class DatabaseConjunctionRepository implements ConjunctionRepository
     
     final Expression<ZonedDateTime> conjunctionEnd = builder.function(
       "LEAST", ZonedDateTime.class,
-      selections.stream()
-                .map(entry -> entry.getValue().get(ActivationState_._end))
+      selections.stream().map(entry -> entry.getValue().get(ActivationState_.end))
                 .collect(Collectors.toList())
                 .toArray(new Expression[selections.size()])
     );
     
     final Expression<ZonedDateTime> conjunctionStart = builder.function(
       "GREATEST", ZonedDateTime.class,
-      selections.stream()
-                .map(entry -> entry.getValue().get(ActivationState_._start))
+      selections.stream().map(entry -> entry.getValue().get(ActivationState_.start))
                 .collect(Collectors.toList())
                 .toArray(new Expression[selections.size()])
     );
@@ -82,9 +80,7 @@ public class DatabaseConjunctionRepository implements ConjunctionRepository
       predicates.add(
         builder.equal(
           selections.get(index)
-                    .getValue()
-                    .get(ActivationState_._sensor)
-                    .get(ApplicationEntity_._identifier),
+                    .getValue().get(ActivationState_.sensor).get(ApplicationEntity_.identifier),
           selections.get(index).getKey()
         )
       );
@@ -92,8 +88,7 @@ public class DatabaseConjunctionRepository implements ConjunctionRepository
       predicates.add(
         builder.lessThanOrEqualTo(
           selections.get(index)
-                    .getValue()
-                    .get(ActivationState_._start),
+                    .getValue().get(ActivationState_.start),
           conjunctionEnd
         )
       );
@@ -101,8 +96,7 @@ public class DatabaseConjunctionRepository implements ConjunctionRepository
       predicates.add(
         builder.greaterThanOrEqualTo(
           selections.get(index)
-                    .getValue()
-                    .get(ActivationState_._end),
+                    .getValue().get(ActivationState_.end),
           conjunctionStart
         )
       );

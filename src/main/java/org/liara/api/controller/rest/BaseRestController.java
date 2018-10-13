@@ -21,77 +21,81 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import org.liara.api.collection.EntityCollection;
-import org.liara.api.collection.configuration.CollectionRequestConfiguration;
-import org.liara.api.collection.transformation.MapValueTransformation;
-import org.liara.api.collection.transformation.aggregation.EntityAggregationTransformation;
-import org.liara.api.collection.transformation.grouping.EntityCollectionGroupTransformation;
-import org.liara.api.collection.view.EntityCollectionAggregation;
-import org.liara.api.collection.view.MapView;
-import org.liara.api.request.APIRequest;
-import org.liara.api.request.validator.error.InvalidAPIRequestException;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.collection.CollectionFactory;
+import org.liara.api.collection.CollectionRequestConfiguration;
+import org.liara.collection.jpa.JPAEntityCollection;
+import org.liara.request.APIRequest;
+import org.liara.request.validator.APIRequestValidation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 public class BaseRestController
 {
-  public <Entity> ResponseEntity<List<Entity>> indexCollection (
-    @NonNull final EntityCollection<Entity> collection, 
+  @NonNull
+  private final CollectionFactory _collections;
+
+  public BaseRestController (@NonNull final CollectionFactory collections) {
+    _collections = collections;
+  }
+
+  protected <Entity> @NonNull Long count (
+    @NonNull final Class<Entity> entity, @NonNull final HttpServletRequest request
+  )
+  {
+    return apply(_collections.getCollection(entity), _collections.getConfiguration(entity), request).select(
+      "COUNT(:this)",
+      Long.class
+    ).getSingleResult();
+  }
+
+  protected <Entity> @NonNull ResponseEntity<@NonNull List<@NonNull Entity>> index (
+    @NonNull final Class<Entity> entity,
     @NonNull final HttpServletRequest request
-  ) throws InvalidAPIRequestException {
-    final APIRequest apiRequest = APIRequest.from(request);
-    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefaultConfigurationOf(collection);
-    configuration.validate(apiRequest);
-    final EntityCollection<Entity> fullCollection = configuration.getOperator(apiRequest).apply(collection);
-    final List<Entity> content = configuration.getCursor(apiRequest)
-                                              .apply(fullCollection)
-                                              .get();
-    
-    if (content.size() >= fullCollection.getSize()) {
+  )
+  {
+    return toResponse(apply(_collections.getCollection(entity), _collections.getConfiguration(entity), request));
+  }
+
+  protected <Entity> @NonNull Entity get (
+    @NonNull final Class<Entity> entity, @PathVariable final Long identifier
+  )
+  {
+    return _collections.getEntity(entity, identifier);
+  }
+
+  protected <Entity> @NonNull ResponseEntity<@NonNull List<@NonNull Entity>> toResponse (
+    @NonNull final JPAEntityCollection<Entity> collection
+  )
+  {
+    @NonNull final List<@NonNull Entity> content = collection.find();
+
+    if (content.size() >= collection.select("COUNT(*)", Long.class).getSingleResult()) {
       return new ResponseEntity<>(content, HttpStatus.OK);
     } else {
       return new ResponseEntity<>(content, HttpStatus.PARTIAL_CONTENT);
     }
   }
-  
-  public <Entity, AggregationType> ResponseEntity<Object> aggregate (
-    @NonNull final EntityCollection<Entity> collection,
-    @NonNull final HttpServletRequest request,
-    @NonNull final EntityAggregationTransformation<Entity, AggregationType> aggregation
-  ) throws InvalidAPIRequestException {
-    return aggregate(collection, request, aggregation, MapValueTransformation.identity());
+
+  protected <Entity> @NonNull JPAEntityCollection<Entity> apply (
+    @NonNull final JPAEntityCollection<Entity> collection,
+    @NonNull final CollectionRequestConfiguration<Entity> configuration,
+    @NonNull final HttpServletRequest request
+  )
+  {
+    final APIRequest apiRequest           = new APIRequest(request.getParameterMap());
+    final APIRequestValidation validation = configuration.validate(apiRequest);
+
+    validation.throwIfInvalid();
+
+    return (JPAEntityCollection<Entity>) configuration.parse(apiRequest).apply(collection);
   }
 
-  public <Entity, AggregationType, Cast> ResponseEntity<Object> aggregate (
-    @NonNull final EntityCollection<Entity> collection,
-    @NonNull final HttpServletRequest request,
-    @NonNull final EntityAggregationTransformation<Entity, AggregationType> aggregation,
-    @NonNull final MapValueTransformation<AggregationType, Cast> cast
-  )
-    throws InvalidAPIRequestException
-  {
-    final APIRequest apiRequest = APIRequest.from(request);
-    final CollectionRequestConfiguration<Entity> configuration = CollectionRequestConfiguration.getDefaultConfigurationOf(collection);
-    configuration.validate(apiRequest);
-    final EntityCollection<Entity> filtered = configuration.getOperator(apiRequest).apply(collection);
-    final EntityCollectionAggregation<Entity, AggregationType> aggregationResult = aggregation.apply(filtered);
-    
-    final EntityCollectionGroupTransformation<Entity> groups = configuration.getGrouping(apiRequest);
-    
-    if (groups == null) {
-      return new ResponseEntity<>(
-        cast.apply(aggregationResult).get(), 
-        HttpStatus.OK
-      );
-    } else {      
-      return new ResponseEntity<>(
-        cast.apply(MapView.apply(groups.apply(aggregationResult))).get(), 
-        HttpStatus.OK
-      );
-    }
+  protected @NonNull CollectionFactory getCollections () {
+    return _collections;
   }
 }

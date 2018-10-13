@@ -1,20 +1,19 @@
 package org.liara.api.test.builder.node;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.tree.NestedSetTree;
+import com.google.common.collect.Streams;
+import org.liara.api.data.entity.Node;
+import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.data.tree.NestedSetRepository;
 import org.liara.api.test.builder.Builder;
 import org.liara.api.test.builder.IdentityBuilder;
 import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.google.common.collect.Streams;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public abstract class BaseNodeBuilder<
                         Self extends BaseNodeBuilder<Self, Entity>,
@@ -23,7 +22,7 @@ public abstract class BaseNodeBuilder<
                 extends BaseApplicationEntityBuilder<Self, Entity>
 {  
   @Nullable
-  private NestedSetTree<Node> _tree;
+  private NestedSetRepository<Node> _tree;
   
   @Nullable
   private String _name;
@@ -33,8 +32,8 @@ public abstract class BaseNodeBuilder<
   
   @NonNull
   private final Set<Builder<?, ? extends Sensor>> _sensors = new HashSet<>();
-  
-  public Self withTree (@Nullable final NestedSetTree<Node> tree) {
+
+  public Self withTree (@Nullable final NestedSetRepository<Node> tree) {
     _tree = tree;
     return self();
   }

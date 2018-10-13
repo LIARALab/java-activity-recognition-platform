@@ -23,43 +23,32 @@ package org.liara.api.data.entity.state;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.schema.UseCreationSchema;
-import org.liara.api.data.schema.UseMutationSchema;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Entity
 @Table(name = "states")
 @Inheritance(strategy = InheritanceType.JOINED)
-@UseCreationSchema(StateCreationSchema.class)
-@UseMutationSchema(StateMutationSchema.class)
 public class State extends ApplicationEntity
-{  
-  @Column(name = "emitted_at", nullable = false, updatable = true, unique = false)
+{
+  @Nullable
   private ZonedDateTime _emittionDate;
-  
-  @ManyToOne(optional = false)
-  @JoinColumn(name = "sensor_identifier", nullable = false, unique = false, updatable = true)
+
+  @Nullable
   private Sensor _sensor;
 
-  @ManyToMany(cascade = CascadeType.ALL)
-  @JoinTable(
-    name = "correlations_of_states", joinColumns = @JoinColumn(name = "master_identifier"), inverseJoinColumns = @JoinColumn(name = "slave_identifier")
-  )
-  @MapKeyColumn(name = "label")
+  @NonNull
   private Map<String, State> _correlations;
   
   public State () { 
@@ -67,17 +56,46 @@ public class State extends ApplicationEntity
     _sensor = null;
     _correlations = new HashMap<>();
   }
+
+  public State (@NonNull final State toCopy) {
+    _emittionDate = toCopy.getEmittionDate();
+    _sensor = toCopy.getSensor();
+    _correlations = new HashMap<>(toCopy.getCorrelations());
+  }
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
-  public ZonedDateTime getEmittionDate () {
+  @Column(name = "emitted_at", nullable = false, updatable = true, unique = false)
+  public @Nullable ZonedDateTime getEmittionDate () {
     return _emittionDate;
+  }
+
+  public void setEmittionDate (@Nullable final ZonedDateTime emittionDate) {
+    _emittionDate = emittionDate;
   }
   
   @JsonIgnore
-  public Sensor getSensor () {
+  @ManyToOne(optional = false)
+  @JoinColumn(name = "sensor_identifier", nullable = false, unique = false, updatable = true)
+  public @Nullable Sensor getSensor () {
     return _sensor;
   }
-  
+
+  public void setSensor (@Nullable final Sensor sensor) {
+    if (_sensor != sensor) {
+      if (_sensor != null) {
+        @NonNull final Sensor oldSensor = _sensor;
+        _sensor = null;
+        oldSensor.removeState(this);
+      }
+
+      _sensor = sensor;
+
+      if (_sensor != null) {
+        _sensor.addState(this);
+      }
+    }
+  }
+
   public void correlate (
     @NonNull final String label, 
     @NonNull final State state
@@ -92,37 +110,48 @@ public class State extends ApplicationEntity
     final String unifiedLabel = label.toLowerCase().trim();
     _correlations.remove(unifiedLabel);
   }
-  
-  public Iterable<Map.Entry<String, State>> correlations () {
-    return Collections.unmodifiableSet(_correlations.entrySet());
-  }
-  
-  public State getCorrelation (@NonNull final String label) {
+
+  @Transient
+  public @NonNull Optional<State> getCorrelation (@NonNull final String label) {
     final String unifiedLabel = label.toLowerCase().trim();
-    return _correlations.get(unifiedLabel);
+    return Optional.ofNullable(_correlations.getOrDefault(unifiedLabel, null));
   }
 
   @JsonIgnore
-  public Set<Map.Entry<String, State>> getCorrelations () {
-    return Collections.unmodifiableSet(_correlations.entrySet());
+  @ManyToMany(cascade = CascadeType.ALL)
+  @JoinTable(name = "correlations_of_states", joinColumns = @JoinColumn(name = "master_identifier"),
+    inverseJoinColumns = @JoinColumn(name = "slave_identifier"))
+  @MapKeyColumn(name = "label")
+  public @NonNull Map<String, State> getCorrelations () {
+    return Collections.unmodifiableMap(_correlations);
   }
-  
-  @JsonProperty("correlations")
-  public Set<Object[]> getJSONCorrelations () {
-    return _correlations.entrySet().stream().map(entry -> {
-      return new Object[] { entry.getKey(), entry.getValue().getIdentifier() };
-    }).collect(Collectors.toSet());
+
+  public void setCorrelations (@Nullable final Map<@NonNull String, @NonNull State> correlations) {
+    removeAllCorrelations();
+    if (correlations != null) addCorrelations(correlations);
   }
-  
+
+  private void addCorrelations (@NonNull final Map<@NonNull String, @NonNull State> correlations) {
+    for (final Map.@NonNull Entry<@NonNull String, @NonNull State> entry : correlations.entrySet()) {
+      correlate(entry.getKey(), entry.getValue());
+    }
+  }
+
+  public void removeAllCorrelations () {
+    while (_correlations.size() > 0) { decorrelate(_correlations.keySet().iterator().next()); }
+  }
+
   public boolean hasCorrelation (@NonNull final String label) {
     final String unifiedLabel = label.toLowerCase().trim();
     return _correlations.containsKey(unifiedLabel);
   }
-  
+
+  @Transient
   public boolean isCorrelated (@NonNull final State state) {
     return _correlations.containsValue(state);
   }
-  
+
+  @Transient
   public boolean isCorrelated (
     @NonNull final String label,
     @NonNull final State state
@@ -131,52 +160,13 @@ public class State extends ApplicationEntity
     return Objects.equal(_correlations.get(unifiedLabel), state);
   }
   
-  public void setSensor (@Nullable final Sensor sensor) {
-    if (_sensor != sensor) {
-      if (_sensor != null) {
-        final Sensor oldSensor = _sensor;
-        _sensor = null;
-        oldSensor.removeState(this);
-      }
-      
-      _sensor = sensor;
-      
-      if (_sensor != null) {
-        _sensor.addState(this);
-      }
-    }
-  }
-
-  public Long getSensorIdentifier () {
-    return _sensor == null ? null : _sensor.getIdentifier();
-  }
-
-  public void setEmittionDate (@NonNull final ZonedDateTime emittionDate) {
-    _emittionDate = emittionDate;
-  }
-
-  @JsonIgnore
-  public Long getNodeIdentifier () {
-    return _sensor.getNodeIdentifier();
-  }
-  
   @Override
-  public StateSnapshot snapshot () {
-    return new StateSnapshot(this);
-  }  
-  
-  @Override
-  public ApplicationEntityReference<? extends State> getReference () {
+  @Transient
+  public @NonNull ApplicationEntityReference<? extends State> getReference () {
     return ApplicationEntityReference.of(this);
   }
 
   @Override
-  public String toString () {
-    return String.join(
-      "", 
-      super.toString(), "[",
-      "sensor : ", _sensor == null ? null : _sensor.toString(), ", ",
-      "emittionDate : ", _emittionDate == null ? null : _emittionDate.toString(), "]"
-    );
-  }
+  public @NonNull State clone ()
+  { return new State(this); }
 }

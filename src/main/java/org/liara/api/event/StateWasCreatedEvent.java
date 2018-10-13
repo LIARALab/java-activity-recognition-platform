@@ -1,7 +1,6 @@
 package org.liara.api.event;
 
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.entity.state.StateSnapshot;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.lang.NonNull;
 
@@ -13,7 +12,7 @@ public class StateWasCreatedEvent extends ApplicationEvent
   private static final long serialVersionUID = 784473504749676317L;
   
   @NonNull
-  private final StateSnapshot _state;
+  private final State _state;
   
   /**
    * 
@@ -25,10 +24,10 @@ public class StateWasCreatedEvent extends ApplicationEvent
     @NonNull final State state
   ) {
     super(source);
-    _state = state.snapshot();
+    _state = state.clone();
   }
 
-  public StateSnapshot getState () {
-    return _state;
+  public State getState () {
+    return _state.clone();
   }
 }

@@ -1,19 +1,15 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.ceil;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.Objects;
-
 import org.hibernate.cfg.NotYetImplementedException;
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.BooleanState;
-import org.liara.api.data.entity.state.BooleanStateCreationSchema;
-import org.liara.api.data.entity.state.BooleanStateMutationSchema;
 import org.liara.api.data.entity.state.NumericState;
 import org.liara.api.data.entity.state.NumericStateSnapshot;
-import org.liara.api.data.entity.state.StateDeletionSchema;
+import org.liara.api.data.schema.BooleanStateCreationSchema;
+import org.liara.api.data.schema.BooleanStateMutationSchema;
 import org.liara.api.data.schema.SchemaManager;
+import org.liara.api.data.schema.StateDeletionSchema;
 import org.liara.api.event.StateWasCreatedEvent;
 import org.liara.api.event.StateWasMutatedEvent;
 import org.liara.api.event.StateWillBeDeletedEvent;
@@ -26,6 +22,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Objects;
 
 @UseSensorConfigurationOfType(CeilToUpDownConvertionSensorConfiguration.class)
 @EmitStateOfType(BooleanState.class)

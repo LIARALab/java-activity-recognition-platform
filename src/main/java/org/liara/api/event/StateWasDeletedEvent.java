@@ -1,6 +1,6 @@
 package org.liara.api.event;
 
-import org.liara.api.data.entity.state.StateSnapshot;
+import org.liara.api.data.entity.state.State;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.lang.NonNull;
 
@@ -12,7 +12,7 @@ public class StateWasDeletedEvent extends ApplicationEvent
   private static final long serialVersionUID = 784473504749676317L;
   
   @NonNull
-  private final StateSnapshot _state;
+  private final State _state;
   
   /**
    * 
@@ -20,14 +20,13 @@ public class StateWasDeletedEvent extends ApplicationEvent
    * @param state
    */
   public StateWasDeletedEvent(
-    @NonNull final Object source,
-    @NonNull final StateSnapshot state
+    @NonNull final Object source, @NonNull final State state
   ) {
     super(source);
     _state = state;
   }
 
-  public StateSnapshot getState () {
+  public State getState () {
     return _state;
   }
 }

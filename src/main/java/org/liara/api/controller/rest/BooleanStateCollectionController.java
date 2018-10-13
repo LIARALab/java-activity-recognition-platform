@@ -21,24 +21,18 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.liara.api.collection.EntityNotFoundException;
-import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
-import org.liara.api.data.collection.BooleanStateCollection;
+import io.swagger.annotations.Api;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.collection.CollectionFactory;
 import org.liara.api.data.entity.state.BooleanState;
-import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import org.springframework.lang.NonNull;
-
-import io.swagger.annotations.Api;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @RestController
 @Api(
@@ -50,29 +44,38 @@ import io.swagger.annotations.Api;
     consumes = "application/json",
     protocols = "http"
 )
-public final class BooleanStateCollectionController extends BaseRestController
+public class BooleanStateCollectionController
+  extends BaseRestController
 {
   @Autowired
-  @NonNull
-  private BooleanStateCollection _collection;
+  public BooleanStateCollectionController (
+    @NonNull final CollectionFactory collections
+  )
+  {
+    super(collections);
+  }
 
   @GetMapping("/states<boolean>/count")
-  public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return aggregate(
-      _collection, request, 
-      EntityCountAggregationTransformation.create()
-    );
+  public @NonNull Long count (
+    @NonNull final HttpServletRequest request
+  )
+  {
+    return count(BooleanState.class, request);
   }
 
   @GetMapping("/states<boolean>")
-  public ResponseEntity<List<BooleanState>> index (@NonNull final HttpServletRequest request)
-    throws InvalidAPIRequestException
+  public @NonNull ResponseEntity<@NonNull List<@NonNull BooleanState>> index (
+    @NonNull final HttpServletRequest request
+  )
   {
-    return indexCollection(_collection, request);
+    return index(BooleanState.class, request);
   }
 
   @GetMapping("/states<boolean>/{identifier}")
-  public BooleanState get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdentifierOrFail(identifier);
+  public @NonNull BooleanState get (
+    @PathVariable final Long identifier
+  )
+  {
+    return get(BooleanState.class, identifier);
   }
 }

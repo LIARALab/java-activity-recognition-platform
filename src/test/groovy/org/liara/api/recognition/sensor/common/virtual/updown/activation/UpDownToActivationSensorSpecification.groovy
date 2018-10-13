@@ -1,42 +1,22 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.activation
 
-import java.rmi.activation.ActivationMonitor
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.util.stream.Collectors
-
-import org.liara.api.data.entity.ApplicationEntityReference
-import org.liara.api.data.entity.node.Node
-import org.liara.api.data.entity.sensor.Sensor
-import org.liara.api.data.entity.state.ActivationState
-import org.liara.api.data.entity.state.ActivationStateCreationSchema
-import org.liara.api.data.entity.state.ActivationStateMutationSchema
+import org.liara.api.data.entity.Node
+import org.liara.api.data.entity.Sensor
+import org.liara.api.data.entity.reference.ApplicationEntityReference
 import org.liara.api.data.entity.state.BooleanState
-import org.liara.api.data.entity.state.BooleanStateMutationSchema
 import org.liara.api.data.entity.state.BooleanStateSnapshot
 import org.liara.api.data.entity.state.State
-import org.liara.api.data.entity.state.StateDeletionSchema
-import org.liara.api.data.entity.state.StateMutationSchema
-import org.liara.api.data.entity.state.handler.LocalActivationStateMutationSchemaHandler
-import org.liara.api.data.entity.state.handler.LocalActivationStateSchemaHandler
-import org.liara.api.data.entity.state.handler.LocalStateMutationSchemaHandler
-import org.liara.api.data.entity.tree.LocalNestedSetTree
-import org.liara.api.data.repository.local.ApplicationEntityIdentifiers
+import org.liara.api.data.handler.LocalActivationStateMutationSchemaHandler
+import org.liara.api.data.handler.LocalActivationStateSchemaHandler
 import org.liara.api.data.repository.local.LocalActivationsRepository
-import org.liara.api.data.repository.local.LocalApplicationEntityRepository
 import org.liara.api.data.repository.local.LocalBooleanStateRepository
 import org.liara.api.data.repository.local.LocalEntityManager
 import org.liara.api.data.repository.local.LocalNodeRepository
-import org.liara.api.data.repository.local.LocalTimeSeriesRepository
-import org.liara.api.data.schema.SchemaManager
-import org.liara.api.data.schema.TestSchemaManager
+import org.liara.api.data.schema.*
 import org.liara.api.event.StateWasCreatedEvent
-import org.liara.api.event.StateWasDeletedEvent
 import org.liara.api.event.StateWasMutatedEvent
 import org.liara.api.event.StateWillBeDeletedEvent
-import org.liara.api.recognition.sensor.VirtualSensorHandler
 import org.liara.api.recognition.sensor.VirtualSensorRunner
-import org.liara.api.recognition.sensor.common.NativeBooleanSensor
 import org.liara.api.test.builder.node.NodeBuilder
 import org.liara.api.test.builder.sensor.SensorBuilder
 import org.liara.api.test.builder.state.BooleanStateBuilder
@@ -45,7 +25,11 @@ import org.mockito.Mockito
 import org.springframework.lang.NonNull
 import spock.lang.Specification
 
-public class UpDownToActivationSensorSpecification 
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.stream.Collectors
+
+public class UpDownToActivationSensorSpecification
        extends Specification
 {
   /**

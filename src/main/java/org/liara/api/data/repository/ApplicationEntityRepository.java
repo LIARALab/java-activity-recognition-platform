@@ -1,11 +1,11 @@
 package org.liara.api.data.repository;
 
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.springframework.lang.NonNull;
+
 import java.util.List;
 import java.util.Optional;
-
-import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.springframework.lang.NonNull;
 
 public interface ApplicationEntityRepository<Entity extends ApplicationEntity>
 {

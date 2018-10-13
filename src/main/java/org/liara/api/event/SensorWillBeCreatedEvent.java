@@ -1,6 +1,6 @@
 package org.liara.api.event;
 
-import org.liara.api.data.entity.sensor.SensorCreationSchema;
+import org.liara.api.data.schema.SensorCreationSchema;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.lang.NonNull;
 

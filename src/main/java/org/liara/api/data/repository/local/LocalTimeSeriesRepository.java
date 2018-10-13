@@ -1,25 +1,15 @@
 package org.liara.api.data.repository.local;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.TimeSeriesRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class LocalTimeSeriesRepository<TimeState extends State>
        extends LocalApplicationEntityRepository<TimeState>

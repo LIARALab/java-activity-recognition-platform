@@ -1,23 +1,8 @@
 package org.liara.api.data.repository.database;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.MapJoin;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.sensor.Sensor_;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.Sensor_;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.State_;
 import org.liara.api.data.repository.TimeSeriesRepository;
@@ -26,6 +11,16 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
@@ -168,14 +163,13 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
     for (final Map.Entry<String, ApplicationEntityReference<? extends State>> correlation : correlations.entrySet()) {
       predicates.add(builder.equal(
         rootCorrelations.on(
-          builder.equal(rootCorrelations.key(), correlation.getKey())
-        ).value().get(Sensor_._identifier), 
+          builder.equal(rootCorrelations.key(), correlation.getKey())).value().get(Sensor_.identifier),
         correlation.getValue().getIdentifier()
       ));
     }
     
     predicates.add(builder.equal(
-      root.get(State_._sensor).get(Sensor_._identifier),
+      root.get(State_.sensor).get(Sensor_.identifier),
       sensor.getIdentifier()
     ));
     
@@ -193,12 +187,12 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
-        " WHERE KEY(state._correlations) IN :keys ",
-        "   AND state._correlations._identifier = :correlated ",
-        "   AND state._sensor._identifier = :sensor "
+        " WHERE KEY(state.orrelations) IN :keys ",
+        "   AND state._correlations.identifier = :correlated ",
+        "   AND state.sensor.identifier = :sensor "
       ), _stateType
     ).setParameter("correlated", correlated.getIdentifier())
      .setParameter("sensor", sensor.getIdentifier())
@@ -212,11 +206,11 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
-        " WHERE state._sensor._identifier IN :sensors ",
-        " ORDER BY state._emittionDate ASC"
+        " WHERE state.sensor.identifier IN :sensors ",
+        " ORDER BY state.emittionDate ASC"
       ), _stateType
     ).setParameter(
       "sensors", 
@@ -269,12 +263,12 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
-        " WHERE state._emittionDate > :date ",
-        "   AND state._sensor._identifier IN :sensors ",
-        " ORDER BY state._emittionDate ASC"
+        " WHERE state.emittionDate > :date ",
+        "   AND state.sensor.identifier IN :sensors ",
+        " ORDER BY state.emittionDate ASC"
       ), _stateType
     ).setParameter("date", date)
      .setParameter(
@@ -291,12 +285,12 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
-        " WHERE state._emittionDate < :date ",
-        "   AND state._sensor._identifier IN :sensors ",
-        " ORDER BY state._emittionDate DESC"
+        " WHERE state.emittionDate < :date ",
+        "   AND state.sensor.identifier IN :sensors ",
+        " ORDER BY state.emittionDate DESC"
       ), _stateType
     ).setParameter("date", date)
      .setParameter(

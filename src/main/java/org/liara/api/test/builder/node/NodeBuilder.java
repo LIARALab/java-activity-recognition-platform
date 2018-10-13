@@ -1,10 +1,9 @@
 package org.liara.api.test.builder.node;
 
-import org.liara.api.data.entity.node.Node;
+import groovy.lang.Closure;
+import org.liara.api.data.entity.Node;
 import org.liara.api.utils.Closures;
 import org.springframework.lang.NonNull;
-
-import groovy.lang.Closure;
 
 public class NodeBuilder extends CompositeNodeBuilder<NodeBuilder, Node>
 {

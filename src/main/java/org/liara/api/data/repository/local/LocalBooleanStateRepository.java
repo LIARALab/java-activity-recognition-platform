@@ -1,15 +1,15 @@
 package org.liara.api.data.repository.local;
 
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.entity.state.BooleanState;
+import org.liara.api.data.repository.BooleanStateRepository;
+import org.springframework.lang.NonNull;
+
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.state.BooleanState;
-import org.liara.api.data.repository.BooleanStateRepository;
-import org.springframework.lang.NonNull;
 
 public class LocalBooleanStateRepository 
        extends LocalTimeSeriesRepository<BooleanState>

@@ -2,8 +2,8 @@ package org.liara.api.data.repository.local;
 
 import org.liara.api.data.Conjunction;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.repository.ConjunctionRepository;
 import org.springframework.lang.NonNull;

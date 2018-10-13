@@ -21,7 +21,7 @@
  ******************************************************************************/
 package org.liara.api.validator;
 
-import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.validation.ValidApplicationEntityReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;

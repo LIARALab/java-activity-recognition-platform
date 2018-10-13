@@ -1,13 +1,18 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.activation;
 
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.state.*;
+import org.liara.api.data.entity.Node;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.entity.state.ActivationState;
+import org.liara.api.data.entity.state.BooleanState;
+import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.ActivationsRepository;
 import org.liara.api.data.repository.BooleanStateRepository;
 import org.liara.api.data.repository.NodeRepository;
+import org.liara.api.data.schema.ActivationStateCreationSchema;
+import org.liara.api.data.schema.ActivationStateMutationSchema;
 import org.liara.api.data.schema.SchemaManager;
+import org.liara.api.data.schema.StateDeletionSchema;
 import org.liara.api.event.StateWasCreatedEvent;
 import org.liara.api.event.StateWasMutatedEvent;
 import org.liara.api.event.StateWillBeDeletedEvent;
@@ -86,7 +91,7 @@ public class UpDownToActivationSensor
     super.initialize(runner);
     
     final List<BooleanState> initializationStates = _inputs.findAll(getInputSensor());
-    ActivationState current = null;
+    ActivationState          current              = null;
     
     _manager.flush();
     _manager.clear();
@@ -168,8 +173,8 @@ public class UpDownToActivationSensor
     @NonNull final BooleanState current
   ) {
     if (current.getValue()) return;
-    
-    final State endState = previous.getEndState();
+
+    final State                  endState  = previous.getEndState();
     final Optional<BooleanState> nextState = _inputs.findNext(current);
     
     finish(previous, current);

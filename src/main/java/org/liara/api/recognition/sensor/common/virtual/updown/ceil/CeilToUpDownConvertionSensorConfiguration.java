@@ -1,14 +1,13 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.ceil;
 
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.recognition.sensor.SensorConfiguration;
-import org.liara.api.validation.ValidApplicationEntityReference;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.SensorConfiguration;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.validation.Required;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
-
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 public class CeilToUpDownConvertionSensorConfiguration implements SensorConfiguration
 {

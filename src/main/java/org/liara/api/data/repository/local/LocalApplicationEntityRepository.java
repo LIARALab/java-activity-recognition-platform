@@ -1,16 +1,15 @@
 package org.liara.api.data.repository.local;
 
+import com.google.common.collect.Streams;
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.repository.ApplicationEntityRepository;
+import org.springframework.lang.NonNull;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
-
-import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.repository.ApplicationEntityRepository;
-import org.springframework.lang.NonNull;
-
-import com.google.common.collect.Streams;
 
 public class LocalApplicationEntityRepository<Entity extends ApplicationEntity> 
        extends BaseLocalRepository

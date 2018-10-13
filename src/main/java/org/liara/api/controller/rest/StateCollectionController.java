@@ -21,46 +21,33 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import java.io.IOException;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
-import javax.validation.Valid;
-
-import org.liara.api.collection.EntityNotFoundException;
-import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
-import org.liara.api.data.collection.StateCollection;
-import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
-import org.liara.api.data.entity.sensor.Sensor;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.swagger.annotations.Api;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.collection.CollectionFactory;
+import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.entity.state.StateCreationSchema;
-import org.liara.api.data.entity.state.StateMutationSchema;
 import org.liara.api.data.schema.SchemaManager;
-import org.liara.api.documentation.ParametersFromConfiguration;
-import org.liara.api.request.validator.error.InvalidAPIRequestException;
+import org.liara.api.data.schema.StateCreationSchema;
+import org.liara.api.data.schema.StateMutationSchema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import org.springframework.lang.NonNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
+import org.springframework.web.bind.annotation.*;
 
-import io.swagger.annotations.Api;
+import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.util.List;
 
 @RestController
 @Api(
@@ -72,56 +59,77 @@ import io.swagger.annotations.Api;
     consumes = "application/json",
     protocols = "http"
 )
-public class StateCollectionController extends BaseRestController
+public class StateCollectionController
+  extends BaseRestController
 {
-  @Autowired
   @NonNull
-  private ObjectMapper _mapper;
-  
-  @Autowired
+  private final ObjectMapper _mapper;
+
   @NonNull
-  private ApplicationContext _context;
-  
-  @Autowired
+  private final ApplicationContext _context;
+
   @NonNull
-  private Validator _validator;
-  
-  @Autowired
+  private final Validator _validator;
+
   @NonNull
-  private SchemaManager _schemaManager;
-  
-  @Autowired
+  private final SchemaManager _schemaManager;
+
   @NonNull
-  private StateCollection _collection;
+  private final EntityManager _entityManager;
+
+  @Autowired
+  public StateCollectionController (
+    @NonNull final ObjectMapper mapper,
+    @NonNull final ApplicationContext context,
+    @NonNull final Validator validator,
+    @NonNull final SchemaManager schemaManager,
+    @NonNull final EntityManager entityManager,
+    @NonNull final CollectionFactory collections
+  )
+  {
+    super(collections);
+    _mapper = mapper;
+    _context = context;
+    _validator = validator;
+    _schemaManager = schemaManager;
+    _entityManager = entityManager;
+  }
 
   @GetMapping("/states/count")
-  @ParametersFromConfiguration(
-    value = StateCollectionRequestConfiguration.class,
-    orderable = false
-  )
-  public ResponseEntity<Object> count (
+  public @NonNull Long count (
     @NonNull final HttpServletRequest request
-  ) throws InvalidAPIRequestException {
-    return aggregate(
-      _collection, request, 
-      EntityCountAggregationTransformation.create()
-    );
+  )
+  {
+    return count(State.class, request);
   }
 
   @GetMapping("/states")
-  @ParametersFromConfiguration(
-    value = StateCollectionRequestConfiguration.class,
-    groupable = false
-  )
-  public ResponseEntity<List<State>> index (
+  public @NonNull ResponseEntity<@NonNull List<@NonNull State>> index (
     @NonNull final HttpServletRequest request
-  ) throws InvalidAPIRequestException {
-    return indexCollection(_collection, request);
+  )
+  {
+    return index(State.class, request);
   }
-  
+
+  @GetMapping("/states/{identifier}")
+  public @NonNull State get (
+    @PathVariable final Long identifier
+  )
+  {
+    return get(State.class, identifier);
+  }
+
+  @GetMapping("/states/{identifier}/sensor")
+  public @NonNull Sensor getSensor (
+    @PathVariable final Long identifier
+  )
+  {
+    return get(State.class, identifier).getSensor();
+  }
+
   @PostMapping("/states")
   @Transactional
-  public ResponseEntity<Void> create (
+  public @NonNull ResponseEntity<Void> create (
     @NonNull final HttpServletRequest request,
     @NonNull @Valid @RequestBody final StateCreationSchema schema
   ) {
@@ -160,18 +168,6 @@ public class StateCollectionController extends BaseRestController
     
     return new ResponseEntity<Void>(HttpStatus.OK);
   }
-  
-  @GetMapping("/states/{identifier}")
-  public State get (
-    @PathVariable final long identifier
-  ) throws EntityNotFoundException {
-    return _collection.findByIdentifierOrFail(identifier);
-  }
-  
-  @GetMapping("/states/{identifier}/sensor")
-  public Sensor getSensor (
-    @PathVariable final long identifier
-  ) throws EntityNotFoundException {
-    return _collection.findByIdentifierOrFail(identifier).getSensor();
-  }
+
+
 }

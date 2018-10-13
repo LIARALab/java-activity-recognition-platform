@@ -1,18 +1,16 @@
 package org.liara.api.database;
 
-import java.io.IOException;
-
-import javax.persistence.AttributeConverter;
-
-import org.liara.api.recognition.sensor.SensorConfiguration;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
+import org.liara.api.data.entity.SensorConfiguration;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import javax.persistence.AttributeConverter;
+import java.io.IOException;
 
 public class SensorConfigurationConverter implements AttributeConverter<SensorConfiguration, String>
 {

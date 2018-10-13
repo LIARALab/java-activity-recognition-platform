@@ -1,28 +1,29 @@
 package org.liara.api.data.repository.local;
 
+import org.liara.api.data.entity.Node;
+import org.liara.api.data.repository.NodeRepository;
+import org.liara.api.data.tree.LocalNestedSetRepository;
+import org.liara.api.data.tree.NestedSetCoordinates;
+import org.liara.api.data.tree.NestedSetRepository;
+import org.springframework.lang.NonNull;
+
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.tree.LocalNestedSetTree;
-import org.liara.api.data.entity.tree.NestedSetCoordinates;
-import org.liara.api.data.entity.tree.NestedSetTree;
-import org.liara.api.data.repository.NodeRepository;
-import org.springframework.lang.NonNull;
-
 public class LocalNodeRepository
        extends LocalApplicationEntityRepository<Node>
-       implements NestedSetTree<Node>, NodeRepository
+  implements NestedSetRepository<Node>,
+             NodeRepository
 {
   @NonNull
-  public static final WeakHashMap<NestedSetTree<Node>, LocalNodeRepository> REPOSITORIES = new WeakHashMap<>();
+  public static final WeakHashMap<NestedSetRepository<Node>, LocalNodeRepository> REPOSITORIES = new WeakHashMap<>();
   
   public static LocalNodeRepository of (@NonNull final Node node) {
     return REPOSITORIES.get(node.getTree());
   }
   
   @NonNull
-  private final LocalNestedSetTree<Node> _tree;
+  private final LocalNestedSetRepository<Node> _tree;
   
   public static LocalNodeRepository from (@NonNull final LocalEntityManager manager) {
     final LocalNodeRepository result = new LocalNodeRepository();
@@ -32,7 +33,7 @@ public class LocalNodeRepository
   
   public LocalNodeRepository() {
     super(Node.class);
-    _tree = new LocalNestedSetTree<>();
+    _tree = new LocalNestedSetRepository<>();
     REPOSITORIES.put(_tree, this);
   }
 
@@ -112,14 +113,14 @@ public class LocalNodeRepository
   }
 
   @Override
-  public void addNode (@NonNull final Node node) {
-    _tree.addNode(node);
+  public void addChild (@NonNull final Node node) {
+    _tree.addChild(node);
     add(node);
   }
 
   @Override
-  public void addNode (@NonNull final Node node, @NonNull final Node parent) {
-    _tree.addNode(node, parent);
+  public void addChild (@NonNull final Node node, @NonNull final Node parent) {
+    _tree.addChild(node, parent);
     add(node);
   }
 
@@ -138,7 +139,7 @@ public class LocalNodeRepository
   protected void trackedEntityWasAdded (@NonNull final Node entity) {
     super.trackedEntityWasAdded(entity);
     if (!_tree.contains(entity)) {
-      _tree.addNode(entity);
+      _tree.addChild(entity);
     }
   }
 

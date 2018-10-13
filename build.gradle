@@ -20,43 +20,50 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
+  mavenLocal()
   mavenCentral()
   jcenter()
 }
 
 dependencies {
-  compile 'org.codehaus.groovy:groovy-all:2.4.13'
+  implementation group: 'org.checkerframework', name: 'checker', version: '2.5.4'
 
-  compile 'org.hibernate:hibernate-entitymanager:5.2.17.Final'
-  
-  compile 'org.springframework.boot:spring-boot-starter-web'
-  compile 'org.springframework.boot:spring-boot-starter-data-jpa'
-  compile 'org.springframework.boot:spring-boot-starter-hateoas'
-  compile 'org.springframework.boot:spring-boot-starter-json'
-  
-  compile 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
-  compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-  
-  compile 'io.springfox:springfox-swagger2:2.8.0'
-  compile 'io.springfox:springfox-swagger-ui:2.8.0'
-  
-  compile 'com.google.guava:guava:24.1-jre'
+  implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
 
-  compile 'mysql:mysql-connector-java'
-  
-  compile 'javax.interceptor:javax.interceptor-api:3.1'
+  implementation group: 'org.codehaus.groovy', name:'groovy-all', version: '2.4.13'
 
-  testCompile 'org.springframework.boot:spring-boot-starter-test'
-  testCompile 'org.spockframework:spock-core:1.1-groovy-2.4'
-  testCompile 'org.spockframework:spock-spring:1.1-groovy-2.4'
-  testCompile 'org.mockito:mockito-core:2.+'
-  testCompile 'com.h2database:h2'
+  implementation group: 'org.hibernate', name:'hibernate-entitymanager', version: '5.2.17.Final'
+
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-hateoas'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
+
+  implementation group: 'io.springfox', name: 'springfox-swagger2', version: '2.8.0'
+  implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.8.0'
+
+  implementation group: 'com.google.guava', name: 'guava', version: '24.1-jre'
+
+  implementation group: 'mysql', name: 'mysql-connector-java'
+
+  implementation group: 'javax.interceptor', name: 'javax.interceptor-api', version: '3.1'
+
+  implementation group: 'org.liara', name: 'collection', version: '0.1-SNAPSHOT'
+  implementation group: 'org.liara', name: 'selection', version: '0.1-SNAPSHOT'
+  implementation group: 'org.liara', name: 'api-request', version: '0.1-SNAPSHOT'
+
+  implementation group: 'org.hibernate.javax.persistence', name: 'hibernate-jpa-2.1-api', version: '1.0.2.Final'
+
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+  testImplementation group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
+  testImplementation group: 'org.spockframework', name: 'spock-spring', version: '1.1-groovy-2.4'
+  testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.+'
 }
 
 compileJpaModelgen {
   includes += [
-    "src/main/java/**/*.java",
-    "src/jpaModelgen/java/**/*.java"
+    "**/org/liara/api/data/entity/**/*",
+    "**/org/liara/api/data/tree/**/*"
   ]
 }
 

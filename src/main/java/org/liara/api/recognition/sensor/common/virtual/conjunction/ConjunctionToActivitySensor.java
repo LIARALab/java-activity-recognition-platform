@@ -1,14 +1,12 @@
 package org.liara.api.recognition.sensor.common.virtual.conjunction;
 
-import java.util.List;
-
 import org.liara.api.data.Conjunction;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.ActivityState;
-import org.liara.api.data.entity.state.ActivityStateCreationSchema;
 import org.liara.api.data.repository.ConjunctionRepository;
 import org.liara.api.data.repository.TimeSeriesRepository;
+import org.liara.api.data.schema.ActivityStateCreationSchema;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.event.StateWasCreatedEvent;
 import org.liara.api.event.StateWasMutatedEvent;
@@ -21,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @UseSensorConfigurationOfType(ConjunctionToActivitySensorConfiguration.class)
 @EmitStateOfType(ActivityState.class)

@@ -21,13 +21,13 @@
  ******************************************************************************/
 package org.liara.api.validator;
 
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.validation.Required;
+import org.springframework.lang.NonNull;
+
 import javax.annotation.Nullable;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.validation.Required;
-import org.springframework.lang.NonNull;
 
 public class RequiredIterableApplicationEntityReferenceValidator 
        implements ConstraintValidator<Required, Iterable<ApplicationEntityReference<?>>>

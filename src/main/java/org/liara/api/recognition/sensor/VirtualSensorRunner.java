@@ -1,12 +1,12 @@
 package org.liara.api.recognition.sensor;
 
-import java.util.ArrayList;
-
 import org.jboss.logging.Logger;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.State;
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
+
+import java.util.ArrayList;
 
 public class VirtualSensorRunner
 {

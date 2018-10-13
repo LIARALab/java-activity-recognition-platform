@@ -1,10 +1,11 @@
 package org.liara.api.data.repository;
 
-import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.tree.NestedSetTree;
+import org.liara.api.data.entity.Node;
+import org.liara.api.data.tree.NestedSetRepository;
 
 public interface NodeRepository
-      extends NestedSetTree<Node>, ApplicationEntityRepository<Node>
+  extends NestedSetRepository,
+          ApplicationEntityRepository<Node>
 {
 
 }

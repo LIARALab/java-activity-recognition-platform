@@ -1,13 +1,13 @@
 package org.liara.api.data.repository.local;
 
-import java.time.ZonedDateTime;
-import java.util.Optional;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.repository.ActivationsRepository;
 import org.springframework.lang.NonNull;
+
+import java.time.ZonedDateTime;
+import java.util.Optional;
 
 public class LocalActivationsRepository
        extends LocalTimeSeriesRepository<ActivationState>

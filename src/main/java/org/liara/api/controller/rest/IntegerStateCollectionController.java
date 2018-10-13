@@ -21,26 +21,18 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.liara.api.collection.EntityNotFoundException;
-import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
-import org.liara.api.data.collection.IntegerStateCollection;
+import io.swagger.annotations.Api;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.collection.CollectionFactory;
 import org.liara.api.data.entity.state.IntegerState;
-import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import org.springframework.lang.NonNull;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @RestController
 @Api(
@@ -52,60 +44,38 @@ import io.swagger.annotations.ApiImplicitParams;
     consumes = "application/json",
     protocols = "http"
 )
-public final class IntegerStateCollectionController extends BaseRestController
+public final class IntegerStateCollectionController
+  extends BaseRestController
 {
   @Autowired
-  @NonNull
-  private IntegerStateCollection _collection;
+  public IntegerStateCollectionController (
+    @NonNull final CollectionFactory collections
+  )
+  {
+    super(collections);
+  }
 
   @GetMapping("/states<int>/count")
-  public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return aggregate(
-      _collection, request, 
-      EntityCountAggregationTransformation.create()
-    );
+  public @NonNull Long count (
+    @NonNull final HttpServletRequest request
+  )
+  {
+    return count(IntegerState.class, request);
   }
 
   @GetMapping("/states<int>")
-  @ApiImplicitParams(
-    {
-      @ApiImplicitParam(
-          name = "first",
-          value = "Maximum number of elements to display. Must be a positive integer and can't be used in conjunction with \"all\".",
-          required = false,
-          allowMultiple = false,
-          defaultValue = "10",
-          dataType = "unsigned int",
-          paramType = "query"
-      ),
-      @ApiImplicitParam(
-          name = "all",
-          value = "Display all remaining elements. Can't be used in conjunction with \"first\".",
-          required = false,
-          allowMultiple = false,
-          defaultValue = "false",
-          dataType = "boolean",
-          paramType = "query"
-      ),
-      @ApiImplicitParam(
-          name = "after",
-          value = "Number of elements to skip.",
-          required = false,
-          allowMultiple = false,
-          defaultValue = "0",
-          dataType = "unsigned int",
-          paramType = "query"
-      )
-    }
+  public @NonNull ResponseEntity<@NonNull List<@NonNull IntegerState>> index (
+    @NonNull final HttpServletRequest request
   )
-  public ResponseEntity<List<IntegerState>> index (@NonNull final HttpServletRequest request)
-    throws InvalidAPIRequestException
   {
-    return indexCollection(_collection, request);
+    return index(IntegerState.class, request);
   }
 
   @GetMapping("/states<int>/{identifier}")
-  public IntegerState get (@PathVariable final long identifier) throws EntityNotFoundException {
-    return _collection.findByIdentifierOrFail(identifier);
+  public @NonNull IntegerState get (
+    @PathVariable final Long identifier
+  )
+  {
+    return get(IntegerState.class, identifier);
   }
 }

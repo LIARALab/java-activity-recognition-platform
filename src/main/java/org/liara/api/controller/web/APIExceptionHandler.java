@@ -21,32 +21,25 @@
  ******************************************************************************/
 package org.liara.api.controller.web;
 
-import org.springframework.lang.NonNull;
-
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.request.validator.error.InvalidAPIRequestException;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.core.annotation.Order;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.liara.api.collection.EntityNotFoundException;
-import org.liara.api.request.validator.error.InvalidAPIRequestException;
-import org.springframework.core.Ordered;
+import javax.persistence.EntityNotFoundException;
+import java.util.*;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
 public final class APIExceptionHandler
 {
   @ExceptionHandler(InvalidAPIRequestException.class)
-  public ResponseEntity<InvalidAPIRequestException> handleInvalidAPIRequestException (
+  public @NonNull ResponseEntity<InvalidAPIRequestException> handleInvalidAPIRequestException (
     @NonNull final InvalidAPIRequestException exception
   )
   {
@@ -54,7 +47,7 @@ public final class APIExceptionHandler
   }
 
   @ExceptionHandler(EntityNotFoundException.class)
-  public ResponseEntity<Void> handleEntityNotFoundException (
+  public @NonNull ResponseEntity<Void> handleEntityNotFoundException (
     @NonNull final EntityNotFoundException exception
   )
   {
@@ -62,7 +55,10 @@ public final class APIExceptionHandler
   }
   
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<List<Map<String, Object>>> handleException(@NonNull final MethodArgumentNotValidException exception) {
+  public @NonNull ResponseEntity<@NonNull List<@NonNull Map<String, Object>>> handleException (
+    @NonNull final MethodArgumentNotValidException exception
+  )
+  {
     final List<Map<String, Object>> errors = new ArrayList<>();
     
     exception.getBindingResult()

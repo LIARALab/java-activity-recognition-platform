@@ -1,10 +1,10 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.activation;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.recognition.sensor.SensorConfiguration;
+import org.liara.api.data.entity.Node;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.SensorConfiguration;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.liara.api.validation.ValidApplicationEntityReference;
 import org.springframework.lang.NonNull;

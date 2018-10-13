@@ -1,12 +1,11 @@
 package org.liara.api.test.builder.sensor;
 
-import org.liara.api.data.entity.sensor.Sensor;
+import groovy.lang.Closure;
+import org.liara.api.data.entity.Sensor;
 import org.liara.api.recognition.sensor.common.NativeBooleanSensor;
 import org.liara.api.recognition.sensor.common.NativeMotionSensor;
 import org.liara.api.utils.Closures;
 import org.springframework.lang.NonNull;
-
-import groovy.lang.Closure;
 
 public class SensorBuilder extends BaseSensorBuilder<SensorBuilder, Sensor>
 {

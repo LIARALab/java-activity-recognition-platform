@@ -1,19 +1,18 @@
 package org.liara.api.data.repository.database;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.repository.BooleanStateRepository;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
@@ -39,13 +38,13 @@ public class DatabaseBooleanStateRepository
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", BooleanState.class.getName(), " state ",
-        " WHERE state._emittionDate < :date ",
-        "   AND state._sensor._identifier IN :sensors ",
-        "   AND state._value = :value",
-        " ORDER BY state._emittionDate DESC"
+        " WHERE state.emittionDate < :date ",
+        "   AND state.sensor.identifier IN :sensors ",
+        "   AND state.value = :value",
+        " ORDER BY state.emittionDate DESC"
       ), BooleanState.class
     ).setParameter("date", date)
      .setParameter(
@@ -68,13 +67,13 @@ public class DatabaseBooleanStateRepository
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", BooleanState.class.getName(), " state ",
-        " WHERE state._emittionDate > :date ",
-        "   AND state._sensor._identifier IN :sensors ",
-        "   AND state._value = :value",
-        " ORDER BY state._emittionDate ASC"
+        " WHERE state.emittionDate > :date ",
+        "   AND state.sensor.identifier IN :sensors ",
+        "   AND state.value = :value",
+        " ORDER BY state.emittionDate ASC"
       ), BooleanState.class
     ).setParameter("date", date)
      .setParameter(
@@ -95,12 +94,12 @@ public class DatabaseBooleanStateRepository
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", BooleanState.class.getName(), " state ",
-        " WHERE state._sensor._identifier IN :sensors ",
-        "   AND state._value = :value",
-        " ORDER BY state._emittionDate ASC"
+        " WHERE state.sensor.identifier IN :sensors ",
+        "   AND state.value = :value",
+        " ORDER BY state.emittionDate ASC"
       ), BooleanState.class
     ).setParameter(
        "sensors", 

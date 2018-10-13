@@ -1,21 +1,18 @@
 package org.liara.api.data.repository.local
 
-import java.time.Duration
-import java.time.ZoneId
-import java.time.ZonedDateTime
-
-import org.junit.After
-import org.liara.api.data.entity.ApplicationEntityReference
-import org.liara.api.data.entity.sensor.Sensor
+import org.liara.api.data.entity.reference.ApplicationEntityReference
 import org.liara.api.data.entity.state.ActivityState
 import org.liara.api.data.entity.state.BooleanState
 import org.liara.api.data.entity.state.State
-import org.liara.api.test.builder.IdentityBuilder
 import org.liara.api.test.builder.sensor.SensorBuilder
 import org.liara.api.test.builder.state.ActivityStateBuilder
 import org.liara.api.test.builder.state.BooleanStateBuilder
 import org.springframework.lang.NonNull
 import spock.lang.Specification
+
+import java.time.Duration
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 public class LocalTimeSeriesRepositorySpecification
        extends Specification

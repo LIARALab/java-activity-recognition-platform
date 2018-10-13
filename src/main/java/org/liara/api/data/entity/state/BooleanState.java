@@ -21,53 +21,47 @@
  ******************************************************************************/
 package org.liara.api.data.entity.state;
 
-import javax.persistence.Entity;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.Table;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.schema.UseCreationSchema;
-import org.liara.api.data.schema.UseMutationSchema;
-
-import javax.persistence.Column;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "states_boolean")
 @PrimaryKeyJoinColumn(name = "state_identifier")
-@UseCreationSchema(BooleanStateCreationSchema.class)
-@UseMutationSchema(BooleanStateMutationSchema.class)
 public class BooleanState extends State
 {
-  @Column(name = "value", nullable = false, unique = false, updatable = true)
-  private boolean _value;
-  
-  public BooleanState () { 
-    _value = false;
+  @Nullable
+  private Boolean _value;
+
+  public BooleanState () {
+    super();
+    _value = null;
   }
-  
-  public boolean getValue () {
+
+  public BooleanState (@NonNull final BooleanState toCopy) {
+    super(toCopy);
+    _value = toCopy.getValue();
+  }
+
+  @Column(name = "value", nullable = false, unique = false, updatable = true)
+  public @Nullable Boolean getValue () {
     return _value;
   }
 
-  public void setValue (final boolean value) {
+  public void setValue (@Nullable final Boolean value) {
     _value = value;
   }
-  
+
   @Override
-  public BooleanStateSnapshot snapshot () {
-    return new BooleanStateSnapshot(this);
-  } 
-  
-  @Override
-  public ApplicationEntityReference<? extends BooleanState> getReference () {
+  @Transient
+  public @NonNull ApplicationEntityReference<? extends BooleanState> getReference () {
     return ApplicationEntityReference.of(this);
   }
 
   @Override
-  public String toString () {
-    return String.join(
-      "",
-      super.toString(), "[value : ", this.getValue() ? "true" : "false", "]"
-    );
+  public @NonNull BooleanState clone () {
+    return new BooleanState(this);
   }
 }

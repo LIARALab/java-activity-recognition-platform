@@ -21,12 +21,12 @@
  ******************************************************************************/
 package org.liara.api.recognition.presence;
 
-import java.time.Duration;
-import java.time.ZonedDateTime;
-
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+
+import java.time.Duration;
+import java.time.ZonedDateTime;
 
 public class Event implements Comparable<Event>
 {  

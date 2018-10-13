@@ -21,40 +21,24 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
-import javax.validation.Valid;
-
 import io.swagger.annotations.Api;
-
-import org.springframework.lang.NonNull;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import org.liara.api.collection.EntityNotFoundException;
-import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
-import org.liara.api.data.collection.NodeCollection;
-import org.liara.api.data.collection.SensorCollection;
-import org.liara.api.data.collection.StateCollection;
-import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
-import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.sensor.SensorCreationSchema;
-import org.liara.api.data.entity.state.State;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.collection.CollectionFactory;
+import org.liara.api.data.entity.Node;
+import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.schema.SchemaManager;
-import org.liara.api.documentation.ParametersFromConfiguration;
-import org.liara.api.request.validator.error.InvalidAPIRequestException;
+import org.liara.api.data.schema.SensorCreationSchema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import javax.persistence.EntityManager;
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @Api(
@@ -66,46 +50,46 @@ import org.springframework.http.ResponseEntity;
     consumes = "application/json",
     protocols = "http"
 )
-public class SensorCollectionController extends BaseRestController
+public class SensorCollectionController
+  extends BaseRestController
 {
-  @Autowired
   @NonNull
-  private SchemaManager _schemaManager;
-  
-  @Autowired
+  private final SchemaManager _schemaManager;
+
   @NonNull
-  private SensorCollection _sensors;
-  
+  private final EntityManager _entityManager;
+
   @Autowired
-  @NonNull
-  private NodeCollection _nodes;
-  
-  @Autowired
-  @NonNull
-  private StateCollection _states;
+  public SensorCollectionController (
+    @NonNull final SchemaManager schemaManager,
+    @NonNull final EntityManager entityManager,
+    @NonNull final CollectionFactory collections
+  )
+  {
+    super(collections);
+    _entityManager = entityManager;
+    _schemaManager = schemaManager;
+  }
 
   @GetMapping("/sensors/count")
-  @ParametersFromConfiguration(
-    value = SensorCollectionRequestConfiguration.class,
-    orderable = false
-  )
-  public ResponseEntity<Object> count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
-    return aggregate(
-      _sensors, request, 
-      EntityCountAggregationTransformation.create()
-    );
+  public @NonNull Long count (@NonNull final HttpServletRequest request) {
+    return count(Sensor.class, request);
   }
-  
 
   @GetMapping("/sensors")
-  @ParametersFromConfiguration(
-    value = SensorCollectionRequestConfiguration.class,
-    groupable = false
-  )
-  public ResponseEntity<List<Sensor>> index (
+  public @NonNull ResponseEntity<@NonNull List<@NonNull Sensor>> index (
     @NonNull final HttpServletRequest request
-  ) throws InvalidAPIRequestException {
-    return indexCollection(_sensors, request);
+  )
+  {
+    return index(Sensor.class, request);
+  }
+
+  @GetMapping("/sensors/{identifier}")
+  public @NonNull Sensor get (
+    @PathVariable final Long identifier
+  )
+  {
+    return get(Sensor.class, identifier);
   }
 
   @PostMapping("/sensors")
@@ -113,7 +97,8 @@ public class SensorCollectionController extends BaseRestController
   public ResponseEntity<Void> create (
     @NonNull final HttpServletRequest request,
     @NonNull @Valid @RequestBody final SensorCreationSchema schema
-  ) throws JsonProcessingException {    
+  )
+  {
     final Sensor sensor = _schemaManager.execute(schema);
     
     final HttpHeaders headers = new HttpHeaders();
@@ -122,39 +107,36 @@ public class SensorCollectionController extends BaseRestController
     return new ResponseEntity<>(headers, HttpStatus.CREATED);
   }
 
-  @GetMapping("/sensors/{sensorIdentifier}")
-  public Sensor get (@PathVariable final long sensorIdentifier) throws EntityNotFoundException {
-    return _sensors.findByIdentifierOrFail(sensorIdentifier);
+  @GetMapping("/sensors/{identifier}/node")
+  public @NonNull Node getNode (
+    @NonNull final HttpServletRequest request, @PathVariable @NonNull final Long identifier
+  )
+  {
+    return _entityManager.find(Sensor.class, identifier).getNode();
   }
 
-  @GetMapping("/sensors/{sensorIdentifier}/node")
-  public Node getNodes (
+  /*
+  @GetMapping("/sensors/{identifier}/states")
+  public @NonNull ResponseEntity<@NonNull Set<@NonNull State>> getStates (
     @NonNull final HttpServletRequest request,
-    @PathVariable final long sensorIdentifier
-  ) throws EntityNotFoundException, InvalidAPIRequestException {    
-    return _sensors.findByIdentifierOrFail(sensorIdentifier).getNode();
-  }
-  
-  @GetMapping("/sensors/{sensorIdentifier}/states")
-  public ResponseEntity<List<State>> getStates (
-    @NonNull final HttpServletRequest request,
-    @PathVariable final long sensorIdentifier
-  ) throws EntityNotFoundException, InvalidAPIRequestException {    
-    return indexCollection(
-      _states.of(_sensors.findByIdentifierOrFail(sensorIdentifier)), 
+    @PathVariable @NonNull final Long identifier
+  ) {
+    return toResponse(apply(
+      new JPAEntityCollection<>(_entityManager, State.class),
+      _configuration,
       request
-    );
+    ));
   }
   
-  @GetMapping("/sensors/{sensorIdentifier}/states/count")
+  @GetMapping("/sensors/{identifier}/states/count")
   public ResponseEntity<Object> countStates (
     @NonNull final HttpServletRequest request,
-    @PathVariable final long sensorIdentifier
+    @PathVariable @NonNull final Long identifier
   ) throws EntityNotFoundException, InvalidAPIRequestException {    
     return aggregate(
       _states.of(_sensors.findByIdentifierOrFail(sensorIdentifier)), 
       request,
-      EntityCountAggregationTransformation.create()
+      EntityCountAggregationTransformation.instantiate()
     );
   }
   
@@ -168,4 +150,5 @@ public class SensorCollectionController extends BaseRestController
       _sensors.findByIdentifierOrFail(sensorIdentifier)
     ).findByIdentifierOrFail(stateIdentifier);
   }
+  */
 }

@@ -1,12 +1,12 @@
 package org.liara.api.data.repository;
 
+import org.liara.api.data.Conjunction;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.springframework.lang.NonNull;
+
 import java.util.Collection;
 import java.util.List;
-
-import org.liara.api.data.Conjunction;
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
-import org.springframework.lang.NonNull;
 
 public interface ConjunctionRepository
 {

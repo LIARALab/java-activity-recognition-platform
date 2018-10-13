@@ -1,12 +1,12 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.ceil;
 
-import java.util.List;
-
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.NumericState;
 import org.liara.api.data.entity.state.State;
 import org.springframework.lang.NonNull;
+
+import java.util.List;
 
 public interface CeilToUpDownConvertionSensorData
 {

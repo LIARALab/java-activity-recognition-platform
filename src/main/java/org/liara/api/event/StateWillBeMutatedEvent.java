@@ -1,6 +1,6 @@
 package org.liara.api.event;
 
-import org.liara.api.data.entity.state.StateMutationSchema;
+import org.liara.api.data.schema.StateMutationSchema;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.lang.NonNull;
 

@@ -8,7 +8,7 @@ import javax.persistence.metamodel.StaticMetamodel;
 @StaticMetamodel(IntegerState.class)
 public abstract class IntegerState_ extends org.liara.api.data.entity.state.State_ {
 
-	public static volatile SingularAttribute<IntegerState, Integer> _value;
+  public static volatile SingularAttribute<IntegerState, Integer> value;
 
 }
 

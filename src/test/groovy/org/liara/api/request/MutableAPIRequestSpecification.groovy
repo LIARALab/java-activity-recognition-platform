@@ -1,10 +1,10 @@
 package org.liara.api.request
 
-import java.util.Map.Entry
-import javax.servlet.http.HttpServletRequest
+import org.mockito.Mockito
 import spock.lang.Specification
 
-import org.mockito.Mockito
+import javax.servlet.http.HttpServletRequest
+import java.util.Map.Entry
 
 public class MutableAPIRequestSpecification extends Specification
 {
@@ -15,8 +15,8 @@ public class MutableAPIRequestSpecification extends Specification
         "second": ["second:first", "second:last"] as String[],
         "third": ["third:first", "third:second", "third:third", "third:last"] as String[] 
       ]
-      
-    when: "we create a MutableAPIRequest from the given map of parameters"
+
+    when: "we instantiate a MutableAPIRequest from the given map of parameters"
       final MutableAPIRequest request = MutableAPIRequest.from(parameters)
       
     then: "we expect to get a request with all parameters described in the given map"

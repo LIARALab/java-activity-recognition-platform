@@ -1,11 +1,7 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.ceil;
 
-import java.util.List;
-
-import javax.persistence.EntityManager;
-
-import org.liara.api.data.entity.ApplicationEntityReference;
-import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.NumericState;
 import org.liara.api.data.entity.state.State;
@@ -15,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import java.util.List;
 
 @Component
 @Primary

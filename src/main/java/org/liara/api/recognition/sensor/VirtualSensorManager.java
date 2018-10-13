@@ -1,56 +1,44 @@
 package org.liara.api.recognition.sensor;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.PreDestroy;
-
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import org.jboss.logging.Logger;
-import org.liara.api.collection.Operators;
-import org.liara.api.data.collection.EntityCollections;
-import org.liara.api.data.collection.SensorCollection;
-import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.event.NodeWasCreatedEvent;
-import org.liara.api.event.NodeWillBeCreatedEvent;
-import org.liara.api.event.SensorWasCreatedEvent;
-import org.liara.api.event.SensorWillBeCreatedEvent;
-import org.liara.api.event.StateWasCreatedEvent;
-import org.liara.api.event.StateWasMutatedEvent;
-import org.liara.api.event.StateWillBeCreatedEvent;
-import org.liara.api.event.StateWillBeMutatedEvent;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.event.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import javax.annotation.PreDestroy;
+import javax.persistence.EntityManager;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class VirtualSensorManager
 {
   @NonNull
-  private final ApplicationContext _applicationContext;
-  
-  @NonNull
-  private final SensorCollection _sensors;
-  
-  @NonNull
   private final Logger _logger = Logger.getLogger(VirtualSensorManager.class);
+
+  @NonNull
+  private final ApplicationContext _applicationContext;
+
+  @NonNull
+  private final EntityManager _entityManager;
   
   @NonNull
   private final BiMap<Long, VirtualSensorRunner> _runners = HashBiMap.create();
   
   @Autowired
   public VirtualSensorManager (
-    @NonNull final ApplicationContext applicationContext,
-    @NonNull final SensorCollection sensors
+    @NonNull final ApplicationContext applicationContext, @NonNull final EntityManager entityManager
   ) { 
     _applicationContext = applicationContext;
-    _sensors = sensors; 
+    _entityManager = entityManager;
   }
   
   public void registerRunner (@NonNull final VirtualSensorRunner runner) {
@@ -85,10 +73,13 @@ public class VirtualSensorManager
   public void start () {
     _logger.info("Virtual sensor manager initialization...");
     _logger.info("Finding virtual sensors in application database...");
-    
-    final List<Sensor> sensors = EntityCollections.SENSORS.apply(
-                                   Operators.equal("_virtual", true)
-                                 ).get();
+
+    final List<Sensor> sensors = _entityManager.createQuery(String.join("",
+                                                                        "SELECT ",
+                                                                        Sensor.class.getName(),
+                                                                        " sensor ",
+                                                                        "WHERE sensor._virtual = true"
+    ), Sensor.class).getResultList();
     
     for (final Sensor sensor : sensors) {
       VirtualSensorRunner.restart(this, sensor);

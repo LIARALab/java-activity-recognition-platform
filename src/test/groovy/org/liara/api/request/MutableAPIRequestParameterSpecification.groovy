@@ -1,13 +1,12 @@
 package org.liara.api.request
 
 import org.mockito.Mockito
-
 import spock.lang.Specification
 
 public class MutableAPIRequestParameterSpecification extends Specification
 {
   def "it can be instanciated with a given name" () {
-    when: "we create a new instance of MutableAPIRequestParameter with a given name"
+    when: "we instantiate a new instance of MutableAPIRequestParameter with a given name"
       final MutableAPIRequestParameter parameter = new MutableAPIRequestParameter("parameter")
     
     then: "we expect to get a valid instance of MutableAPIRequestParameter with the given name"
