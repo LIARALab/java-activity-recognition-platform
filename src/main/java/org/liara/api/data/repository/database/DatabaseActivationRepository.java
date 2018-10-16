@@ -10,6 +10,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -51,5 +52,26 @@ public class DatabaseActivationRepository
                                                        .getResultList();
 
     return result.size() > 0 ? Optional.ofNullable(result.get(0)) : Optional.empty();
+  }
+
+  @Override
+  public List<ActivationState> findWithDurationGreatherThan (
+    @NonNull final ApplicationEntityReference<Sensor> sensor, @NonNull final Duration duration
+  )
+  {
+    final List<ActivationState> result = _entityManager.createQuery(String.join(
+      "",
+      "SELECT activation ",
+      "FROM ",
+      ActivationState.class.getName(),
+      " activation ",
+      "WHERE TIMESTAMPDIFF(SECOND, activation._start, activation._end) > :duration",
+      "  AND activation._sensor._identifier = :sensor"
+    ), ActivationState.class)
+                                                       .setParameter("duration", duration.getSeconds())
+                                                       .setParameter("sensor", sensor.getIdentifier())
+                                                       .getResultList();
+
+    return result;
   }
 }
