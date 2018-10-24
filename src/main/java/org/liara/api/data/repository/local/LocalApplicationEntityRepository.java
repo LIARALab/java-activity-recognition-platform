@@ -36,7 +36,7 @@ public class LocalApplicationEntityRepository<Entity extends ApplicationEntity>
   
   @Override
   public Optional<Entity> find (
-    @NonNull final ApplicationEntityReference<Entity> reference
+    @NonNull final ApplicationEntityReference<? extends Entity> reference
   ) {
     return find(reference.getIdentifier());
   }
@@ -74,7 +74,7 @@ public class LocalApplicationEntityRepository<Entity extends ApplicationEntity>
   
   public boolean contains (@NonNull final Entity entity) {
     if (getParent() == null) return false;
-    return getParent().contains(_type, entity.getIdentifier());
+    return getParent().contains(entity);
   }
   
   public boolean contains (@NonNull final Long identifier) {

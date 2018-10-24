@@ -70,7 +70,7 @@ public class ActivityStateMutationSchema extends StateMutationSchema
   
   @Override
   public ActivityState apply (@NonNull final EntityManager manager) {
-    final ActivityState result = (ActivityState) getState().resolve();
+    final ActivityState result = (ActivityState) getState().resolve(manager);
 
     apply(result, manager);
     super.apply(result, manager);

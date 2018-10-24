@@ -7,6 +7,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.utils.CloneMemory;
+import org.liara.api.utils.DeeplyCloneable;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
@@ -22,7 +24,7 @@ import java.util.UUID;
  */
 @MappedSuperclass
 public class ApplicationEntity
-       implements Cloneable
+  implements DeeplyCloneable
 {
   @Nullable
   private Long _identifier;
@@ -40,6 +42,29 @@ public class ApplicationEntity
   private ZonedDateTime _deletionDate;
 
   /**
+   * Instantiate a clone of another application entity.
+   *
+   * @param toCopy Application entity to clone.
+   */
+  public ApplicationEntity (@NonNull final ApplicationEntity toCopy, @NonNull final CloneMemory clones) {
+    clones.register(toCopy, this);
+    _identifier = toCopy.getIdentifier();
+    _creationDate = toCopy.getCreationDate();
+    _updateDate = toCopy.getUpdateDate();
+    _deletionDate = toCopy.getDeletionDate();
+  }
+
+  /**
+   * Instantiate a new empty application entity.
+   */
+  public ApplicationEntity () {
+    _identifier = null;
+    _creationDate = null;
+    _updateDate = null;
+    _deletionDate = null;
+  }
+
+  /**
    * Return the base type of this entity.
    *
    * The base type of this entity is the class that define this entity root table.
@@ -54,36 +79,13 @@ public class ApplicationEntity
   )
   {
     @NonNull Class<? extends ApplicationEntity>  clazz      = entityClass;
-    @Nullable Class<? extends ApplicationEntity> lastEntity = null;
 
     while (clazz != ApplicationEntity.class) {
-      if (clazz.isAnnotationPresent(Entity.class)) lastEntity = clazz;
+      if (clazz.isAnnotationPresent(Entity.class)) return clazz;
       clazz = (Class<? extends ApplicationEntity>) clazz.getSuperclass();
     }
 
-    return (lastEntity == null) ? ApplicationEntity.class : clazz;
-  }
-
-  /**
-   * Instantiate a new empty application entity.
-   */
-  public ApplicationEntity () {
-    _identifier = null;
-    _creationDate = null;
-    _updateDate = null;
-    _deletionDate = null;
-  }
-
-  /**
-   * Instantiate a clone of another application entity.
-   *
-   * @param toCopy Application entity to clone.
-   */
-  public ApplicationEntity (@NonNull final ApplicationEntity toCopy) {
-    _identifier = toCopy.getIdentifier();
-    _creationDate = toCopy.getCreationDate();
-    _updateDate = toCopy.getUpdateDate();
-    _deletionDate = toCopy.getDeletionDate();
+    return ApplicationEntity.class;
   }
 
   /**
@@ -235,9 +237,15 @@ public class ApplicationEntity
    * @see Cloneable#clone()
    */
   @Override
-  protected @NonNull ApplicationEntity clone ()
+  public @NonNull ApplicationEntity clone ()
   throws CloneNotSupportedException
   {
-    return new ApplicationEntity(this);
+    return clone(new CloneMemory());
+  }
+
+  @Override
+  public @NonNull ApplicationEntity clone (@NonNull final CloneMemory clones)
+  {
+    return new ApplicationEntity(this, clones);
   }
 }

@@ -34,7 +34,7 @@ public class DatabaseApplicationEntityRepository<Entity extends ApplicationEntit
   
   @Override
   public Optional<Entity> find (
-    @NonNull final ApplicationEntityReference<Entity> reference
+    @NonNull final ApplicationEntityReference<? extends Entity> reference
   ) {
     return Optional.ofNullable(
       _entityManager.find(_type, reference.getIdentifier())

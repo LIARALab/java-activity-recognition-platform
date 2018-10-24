@@ -25,8 +25,7 @@ public class LocalActivationsRepository
 
   @Override
   public Optional<ActivationState> findAt (
-    @NonNull final ZonedDateTime area, 
-    @NonNull final ApplicationEntityReference<Sensor> sensor
+    @NonNull final ZonedDateTime area, @NonNull final ApplicationEntityReference<? extends Sensor> sensor
   ) {
     return findPrevious(area, sensor);
   }

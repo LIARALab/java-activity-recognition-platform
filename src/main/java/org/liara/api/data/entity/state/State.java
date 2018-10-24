@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.utils.CloneMemory;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
@@ -57,10 +58,15 @@ public class State extends ApplicationEntity
     _correlations = new HashMap<>();
   }
 
-  public State (@NonNull final State toCopy) {
+  public State (@NonNull final State toCopy, @NonNull final CloneMemory clones) {
+    super(toCopy, clones);
     _emittionDate = toCopy.getEmittionDate();
-    _sensor = toCopy.getSensor();
-    _correlations = new HashMap<>(toCopy.getCorrelations());
+    _sensor = toCopy.getSensor() == null ? null : clones.clone(toCopy.getSensor());
+    _correlations = new HashMap<>();
+
+    for (final Map.@NonNull Entry<@NonNull String, @NonNull State> correlation : toCopy.getCorrelations().entrySet()) {
+      _correlations.put(correlation.getKey(), clones.clone(correlation.getValue()));
+    }
   }
   
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
@@ -168,5 +174,13 @@ public class State extends ApplicationEntity
 
   @Override
   public @NonNull State clone ()
-  { return new State(this); }
+  {
+    return clone(new CloneMemory());
+  }
+
+  @Override
+  public @NonNull State clone (@NonNull final CloneMemory clones)
+  {
+    return new State(this, clones);
+  }
 }

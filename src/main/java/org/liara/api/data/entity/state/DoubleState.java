@@ -24,6 +24,7 @@ package org.liara.api.data.entity.state;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.utils.CloneMemory;
 
 import javax.persistence.*;
 
@@ -41,8 +42,8 @@ public class DoubleState
     _value = null;
   }
 
-  public DoubleState (@NonNull final DoubleState toCopy) {
-    super(toCopy);
+  public DoubleState (@NonNull final DoubleState toCopy, @NonNull final CloneMemory clones) {
+    super(toCopy, clones);
     _value = toCopy.getValue();
   }
 
@@ -63,6 +64,9 @@ public class DoubleState
 
   @Override
   public @NonNull DoubleState clone () {
-    return new DoubleState(this);
+    return clone(new CloneMemory());
   }
+
+  @Override
+  public @NonNull DoubleState clone (@NonNull final CloneMemory clones) { return new DoubleState(this, clones); }
 }

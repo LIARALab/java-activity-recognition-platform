@@ -7,7 +7,7 @@ plugins {
   id 'io.spring.dependency-management' version '1.0.6.RELEASE'
   id 'eclipse'
   id 'idea'
-  id 'at.comm_unity.gradle.plugins.jpamodelgen' version '1.1.4'
+  //id 'at.comm_unity.gradle.plugins.jpamodelgen' version '1.1.4'
 }
 
 defaultTasks 'clean', 'test', 'jacocoTestReport', 'build'
@@ -16,8 +16,8 @@ bootJar {
   baseName = 'server'
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 1.10
+targetCompatibility = 1.10
 
 repositories {
   mavenLocal()
@@ -60,11 +60,16 @@ dependencies {
   testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.+'
 }
 
-compileJpaModelgen {
-  includes += [
-    "**/org/liara/api/data/entity/**/*",
-    "**/org/liara/api/data/tree/**/*"
-  ]
+
+//compileJpaModelgen {
+//  includes += [
+//    "**/org/liara/api/data/entity/**/*",
+//    "**/org/liara/api/data/tree/**/*"
+//  ]
+//}
+
+jacoco {
+  toolVersion = "0.8.2"
 }
 
 jacocoTestReport {

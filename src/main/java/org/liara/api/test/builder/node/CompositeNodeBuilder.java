@@ -1,6 +1,5 @@
 package org.liara.api.test.builder.node;
 
-import com.google.common.collect.Streams;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.repository.local.LocalEntityManager;
 import org.liara.api.test.builder.Builder;
@@ -40,18 +39,18 @@ public abstract class CompositeNodeBuilder<
     super.apply(entity);
     
     for (final Builder<?, ? extends Node> child : _children) {
-      entity.addChild(child.build());
+      //entity.addChild(child.build());
     }
   }
 
   @Override
   public Entity buildFor (@NonNull final LocalEntityManager entityManager) {
     final Entity result = super.buildFor(entityManager);
-    entityManager.addAll(result.children());
+    /*entityManager.addAll(result.children());
     Streams.stream(result.children()).forEach(x -> {
       entityManager.addAll(x.sensors());
       Streams.stream(x.sensors()).forEach(y -> entityManager.addAll(y.states()));
-    });
+    });*/
     return result;
   }
 }

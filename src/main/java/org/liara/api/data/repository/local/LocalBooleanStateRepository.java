@@ -27,8 +27,7 @@ public class LocalBooleanStateRepository
 
   @Override
   public List<BooleanState> findPreviousWithValue (
-    @NonNull final ZonedDateTime date,
-    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
+    @NonNull final ZonedDateTime date, @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors,
     final boolean value,
     final int count
   ) {
@@ -46,8 +45,7 @@ public class LocalBooleanStateRepository
 
   @Override
   public List<BooleanState> findNextWithValue (
-    @NonNull final ZonedDateTime date,
-    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
+    @NonNull final ZonedDateTime date, @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors,
     final boolean value,
     final int count
   ) {
@@ -65,7 +63,7 @@ public class LocalBooleanStateRepository
 
   @Override
   public List<BooleanState> findAllWithValue (
-    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors, 
+    @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors,
     boolean value
   ) {
     final List<BooleanState> result = findAll(inputSensors); 

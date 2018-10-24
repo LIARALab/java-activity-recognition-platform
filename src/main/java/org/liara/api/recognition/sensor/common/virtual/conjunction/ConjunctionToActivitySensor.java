@@ -116,10 +116,10 @@ public class ConjunctionToActivitySensor
     creation.setStart(conjunction.getStart());
     creation.setEnd(conjunction.getEnd());
     creation.setTag(getConfiguration().getTag());
-    creation.setSensor(getSensor());
+    creation.setSensor(getSensor().getReference());
     
     for (final ActivationState state : conjunction.getStates()) {
-      creation.correlate("activationOf" + state.getNodeIdentifier(), state);
+      creation.correlate("activationOf" + state.getNode().getIdentifier(), state);
     }
     
     _schemaManager.execute(creation);

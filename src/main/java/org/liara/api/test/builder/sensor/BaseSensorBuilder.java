@@ -106,7 +106,7 @@ public abstract class BaseSensorBuilder<
   @Override
   public Entity buildFor (@NonNull final LocalEntityManager entityManager) {
     final Entity result = super.buildFor(entityManager);
-    entityManager.addAll(result.states());
+    entityManager.addAll(result.getStates());
     return result;
   }
 }

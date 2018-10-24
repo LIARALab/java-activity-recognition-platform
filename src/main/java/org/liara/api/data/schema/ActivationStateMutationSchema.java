@@ -25,7 +25,7 @@ public class ActivationStateMutationSchema extends StateMutationSchema
   private ZonedDateTime _end = null;
   
   @NonNull
-  private ApplicationEntityReference<Node> _node = ApplicationEntityReference.empty(Node.class);
+  private ApplicationEntityReference<? extends Node> _node = ApplicationEntityReference.empty(Node.class);
 
   @Override
   public void clear () {
@@ -55,7 +55,7 @@ public class ActivationStateMutationSchema extends StateMutationSchema
   
   @ValidApplicationEntityReference
   @Required
-  public ApplicationEntityReference<Node> getNode () {
+  public ApplicationEntityReference<? extends Node> getNode () {
     return _node;
   }
   

@@ -4,7 +4,6 @@ import org.liara.api.data.entity.Node
 import org.liara.api.data.entity.Sensor
 import org.liara.api.data.entity.reference.ApplicationEntityReference
 import org.liara.api.data.entity.state.BooleanState
-import org.liara.api.data.entity.state.BooleanStateSnapshot
 import org.liara.api.data.entity.state.State
 import org.liara.api.data.handler.LocalBooleanStateCreationSchemaHandler
 import org.liara.api.data.handler.LocalBooleanStateMutationSchemaHandler
@@ -30,10 +29,10 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.stream.Collectors
 
-public class OneVsAllToUpDownMotionSensorSpecification
+class OneVsAllToUpDownMotionSensorSpecification
        extends Specification
 {
-  def Node buildTestHouse (
+  Node buildTestHouse (
     @NonNull final LocalEntityManager entityManager,
     @NonNull final List<String> rooms
   ) {
@@ -56,8 +55,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
     return house
   }
-  
-  static def Duration randomize (@NonNull final Duration duration, final float coef, final long max) {
+
+  static Duration randomize (@NonNull final Duration duration, final float coef, final long max) {
     final Duration result = Duration.ofSeconds((long)(duration.seconds * coef))
     
     if (result.compareTo(Duration.ofSeconds(max)) <= 0) {
@@ -66,8 +65,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
       return Duration.ofSeconds(max)
     }
   }
-  
-  def void buildTestScenario (
+
+  void buildTestScenario (
     @NonNull final LocalEntityManager entityManager,
     @NonNull final Node house,
     @NonNull final ZonedDateTime startDate,
@@ -111,8 +110,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
       totalDuration += nextRoomDuration
     }
   }
-  
-  def void delete (
+
+  void delete (
     @NonNull final VirtualSensorRunner runner,
     @NonNull final LocalEntityManager entityManager,
     @NonNull final Collection<State> states
@@ -135,7 +134,7 @@ public class OneVsAllToUpDownMotionSensorSpecification
    * @param states
    * @return
    */
-  def List<State> emit (
+  List<State> emit (
     @NonNull final ApplicationEntityReference<Sensor> emitter,
     @NonNull final LocalEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
@@ -150,8 +149,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
     return states
   }
-  
-  def VirtualSensorRunner buildRunnerForHouse (
+
+  VirtualSensorRunner buildRunnerForHouse (
     @NonNull final Node house,
     @NonNull final String room,
     @NonNull final LocalEntityManager entityManager,
@@ -193,15 +192,15 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
     return runner
   }
-  
-  def List<State> mutate (
+
+  List<State> mutate (
     @NonNull final LocalEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
     @NonNull final List<BooleanStateMutationSchema> mutations
   ) {
     for (final BooleanStateMutationSchema mutation : mutations) {
       final BooleanState flag = entityManager[mutation.state]
-      final BooleanStateSnapshot oldValue = flag.snapshot()
+      final BooleanState oldValue = flag.clone()
       entityManager.remove(flag)
       flag.identifier = oldValue.identifier
       if (mutation.emittionDate != null) flag.emittionDate = mutation.emittionDate
@@ -211,8 +210,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
         new StateWasMutatedEvent(this, oldValue, flag)
       )
     }
-    
-    return mutations.stream().map({ x -> entityManager[x.state] }).collect(Collectors.toList());
+
+    return mutations.stream().map({ x -> entityManager[x.state] }).collect(Collectors.toList())
   }
     
   def "it emit boundaries flags from existing sensor data when the virtual sensor is initialized" () {
@@ -656,7 +655,7 @@ public class OneVsAllToUpDownMotionSensorSpecification
       
     then: "we expect that the underlying handler does moves the emitted flag"
       schemaManager.handledSchemaCount == 20
-      def List<Map<String, ?>> handled = []
+    List<Map<String, ?>> handled = []
       
       for (int index in (1..20)) {
         handled.addAll([
@@ -725,7 +724,7 @@ public class OneVsAllToUpDownMotionSensorSpecification
       
     then: "we expect that the underlying handler does moves the emitted flag"
       schemaManager.handledSchemaCount == 20
-      def List<Map<String, ?>> handled = []
+    List<Map<String, ?>> handled = []
       
       for (int index in (1..20)) {
         handled.addAll([
@@ -786,7 +785,7 @@ public class OneVsAllToUpDownMotionSensorSpecification
       
     then: "we expect that the underlying handler move the emitted flag"
       schemaManager.handledSchemaCount == 20
-      def List<Map<String, ?>> handled = []
+    List<Map<String, ?>> handled = []
       
       for (int index in (1..20)) {
         handled.addAll([
@@ -855,7 +854,7 @@ public class OneVsAllToUpDownMotionSensorSpecification
       
     then: "we expect that the underlying handler move the emitted flag"
       schemaManager.handledSchemaCount == 20
-      def List<Map<String, ?>> handled = []
+    List<Map<String, ?>> handled = []
       
       for (int index in (1..20)) {
         handled.addAll([
@@ -993,7 +992,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
           "state": flags[kitchenSensor, 1].reference,
           "emittionDate": flags[kitchenSensor, 1].emittionDate - Duration.ofMinutes(2)
         ])
-      ]);
+      ]
+      )
 
     then: "we expect that the underlying handler will instantiate two flags"
       Mockito.verify(runner.handler as OneVsAllToUpDownMotionSensor)
@@ -1051,7 +1051,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
           "emittionDate": flags[kitchenSensor, 1].emittionDate - Duration.ofMinutes(2),
           "value": false
         ])
-      ]);
+      ]
+      )
 
     then: "we expect that the underlying handler will instantiate two flags"
       Mockito.verify(runner.handler as OneVsAllToUpDownMotionSensor, Mockito.never())
@@ -1118,8 +1119,9 @@ public class OneVsAllToUpDownMotionSensorSpecification
           "state": flags[livingRoomSensor, 0].reference,
           "emittionDate": flags[livingRoomSensor, 0].emittionDate
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler will react accordingly"
       schemaManager.handledSchemaCount == 4
       schemaManager.hasHandled([
@@ -1194,8 +1196,9 @@ public class OneVsAllToUpDownMotionSensorSpecification
           "state": flags[livingRoomSensor, 0].reference,
           "emittionDate": flags[kitchenSensor, 0].emittionDate - Duration.ofMinutes(5)
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.hasHandled([
         [
@@ -1256,8 +1259,9 @@ public class OneVsAllToUpDownMotionSensorSpecification
           "state": flags[kitchenSensor, 0].reference,
           "emittionDate": flags[kitchenSensor, 0].emittionDate + Duration.ofMinutes(10 * 3)
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.hasHandled([
         [
@@ -1320,8 +1324,9 @@ public class OneVsAllToUpDownMotionSensorSpecification
           "state": flags[livingRoomSensor, 0].reference,
           "emittionDate": flags[kitchenSensor, 1].emittionDate + Duration.ofMinutes(5)
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.hasHandled([
         [
@@ -1396,8 +1401,9 @@ public class OneVsAllToUpDownMotionSensorSpecification
           "state": flags[kitchenSensor, 1].reference,
           "emittionDate": flags[kitchenSensor, 3].emittionDate + Duration.ofMinutes(2)
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.hasHandled([
         [
@@ -1452,8 +1458,9 @@ public class OneVsAllToUpDownMotionSensorSpecification
           "state": flags[kitchenSensor, 0].reference,
           "emittionDate": flags[kitchenSensor, 0].emittionDate + Duration.ofMinutes(5)
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.handledSchemaCount == 1
       schemaManager.hasHandled([
@@ -1506,8 +1513,9 @@ public class OneVsAllToUpDownMotionSensorSpecification
           "emittionDate": flags[kitchenSensor, 0].emittionDate + Duration.ofMinutes(5),
           "value": false
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.handledSchemaCount == 1
       schemaManager.hasHandled([

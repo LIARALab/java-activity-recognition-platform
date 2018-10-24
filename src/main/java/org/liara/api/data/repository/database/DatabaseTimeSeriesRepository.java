@@ -1,10 +1,8 @@
 package org.liara.api.data.repository.database;
 
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.Sensor_;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.entity.state.State_;
 import org.liara.api.data.repository.TimeSeriesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -47,8 +45,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   
   @Override
   public List<TimeState> findPrevious (
-    @NonNull final ZonedDateTime date,
-    @NonNull final ApplicationEntityReference<Sensor> sensor,
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference<? extends Sensor> sensor,
     final int count
   ) {
     return _entityManager.createQuery(
@@ -68,8 +65,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   
   @Override
   public List<TimeState> findNext (
-    @NonNull final ZonedDateTime date,
-    @NonNull final ApplicationEntityReference<Sensor> sensor,
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference<? extends Sensor> sensor,
     final int count
   ) {
     return _entityManager.createQuery(
@@ -89,7 +85,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   
   @Override
   public List<TimeState> find (
-    @NonNull final ApplicationEntityReference<Sensor> sensor,
+    @NonNull final ApplicationEntityReference<? extends Sensor> sensor,
     final int from,
     final int count
   ) {
@@ -109,7 +105,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   
   @Override
   public List<TimeState> findAll (
-    @NonNull final ApplicationEntityReference<Sensor> sensor
+    @NonNull final ApplicationEntityReference<? extends Sensor> sensor
   ) {
     return _entityManager.createQuery(
       String.join(
@@ -125,9 +121,9 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
 
   @Override
   public List<TimeState> findWithCorrelation (
-    @NonNull final String key, 
+    @NonNull final String key,
     @NonNull final ApplicationEntityReference<? extends State> correlated,
-    @NonNull final ApplicationEntityReference<Sensor> sensor
+    @NonNull final ApplicationEntityReference<? extends Sensor> sensor
   ) {
     return _entityManager.createQuery(
       String.join(
@@ -146,15 +142,14 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   @Override
   public List<TimeState> findWithCorrelations (
     @NonNull final Map<String, ApplicationEntityReference<? extends State>> correlations,
-    @NonNull final ApplicationEntityReference<Sensor> sensor
+    @NonNull final ApplicationEntityReference<? extends Sensor> sensor
   ) {
     final CriteriaBuilder builder = _entityManager.getCriteriaBuilder();
     final CriteriaQuery<TimeState> query = builder.createQuery(_stateType);
     
     final Root<TimeState> root = query.from(_stateType);
     final MapJoin<TimeState, String, State> rootCorrelations = root.join(
-      root.getModel().getDeclaredMap(
-        "_correlations", String.class, State.class
+      root.getModel().getDeclaredMap("correlations", String.class, State.class
       )
     );
     
@@ -162,14 +157,13 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
     
     for (final Map.Entry<String, ApplicationEntityReference<? extends State>> correlation : correlations.entrySet()) {
       predicates.add(builder.equal(
-        rootCorrelations.on(
-          builder.equal(rootCorrelations.key(), correlation.getKey())).value().get(Sensor_.identifier),
+        rootCorrelations.on(builder.equal(rootCorrelations.key(), correlation.getKey())).value().get("identifier"),
         correlation.getValue().getIdentifier()
       ));
     }
     
     predicates.add(builder.equal(
-      root.get(State_.sensor).get(Sensor_.identifier),
+      root.get("sensor").get("identifier"),
       sensor.getIdentifier()
     ));
     
@@ -182,7 +176,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   public List<TimeState> findWithAnyCorrelation (
     @NonNull final Collection<String> keys,
     @NonNull final ApplicationEntityReference<? extends State> correlated,
-    @NonNull final ApplicationEntityReference<Sensor> sensor
+    @NonNull final ApplicationEntityReference<? extends Sensor> sensor
   )
   {
     return _entityManager.createQuery(
@@ -202,7 +196,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
 
   @Override
   public List<TimeState> findAll (
-    @NonNull final Collection<ApplicationEntityReference<Sensor>> sensors
+    @NonNull final Collection<ApplicationEntityReference<? extends Sensor>> sensors
   ) {
     return _entityManager.createQuery(
       String.join(
@@ -222,8 +216,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   
   @Override
   public List<TimeState> findPrevious (
-    @NonNull final ZonedDateTime date, 
-    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors, 
+    @NonNull final ZonedDateTime date, @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors,
     final int count
   ) {
     return findAllPreviousQuery(date, inputSensors).setMaxResults(count)
@@ -233,8 +226,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
 
   @Override
   public List<TimeState> findNext (
-    @NonNull final ZonedDateTime date, 
-    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors, 
+    @NonNull final ZonedDateTime date, @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors,
     final int count
   ) {
     return findAllNextQuery(date, inputSensors).setMaxResults(count)
@@ -243,23 +235,20 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
 
   @Override
   public List<TimeState> findAllNext (
-    @NonNull final ZonedDateTime date, 
-    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+    @NonNull final ZonedDateTime date, @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors
   ) {
     return findAllNextQuery(date, inputSensors).getResultList();
   }
   
   @Override
   public List<TimeState> findAllPrevious (
-    @NonNull final ZonedDateTime date, 
-    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+    @NonNull final ZonedDateTime date, @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors
   ) {
     return findAllPreviousQuery(date, inputSensors).getResultList();
   }
   
   private TypedQuery<TimeState> findAllNextQuery (
-    @NonNull final ZonedDateTime date, 
-    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+    @NonNull final ZonedDateTime date, @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors
   ) {
     return _entityManager.createQuery(
       String.join(
@@ -280,8 +269,7 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   }
 
   private TypedQuery<TimeState> findAllPreviousQuery (
-    @NonNull final ZonedDateTime date, 
-    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
+    @NonNull final ZonedDateTime date, @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors
   ) {
     return _entityManager.createQuery(
       String.join(

@@ -32,8 +32,8 @@ public abstract class BaseLocalStateCreationSchemaHandler<Schema extends StateCr
     state.setEmittionDate(schema.getEmittionDate());
     state.setIdentifier(null);
     state.setSensor(_manager.find(schema.getSensor()).get());
-    
-    for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : schema.correlations()) {
+
+    for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : schema.getCorrelations().entrySet()) {
       state.correlate(correlation.getKey(), _manager.find(correlation.getValue()).get());
     }
   }

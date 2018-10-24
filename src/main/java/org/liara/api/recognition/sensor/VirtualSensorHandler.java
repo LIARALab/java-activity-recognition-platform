@@ -1,60 +1,77 @@
 package org.liara.api.recognition.sensor;
 
-import org.liara.api.event.NodeWasCreatedEvent;
-import org.liara.api.event.NodeWillBeCreatedEvent;
-import org.liara.api.event.SensorWasCreatedEvent;
-import org.liara.api.event.SensorWillBeCreatedEvent;
-import org.liara.api.event.StateWasCreatedEvent;
-import org.liara.api.event.StateWasDeletedEvent;
-import org.liara.api.event.StateWasMutatedEvent;
-import org.liara.api.event.StateWillBeCreatedEvent;
-import org.liara.api.event.StateWillBeDeletedEvent;
-import org.liara.api.event.StateWillBeMutatedEvent;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.event.*;
 import org.springframework.lang.NonNull;
 
 public interface VirtualSensorHandler
 {
+  static boolean isVirtual (@NonNull final Sensor sensor) {
+    return VirtualSensorHandler.class.isAssignableFrom(sensor.getTypeClass());
+  }
+
+  static @NonNull
+  Class<? extends State> emittedStateOf (@NonNull final Sensor sensor) {
+    final Class<?>        typeClass  = sensor.getTypeClass();
+    final EmitStateOfType annotation = typeClass.getAnnotation(EmitStateOfType.class);
+
+    if (annotation == null) {
+      throw new Error(String.join(
+        "",
+        "Unnable to retrieve the emitted state type of this sensor because the ",
+        "type of this sensor ",
+        typeClass.toString(),
+        " does not declare any ",
+        EmitStateOfType.class.toString(),
+        " annotation."
+      ));
+    } else {
+      return annotation.value();
+    }
+  }
+
   /**
    * A method called when the given virtual sensor is created into the application database.
    * 
    * @param runner The handler related runner.
    */
-  public void initialize (@NonNull final VirtualSensorRunner runner);
+  void initialize (@NonNull final VirtualSensorRunner runner);
   
   /**
    * A method called before a shutdown of this sensor.
    */
-  public void pause ();
-  
-  public default void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event) {};
-  
-  public default void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) {};
-  
-  public default void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event) {};
-  
-  public default void nodeWasCreated (@NonNull final NodeWasCreatedEvent event) {};
-  
-  public default void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event) {};
-  
-  public default void stateWasCreated (@NonNull final StateWasCreatedEvent event) {};
-  
-  public default void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event) {};
-  
-  public default void stateWasMutated (@NonNull final StateWasMutatedEvent event) {};
-  
-  public default void stateWillBeDeleted (@NonNull final StateWillBeDeletedEvent event) {};
-  
-  public default void stateWasDeleted (@NonNull final StateWasDeletedEvent event) {};
-  
+  void pause ();
+
+  default void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event) {}
+
+  default void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) {}
+
+  default void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event) {}
+
+  default void nodeWasCreated (@NonNull final NodeWasCreatedEvent event) {}
+
+  default void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event) {}
+
+  default void stateWasCreated (@NonNull final StateWasCreatedEvent event) {}
+
+  default void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event) {}
+
+  default void stateWasMutated (@NonNull final StateWasMutatedEvent event) {}
+
+  default void stateWillBeDeleted (@NonNull final StateWillBeDeletedEvent event) {}
+
+  default void stateWasDeleted (@NonNull final StateWasDeletedEvent event) {}
+
   /**
    * A method called when the given virtual sensor is restarted.
    * 
    * @param runner The handler related runner.
    */
-  public void resume (@NonNull final VirtualSensorRunner runner);
+  void resume (@NonNull final VirtualSensorRunner runner);
   
   /**
    * A method called when the given virtual sensor is deleted from the application database (soft delete).
    */
-  public void stop ();
+  void stop ();
 }

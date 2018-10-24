@@ -3,6 +3,7 @@ package org.liara.api.data.entity.state;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.utils.CloneMemory;
 
 import javax.persistence.*;
 import java.time.Duration;
@@ -26,8 +27,8 @@ public class DurationState
     _end = null;
   }
 
-  public DurationState (@NonNull final DurationState toCopy) {
-    super(toCopy);
+  public DurationState (@NonNull final DurationState toCopy, @NonNull final CloneMemory clones) {
+    super(toCopy, clones);
     _start = toCopy.getStart();
     _end = toCopy.getEnd();
   }
@@ -80,7 +81,12 @@ public class DurationState
   }
 
   @Override
-  public @NonNull State clone () {
-    return new DurationState(this);
+  public @NonNull DurationState clone () {
+    return clone(new CloneMemory());
+  }
+
+  @Override
+  public @NonNull DurationState clone (@NonNull final CloneMemory clones) {
+    return new DurationState(this, clones);
   }
 }

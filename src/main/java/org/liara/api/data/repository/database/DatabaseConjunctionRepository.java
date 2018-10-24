@@ -1,11 +1,9 @@
 package org.liara.api.data.repository.database;
 
 import org.liara.api.data.Conjunction;
-import org.liara.api.data.entity.ApplicationEntity_;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.ActivationState;
-import org.liara.api.data.entity.state.ActivationState_;
 import org.liara.api.data.repository.ConjunctionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -56,17 +54,15 @@ public class DatabaseConjunctionRepository implements ConjunctionRepository
     );
     
     final Expression<ZonedDateTime> conjunctionEnd = builder.function(
-      "LEAST", ZonedDateTime.class,
-      selections.stream().map(entry -> entry.getValue().get(ActivationState_.end))
-                .collect(Collectors.toList())
-                .toArray(new Expression[selections.size()])
+      "LEAST", ZonedDateTime.class, selections.stream().map(entry -> entry.getValue().get("end"))
+                                              .collect(Collectors.toList())
+                                              .toArray(new Expression[selections.size()])
     );
     
     final Expression<ZonedDateTime> conjunctionStart = builder.function(
-      "GREATEST", ZonedDateTime.class,
-      selections.stream().map(entry -> entry.getValue().get(ActivationState_.start))
-                .collect(Collectors.toList())
-                .toArray(new Expression[selections.size()])
+      "GREATEST", ZonedDateTime.class, selections.stream().map(entry -> entry.getValue().get("start"))
+                                                 .collect(Collectors.toList())
+                                                 .toArray(new Expression[selections.size()])
     );
     
     final List<Selection<?>> tupleSelection = new ArrayList<>();
@@ -79,24 +75,21 @@ public class DatabaseConjunctionRepository implements ConjunctionRepository
     for (int index = 0; index < selections.size(); ++index) {
       predicates.add(
         builder.equal(
-          selections.get(index)
-                    .getValue().get(ActivationState_.sensor).get(ApplicationEntity_.identifier),
+          selections.get(index).getValue().get("sensor").get("identifier"),
           selections.get(index).getKey()
         )
       );
       
       predicates.add(
         builder.lessThanOrEqualTo(
-          selections.get(index)
-                    .getValue().get(ActivationState_.start),
+          selections.get(index).getValue().get("start"),
           conjunctionEnd
         )
       );
       
       predicates.add(
         builder.greaterThanOrEqualTo(
-          selections.get(index)
-                    .getValue().get(ActivationState_.end),
+          selections.get(index).getValue().get("end"),
           conjunctionStart
         )
       );

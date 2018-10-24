@@ -34,8 +34,7 @@ public class DatabaseActivationRepository
 
   @Override
   public Optional<ActivationState> findAt (
-    @NonNull final ZonedDateTime area,
-    @NonNull final ApplicationEntityReference<Sensor> sensor
+    @NonNull final ZonedDateTime area, @NonNull final ApplicationEntityReference<? extends Sensor> sensor
   ) {
     final List<ActivationState> result = _entityManager.createQuery(String.join(
       "",

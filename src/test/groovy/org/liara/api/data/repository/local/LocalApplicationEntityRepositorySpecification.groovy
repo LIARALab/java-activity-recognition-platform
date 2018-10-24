@@ -6,10 +6,10 @@ import org.liara.api.data.entity.reference.ApplicationEntityReference
 import org.liara.api.test.builder.sensor.SensorBuilder
 import spock.lang.Specification
 
-public class LocalApplicationEntityRepositorySpecification
+class LocalApplicationEntityRepositorySpecification
        extends Specification
 {
-  def List<Sensor> generateEntities (final int count) {
+  List<Sensor> generateEntities (final int count) {
     final SensorBuilder builder = new SensorBuilder()
     final List<Sensor> entities = []
     
@@ -29,7 +29,7 @@ public class LocalApplicationEntityRepositorySpecification
       )
       
       repository.size() == 0
-      repository.findAll().empty == true
+    repository.findAll().empty
   }
   
   def "it allows you to register new entities one by one into the repository" () {

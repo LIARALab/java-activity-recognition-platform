@@ -9,17 +9,20 @@ import java.util.Optional;
 
 public interface ApplicationEntityRepository<Entity extends ApplicationEntity>
 {
-  public Optional<Entity> find (
-    @NonNull final ApplicationEntityReference<Entity> reference
+  Optional<Entity> find (
+    @NonNull final ApplicationEntityReference<? extends Entity> reference
   );
-  
-  public default Entity getAt (@NonNull final ApplicationEntityReference<Entity> reference) {
+
+  default Entity getAt (
+    @NonNull final ApplicationEntityReference<? extends Entity> reference
+  )
+  {
     return find(reference).get();
   }
-  
-  public List<Entity> findAll ();
-  
-  public default List<Entity> getAt () {
+
+  List<Entity> findAll ();
+
+  default List<Entity> getAt () {
     return findAll();
   }
 }

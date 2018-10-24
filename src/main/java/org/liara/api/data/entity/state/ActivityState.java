@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.utils.CloneMemory;
 
 import javax.persistence.*;
 
@@ -25,8 +26,8 @@ public class ActivityState
     _tag = null;
   }
 
-  public ActivityState (@NonNull final ActivityState toCopy) {
-    super(toCopy);
+  public ActivityState (@NonNull final ActivityState toCopy, @NonNull final CloneMemory clones) {
+    super(toCopy, clones);
     _tag = toCopy.getTag();
   }
 
@@ -46,6 +47,11 @@ public class ActivityState
 
   @Override
   public @NonNull ActivityState clone () {
-    return new ActivityState(this);
+    return clone(new CloneMemory());
+  }
+
+  @Override
+  public @NonNull ActivityState clone (@NonNull final CloneMemory clones) {
+    return new ActivityState(this, clones);
   }
 }

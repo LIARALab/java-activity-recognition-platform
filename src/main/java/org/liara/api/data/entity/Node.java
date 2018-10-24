@@ -28,6 +28,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.tree.NestedSet;
 import org.liara.api.data.tree.NestedSetCoordinates;
+import org.liara.api.utils.CloneMemory;
 
 import javax.persistence.*;
 import java.util.*;
@@ -58,11 +59,16 @@ public class Node
     _sensors = new HashSet<>();
   }
 
-  public Node (@NonNull final Node toCopy) {
+  public Node (@NonNull final Node toCopy, @NonNull final CloneMemory clones) {
+    super(toCopy, clones);
+    _sensors = new HashSet<>();
     _name = toCopy.getName();
     _type = toCopy.getType();
     _coordinates = new NestedSetCoordinates(toCopy.getCoordinates());
-    _sensors = new HashSet<>(toCopy.getSensors());
+
+    for (@NonNull final Sensor sensor : toCopy.getSensors()) {
+      _sensors.add(clones.clone(sensor));
+    }
   }
 
   /**
@@ -231,8 +237,13 @@ public class Node
   }
 
   @Override
-  @NonNull
-  public Node clone () {
-    return new Node(this);
+  public @NonNull Node clone () {
+    return clone(new CloneMemory());
+  }
+
+  @Override
+  public @NonNull Node clone (@NonNull final CloneMemory clones)
+  {
+    return new Node(this, clones);
   }
 }

@@ -10,8 +10,7 @@ import java.util.Optional;
 
 public interface ActivationsRepository extends TimeSeriesRepository<ActivationState>
 {
-  public Optional<ActivationState> findAt (
-    @NonNull final ZonedDateTime area,
-    @NonNull final ApplicationEntityReference<Sensor> sensor
+  Optional<ActivationState> findAt (
+    @NonNull final ZonedDateTime area, @NonNull final ApplicationEntityReference<? extends Sensor> sensor
   );
 }

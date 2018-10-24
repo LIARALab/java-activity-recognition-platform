@@ -20,7 +20,6 @@ public class StateWasMutatedEvent extends ApplicationEvent
   /**
    * 
    * @param source
-   * @param state
    */
   public StateWasMutatedEvent(
     @NonNull final Object source, @NonNull final State oldValue,

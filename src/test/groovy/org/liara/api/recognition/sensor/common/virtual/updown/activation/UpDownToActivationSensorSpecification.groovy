@@ -4,7 +4,6 @@ import org.liara.api.data.entity.Node
 import org.liara.api.data.entity.Sensor
 import org.liara.api.data.entity.reference.ApplicationEntityReference
 import org.liara.api.data.entity.state.BooleanState
-import org.liara.api.data.entity.state.BooleanStateSnapshot
 import org.liara.api.data.entity.state.State
 import org.liara.api.data.handler.LocalActivationStateMutationSchemaHandler
 import org.liara.api.data.handler.LocalActivationStateSchemaHandler
@@ -29,7 +28,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.stream.Collectors
 
-public class UpDownToActivationSensorSpecification
+class UpDownToActivationSensorSpecification
        extends Specification
 {
   /**
@@ -37,7 +36,7 @@ public class UpDownToActivationSensorSpecification
    * @param entityManager
    * @return
    */
-  def Node buildingTestHouseWithSourceSequence (
+  Node buildingTestHouseWithSourceSequence (
     @NonNull final Closure<?> sequenceConfigurator,
     @NonNull final LocalEntityManager entityManager
   ) {
@@ -66,7 +65,7 @@ public class UpDownToActivationSensorSpecification
    * @param schemaManager
    * @return
    */
-  def VirtualSensorRunner buildRunnerForHouse (
+  VirtualSensorRunner buildRunnerForHouse (
     @NonNull final Node house,
     @NonNull final LocalEntityManager entityManager,
     @NonNull final SchemaManager schemaManager
@@ -116,7 +115,7 @@ public class UpDownToActivationSensorSpecification
    * @param states
    * @return
    */
-  def List<State> emit (
+  List<State> emit (
     @NonNull final ApplicationEntityReference<Sensor> emitter,
     @NonNull final LocalEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
@@ -140,7 +139,7 @@ public class UpDownToActivationSensorSpecification
    * @param mutations
    * @return
    */
-  def List<State> mutate (
+  List<State> mutate (
     @NonNull final ApplicationEntityReference<Sensor> emitter,
     @NonNull final LocalEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
@@ -148,7 +147,7 @@ public class UpDownToActivationSensorSpecification
   ) {
     for (final BooleanStateMutationSchema mutation : mutations) {
       final BooleanState flag = entityManager[mutation.state]
-      final BooleanStateSnapshot oldValue = flag.snapshot()
+      final BooleanState oldValue = flag.clone()
       entityManager.remove(flag)
       flag.identifier = oldValue.identifier
       if (mutation.emittionDate != null) flag.emittionDate = mutation.emittionDate
@@ -158,8 +157,8 @@ public class UpDownToActivationSensorSpecification
         new StateWasMutatedEvent(this, oldValue, flag)
       )
     }
-    
-    return mutations.stream().map({ x -> entityManager[x.state] }).collect(Collectors.toList());
+
+    return mutations.stream().map({ x -> entityManager[x.state] }).collect(Collectors.toList())
   }
   
   /**

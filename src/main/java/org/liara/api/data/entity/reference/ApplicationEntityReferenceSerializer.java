@@ -19,11 +19,10 @@ public class ApplicationEntityReferenceSerializer
   )
   throws IOException
   {
-    if (value.isNull()) {
+    if (value.isNull() || value.getIdentifier() == null) {
       gen.writeNull();
     } else {
-      gen.writeNumber(value.getIdentifier()
-                           .longValue());
+      gen.writeNumber(value.getIdentifier());
     }
   }
 }

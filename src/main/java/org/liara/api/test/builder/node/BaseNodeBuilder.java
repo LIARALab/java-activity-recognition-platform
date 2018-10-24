@@ -4,7 +4,6 @@ import com.google.common.collect.Streams;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.repository.local.LocalEntityManager;
-import org.liara.api.data.tree.NestedSetRepository;
 import org.liara.api.test.builder.Builder;
 import org.liara.api.test.builder.IdentityBuilder;
 import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
@@ -15,15 +14,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class BaseNodeBuilder<
-                        Self extends BaseNodeBuilder<Self, Entity>,
-                        Entity extends Node
-                      > 
+public abstract class BaseNodeBuilder<Self extends BaseNodeBuilder<Self, Entity>, Entity extends Node>
                 extends BaseApplicationEntityBuilder<Self, Entity>
-{  
-  @Nullable
-  private NestedSetRepository<Node> _tree;
-  
+{
   @Nullable
   private String _name;
   
@@ -33,10 +26,6 @@ public abstract class BaseNodeBuilder<
   @NonNull
   private final Set<Builder<?, ? extends Sensor>> _sensors = new HashSet<>();
 
-  public Self withTree (@Nullable final NestedSetRepository<Node> tree) {
-    _tree = tree;
-    return self();
-  }
   
   public Self withType (@Nullable final String type) {
     _type = type;
@@ -75,7 +64,6 @@ public abstract class BaseNodeBuilder<
     super.apply(node);
     node.setName(_name);
     node.setType(_type);
-    node.setTree(_tree);
     
     for (final Builder<?, ? extends Sensor> sensor : _sensors) {
       node.addSensor(sensor.build());
@@ -85,8 +73,8 @@ public abstract class BaseNodeBuilder<
   @Override
   public Entity buildFor (@NonNull final LocalEntityManager entityManager) {
     final Entity result = super.buildFor(entityManager);
-    entityManager.addAll(result.sensors());
-    Streams.stream(result.sensors()).forEach(x -> entityManager.addAll(x.states()));
+    entityManager.addAll(result.getSensors());
+    Streams.stream(result.getSensors()).forEach(x -> entityManager.addAll(x.getStates()));
     return result;
   }
 }

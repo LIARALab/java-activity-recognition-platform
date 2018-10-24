@@ -1,7 +1,6 @@
 package org.liara.api.data.schema;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -12,6 +11,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.recognition.sensor.VirtualSensorHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jackson.JsonComponent;
 import org.springframework.context.ApplicationContext;
@@ -34,7 +34,9 @@ public class StateCreationSchemaDeserializer extends JsonDeserializer<StateCreat
   public StateCreationSchema deserialize (
     @NonNull final JsonParser parser, 
     @NonNull final DeserializationContext context
-  ) throws IOException, JsonProcessingException {
+  )
+  throws IOException
+  {
     final ObjectMapper mapper = (ObjectMapper) parser.getCodec();
     final TreeNode treeNode = mapper.readTree(parser);
     
@@ -79,7 +81,7 @@ public class StateCreationSchemaDeserializer extends JsonDeserializer<StateCreat
     @NonNull final ObjectMapper mapper, 
     @NonNull final Sensor sensor
   ) throws IOException {
-    final Class<? extends State> stateClass = sensor.getStateClass();
+    final Class<? extends State> stateClass = VirtualSensorHandler.emittedStateOf(sensor);
     final UseCreationSchema useCreationSchema = stateClass.getAnnotation(
       UseCreationSchema.class
     );

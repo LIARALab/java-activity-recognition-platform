@@ -7,9 +7,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
 import java.util.Collection;
@@ -17,8 +14,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-@Component
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @JsonPropertyOrder({"type", "identifier"})
 @JsonDeserialize(using = ApplicationEntityReferenceDeserializer.class)
 @JsonSerialize(using = ApplicationEntityReferenceSerializer.class)
@@ -89,7 +84,7 @@ public class ApplicationEntityReference<ReferencedEntity extends ApplicationEnti
     _identifier = identifier;
   }
 
-  @SuppressWarnings("unchecked") // entity is an instance of Entity, so entity.getClass() is Class<? extends Entity)
+  @SuppressWarnings("unchecked") // entity is an instance of Entity, so entity.getClass() is Class<? extends Entity>
   public ApplicationEntityReference (
     @NonNull final ReferencedEntity entity
   )
@@ -157,7 +152,7 @@ public class ApplicationEntityReference<ReferencedEntity extends ApplicationEnti
     return type.isAssignableFrom(_type);
   }
 
-  public <Type extends ApplicationEntity> ApplicationEntityReference<Type> as (
+  public <Type extends ApplicationEntity> ApplicationEntityReference<? extends Type> as (
     @NonNull final Class<Type> type
   )
   {

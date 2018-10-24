@@ -1,12 +1,14 @@
 package org.liara.api.data.repository.database;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
@@ -21,12 +23,17 @@ public class DatabaseSensorRepository
 {
   @NonNull
   private final EntityManager _entityManager;
-  
+
+  @NonNull
+  private final NodeRepository _nodes;
+
+  @Autowired
   public DatabaseSensorRepository(
-    @NonNull final EntityManager entityManager
+    @NonNull final EntityManager entityManager, @NonNull final NodeRepository nodes
   ) {
     super(entityManager, Sensor.class);
     _entityManager = entityManager;
+    _nodes = nodes;
   }
 
   @Override
@@ -45,8 +52,7 @@ public class DatabaseSensorRepository
 
   @Override
   public List<Sensor> getSensorsOfTypeIntoNode (
-    @NonNull final String type, 
-    @NonNull final ApplicationEntityReference<Node> nodeReference
+    @NonNull final String type, @NonNull final ApplicationEntityReference<? extends Node> nodeReference
   ) {
     final Node node = _entityManager.find(Node.class, nodeReference.getIdentifier());
     
@@ -57,8 +63,7 @@ public class DatabaseSensorRepository
         " WHERE sensor._type = :type ",
         "   AND sensor._node IN :nodes"
       ), Sensor.class
-    ).setParameter("type", type)
-     .setParameter("nodes", node.getAllChildren())
-     .getResultList();
+    ).setParameter("type", type).setParameter("nodes", _nodes.getAllChildrenOf(node))
+                         .getResultList();
   }
 }

@@ -45,7 +45,7 @@ public class LocalStateMutationSchemaHandler<Schema extends StateMutationSchema>
   
   @Override
   public State apply (@NonNull final Schema input) {
-    final State oldValue = new State(_manager.find(input.getState()).get());
+    final State oldValue = _manager.find(input.getState()).get().clone();
     final State result   = resolve(input);
     result.setIdentifier(oldValue.getIdentifier());
     _manager.merge(result);

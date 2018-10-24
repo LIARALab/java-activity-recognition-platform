@@ -3,7 +3,8 @@ package org.liara.api.data.tree
 import org.mockito.Mockito
 import spock.lang.Specification
 
-public class LocalNestedSetTreeSpecification extends Specification
+class LocalNestedSetTreeSpecification
+  extends Specification
 {
   def "it allows you to instantiate an empty tree with the default constructor" () {
     expect: "to instantiate an empty tree when you use the default constructor"

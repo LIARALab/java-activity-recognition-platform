@@ -21,7 +21,7 @@ public class StateCreationSchema
   private ZonedDateTime _emittionDate;
 
   @Nullable
-  private ApplicationEntityReference<Sensor> _sensor;
+  private ApplicationEntityReference<? extends Sensor> _sensor;
 
   @NonNull
   private final Map<@NonNull String, @NonNull ApplicationEntityReference<State>> _correlations;
@@ -46,11 +46,11 @@ public class StateCreationSchema
 
   @Required
   @ValidApplicationEntityReference
-  public @Nullable ApplicationEntityReference<Sensor> getSensor () {
+  public @Nullable ApplicationEntityReference<? extends Sensor> getSensor () {
     return _sensor;
   }
 
-  public void setSensor (@Nullable final ApplicationEntityReference<Sensor> sensor) {
+  public void setSensor (@Nullable final ApplicationEntityReference<? extends Sensor> sensor) {
     _sensor = sensor;
   }
 

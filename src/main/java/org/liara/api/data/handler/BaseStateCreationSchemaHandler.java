@@ -36,8 +36,8 @@ public class BaseStateCreationSchemaHandler<Schema extends StateCreationSchema>
     state.setEmittionDate(schema.getEmittionDate());
     state.setIdentifier(null);
     state.setSensor(schema.getSensor().resolve(manager));
-    
-    for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : schema.correlations()) {
+
+    for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : schema.getCorrelations().entrySet()) {
       state.correlate(correlation.getKey(), correlation.getValue().resolve(manager));
     }
   }

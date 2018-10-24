@@ -32,7 +32,7 @@ public class VirtualSensorRunner
     @NonNull final VirtualSensorManager manager,
     @NonNull final Sensor sensor
   ) {
-    if (!sensor.isVirtual()) {
+    if (!VirtualSensorHandler.isVirtual(sensor)) {
       throw new Error("Unnable to instanciate a runner for a non-virtual sensor.");
     }
     
@@ -48,7 +48,7 @@ public class VirtualSensorRunner
     manager.registerRunner(result);
     return result;
   }
-  
+
   public static VirtualSensorRunner create (
     @NonNull final VirtualSensorManager manager,
     @NonNull final Sensor sensor
@@ -62,7 +62,7 @@ public class VirtualSensorRunner
     @NonNull final Sensor sensor,
     @NonNull final VirtualSensorHandler handler
   ) {
-    if (!sensor.isVirtual()) {
+    if (!VirtualSensorHandler.isVirtual(sensor)) {
       throw new Error("Unnable to instanciate a runner for a non-virtual sensor.");
     }
     

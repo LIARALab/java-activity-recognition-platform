@@ -16,60 +16,9 @@ public class LocalConjunctionRepository
   extends BaseLocalRepository
   implements ConjunctionRepository
 {
-  private static class Entry
-    implements Comparable<Entry>
-  {
-    @NonNull
-    private final ZonedDateTime _index;
-
-    @Nullable
-    private final ActivationState _state;
-
-    public Entry (@NonNull final ZonedDateTime index) {
-      _index = index;
-      _state = null;
-    }
-
-    public Entry (
-      @NonNull final ZonedDateTime index,
-      @NonNull final ActivationState state
-    )
-    {
-      _index = index;
-      _state = state;
-    }
-
-    @Override
-    public int compareTo (@NonNull final Entry other) {
-      return _index.compareTo(other.getIndex());
-    }
-
-    public ZonedDateTime getIndex () {
-      return _index;
-    }
-
-    public ActivationState getState () {
-      return _state;
-    }
-
-    @Override
-    public boolean equals (@Nullable final Object other) {
-      if (other == this) return true;
-      if (other == null) return false;
-
-      if (other instanceof Entry) {
-        final Entry otherEntry = Entry.class.cast(other);
-        return Objects.equals(otherEntry.getIndex(), _index);
-      } else {
-        return false;
-      }
-    }
-
-    @Override
-    public int hashCode () {
-      return Objects.hashCode(_index);
-    }
-  }
+  @NonNull
+  private final Map<ApplicationEntityReference<? extends Sensor>, List<TreeSet<Entry>>> _statesBySensors =
+    new HashMap<>();
 
   private static int ascConjunctionComparator (
     @NonNull final Conjunction left,
@@ -80,8 +29,11 @@ public class LocalConjunctionRepository
                .compareTo(right.getStart());
   }
 
-  @NonNull
-  private final Map<ApplicationEntityReference<Sensor>, List<TreeSet<Entry>>> _statesBySensors = new HashMap<>();
+  private void initializeIfNotAlreadyAdded (@NonNull final ApplicationEntityReference<? extends Sensor> sensor) {
+    if (!_statesBySensors.containsKey(sensor)) {
+      _statesBySensors.put(sensor, Arrays.asList(new TreeSet<Entry>(), new TreeSet<Entry>()));
+    }
+  }
 
   @Override
   public List<Conjunction> getConjunctions (
@@ -170,13 +122,7 @@ public class LocalConjunctionRepository
     }
   }
 
-  private void initializeIfNotAlreadyAdded (@NonNull final ApplicationEntityReference<Sensor> sensor) {
-    if (!_statesBySensors.containsKey(sensor)) {
-      _statesBySensors.put(sensor, Arrays.asList(new TreeSet<Entry>(), new TreeSet<Entry>()));
-    }
-  }
-
-  private void destroyIfEmpty (@NonNull final ApplicationEntityReference<Sensor> sensor) {
+  private void destroyIfEmpty (@NonNull final ApplicationEntityReference<? extends Sensor> sensor) {
     if (_statesBySensors.get(sensor)
                         .size() <= 0) {
       _statesBySensors.remove(sensor);
@@ -188,10 +134,9 @@ public class LocalConjunctionRepository
     super.entityWasAdded(entity);
 
     if (entity instanceof ActivationState) {
-      final ActivationState state = ActivationState.class.cast(entity);
+      final ActivationState state = (ActivationState) entity;
 
-      initializeIfNotAlreadyAdded(state.getSensor()
-                                       .getReference());
+      initializeIfNotAlreadyAdded(state.getSensor().getReference());
 
       _statesBySensors.get(state.getSensor()
                                 .getReference())
@@ -209,7 +154,7 @@ public class LocalConjunctionRepository
     super.entityWasRemoved(entity);
 
     if (entity instanceof ActivationState) {
-      final ActivationState state = ActivationState.class.cast(entity);
+      final ActivationState state = (ActivationState) entity;
 
       _statesBySensors.get(state.getSensor()
                                 .getReference())
@@ -220,8 +165,61 @@ public class LocalConjunctionRepository
                       .get(1)
                       .remove(new Entry(state.getEnd(), state));
 
-      destroyIfEmpty(state.getSensor()
-                          .getReference());
+      destroyIfEmpty(state.getSensor().getReference());
+    }
+  }
+
+  private static class Entry
+    implements Comparable<Entry>
+  {
+    @NonNull
+    private final ZonedDateTime _index;
+
+    @Nullable
+    private final ActivationState _state;
+
+    public Entry (@NonNull final ZonedDateTime index) {
+      _index = index;
+      _state = null;
+    }
+
+    public Entry (
+      @NonNull final ZonedDateTime index, @NonNull final ActivationState state
+    )
+    {
+      _index = index;
+      _state = state;
+    }
+
+    @Override
+    public int compareTo (@NonNull final Entry other) {
+      return _index.compareTo(other.getIndex());
+    }
+
+    public ZonedDateTime getIndex () {
+      return _index;
+    }
+
+    public ActivationState getState () {
+      return _state;
+    }
+
+    @Override
+    public boolean equals (@Nullable final Object other) {
+      if (other == this) return true;
+      if (other == null) return false;
+
+      if (other instanceof Entry) {
+        final Entry otherEntry = (Entry) other;
+        return Objects.equals(otherEntry.getIndex(), _index);
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public int hashCode () {
+      return Objects.hashCode(_index);
     }
   }
 }

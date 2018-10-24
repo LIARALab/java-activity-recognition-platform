@@ -1,11 +1,12 @@
 package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall;
 
-import org.liara.api.data.entity.Node;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.BooleanStateRepository;
+import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
 import org.liara.api.data.schema.BooleanStateCreationSchema;
 import org.liara.api.data.schema.BooleanStateMutationSchema;
@@ -21,20 +22,19 @@ import org.liara.api.recognition.sensor.VirtualSensorRunner;
 import org.liara.api.recognition.sensor.common.NativeMotionSensor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @UseSensorConfigurationOfType(OneVsAllToUpDownMotionSensorConfiguration.class)
 @EmitStateOfType(BooleanState.class)
 @Component
 @Scope("prototype")
-public class OneVsAllToUpDownMotionSensor 
-       extends AbstractVirtualSensorHandler
+public class OneVsAllToUpDownMotionSensor
+  extends AbstractVirtualSensorHandler
 {
   @NonNull
   private final SchemaManager _schemaManager;
@@ -44,16 +44,21 @@ public class OneVsAllToUpDownMotionSensor
   
   @NonNull
   private final SensorRepository _sensors;
+
+  @NonNull
+  private final NodeRepository _nodes;
   
   @Autowired
   public OneVsAllToUpDownMotionSensor (
     @NonNull final SchemaManager schemaManager,
     @NonNull final BooleanStateRepository flags,
-    @NonNull final SensorRepository sensors
+    @NonNull final SensorRepository sensors,
+    @NonNull final NodeRepository nodes
   ) {
     _schemaManager = schemaManager;
     _flags = flags;
     _sensors = sensors;
+    _nodes = nodes;
   }
   
   public OneVsAllToUpDownMotionSensorConfiguration getConfiguration () {
@@ -65,15 +70,16 @@ public class OneVsAllToUpDownMotionSensor
   public Sensor getSensor () {
     return getRunner().getSensor();
   }
-  
-  public List<ApplicationEntityReference<Sensor>> getInputSensors () {
-    return _sensors.getSensorsOfTypeIntoNode(
-      NativeMotionSensor.class, 
-      getSensor().getNode().getRoot().getReference().as(Node.class)
+
+  public List<ApplicationEntityReference<? extends Sensor>> getInputSensors () {
+    final List<ApplicationEntityReference<? extends Sensor>> result = new ArrayList<>();
+
+    _sensors.getSensorsOfTypeIntoNode(NativeMotionSensor.class, _nodes.getRoot(getSensor().getNode()).getReference()
     ).stream()
-     .filter(sensor -> getConfiguration().isIgnoredInput(sensor) == false)
-     .map(Sensor::getReference)
-     .collect(Collectors.toList());
+            .filter((Sensor sensor) -> !getConfiguration().isIgnoredInput(sensor))
+            .forEach((Sensor sensor) -> result.add(sensor.getReference()));
+
+    return result;
   }
 
   @Override
@@ -116,12 +122,10 @@ public class OneVsAllToUpDownMotionSensor
   ) {
     super.stateWasCreated(event);
     
-    if (
-      event.getState().getModel().getSensor().isOfType(NativeMotionSensor.class) && 
-      BooleanState.class.cast(event.getState().getModel()).getValue() &&
-      getConfiguration().isIgnoredInput(event.getState().getModel()) == false
+    if (event.getState().getSensor().isOfType(NativeMotionSensor.class) &&
+        ((BooleanState) event.getState()).getValue() && getConfiguration().isIgnoredInput(event.getState()) == false
     ) {
-      onMotionStateWasCreated(BooleanState.class.cast(event.getState().getModel()));
+      onMotionStateWasCreated((BooleanState) event.getState());
     }
   }
 
@@ -129,10 +133,10 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final BooleanState created
   ) {
     if (created.getValue() == false) return;
-    
-    final List<ApplicationEntityReference<Sensor>> inputSensors = getInputSensors();
-    final Optional<BooleanState> previous = _flags.findPreviousWithValue(created, inputSensors, true);
-    final Optional<BooleanState> next = _flags.findNextWithValue(created, inputSensors, true);
+
+    final List<ApplicationEntityReference<? extends Sensor>> inputSensors = getInputSensors();
+    final Optional<BooleanState>                             previous     = _flags.findPreviousWithValue(created, inputSensors, true);
+    final Optional<BooleanState>                             next         = _flags.findNextWithValue(created, inputSensors, true);
     
     if (previous.isPresent() == false) {
       onLeftMotionStateWasCreated(created, next);
@@ -181,23 +185,22 @@ public class OneVsAllToUpDownMotionSensor
   ) {
     super.stateWasMutated(event);
     
-    if (
-      event.getNewValue().getModel().getSensor().isOfType(NativeMotionSensor.class) &&
-      getConfiguration().isIgnoredInput(event.getNewValue().getModel()) == false
+    if (event.getNewValue().getSensor().isOfType(NativeMotionSensor.class) &&
+        !getConfiguration().isIgnoredInput(event.getNewValue())
     ) {
-      onMotionStateWasMutated(
-        BooleanStateSnapshot.class.cast(event.getOldValue()),
-        BooleanState.class.cast(event.getNewValue().getModel())
+      onMotionStateWasMutated((BooleanState) event.getOldValue(), (BooleanState) event.getNewValue()
       );
     }
   }
 
   public void onMotionStateWasMutated (
-    @NonNull final BooleanStateSnapshot base, 
+    @NonNull final BooleanState base,
     @NonNull final BooleanState updated
   ) {
-    final Optional<BooleanState> correlation = _flags.findFirstWithCorrelation(
-      "base", updated.getReference(), getSensor().getReference()
+    final Optional<BooleanState> correlation = _flags.findFirstWithCorrelation("base",
+                                                                               updated.getReference(),
+                                                                               getSensor().getReference()
+                                                                                          .as(Sensor.class)
     );
     
     if (correlation.isPresent()) {
@@ -208,12 +211,12 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void onCorrelledMotionStateWasMutated (
-    @NonNull final BooleanStateSnapshot base, 
+    @NonNull final BooleanState base,
     @NonNull final BooleanState updated
   ) {
-    final List<ApplicationEntityReference<Sensor>> inputSensors = getInputSensors();
-    final Optional<BooleanState> previous = _flags.findPreviousWithValue(base.getEmittionDate(), inputSensors, true);
-    final Optional<BooleanState> next = _flags.findNextWithValue(base.getEmittionDate(), inputSensors, true);
+    final List<ApplicationEntityReference<? extends Sensor>> inputSensors = getInputSensors();
+    final Optional<BooleanState>                             previous     = _flags.findPreviousWithValue(base.getEmittionDate(), inputSensors, true);
+    final Optional<BooleanState>                             next         = _flags.findNextWithValue(base.getEmittionDate(), inputSensors, true);
     
     if (previous.isPresent() && Objects.equals(previous.get(), updated)) {
       move(updated, updated);
@@ -260,11 +263,10 @@ public class OneVsAllToUpDownMotionSensor
   }
   
   public void onMotionStateWillBeDeleted (@NonNull final BooleanState state) {
-    if (_flags.findFirstWithCorrelation(
-      "base", state.getReference(), getSensor().getReference()
-    ).isPresent() == false) return;
-    
-    final List<ApplicationEntityReference<Sensor>> inputs = getInputSensors();
+    if (!_flags.findFirstWithCorrelation("base", state.getReference(), getSensor().getReference().as(Sensor.class))
+               .isPresent()) return;
+
+    final List<ApplicationEntityReference<? extends Sensor>> inputs = getInputSensors();
     final Optional<BooleanState> previous = _flags.findPreviousWithValue(
       state.getEmittionDate(), inputs, true
     );
@@ -308,23 +310,21 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void delete (@NonNull final BooleanState state) {
-    _schemaManager.execute(new StateDeletionSchema(
-      _flags.findFirstWithCorrelation(
-        "base", state.getReference(), getSensor().getReference()
-      ).get()
-    ));
+    _schemaManager.execute(new StateDeletionSchema((State) _flags.findFirstWithCorrelation("base",
+                                                                                           state.getReference(),
+                                                                                           getSensor().getReference()
+    ).get()));
   }
 
   private void move (
     @NonNull final BooleanState from, 
     @NonNull final BooleanState to
   ) {
-    final State toMove = _flags.findFirstWithCorrelation(
-      "base", from.getReference(), getSensor().getReference()
+    final State toMove = (State) _flags.findFirstWithCorrelation("base", from.getReference(), getSensor().getReference()
     ).get();
 
     final BooleanStateMutationSchema mutation = new BooleanStateMutationSchema();
-    mutation.setState(toMove);
+    mutation.setState(toMove.getReference());
     mutation.setEmittionDate(to.getEmittionDate());
     if (Objects.equals(from, to) == false) {
       mutation.correlate("base", to);
@@ -339,7 +339,7 @@ public class OneVsAllToUpDownMotionSensor
   private void emit (@NonNull final State state, final boolean up) {
     final BooleanStateCreationSchema creation = new BooleanStateCreationSchema();
     creation.setEmittionDate(state.getEmittionDate());
-    creation.setSensor(getSensor());
+    creation.setSensor(getSensor().getReference());
     creation.setValue(up);
     creation.correlate("base", state);
     

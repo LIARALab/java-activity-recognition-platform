@@ -1,11 +1,13 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.ceil;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.NumericState;
-import org.liara.api.data.entity.state.NumericStateSnapshot;
+import org.liara.api.data.repository.TimeSeriesRepository;
 import org.liara.api.data.schema.BooleanStateCreationSchema;
 import org.liara.api.data.schema.BooleanStateMutationSchema;
 import org.liara.api.data.schema.SchemaManager;
@@ -19,8 +21,6 @@ import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
@@ -37,16 +37,21 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   private final SchemaManager _schemaManager;
   
   @NonNull
-  private final CeilToUpDownConvertionSensorData _data;
+  private final TimeSeriesRepository<NumericState> _data;
+
+  @NonNull
+  private final TimeSeriesRepository<BooleanState> _output;
   
   @Autowired
   public CeilToUpDownConvertionSensor (
     @NonNull final SchemaManager schemaManager,
-    @NonNull final CeilToUpDownConvertionSensorData data
+    @NonNull final TimeSeriesRepository<NumericState> data,
+    @NonNull final TimeSeriesRepository<BooleanState> output
   ) {
     super();
     _schemaManager = schemaManager;
     _data = data;
+    _output = output;
   }
   
   public CeilToUpDownConvertionSensorConfiguration getConfiguration () {
@@ -76,8 +81,8 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final VirtualSensorRunner runner
   ) {
     super.initialize(runner);
-    
-    final List<NumericState> states = _data.fetchAll(getInputSensor().getIdentifier());
+
+    final List<NumericState> states = _data.findAll(getInputSensor());
     
     if (states.size() > 0) {
       discover(null, states.get(0));
@@ -93,10 +98,9 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final StateWasCreatedEvent event
   ) {
     super.stateWasCreated(event);
-    
-    if (event.getState().getSensor() == getInputSensor()) {
-      inputStateWasCreated(
-        NumericState.class.cast(event.getState().getModel())
+
+    if (event.getState().getSensor().equals(getInputSensor())) {
+      inputStateWasCreated((NumericState) event.getState()
       );
     }
   }
@@ -104,8 +108,8 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   private void inputStateWasCreated (
     @NonNull final NumericState current
   ) {
-    final NumericState previous = _data.fetchPrevious(current);
-    final NumericState next = _data.fetchNext(current);
+    final NumericState previous = _data.findPrevious(current).orElse(null);
+    final NumericState next     = _data.findNext(current).orElse(null);
     
     discover(previous, current);
     correct(current, next);
@@ -116,22 +120,20 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final StateWasMutatedEvent event
   ) {
    super.stateWasMutated(event);
-   
-   if (event.getNewValue().getSensor() == getInputSensor()) {
-     inputStateWasMutated(
-       NumericStateSnapshot.class.cast(event.getOldValue()),
-       NumericState.class.cast(event.getNewValue().getModel())
+
+    if (event.getNewValue().getSensor().equals(getInputSensor())) {
+     inputStateWasMutated((NumericState) event.getOldValue(), (NumericState) event.getNewValue()
      );
    }
   }
 
   private void inputStateWasMutated (
-    @NonNull final NumericStateSnapshot old,
+    @NonNull final NumericState old,
     @NonNull final NumericState current
   ) {
-    if (!Objects.equals(current.getNumber(), old.getNumber())) {
-      correct(_data.fetchPrevious(current), current);
-      correct(current, _data.fetchNext(current));
+    if (!Objects.equals(current.getValue(), old.getValue())) {
+      correct(_data.findPrevious(current).orElse(null), current);
+      correct(current, _data.findNext(current).orElse(null));
     }
   }
 
@@ -140,12 +142,9 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final StateWillBeDeletedEvent event
   ) {
     super.stateWillBeDeleted(event);
-   
-    if (_data.getState(event.getState().getState().getIdentifier()).getSensorIdentifier() == getInputSensor().getIdentifier()) {
-      inputStateWillBeDeleted(
-        NumericState.class.cast(
-          _data.getState(event.getState().getState().getIdentifier())
-        )
+
+    if (_data.getAt(event.getState().getState().as(NumericState.class)).getSensor().equals(getInputSensor())) {
+      inputStateWillBeDeleted((NumericState) _data.getAt(event.getState().getState().as(NumericState.class))
       );
     }
   }
@@ -153,10 +152,11 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   private void inputStateWillBeDeleted (
     @NonNull final NumericState toDelete
   ) {
-    final NumericState previous = _data.fetchPrevious(toDelete);
-    final NumericState next = _data.fetchNext(toDelete);
-    
-    final BooleanState related = _data.fetchCurrentCorrelation(toDelete);
+    final NumericState previous = _data.findPrevious(toDelete).orElse(null);
+    final NumericState next     = _data.findNext(toDelete).orElse(null);
+
+    final BooleanState related = _output.findFirstWithCorrelation("current", toDelete.getReference(), getInputSensor())
+                                        .orElse(null);
     
     if (related != null) delete(related);
     if (next != null) correct(previous, next);
@@ -167,8 +167,9 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @Nullable final NumericState next
   ) {
     if (next == null) return;
-    
-    final BooleanState correlated = _data.fetchCurrentCorrelation(next);
+
+    final BooleanState correlated = _output.findFirstWithCorrelation("current", next.getReference(), getInputSensor())
+                                           .orElse(null);
     
     if (correlated == null) {
       discover(current, next);
@@ -193,7 +194,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final BooleanState correlated
   ) {
     final BooleanStateMutationSchema mutation = new BooleanStateMutationSchema();
-    mutation.setState(correlated.getIdentifier());
+    mutation.setState(correlated.getReference());
     mutation.correlate("previous", current);
     mutation.setEmittionDate(interpolate(current, next));
     mutation.setValue(false);
@@ -206,7 +207,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final BooleanState correlated
   ) {
     final BooleanStateMutationSchema mutation = new BooleanStateMutationSchema();
-    mutation.setState(correlated.getIdentifier());
+    mutation.setState(correlated.getReference());
     mutation.correlate("previous", current);
     mutation.setEmittionDate(interpolate(current, next));
     mutation.setValue(true);
@@ -218,14 +219,14 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final NumericState current
   ) {
     if (previous == null) {
-      if (current.getNumber().doubleValue() > getCeil()) {
+      if (current.getValue().doubleValue() > getCeil()) {
         emitUp(previous, current);
       } else {
         emitDown(previous, current);
       }
     } else {
-      double previousValue = previous.getNumber().doubleValue();
-      double currentValue = current.getNumber().doubleValue();
+      double previousValue = previous.getValue().doubleValue();
+      double currentValue  = current.getValue().doubleValue();
       
       if (isUp(previousValue, currentValue)) {
         emitUp(previous, current);
@@ -239,7 +240,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final NumericState previous, 
     @NonNull final NumericState current
   ) {
-    return isDown(previous.getNumber().doubleValue(), current.getNumber().doubleValue());  
+    return isDown(previous.getValue().doubleValue(), current.getValue().doubleValue());
   }
   
   private boolean isDown (final double previous, final double current) {
@@ -250,9 +251,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final NumericState previous, 
     @NonNull final NumericState current
   ) {
-    return isUp(
-      previous.getNumber().doubleValue(), 
-      current.getNumber().doubleValue()
+    return isUp(previous.getValue().doubleValue(), current.getValue().doubleValue()
     );  
   }
   
@@ -265,7 +264,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final NumericState current
   ) {
     final BooleanStateCreationSchema creation = new BooleanStateCreationSchema();
-    creation.setSensor(getSensor());
+    creation.setSensor(getSensor().getReference());
     creation.setEmittionDate(interpolate(previous, current));
     creation.setValue(false);
     if (previous != null) creation.correlate("previous", previous);
@@ -279,7 +278,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @NonNull final NumericState current
   ) {
     final BooleanStateCreationSchema creation = new BooleanStateCreationSchema();
-    creation.setSensor(getSensor());
+    creation.setSensor(getSensor().getReference());
     creation.setEmittionDate(interpolate(previous, current));
     creation.setValue(true);
     if (previous != null) creation.correlate("previous", previous);

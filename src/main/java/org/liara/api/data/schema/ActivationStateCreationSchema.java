@@ -12,10 +12,10 @@ import org.springframework.lang.Nullable;
 @Schema(ActivationState.class)
 @JsonDeserialize(using = JsonDeserializer.None.class)
 public class ActivationStateCreationSchema
-  extends StateCreationSchema
+  extends DurationStateCreationSchema
 {
   @Nullable
-  private ApplicationEntityReference<Node> _node = ApplicationEntityReference.empty(Node.class);
+  private ApplicationEntityReference<? extends Node> _node = ApplicationEntityReference.empty(Node.class);
 
   public void clear () {
     super.clear();
@@ -26,11 +26,11 @@ public class ActivationStateCreationSchema
   @Required
   @ValidApplicationEntityReference
   public @Nullable
-  ApplicationEntityReference<Node> getNode () {
+  ApplicationEntityReference<? extends Node> getNode () {
     return _node;
   }
 
-  public void setNode (@Nullable final ApplicationEntityReference<Node> node) {
+  public void setNode (@Nullable final ApplicationEntityReference<? extends Node> node) {
     _node = node;
   }
 }

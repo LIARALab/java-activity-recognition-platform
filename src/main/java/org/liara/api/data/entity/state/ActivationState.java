@@ -26,6 +26,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.utils.CloneMemory;
 
 import javax.persistence.*;
 
@@ -47,9 +48,9 @@ public class ActivationState
     _node = null;
   }
 
-  public ActivationState (@NonNull final ActivationState toCopy) {
-    super(toCopy);
-    _node = toCopy.getNode();
+  public ActivationState (@NonNull final ActivationState toCopy, @NonNull final CloneMemory clones) {
+    super(toCopy, clones);
+    _node = (toCopy.getNode() == null) ? null : clones.clone(toCopy.getNode());
   }
 
   @ManyToOne(optional = false)
@@ -71,6 +72,11 @@ public class ActivationState
   @Override
   public @NonNull ActivationState clone ()
   {
-    return new ActivationState(this);
+    return clone(new CloneMemory());
+  }
+
+  @Override
+  public @NonNull ActivationState clone (@NonNull final CloneMemory clones) {
+    return new ActivationState(this, clones);
   }
 }

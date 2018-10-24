@@ -1,5 +1,6 @@
 package org.liara.api.data.repository.local;
 
+import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
@@ -14,6 +15,9 @@ public class LocalSensorRepository
        extends LocalApplicationEntityRepository<Sensor>
        implements SensorRepository
 {
+  @NonNull
+  private LocalNodeRepository _nodes;
+
   @Nullable
   private Map<String, Set<Sensor>> _sensorsByType;
   
@@ -25,7 +29,8 @@ public class LocalSensorRepository
   
   public LocalSensorRepository() {
     super(Sensor.class);
-    _sensorsByType = new HashMap<String, Set<Sensor>>();
+    _sensorsByType = new HashMap<>();
+    _nodes = new LocalNodeRepository();
   }
   
   @Override
@@ -41,8 +46,7 @@ public class LocalSensorRepository
 
   @Override
   public List<Sensor> getSensorsOfTypeIntoNode (
-    @NonNull final String type, 
-    @NonNull final ApplicationEntityReference<Node> node
+    @NonNull final String type, @NonNull final ApplicationEntityReference<? extends Node> node
   ) {
     return getSensorsOfType(type).stream().filter(sensor -> {
       Node parent = sensor.getNode();
@@ -51,12 +55,24 @@ public class LocalSensorRepository
         if (Objects.equals(parent.getReference(), node)) {
           return true;
         } else {
-          parent = parent.getParent();
+          parent = _nodes.getParentOf(parent);
         }
       }
       
       return false;
     }).collect(Collectors.toList());
+  }
+
+  @Override
+  protected void entityWasAdded (@NonNull final ApplicationEntity entity) {
+    super.entityWasAdded(entity);
+    _nodes.entityWasAdded(entity);
+  }
+
+  @Override
+  protected void entityWasRemoved (@NonNull final ApplicationEntity entity) {
+    super.entityWasRemoved(entity);
+    _nodes.entityWasRemoved(entity);
   }
 
   @Override

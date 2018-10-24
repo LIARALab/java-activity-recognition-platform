@@ -71,7 +71,7 @@ public class NodeBuilder extends CompositeNodeBuilder<NodeBuilder, Node>
 
   @Override
   public Node build () {
-    final Node node = Node.createLocal();
+    final Node node = new Node();
     super.apply(node);
     return node;
   }

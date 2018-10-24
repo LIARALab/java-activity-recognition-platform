@@ -1,36 +1,35 @@
 package org.liara.api.data.repository.local;
 
-import com.google.common.collect.Streams;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
-import org.springframework.lang.NonNull;
 
-import javax.persistence.Entity;
+import javax.persistence.EntityNotFoundException;
 import java.util.*;
 
 public class LocalEntityManager
 {
   @NonNull
-  private final Map<Class<? extends ApplicationEntity>, Map<Long, ApplicationEntity>> _entities = new HashMap<>();
-  
+  private final Map<@NonNull Class<? extends ApplicationEntity>, @NonNull Map<@NonNull Long,
+                                                                                 @NonNull ApplicationEntity>> _entities = new HashMap<>();
+
   @NonNull
-  private final Set<LocalEntityManagerListener> _listeners = Collections.newSetFromMap(
-    new WeakHashMap<LocalEntityManagerListener, Boolean>()
-  );
-  
+  private final Set<@NonNull LocalEntityManagerListener> _listeners = Collections.newSetFromMap(new WeakHashMap<>());
+
   @NonNull
   private final ApplicationEntityIdentifiers _identifiers = new ApplicationEntityIdentifiers();
   
   public <SearchedEntity extends ApplicationEntity> Optional<SearchedEntity> find (
-    @NonNull final Class<SearchedEntity> type, 
-    @NonNull final Long identifier
+    @NonNull final Class<SearchedEntity> type, @Nullable final Long identifier
   ) {
-    if (_entities.containsKey(type)) {
-      if (_entities.get(type).containsKey(identifier)) {
-        return Optional.ofNullable(
-          type.cast(_entities.get(type).get(identifier))
-        );
-      }
+    if (identifier == null) return Optional.empty();
+
+    @NonNull final Class<? extends ApplicationEntity> baseType = ApplicationEntity.getBaseTypeOf(type);
+
+    if (_entities.containsKey(baseType) && _entities.get(baseType).containsKey(identifier) &&
+        type.isInstance(_entities.get(baseType).get(identifier))) {
+      return Optional.of(type.cast(_entities.get(baseType).get(identifier)));
     }
     
     return Optional.empty();
@@ -41,20 +40,27 @@ public class LocalEntityManager
   ) {
     return find(reference.getType(), reference.getIdentifier());
   }
-  
-  public <SearchedEntity extends ApplicationEntity> SearchedEntity getAt (
+
+  public <SearchedEntity extends ApplicationEntity> @NonNull SearchedEntity getAt (
     @NonNull final ApplicationEntityReference<SearchedEntity> reference
   ) {
-    return find(reference.getType(), reference.getIdentifier()).get();
+    @NonNull final Optional<? extends SearchedEntity> result = find(reference.getType(), reference.getIdentifier());
+
+    if (result.isPresent()) {
+      return result.get();
+    } else {
+      throw new EntityNotFoundException();
+    }
   }
   
   public <SearchedEntity extends ApplicationEntity> List<SearchedEntity> findAll (
     @NonNull final Class<SearchedEntity> type
   ) {
-    if (!_entities.containsKey(type)) return Collections.emptyList();
+    @NonNull final Class<? extends ApplicationEntity> baseType = ApplicationEntity.getBaseTypeOf(type);
+    if (!_entities.containsKey(baseType)) return Collections.emptyList();
     
     final List<SearchedEntity> result = new ArrayList<>();
-    _entities.get(type).values().forEach(x -> result.add(type.cast(x)));
+    _entities.get(baseType).values().stream().filter(type::isInstance).forEach(x -> result.add(type.cast(x)));
     return result;
   }
   
@@ -67,45 +73,29 @@ public class LocalEntityManager
   @SuppressWarnings("unchecked")
   public void add (@NonNull final ApplicationEntity entity) {
     if (!contains(entity)) {
-      Class<? extends ApplicationEntity> type = entity.getClass();
-      
-      if (type.isAnnotationPresent(Entity.class)) {
-        entity.setIdentifier(_identifiers.next(entity));
-      }
-      
-      while (type.isAnnotationPresent(Entity.class)) {
-        register(type, entity);
-        type = (Class<? extends ApplicationEntity>) type.getSuperclass();
-      }
-      
-      if (type != entity.getClass()) {
-        for (final LocalEntityManagerListener listener : _listeners) {
-          listener.add(entity);
-        }
-      }
-    }
-  }
-  
-  @SuppressWarnings("unchecked")
-  public void merge (@NonNull final ApplicationEntity entity) {      
-    Class<? extends ApplicationEntity> type = entity.getClass();
-    
-    while (type.isAnnotationPresent(Entity.class)) {
-      register(type, entity);
-      type = (Class<? extends ApplicationEntity>) type.getSuperclass();
-    }
-    
-    if (type != entity.getClass()) {
+      final Class<? extends ApplicationEntity> type = entity.getBaseClass();
+      entity.setIdentifier(_identifiers.next(type));
+
+      register(entity);
+
       for (final LocalEntityManagerListener listener : _listeners) {
         listener.add(entity);
       }
     }
   }
   
-  private void register (
-    @NonNull final Class<? extends ApplicationEntity> type,
-    @NonNull final ApplicationEntity entity
-  ) {
+  @SuppressWarnings("unchecked")
+  public void merge (@NonNull final ApplicationEntity entity) {
+    register(entity);
+
+    for (final LocalEntityManagerListener listener : _listeners) {
+      listener.add(entity);
+    }
+  }
+
+  private void register (@NonNull final ApplicationEntity entity) {
+    @NonNull final Class<? extends ApplicationEntity> type = entity.getBaseClass();
+
     if (!_entities.containsKey(type)) {
       _entities.put(type, new HashMap<>());
     }
@@ -114,20 +104,20 @@ public class LocalEntityManager
   }
 
   public void addAll (@NonNull final Iterable<? extends ApplicationEntity> entities) {
-    Streams.stream(entities).forEach(this::add);
+    entities.forEach(this::add);
   }
   
   public void addAll (@NonNull final Iterator<? extends ApplicationEntity> entities) {
-    Streams.stream(entities).forEach(this::add);
+    entities.forEachRemaining(this::add);
   }
   
   public void addListener (@NonNull final LocalEntityManagerListener listener) {
     if (!_listeners.contains(listener)) {
       _listeners.add(listener);
       listener.setParent(this);
-      
-      _entities.values().stream().forEach(submap -> {
-        submap.values().stream().forEach(listener::add);
+
+      _entities.values().forEach(submap -> {
+        submap.values().forEach(listener::add);
       });
     }
   }
@@ -136,9 +126,9 @@ public class LocalEntityManager
     if (_listeners.contains(listener)) {      
       _listeners.remove(listener);
       listener.setParent(null);
-      
-      _entities.values().stream().forEach(submap -> {
-        submap.values().stream().forEach(listener::add);
+
+      _entities.values().forEach(submap -> {
+        submap.values().forEach(listener::add);
       });
     }
   }
@@ -146,27 +136,19 @@ public class LocalEntityManager
   @SuppressWarnings("unchecked")
   public void remove (@NonNull final ApplicationEntity entity) {    
     if (contains(entity)) {
-      Class<? extends ApplicationEntity> type = entity.getClass();
-      
-      while (type.isAnnotationPresent(Entity.class)) {
-        unregister(type, entity);
-        type = (Class<? extends ApplicationEntity>) type.getSuperclass();
-      }
-      
-      if (type != entity.getClass()) {
-        for (final LocalEntityManagerListener listener : _listeners) {
-          listener.remove(entity);
-        }
+      unregister(entity);
+
+      for (final LocalEntityManagerListener listener : _listeners) {
+        listener.remove(entity);
       }
       
       entity.setIdentifier(null);
     }
   }
-  
-  private void unregister (
-    @NonNull final Class<? extends ApplicationEntity> type, 
-    @NonNull final ApplicationEntity entity
-  ) {
+
+  private void unregister (@NonNull final ApplicationEntity entity) {
+    @NonNull final Class<? extends ApplicationEntity> type = entity.getBaseClass();
+
     _entities.get(type).remove(entity.getIdentifier());
     
     if (_entities.get(type).size() <= 0) {
@@ -175,38 +157,36 @@ public class LocalEntityManager
   }
 
   public void removeAll (@NonNull final Iterable<? extends ApplicationEntity> entities) {
-    Streams.stream(entities).forEach(this::remove);
+    entities.forEach(this::remove);
   }
   
   public void removeAll (@NonNull final Iterator<? extends ApplicationEntity> entities) {
-    Streams.stream(entities).forEach(this::remove);
+    entities.forEachRemaining(this::remove);
   }
   
   public boolean contains (@NonNull final ApplicationEntity entity) {
     return contains(entity.getClass(), entity.getIdentifier());
   }
 
-  public boolean contains (
-    @NonNull final Class<? extends ApplicationEntity> type, 
-    @NonNull final Long identifier
-  ) {
-    return _entities.containsKey(type) 
-        && _entities.get(type).containsKey(identifier);
+  public boolean contains (@NonNull final Class<? extends ApplicationEntity> type, @Nullable final Long identifier) {
+    if (identifier == null) return false;
+
+    @NonNull final Class<? extends ApplicationEntity> baseType = ApplicationEntity.getBaseTypeOf(type);
+
+    return _entities.containsKey(baseType) && _entities.get(baseType).containsKey(identifier) &&
+           type.isInstance(_entities.get(baseType).get(identifier));
   }
-  
+
   public void clear () {
-    final Iterator<Class<? extends ApplicationEntity>> types = _entities.keySet().iterator();
-    
-    while (types.hasNext()) {
-      clear(types.next());
-    }
-    
+    _entities.keySet().iterator().forEachRemaining(this::clear);
     _entities.clear();
   }
 
   public void clear (@NonNull final Class<? extends ApplicationEntity> type) {
-    while (_entities.containsKey(type) && !_entities.get(type).isEmpty()) {
-      remove(_entities.get(type).entrySet().iterator().next().getValue());
+    @NonNull final Class<? extends ApplicationEntity> baseType = ApplicationEntity.getBaseTypeOf(type);
+
+    if (_entities.containsKey(baseType)) {
+      _entities.get(baseType).values().stream().filter(type::isInstance).forEach(this::remove);
     }
   }
   
@@ -221,8 +201,10 @@ public class LocalEntityManager
   }
 
   public int size (@NonNull final Class<? extends ApplicationEntity> type) {
-    if (_entities.containsKey(type)) {
-      return _entities.get(type).size();
+    @NonNull final Class<? extends ApplicationEntity> baseType = ApplicationEntity.getBaseTypeOf(type);
+
+    if (_entities.containsKey(baseType)) {
+      return (int) _entities.get(type).values().stream().filter(type::isInstance).count();
     } else {
       return 0;
     }
