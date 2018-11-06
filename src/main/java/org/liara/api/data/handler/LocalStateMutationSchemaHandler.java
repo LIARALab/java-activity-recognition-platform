@@ -22,7 +22,7 @@ public class LocalStateMutationSchemaHandler<Schema extends StateMutationSchema>
   }
 
   public void apply (@NonNull final StateMutationSchema schema, @NonNull final State state) {
-    if (schema.getEmittionDate() != null) state.setEmittionDate(schema.getEmittionDate());
+    if (schema.getEmittionDate() != null) state.setEmissionDate(schema.getEmittionDate());
     
     for (final String decorrelation : schema.getDecorrelations()) {
       state.decorrelate(decorrelation);

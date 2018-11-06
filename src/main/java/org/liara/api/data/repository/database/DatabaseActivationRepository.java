@@ -18,7 +18,7 @@ import java.util.Optional;
 @Scope("prototype")
 @Primary
 public class DatabaseActivationRepository
-  extends DatabaseTimeSeriesRepository<ActivationState>
+  extends DatabaseStateRepository<ActivationState>
   implements ActivationsRepository
 {
   @NonNull

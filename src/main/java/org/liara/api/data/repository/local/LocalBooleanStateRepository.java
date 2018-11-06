@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class LocalBooleanStateRepository 
-       extends LocalTimeSeriesRepository<BooleanState>
+public class LocalBooleanStateRepository
+  extends LocalStateRepository<BooleanState>
        implements BooleanStateRepository
 {
   public static LocalBooleanStateRepository from (@NonNull final LocalEntityManager parent) {

@@ -21,6 +21,7 @@
  ******************************************************************************/
 package org.liara.api;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.configuration.SwaggerConfiguration;
 import org.liara.api.recognition.sensor.VirtualSensorManager;
 import org.springframework.boot.SpringApplication;
@@ -38,17 +39,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
   }
 )
 public class Application
-{  
-  public static void main (String[] args) {
-    final ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
+{
+  public static void main (@NonNull String[] args) {
+    @NonNull final ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
     context.getBean(VirtualSensorManager.class).start();
   }
   
   @Bean
-  public WebMvcConfigurer corsConfigurer() {
+  public @NonNull WebMvcConfigurer corsConfigurer () {
       return new WebMvcConfigurer () {
           @Override
-          public void addCorsMappings(CorsRegistry registry) {
+          public void addCorsMappings (@NonNull final CorsRegistry registry) {
               registry.addMapping("/**")
                       .allowedOrigins("*")
                       .allowedHeaders("*")

@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @Scope("prototype")
 @Primary
 public class DatabaseBooleanStateRepository
-       extends DatabaseTimeSeriesRepository<BooleanState>
+  extends DatabaseStateRepository<BooleanState>
        implements BooleanStateRepository
 {
   @NonNull

@@ -1,9 +1,9 @@
 package org.liara.api.data.repository;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
-import org.springframework.lang.NonNull;
 
 import java.util.List;
 

@@ -35,7 +35,7 @@ public final class Tick implements Comparable<Tick>
   
   public Tick (@NonNull final BooleanState state) {
     _sensor = state.getSensor();
-    _date = state.getEmittionDate();
+    _date = state.getEmissionDate();
   }
   
   public Tick (
@@ -84,9 +84,8 @@ public final class Tick implements Comparable<Tick>
       if (other._date != null) return false;
     } else if (!_date.equals(other._date)) return false;
     if (_sensor == null) {
-      if (other._sensor != null) return false;
-    } else if (!_sensor.equals(other._sensor)) return false;
-    return true;
+      return other._sensor == null;
+    } else return _sensor.equals(other._sensor);
   }
 
   @Override

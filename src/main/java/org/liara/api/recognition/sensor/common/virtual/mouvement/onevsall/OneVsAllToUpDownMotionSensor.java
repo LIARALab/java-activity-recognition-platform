@@ -215,8 +215,16 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final BooleanState updated
   ) {
     final List<ApplicationEntityReference<? extends Sensor>> inputSensors = getInputSensors();
-    final Optional<BooleanState>                             previous     = _flags.findPreviousWithValue(base.getEmittionDate(), inputSensors, true);
-    final Optional<BooleanState>                             next         = _flags.findNextWithValue(base.getEmittionDate(), inputSensors, true);
+    final Optional<BooleanState>                             previous     = _flags.findPreviousWithValue(
+      base.getEmissionDate(),
+      inputSensors,
+      true
+    );
+    final Optional<BooleanState>                             next         = _flags.findNextWithValue(
+      base.getEmissionDate(),
+      inputSensors,
+      true
+    );
     
     if (previous.isPresent() && Objects.equals(previous.get(), updated)) {
       move(updated, updated);
@@ -267,12 +275,10 @@ public class OneVsAllToUpDownMotionSensor
                .isPresent()) return;
 
     final List<ApplicationEntityReference<? extends Sensor>> inputs = getInputSensors();
-    final Optional<BooleanState> previous = _flags.findPreviousWithValue(
-      state.getEmittionDate(), inputs, true
+    final Optional<BooleanState> previous = _flags.findPreviousWithValue(state.getEmissionDate(), inputs, true
     );
     
-    final Optional<BooleanState> next = _flags.findNextWithValue(
-      state.getEmittionDate(), inputs, true
+    final Optional<BooleanState> next = _flags.findNextWithValue(state.getEmissionDate(), inputs, true
     );
     
     if (previous.isPresent() == false) {
@@ -325,7 +331,7 @@ public class OneVsAllToUpDownMotionSensor
 
     final BooleanStateMutationSchema mutation = new BooleanStateMutationSchema();
     mutation.setState(toMove.getReference());
-    mutation.setEmittionDate(to.getEmittionDate());
+    mutation.setEmittionDate(to.getEmissionDate());
     if (Objects.equals(from, to) == false) {
       mutation.correlate("base", to);
     }
@@ -338,7 +344,7 @@ public class OneVsAllToUpDownMotionSensor
   
   private void emit (@NonNull final State state, final boolean up) {
     final BooleanStateCreationSchema creation = new BooleanStateCreationSchema();
-    creation.setEmittionDate(state.getEmittionDate());
+    creation.setEmittionDate(state.getEmissionDate());
     creation.setSensor(getSensor().getReference());
     creation.setValue(up);
     creation.correlate("base", state);

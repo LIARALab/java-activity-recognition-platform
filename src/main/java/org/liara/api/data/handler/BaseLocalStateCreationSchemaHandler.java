@@ -29,7 +29,7 @@ public abstract class BaseLocalStateCreationSchemaHandler<Schema extends StateCr
     state.setCreationDate(ZonedDateTime.now());
     state.setDeletionDate(null);
     state.setUpdateDate(null);
-    state.setEmittionDate(schema.getEmittionDate());
+    state.setEmissionDate(schema.getEmittionDate());
     state.setIdentifier(null);
     state.setSensor(_manager.find(schema.getSensor()).get());
 

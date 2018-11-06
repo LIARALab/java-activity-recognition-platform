@@ -15,11 +15,11 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.stream.Collectors
 
-class LocalTimeSeriesRepositorySpecification
+class LocalStateRepositorySpecification
   extends Specification
 {
   static final ORDER_BY_EMITTION_DATE = {
-    final State left, final State right -> return left.emittionDate <=> right.emittionDate
+    final State left, final State right -> return left.emissionDate <=> right.emissionDate
   }
 
   Node generateRootNode () {
@@ -42,7 +42,7 @@ class LocalTimeSeriesRepositorySpecification
     for (int index = 0; index < count; ++index) {
       final BooleanState state = new BooleanState()
       state.value = random.nextBoolean()
-      state.emittionDate = start + totalDuration
+      state.emissionDate = start + totalDuration
 
       totalDuration += Duration.ofMinutes(random.nextInt(98) + 2)
 
@@ -97,12 +97,12 @@ class LocalTimeSeriesRepositorySpecification
       if (!valueOf(last) && valueOf(next)) {
         currentActivity = new ActivityState()
         currentActivity.tag = tag
-        currentActivity.emittionDate = next.emittionDate
-        currentActivity.start = next.emittionDate
+        currentActivity.emissionDate = next.emissionDate
+        currentActivity.start = next.emissionDate
         currentActivity.correlate("start", next)
         result.add(currentActivity)
       } else if (valueOf(last) && !valueOf(next)) {
-        currentActivity.end = next.emittionDate
+        currentActivity.end = next.emissionDate
         currentActivity.correlate("end", next)
       }
 
@@ -133,7 +133,7 @@ class LocalTimeSeriesRepositorySpecification
   
   def <StoredState extends State> void randomlyAdd (
     final Collection<StoredState> states,
-    final LocalTimeSeriesRepository<StoredState> repository
+    final LocalStateRepository<StoredState> repository
   ) {
     final List<StoredState> toAdd = new ArrayList<>(states)
     Collections.shuffle(toAdd)
@@ -142,7 +142,7 @@ class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to get states that was emitted before another state" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<BooleanState> repository = LocalTimeSeriesRepository.create(
+    final LocalStateRepository<BooleanState> repository = LocalStateRepository.create(
         new LocalEntityManager(), BooleanState.class
       )
     final Set<Sensor<BooleanState>> sensors = randomUpDownSensors(10, 30)
@@ -168,7 +168,7 @@ class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to get states that was emitted after another state" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<BooleanState> repository = LocalTimeSeriesRepository.create(
+    final LocalStateRepository<BooleanState> repository = LocalStateRepository.create(
         new LocalEntityManager(), BooleanState.class
       )
     final Set<Sensor<BooleanState>> sensors = randomUpDownSensors(10, 30)
@@ -192,7 +192,7 @@ class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to get all states that was emitted by a given sensor" () {
     given: "a local time series repository with some states registered in"
-    final LocalTimeSeriesRepository<BooleanState> repository = LocalTimeSeriesRepository.create(
+    final LocalStateRepository<BooleanState> repository = LocalStateRepository.create(
       new LocalEntityManager(), BooleanState.class
     )
     final Set<Sensor<BooleanState>> sensors = randomUpDownSensors(10, 30)
@@ -213,7 +213,7 @@ class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to get a slice of states that was emitted by a given sensor" () {
     given: "a local time series repository with some states registered in"
-    final LocalTimeSeriesRepository<BooleanState> repository = LocalTimeSeriesRepository.create(
+    final LocalStateRepository<BooleanState> repository = LocalStateRepository.create(
       new LocalEntityManager(), BooleanState.class
     )
     final Set<Sensor<BooleanState>> sensors = randomUpDownSensors(10, 30)
@@ -238,7 +238,7 @@ class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find a state of a given sensor with a particular correlation" () {
     given: "a local time series repository with some states registered in"
-    final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
+    final LocalStateRepository<ActivityState> repository = LocalStateRepository.create(
       new LocalEntityManager(), ActivityState.class
     )
     final Set<Sensor<ActivityState>> sensors = randomActivitySensors((String[]) ['first', 'second', 'third'])
@@ -288,7 +288,7 @@ class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find all states of with a correlation" () {
     given: "a local time series repository with some states registered in"
-    final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
+    final LocalStateRepository<ActivityState> repository = LocalStateRepository.create(
       new LocalEntityManager(), ActivityState.class
     )
     final Set<Sensor<ActivityState>> sensors = randomActivitySensors((String[]) ['first', 'second', 'third'])
@@ -338,7 +338,7 @@ class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find a state of a given sensor with a bunch of correlations" () {
     given: "a local time series repository with some states registered in"
-    final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
+    final LocalStateRepository<ActivityState> repository = LocalStateRepository.create(
       new LocalEntityManager(), ActivityState.class
     )
     final Set<Sensor<ActivityState>> sensors = randomActivitySensors((String[]) ['first', 'second', 'third'])
@@ -381,7 +381,7 @@ class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find a state of a given sensor with a correlation with a particular value" () {
     given: "a local time series repository with some states registered in"
-    final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
+    final LocalStateRepository<ActivityState> repository = LocalStateRepository.create(
       new LocalEntityManager(), ActivityState.class
     )
     final Set<Sensor<ActivityState>> sensors = randomActivitySensors((String[]) ['first', 'second', 'third'])

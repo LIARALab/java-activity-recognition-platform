@@ -7,7 +7,7 @@ import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.NumericState;
-import org.liara.api.data.repository.TimeSeriesRepository;
+import org.liara.api.data.repository.StateRepository;
 import org.liara.api.data.schema.BooleanStateCreationSchema;
 import org.liara.api.data.schema.BooleanStateMutationSchema;
 import org.liara.api.data.schema.SchemaManager;
@@ -37,16 +37,16 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   private final SchemaManager _schemaManager;
   
   @NonNull
-  private final TimeSeriesRepository<NumericState> _data;
+  private final StateRepository<NumericState> _data;
 
   @NonNull
-  private final TimeSeriesRepository<BooleanState> _output;
+  private final StateRepository<BooleanState> _output;
   
   @Autowired
   public CeilToUpDownConvertionSensor (
     @NonNull final SchemaManager schemaManager,
-    @NonNull final TimeSeriesRepository<NumericState> data,
-    @NonNull final TimeSeriesRepository<BooleanState> output
+    @NonNull final StateRepository<NumericState> data,
+    @NonNull final StateRepository<BooleanState> output
   ) {
     super();
     _schemaManager = schemaManager;
@@ -144,7 +144,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     super.stateWillBeDeleted(event);
 
     if (_data.getAt(event.getState().getState().as(NumericState.class)).getSensor().equals(getInputSensor())) {
-      inputStateWillBeDeleted((NumericState) _data.getAt(event.getState().getState().as(NumericState.class))
+      inputStateWillBeDeleted(_data.getAt(event.getState().getState().as(NumericState.class))
       );
     }
   }
@@ -293,7 +293,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   ) {
     switch (getInterpolationType()) {
       case NONE:
-        return current.getEmittionDate();
+        return current.getEmissionDate();
       default :
         throw new NotYetImplementedException(
           String.join(

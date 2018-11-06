@@ -21,11 +21,11 @@
  ******************************************************************************/
 package org.liara.api.recognition.presence;
 
-import java.util.NoSuchElementException;
-
 import org.liara.api.data.entity.state.ActivationState;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+
+import java.util.NoSuchElementException;
 
 public class LiaraPresenceStream implements PresenceStream
 {
@@ -85,7 +85,7 @@ public class LiaraPresenceStream implements PresenceStream
     /*result.setStart(event.getStart());
     result.setEnd(null);*/
     result.setNode(event.getSensor().getNode());
-    result.setEmittionDate(event.getStart());
+    result.setEmissionDate(event.getStart());
     return result;  
   }
 
@@ -94,7 +94,7 @@ public class LiaraPresenceStream implements PresenceStream
     /*result.setStart(event.getStart());
     result.setEnd(event.getEnd());*/
     result.setNode(event.getSensor().getNode());
-    result.setEmittionDate(event.getEnd());
+    result.setEmissionDate(event.getEnd());
     return result;
   }
 }

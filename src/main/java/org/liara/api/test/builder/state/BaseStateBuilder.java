@@ -1,5 +1,12 @@
 package org.liara.api.test.builder.state;
 
+import org.liara.api.data.entity.state.State;
+import org.liara.api.test.builder.Builder;
+import org.liara.api.test.builder.IdentityBuilder;
+import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -7,13 +14,6 @@ import java.time.temporal.ChronoField;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.liara.api.data.entity.state.State;
-import org.liara.api.test.builder.Builder;
-import org.liara.api.test.builder.IdentityBuilder;
-import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 public abstract class BaseStateBuilder<
                         Self extends BaseStateBuilder<Self, Entity>,
@@ -72,7 +72,7 @@ public abstract class BaseStateBuilder<
   
   protected void apply (@NonNull final State state) {
     super.apply(state);
-    state.setEmittionDate(_emittionDate);
+    state.setEmissionDate(_emittionDate);
     
     for (
       final Entry<

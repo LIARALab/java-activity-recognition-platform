@@ -3,16 +3,15 @@ package org.liara.api.data.entity.state;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
-import org.liara.api.utils.CloneMemory;
 
 import javax.persistence.*;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 
 @Entity
-@Table(name = "states_duration")
+@Table(name = "states_label")
 @PrimaryKeyJoinColumn(name = "state_identifier")
-public class DurationState
+public class LabelState
   extends State
 {
   @Nullable
@@ -21,16 +20,29 @@ public class DurationState
   @Nullable
   private ZonedDateTime _end;
 
-  public DurationState () {
+  @Nullable
+  private String _name;
+
+  public LabelState () {
     super();
     _start = null;
     _end = null;
+    _name = null;
   }
 
-  public DurationState (@NonNull final DurationState toCopy, @NonNull final CloneMemory clones) {
-    super(toCopy, clones);
+  public LabelState (@NonNull final LabelState toCopy) {
+    super(toCopy);
     _start = toCopy.getStart();
     _end = toCopy.getEnd();
+    _name = toCopy.getName();
+  }
+
+  public @Nullable String getName () {
+    return _name;
+  }
+
+  public void setName (@Nullable final String name) {
+    _name = name;
   }
 
   @Transient
@@ -76,17 +88,12 @@ public class DurationState
 
   @Override
   @Transient
-  public @NonNull ApplicationEntityReference<? extends DurationState> getReference () {
+  public @NonNull ApplicationEntityReference<? extends LabelState> getReference () {
     return ApplicationEntityReference.of(this);
   }
 
   @Override
-  public @NonNull DurationState clone () {
-    return clone(new CloneMemory());
-  }
-
-  @Override
-  public @NonNull DurationState clone (@NonNull final CloneMemory clones) {
-    return new DurationState(this, clones);
+  public @NonNull LabelState clone () {
+    return new LabelState(this);
   }
 }

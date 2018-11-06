@@ -33,7 +33,7 @@ public class BaseStateCreationSchemaHandler<Schema extends StateCreationSchema>
     state.setCreationDate(ZonedDateTime.now());
     state.setUpdateDate(ZonedDateTime.now());
     state.setDeletionDate(null);
-    state.setEmittionDate(schema.getEmittionDate());
+    state.setEmissionDate(schema.getEmittionDate());
     state.setIdentifier(null);
     state.setSensor(schema.getSensor().resolve(manager));
 

@@ -5,7 +5,7 @@ import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.ActivityState;
 import org.liara.api.data.repository.ConjunctionRepository;
-import org.liara.api.data.repository.TimeSeriesRepository;
+import org.liara.api.data.repository.StateRepository;
 import org.liara.api.data.schema.ActivityStateCreationSchema;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.event.StateWasCreatedEvent;
@@ -36,13 +36,12 @@ public class ConjunctionToActivitySensor
   private final ConjunctionRepository _conjunctions;
   
   @NonNull
-  private final TimeSeriesRepository<ActivityState> _outputs;
+  private final StateRepository<ActivityState> _outputs;
   
   @Autowired
   public ConjunctionToActivitySensor(
     @NonNull final SchemaManager schemaManager,
-    @NonNull final ConjunctionRepository conjunctions,
-    @NonNull final TimeSeriesRepository<ActivityState> outputs
+    @NonNull final ConjunctionRepository conjunctions, @NonNull final StateRepository<ActivityState> outputs
   ) {
     _schemaManager = schemaManager;
     _conjunctions = conjunctions;

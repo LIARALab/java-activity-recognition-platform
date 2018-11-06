@@ -1,15 +1,17 @@
 package org.liara.api.data.repository.database;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.repository.ApplicationEntityRepository;
+import org.liara.collection.operator.cursoring.Cursor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,9 +21,11 @@ import java.util.Optional;
 public class DatabaseApplicationEntityRepository<Entity extends ApplicationEntity>
        implements ApplicationEntityRepository<Entity>
 {
-  @NonNull private final EntityManager _entityManager;
-  
-  @NonNull private final Class<Entity> _type;
+  @NonNull
+  private final EntityManager _entityManager;
+
+  @NonNull
+  private final Class<Entity> _type;
   
   @Autowired
   public DatabaseApplicationEntityRepository (
@@ -33,19 +37,22 @@ public class DatabaseApplicationEntityRepository<Entity extends ApplicationEntit
   }
   
   @Override
-  public Optional<Entity> find (
-    @NonNull final ApplicationEntityReference<? extends Entity> reference
-  ) {
-    return Optional.ofNullable(
-      _entityManager.find(_type, reference.getIdentifier())
-    );
+  public @NonNull Optional<Entity> find (@Nullable final Long identifier) {
+    return identifier == null ? Optional.empty() : Optional.ofNullable(_entityManager.find(_type, identifier));
   }
 
   @Override
-  public List<Entity> findAll () {
-    return _entityManager.createQuery(
-      String.join("", "SELECT entity FROM ", _type.getName(), " entity"),
-      _type
-    ).getResultList();
-  } 
+  public @NonNull List<@NonNull Entity> findAll (@NonNull final Cursor cursor) {
+    @NonNull final TypedQuery<Entity> query = _entityManager.createQuery(
+      "SELECT entity FROM " + _type.getName() + " entity", _type).setFirstResult(cursor.getOffset());
+
+    if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
+
+    return query.getResultList();
+  }
+
+  @Override
+  public @NonNull Class<Entity> getManagedEntity () {
+    return _type;
+  }
 }

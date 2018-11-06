@@ -21,13 +21,13 @@
  ******************************************************************************/
 package org.liara.api.recognition.presence;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
 import org.liara.api.data.entity.state.BooleanState;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class StateTickStream implements TickStream
 {
@@ -70,7 +70,7 @@ public class StateTickStream implements TickStream
       final BooleanState state = _states.next();
       
       if (state.getValue() == true) {
-        _next = new Tick(state.getSensor(), state.getEmittionDate());
+        _next = new Tick(state.getSensor(), state.getEmissionDate());
       }
     }
   }

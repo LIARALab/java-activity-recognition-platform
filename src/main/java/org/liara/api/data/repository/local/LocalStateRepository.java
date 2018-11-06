@@ -3,7 +3,7 @@ package org.liara.api.data.repository.local;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.repository.TimeSeriesRepository;
+import org.liara.api.data.repository.StateRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -11,9 +11,9 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class LocalTimeSeriesRepository<TimeState extends State>
+public class LocalStateRepository<TimeState extends State>
        extends LocalApplicationEntityRepository<TimeState>
-       implements TimeSeriesRepository<TimeState>
+  implements StateRepository<TimeState>
 {
   @Override
   public List<TimeState> findAllPrevious (
@@ -42,21 +42,21 @@ public class LocalTimeSeriesRepository<TimeState extends State>
   @NonNull
   private final Map<String, Map<Long, Set<Long>>> _correlations = new HashMap<>();
 
-  public static <TimeState extends State> LocalTimeSeriesRepository<TimeState> create (
+  public LocalStateRepository (@NonNull final Class<TimeState> type) {
+    super(type);
+  }
+
+  public static <TimeState extends State> LocalStateRepository<TimeState> create (
     @NonNull final LocalEntityManager entityManager,
     @NonNull final Class<TimeState> type
   ) {
-    final LocalTimeSeriesRepository<TimeState> result = new LocalTimeSeriesRepository<>(type);
+    final LocalStateRepository<TimeState> result = new LocalStateRepository<>(type);
     result.setParent(entityManager);
     return result;
   }
   
-  public LocalTimeSeriesRepository(@NonNull final Class<TimeState> type) {
-    super(type);
-  }
-  
   private int sortByDateAscending (@NonNull final TimeState left, @NonNull final TimeState right) {
-    return left.getEmittionDate().compareTo(right.getEmittionDate());
+    return left.getEmissionDate().compareTo(right.getEmissionDate());
   }
   
   private int sortByDateDescending (@NonNull final TimeState left, @NonNull final TimeState right) {
@@ -418,7 +418,7 @@ public class LocalTimeSeriesRepository<TimeState extends State>
 
     public Entry (@NonNull final TimeState state) {
       _state = state;
-      _emittion = state.getEmittionDate();
+      _emittion = state.getEmissionDate();
     }
 
     public Entry (@NonNull final ZonedDateTime emittion) {

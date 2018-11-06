@@ -7,8 +7,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
-import org.liara.api.utils.CloneMemory;
-import org.liara.api.utils.DeeplyCloneable;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
@@ -24,7 +22,6 @@ import java.util.UUID;
  */
 @MappedSuperclass
 public class ApplicationEntity
-  implements DeeplyCloneable
 {
   @Nullable
   private Long _identifier;
@@ -42,19 +39,6 @@ public class ApplicationEntity
   private ZonedDateTime _deletionDate;
 
   /**
-   * Instantiate a clone of another application entity.
-   *
-   * @param toCopy Application entity to clone.
-   */
-  public ApplicationEntity (@NonNull final ApplicationEntity toCopy, @NonNull final CloneMemory clones) {
-    clones.register(toCopy, this);
-    _identifier = toCopy.getIdentifier();
-    _creationDate = toCopy.getCreationDate();
-    _updateDate = toCopy.getUpdateDate();
-    _deletionDate = toCopy.getDeletionDate();
-  }
-
-  /**
    * Instantiate a new empty application entity.
    */
   public ApplicationEntity () {
@@ -62,6 +46,18 @@ public class ApplicationEntity
     _creationDate = null;
     _updateDate = null;
     _deletionDate = null;
+  }
+
+  /**
+   * Instantiate a clone of another application entity.
+   *
+   * @param toCopy Application entity to clone.
+   */
+  public ApplicationEntity (@NonNull final ApplicationEntity toCopy) {
+    _identifier = toCopy.getIdentifier();
+    _creationDate = toCopy.getCreationDate();
+    _updateDate = toCopy.getUpdateDate();
+    _deletionDate = toCopy.getDeletionDate();
   }
 
   /**
@@ -237,15 +233,7 @@ public class ApplicationEntity
    * @see Cloneable#clone()
    */
   @Override
-  public @NonNull ApplicationEntity clone ()
-  throws CloneNotSupportedException
-  {
-    return clone(new CloneMemory());
-  }
-
-  @Override
-  public @NonNull ApplicationEntity clone (@NonNull final CloneMemory clones)
-  {
-    return new ApplicationEntity(this, clones);
+  public @NonNull ApplicationEntity clone () {
+    return new ApplicationEntity(this);
   }
 }

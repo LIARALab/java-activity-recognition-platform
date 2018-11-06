@@ -10,7 +10,7 @@ import java.time.ZonedDateTime;
 import java.util.Optional;
 
 public class LocalActivationsRepository
-       extends LocalTimeSeriesRepository<ActivationState>
+  extends LocalStateRepository<ActivationState>
        implements ActivationsRepository
 {
   public static LocalActivationsRepository from (@NonNull final LocalEntityManager parent) {

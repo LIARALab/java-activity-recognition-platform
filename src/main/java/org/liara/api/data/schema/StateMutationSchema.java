@@ -68,9 +68,7 @@ public class StateMutationSchema implements ApplicationSchema
   }
   
   public void decorrelate (@NonNull final String label) {
-    if (_correlations.containsKey(label)) {
-      _correlations.remove(label);
-    }
+    _correlations.remove(label);
     
     _decorrelations.add(label);
   }
@@ -79,9 +77,7 @@ public class StateMutationSchema implements ApplicationSchema
     @NonNull final String label, 
     @NonNull final Long state
   ) {
-    if (_decorrelations.contains(label)) {
-      _decorrelations.remove(label);
-    }
+    _decorrelations.remove(label);
     
     _correlations.put(label, ApplicationEntityReference.of(State.class, state));
   }
@@ -121,7 +117,7 @@ public class StateMutationSchema implements ApplicationSchema
     @NonNull final EntityManager manager
   )
   {
-    if (_emittionDate != null) state.setEmittionDate(_emittionDate);
+    if (_emittionDate != null) state.setEmissionDate(_emittionDate);
     
     for (final String decorrelation : _decorrelations) {
       state.decorrelate(decorrelation);

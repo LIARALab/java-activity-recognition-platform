@@ -150,7 +150,9 @@ class UpDownToActivationSensorSpecification
       final BooleanState oldValue = flag.clone()
       entityManager.remove(flag)
       flag.identifier = oldValue.identifier
-      if (mutation.emittionDate != null) flag.emittionDate = mutation.emittionDate
+      if (mutation.emittionDate != null) {
+        flag.emissionDate = mutation.emittionDate
+      }
       if (mutation.value != null) flag.value = mutation.value 
       entityManager.merge(flag)
       runner.getHandler().stateWasMutated(
@@ -199,44 +201,44 @@ class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 5
       schemaManager.hasHandled([
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": flags[inputSensor, 0].emittionDate,
-          "end": null,
+          "class"              : ActivationStateCreationSchema.class,
+          "start"              : flags[inputSensor, 0].emissionDate,
+          "end"                : null,
           "correlations[start]": flags[inputSensor, 0].reference,
-          "correlations[end]": null,
-          "emittionDate": flags[inputSensor, 0].emittionDate,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : null,
+          "emittionDate"       : flags[inputSensor, 0].emissionDate,
+          "node"               : livingRoom,
+          "sensor"             : outputSensor
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 4].emittionDate,
+          "class"            : ActivationStateMutationSchema.class,
+          "end"              : flags[inputSensor, 4].emissionDate,
           "correlations[end]": flags[inputSensor, 4].reference
         ],
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": flags[inputSensor, 6].emittionDate,
-          "end": null,
+          "class"              : ActivationStateCreationSchema.class,
+          "start"              : flags[inputSensor, 6].emissionDate,
+          "end"                : null,
           "correlations[start]": flags[inputSensor, 6].reference,
-          "correlations[end]": null,
-          "emittionDate": flags[inputSensor, 6].emittionDate,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : null,
+          "emittionDate"       : flags[inputSensor, 6].emissionDate,
+          "node"               : livingRoom,
+          "sensor"             : outputSensor
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 7].emittionDate,
+          "class"            : ActivationStateMutationSchema.class,
+          "end"              : flags[inputSensor, 7].emissionDate,
           "correlations[end]": flags[inputSensor, 7].reference
         ],
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": flags[inputSensor, 8].emittionDate,
-          "end": null,
+          "class"              : ActivationStateCreationSchema.class,
+          "start"              : flags[inputSensor, 8].emissionDate,
+          "end"                : null,
           "correlations[start]": flags[inputSensor, 8].reference,
-          "correlations[end]": null,
-          "emittionDate": flags[inputSensor, 8].emittionDate,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : null,
+          "emittionDate"       : flags[inputSensor, 8].emissionDate,
+          "node"               : livingRoom,
+          "sensor"             : outputSensor
         ]
       ]) == true
   }
@@ -273,16 +275,16 @@ class UpDownToActivationSensorSpecification
         inputSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.truthy({
-            withEmittionDate flags[inputSensor, 0].emittionDate.plusMinutes(10)
+            withEmittionDate flags[inputSensor, 0].emissionDate.plusMinutes(10)
           })
           andWith BooleanStateBuilder.truthy({
-            withEmittionDate flags[inputSensor, 0].emittionDate.plusMinutes(15)
+            withEmittionDate flags[inputSensor, 0].emissionDate.plusMinutes(15)
           })
           andWith BooleanStateBuilder.falsy({
-            withEmittionDate flags[inputSensor, 0].emittionDate.plusMinutes(50)
+            withEmittionDate flags[inputSensor, 0].emissionDate.plusMinutes(50)
           })
           andWith BooleanStateBuilder.falsy({
-            withEmittionDate flags[inputSensor, 0].emittionDate.plusMinutes(40)
+            withEmittionDate flags[inputSensor, 0].emissionDate.plusMinutes(40)
           })
         }).build()
       )
@@ -324,7 +326,7 @@ class UpDownToActivationSensorSpecification
         inputSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.truthy({
-            withEmittionDate flags[inputSensor, 0].emittionDate.minusMinutes(10)
+            withEmittionDate flags[inputSensor, 0].emissionDate.minusMinutes(10)
           })
         }).build()
       )
@@ -333,10 +335,10 @@ class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": emitted[0].emittionDate,
+          "class"              : ActivationStateMutationSchema.class,
+          "start"              : emitted[0].emissionDate,
           "correlations[start]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"              : outputs[outputSensor, 0].reference
         ]
       ]) == true
   }
@@ -373,7 +375,7 @@ class UpDownToActivationSensorSpecification
         inputSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.truthy({
-            withEmittionDate flags[inputSensor, 0].emittionDate.minusMinutes(10)
+            withEmittionDate flags[inputSensor, 0].emissionDate.minusMinutes(10)
           })
         }).build()
       )
@@ -382,10 +384,10 @@ class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": emitted[0].emittionDate,
+          "class"              : ActivationStateMutationSchema.class,
+          "start"              : emitted[0].emissionDate,
           "correlations[start]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"              : outputs[outputSensor, 0].reference
         ]
       ]) == true
   }
@@ -423,7 +425,7 @@ class UpDownToActivationSensorSpecification
         inputSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.falsy({
-            withEmittionDate flags[inputSensor, 0].emittionDate.plusMinutes(5)
+            withEmittionDate flags[inputSensor, 0].emissionDate.plusMinutes(5)
           })
         }).build()
       )
@@ -432,10 +434,10 @@ class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": emitted[0].emittionDate,
+          "class"            : ActivationStateMutationSchema.class,
+          "end"              : emitted[0].emissionDate,
           "correlations[end]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"            : outputs[outputSensor, 0].reference
         ]
       ]) == true
   }
@@ -475,7 +477,7 @@ class UpDownToActivationSensorSpecification
         inputSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.truthy({
-            withEmittionDate flags[inputSensor, 2].emittionDate.plusMinutes(5)
+            withEmittionDate flags[inputSensor, 2].emissionDate.plusMinutes(5)
           })
         }).build()
       )
@@ -484,13 +486,13 @@ class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": emitted[0].emittionDate,
-          "end": flags[inputSensor, 4].emittionDate,
+          "class"              : ActivationStateCreationSchema.class,
+          "start"              : emitted[0].emissionDate,
+          "end"                : flags[inputSensor, 4].emissionDate,
           "correlations[start]": emitted[0].reference,
-          "correlations[end]": flags[inputSensor, 4].reference,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : flags[inputSensor, 4].reference,
+          "node"               : livingRoom,
+          "sensor"             : outputSensor
         ]
       ]) == true
   }
@@ -530,7 +532,7 @@ class UpDownToActivationSensorSpecification
         inputSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.truthy({
-            withEmittionDate flags[inputSensor, 3].emittionDate.plusMinutes(5)
+            withEmittionDate flags[inputSensor, 3].emissionDate.plusMinutes(5)
           })
         }).build()
       )
@@ -539,13 +541,13 @@ class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": emitted[0].emittionDate,
-          "end": null,
+          "class"              : ActivationStateCreationSchema.class,
+          "start"              : emitted[0].emissionDate,
+          "end"                : null,
           "correlations[start]": emitted[0].reference,
-          "correlations[end]": null,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : null,
+          "node"               : livingRoom,
+          "sensor"             : outputSensor
         ]
       ]) == true
   }
@@ -582,7 +584,7 @@ class UpDownToActivationSensorSpecification
         inputSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.falsy({
-            withEmittionDate flags[inputSensor, 0].emittionDate.plusMinutes(10)
+            withEmittionDate flags[inputSensor, 0].emissionDate.plusMinutes(10)
           })
         }).build()
       )
@@ -591,10 +593,10 @@ class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": emitted[0].emittionDate,
+          "class"            : ActivationStateMutationSchema.class,
+          "end"              : emitted[0].emissionDate,
           "correlations[end]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"            : outputs[outputSensor, 0].reference
         ]
       ]) == true
   }
@@ -632,7 +634,7 @@ class UpDownToActivationSensorSpecification
         inputSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.falsy({
-            withEmittionDate flags[inputSensor, 0].emittionDate.plusMinutes(10)
+            withEmittionDate flags[inputSensor, 0].emissionDate.plusMinutes(10)
           })
         }).build()
       )
@@ -641,19 +643,19 @@ class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 2
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": emitted[0].emittionDate,
+          "class"            : ActivationStateMutationSchema.class,
+          "end"              : emitted[0].emissionDate,
           "correlations[end]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"            : outputs[outputSensor, 0].reference
         ],
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": flags[inputSensor, 2].emittionDate,
-          "end": null,
+          "class"              : ActivationStateCreationSchema.class,
+          "start"              : flags[inputSensor, 2].emissionDate,
+          "end"                : null,
           "correlations[start]": flags[inputSensor, 2].reference,
-          "correlations[end]": null,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : null,
+          "node"               : livingRoom,
+          "sensor"             : outputSensor
         ]
       ])
   }
@@ -692,7 +694,7 @@ class UpDownToActivationSensorSpecification
         inputSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.falsy({
-            withEmittionDate flags[inputSensor, 0].emittionDate.plusMinutes(10)
+            withEmittionDate flags[inputSensor, 0].emissionDate.plusMinutes(10)
           })
         }).build()
       )
@@ -701,19 +703,19 @@ class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 2
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": emitted[0].emittionDate,
+          "class"            : ActivationStateMutationSchema.class,
+          "end"              : emitted[0].emissionDate,
           "correlations[end]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"            : outputs[outputSensor, 0].reference
         ],
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": flags[inputSensor, 2].emittionDate,
-          "end": flags[inputSensor, 3].emittionDate,
+          "class"              : ActivationStateCreationSchema.class,
+          "start"              : flags[inputSensor, 2].emissionDate,
+          "end"                : flags[inputSensor, 3].emissionDate,
           "correlations[start]": flags[inputSensor, 2].reference,
-          "correlations[end]": flags[inputSensor, 3].reference,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : flags[inputSensor, 3].reference,
+          "node"               : livingRoom,
+          "sensor"             : outputSensor
         ]
       ])
   }
@@ -754,20 +756,20 @@ class UpDownToActivationSensorSpecification
     when: "we displace some boundary flags"
       final List<BooleanStateMutationSchema> mutations = BooleanStateMutationSchema.create([
         [
-          "state": flags[inputSensor, 2].reference,
-          "emittionDate": flags[inputSensor, 2].emittionDate.minusMinutes(10)
+          "state"       : flags[inputSensor, 2].reference,
+          "emittionDate": flags[inputSensor, 2].emissionDate.minusMinutes(10)
         ],
         [
-          "state": flags[inputSensor, 2].reference,
-          "emittionDate": flags[inputSensor, 2].emittionDate
+          "state"       : flags[inputSensor, 2].reference,
+          "emittionDate": flags[inputSensor, 2].emissionDate
         ],
         [
-          "state": flags[inputSensor, 4].reference,
-          "emittionDate": flags[inputSensor, 4].emittionDate.plusMinutes(10)
+          "state"       : flags[inputSensor, 4].reference,
+          "emittionDate": flags[inputSensor, 4].emissionDate.plusMinutes(10)
         ],
         [
-          "state": flags[inputSensor, 4].reference,
-          "emittionDate": flags[inputSensor, 4].emittionDate
+          "state"       : flags[inputSensor, 4].reference,
+          "emittionDate": flags[inputSensor, 4].emissionDate
         ],
       ])
       
@@ -842,9 +844,9 @@ class UpDownToActivationSensorSpecification
     when: "we displace some boundary flags"
       final List<BooleanStateMutationSchema> mutations = BooleanStateMutationSchema.create([
         [
-          "state": flags[inputSensor, 3].reference,
-          "emittionDate": flags[inputSensor, 3].emittionDate.minusMinutes(30),
-          "value": false
+          "state"       : flags[inputSensor, 3].reference,
+          "emittionDate": flags[inputSensor, 3].emissionDate.minusMinutes(30),
+          "value"       : false
         ]
       ])
       
@@ -894,9 +896,9 @@ class UpDownToActivationSensorSpecification
     when: "we displace a boundary flag of an activation state that contains another up flag"
       final List<BooleanStateMutationSchema> mutations = BooleanStateMutationSchema.create([
         [
-          "state": flags[inputSensor, 2].reference,
-          "emittionDate": flags[inputSensor, 2].emittionDate.minusMinutes(70),
-          "value": false 
+          "state"       : flags[inputSensor, 2].reference,
+          "emittionDate": flags[inputSensor, 2].emissionDate.minusMinutes(70),
+          "value"       : false
         ]
       ])
       
@@ -907,10 +909,10 @@ class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": flags[inputSensor, 3].emittionDate,
+          "class"              : ActivationStateMutationSchema.class,
+          "start"              : flags[inputSensor, 3].emissionDate,
           "correlations[start]": flags[inputSensor, 3].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"              : outputs[outputSensor, 1].reference
         ]
       ])
       Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
@@ -953,9 +955,9 @@ class UpDownToActivationSensorSpecification
     when: "we displace the last boundary flag of an activation state"
       final List<BooleanStateMutationSchema> mutations = BooleanStateMutationSchema.create([
         [
-          "state": flags[inputSensor, 2].reference,
-          "emittionDate": flags[inputSensor, 2].emittionDate.minusMinutes(90),
-          "value": true
+          "state"       : flags[inputSensor, 2].reference,
+          "emittionDate": flags[inputSensor, 2].emissionDate.minusMinutes(90),
+          "value"       : true
         ]
       ])
       
@@ -1011,9 +1013,9 @@ class UpDownToActivationSensorSpecification
     when: "we displace the end boundary flag of an activation state after another down flag"
       final List<BooleanStateMutationSchema> mutations = BooleanStateMutationSchema.create([
         [
-          "state": flags[inputSensor, 3].reference,
-          "emittionDate": flags[inputSensor, 3].emittionDate.plusMinutes(30),
-          "value": false
+          "state"       : flags[inputSensor, 3].reference,
+          "emittionDate": flags[inputSensor, 3].emissionDate.plusMinutes(30),
+          "value"       : false
         ]
       ])
       
@@ -1024,10 +1026,10 @@ class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 3].emittionDate,
+          "class"            : ActivationStateMutationSchema.class,
+          "end"              : flags[inputSensor, 3].emissionDate,
           "correlations[end]": flags[inputSensor, 3].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ]
       ])
       Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
@@ -1070,9 +1072,9 @@ class UpDownToActivationSensorSpecification
     when: "we displace the end boundary flag of an activation state after another down flag"
       final List<BooleanStateMutationSchema> mutations = BooleanStateMutationSchema.create([
         [
-          "state": flags[inputSensor, 3].reference,
-          "emittionDate": flags[inputSensor, 3].emittionDate.plusMinutes(80),
-          "value": false
+          "state"       : flags[inputSensor, 3].reference,
+          "emittionDate": flags[inputSensor, 3].emissionDate.plusMinutes(80),
+          "value"       : false
         ]
       ])
       
@@ -1087,10 +1089,10 @@ class UpDownToActivationSensorSpecification
           "state": outputs[outputSensor, 2].reference
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 4].emittionDate,
+          "class"            : ActivationStateMutationSchema.class,
+          "end"              : flags[inputSensor, 4].emissionDate,
           "correlations[end]": flags[inputSensor, 4].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ]
       ])
       Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
@@ -1149,10 +1151,10 @@ class UpDownToActivationSensorSpecification
           "state": outputs[outputSensor, 2].reference
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 5].emittionDate,
+          "class"            : ActivationStateMutationSchema.class,
+          "end"              : flags[inputSensor, 5].emissionDate,
           "correlations[end]": flags[inputSensor, 5].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ]
       ])
       Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
@@ -1208,10 +1210,10 @@ class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 4].emittionDate,
+          "class"            : ActivationStateMutationSchema.class,
+          "end"              : flags[inputSensor, 4].emissionDate,
           "correlations[end]": flags[inputSensor, 4].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ]
       ])
       Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
@@ -1267,10 +1269,10 @@ class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": flags[inputSensor, 3].emittionDate,
+          "class"              : ActivationStateMutationSchema.class,
+          "start"              : flags[inputSensor, 3].emissionDate,
           "correlations[start]": flags[inputSensor, 3].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"              : outputs[outputSensor, 1].reference
         ]
       ])
       Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
@@ -1478,10 +1480,10 @@ class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 3].emittionDate,
+          "class"            : ActivationStateMutationSchema.class,
+          "end"              : flags[inputSensor, 3].emissionDate,
           "correlations[end]": flags[inputSensor, 3].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ]
       ]) == true
   }
@@ -1578,10 +1580,10 @@ class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": flags[inputSensor, 2].emittionDate,
+          "class"              : ActivationStateMutationSchema.class,
+          "start"              : flags[inputSensor, 2].emissionDate,
           "correlations[start]": flags[inputSensor, 2].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"              : outputs[outputSensor, 1].reference
         ]
       ]) == true
   }

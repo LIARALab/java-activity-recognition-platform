@@ -3,7 +3,7 @@ package org.liara.api.data.schema;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.liara.api.data.entity.state.ActivationState;
-import org.liara.api.data.entity.state.DurationState;
+import org.liara.api.data.entity.state.LabelState;
 import org.liara.api.validation.Required;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -51,7 +51,7 @@ public class DurationStateMutationSchema
   }
 
   public void apply (
-    @NonNull final DurationState state, @NonNull final EntityManager manager
+    @NonNull final LabelState state, @NonNull final EntityManager manager
   )
   {
     if (_start != null) state.setStart(_start);

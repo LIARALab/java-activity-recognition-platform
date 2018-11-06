@@ -8,7 +8,8 @@ import org.springframework.lang.NonNull;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
-public interface ActivationsRepository extends TimeSeriesRepository<ActivationState>
+public interface ActivationsRepository
+  extends StateRepository<ActivationState>
 {
   Optional<ActivationState> findAt (
     @NonNull final ZonedDateTime area, @NonNull final ApplicationEntityReference<? extends Sensor> sensor

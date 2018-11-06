@@ -203,7 +203,9 @@ class OneVsAllToUpDownMotionSensorSpecification
       final BooleanState oldValue = flag.clone()
       entityManager.remove(flag)
       flag.identifier = oldValue.identifier
-      if (mutation.emittionDate != null) flag.emittionDate = mutation.emittionDate
+      if (mutation.emittionDate != null) {
+        flag.emissionDate = mutation.emittionDate
+      }
       if (mutation.value != null) flag.value = mutation.value
       entityManager.merge(flag)
       runner.getHandler().stateWasMutated(
@@ -253,11 +255,11 @@ class OneVsAllToUpDownMotionSensorSpecification
       schemaManager.handledSchemaCount == 5
       schemaManager.hasHandled([
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": flags[livingRoomSensor, 0].emittionDate,
-          "value": false,
+          "class"             : BooleanStateCreationSchema.class,
+          "emittionDate"      : flags[livingRoomSensor, 0].emissionDate,
+          "value"             : false,
           "correlations[base]": flags[livingRoomSensor, 4 * 0].reference,
-          "sensor": outputSensor 
+          "sensor"            : outputSensor
         ],
         [
           "class": BooleanStateCreationSchema.class,
@@ -441,32 +443,32 @@ class OneVsAllToUpDownMotionSensorSpecification
       schemaManager.handledSchemaCount == 4
       schemaManager.hasHandled([
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": emittions[0].emittionDate,
-          "value": true,
+          "class"             : BooleanStateCreationSchema.class,
+          "emittionDate"      : emittions[0].emissionDate,
+          "value"             : true,
           "correlations[base]": emittions[0].reference,
-          "sensor": outputSensor
+          "sensor"            : outputSensor
         ],
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": emittions[1].emittionDate,
-          "value": false,
+          "class"             : BooleanStateCreationSchema.class,
+          "emittionDate"      : emittions[1].emissionDate,
+          "value"             : false,
           "correlations[base]": emittions[1].reference,
-          "sensor": outputSensor
+          "sensor"            : outputSensor
         ],
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": emittions[2].emittionDate,
-          "value": false,
+          "class"             : BooleanStateCreationSchema.class,
+          "emittionDate"      : emittions[2].emissionDate,
+          "value"             : false,
           "correlations[base]": emittions[2].reference,
-          "sensor": outputSensor
+          "sensor"            : outputSensor
         ],
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": emittions[3].emittionDate,
-          "value": true,
+          "class"             : BooleanStateCreationSchema.class,
+          "emittionDate"      : emittions[3].emissionDate,
+          "value"             : true,
           "correlations[base]": emittions[3].reference,
-          "sensor": outputSensor
+          "sensor"            : outputSensor
         ]
       ]) == true
   }
@@ -928,16 +930,16 @@ class OneVsAllToUpDownMotionSensorSpecification
       
       schemaManager.hasHandled([
         [
-          "class": BooleanStateCreationSchema.class,
+          "class"             : BooleanStateCreationSchema.class,
           "correlations[base]":  emitted.reference,
-          "emittionDate": emitted.emittionDate,
-          "value": false
+          "emittionDate"      : emitted.emissionDate,
+          "value"             : false
         ],
         [
-          "class": BooleanStateCreationSchema.class,
+          "class"             : BooleanStateCreationSchema.class,
           "correlations[base]":  kitchenEmittions[2].reference,
-          "emittionDate": kitchenEmittions[2].emittionDate,
-          "value": true
+          "emittionDate"      : kitchenEmittions[2].emissionDate,
+          "value"             : true
         ]
       ]) == true
   }
@@ -989,8 +991,8 @@ class OneVsAllToUpDownMotionSensorSpecification
     when: "we move an uncorreled up flag"
       final List<BooleanState> mutations = mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 1].reference,
-          "emittionDate": flags[kitchenSensor, 1].emittionDate - Duration.ofMinutes(2)
+          "state"       : flags[kitchenSensor, 1].reference,
+          "emittionDate": flags[kitchenSensor, 1].emissionDate - Duration.ofMinutes(2)
         ])
       ]
       )
@@ -1047,9 +1049,9 @@ class OneVsAllToUpDownMotionSensorSpecification
     when: "we move an uncorreled up flag"
       final List<BooleanState> mutations = mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 1].reference,
-          "emittionDate": flags[kitchenSensor, 1].emittionDate - Duration.ofMinutes(2),
-          "value": false
+          "state"       : flags[kitchenSensor, 1].reference,
+          "emittionDate": flags[kitchenSensor, 1].emissionDate - Duration.ofMinutes(2),
+          "value"       : false
         ])
       ]
       )
@@ -1104,20 +1106,20 @@ class OneVsAllToUpDownMotionSensorSpecification
     when: "we move correled flag near from their original location"
       final List<BooleanState> mutations = mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate - Duration.ofMinutes(5)
+          "state"       : flags[kitchenSensor, 0].reference,
+          "emittionDate": flags[kitchenSensor, 0].emissionDate - Duration.ofMinutes(5)
         ]),
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate
+          "state"       : flags[kitchenSensor, 0].reference,
+          "emittionDate": flags[kitchenSensor, 0].emissionDate
         ]),
         BooleanStateMutationSchema.create([
-          "state": flags[livingRoomSensor, 0].reference,
-          "emittionDate": flags[livingRoomSensor, 0].emittionDate + Duration.ofMinutes(5)
+          "state"       : flags[livingRoomSensor, 0].reference,
+          "emittionDate": flags[livingRoomSensor, 0].emissionDate + Duration.ofMinutes(5)
         ]),
         BooleanStateMutationSchema.create([
-          "state": flags[livingRoomSensor, 0].reference,
-          "emittionDate": flags[livingRoomSensor, 0].emittionDate
+          "state"       : flags[livingRoomSensor, 0].reference,
+          "emittionDate": flags[livingRoomSensor, 0].emissionDate
         ])
       ]
       )
@@ -1126,24 +1128,24 @@ class OneVsAllToUpDownMotionSensorSpecification
       schemaManager.handledSchemaCount == 4
       schemaManager.hasHandled([
         [
-          "class": BooleanStateMutationSchema.class,
-          "state": flags[outputSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate - Duration.ofMinutes(5)
+          "class"       : BooleanStateMutationSchema.class,
+          "state"       : flags[outputSensor, 0].reference,
+          "emittionDate": flags[kitchenSensor, 0].emissionDate - Duration.ofMinutes(5)
         ],
         [
-          "class": BooleanStateMutationSchema.class,
-          "state": flags[outputSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate
+          "class"       : BooleanStateMutationSchema.class,
+          "state"       : flags[outputSensor, 0].reference,
+          "emittionDate": flags[kitchenSensor, 0].emissionDate
         ],
         [
-          "class": BooleanStateMutationSchema.class,
-          "state": flags[outputSensor, 1].reference,
-          "emittionDate": flags[livingRoomSensor, 0].emittionDate + Duration.ofMinutes(5)
+          "class"       : BooleanStateMutationSchema.class,
+          "state"       : flags[outputSensor, 1].reference,
+          "emittionDate": flags[livingRoomSensor, 0].emissionDate + Duration.ofMinutes(5)
         ],
         [
-          "class": BooleanStateMutationSchema.class,
-          "state": flags[outputSensor, 1].reference,
-          "emittionDate": flags[livingRoomSensor, 0].emittionDate
+          "class"       : BooleanStateMutationSchema.class,
+          "state"       : flags[outputSensor, 1].reference,
+          "emittionDate": flags[livingRoomSensor, 0].emissionDate
         ]
       ])
   }
@@ -1193,8 +1195,8 @@ class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[livingRoomSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate - Duration.ofMinutes(5)
+          "state"       : flags[livingRoomSensor, 0].reference,
+          "emittionDate": flags[kitchenSensor, 0].emissionDate - Duration.ofMinutes(5)
         ])
       ]
       )
@@ -1256,8 +1258,8 @@ class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate + Duration.ofMinutes(10 * 3)
+          "state"       : flags[kitchenSensor, 0].reference,
+          "emittionDate": flags[kitchenSensor, 0].emissionDate + Duration.ofMinutes(10 * 3)
         ])
       ]
       )
@@ -1321,8 +1323,8 @@ class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[livingRoomSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 1].emittionDate + Duration.ofMinutes(5)
+          "state"       : flags[livingRoomSensor, 0].reference,
+          "emittionDate": flags[kitchenSensor, 1].emissionDate + Duration.ofMinutes(5)
         ])
       ]
       )
@@ -1398,8 +1400,8 @@ class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 1].reference,
-          "emittionDate": flags[kitchenSensor, 3].emittionDate + Duration.ofMinutes(2)
+          "state"       : flags[kitchenSensor, 1].reference,
+          "emittionDate": flags[kitchenSensor, 3].emissionDate + Duration.ofMinutes(2)
         ])
       ]
       )
@@ -1455,8 +1457,8 @@ class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate + Duration.ofMinutes(5)
+          "state"       : flags[kitchenSensor, 0].reference,
+          "emittionDate": flags[kitchenSensor, 0].emissionDate + Duration.ofMinutes(5)
         ])
       ]
       )
@@ -1509,9 +1511,9 @@ class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate + Duration.ofMinutes(5),
-          "value": false
+          "state"       : flags[kitchenSensor, 0].reference,
+          "emittionDate": flags[kitchenSensor, 0].emissionDate + Duration.ofMinutes(5),
+          "value"       : false
         ])
       ]
       )

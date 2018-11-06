@@ -128,11 +128,11 @@ public class UpDownToActivationSensor
 
   public void inputStateWasCreated (@NonNull final BooleanState current) {
     final Optional<ActivationState> previous = _outputs.findAt(
-      current.getEmittionDate(), 
+      current.getEmissionDate(),
       getSensor().getReference()
     );
 
-    if (previous.isPresent() && previous.get().contains(current.getEmittionDate())) {
+    if (previous.isPresent() && previous.get().contains(current.getEmissionDate())) {
       onInnerInput(previous.get(), current);
     } else {
       onAloneInput(current);
@@ -200,8 +200,7 @@ public class UpDownToActivationSensor
     
     if (correlated.isPresent() == false) {
       inputStateWasCreated(next);
-    } else if (
-      Objects.equals(next.getEmittionDate(), previous.getEmittionDate()) == false &&
+    } else if (Objects.equals(next.getEmissionDate(), previous.getEmissionDate()) == false &&
       next.getValue() == previous.getValue()
     ) {
       onBoundaryLocationChange(correlated.get(), next);
@@ -404,7 +403,7 @@ public class UpDownToActivationSensor
       mutation.setEnd(null);
       mutation.decorrelate("end");
     } else {
-      mutation.setEnd(next.getEmittionDate());
+      mutation.setEnd(next.getEmissionDate());
       mutation.correlate("end", next);
     }
 
@@ -422,14 +421,14 @@ public class UpDownToActivationSensor
     @Nullable final State end
   ) {
     final ActivationStateCreationSchema creation = new ActivationStateCreationSchema();
-    creation.setEmittionDate(start.getEmittionDate());
+    creation.setEmittionDate(start.getEmissionDate());
     creation.setNode(getActivatedNode().getReference());
     creation.setSensor(getSensor().getReference());
-    creation.setStart(start.getEmittionDate());
+    creation.setStart(start.getEmissionDate());
     creation.correlate("start", start);
     
     if (end != null) {
-      creation.setEnd(end.getEmittionDate());
+      creation.setEnd(end.getEmissionDate());
       creation.correlate("end", end);
     }
     
@@ -442,8 +441,8 @@ public class UpDownToActivationSensor
   ) {
     final ActivationStateMutationSchema schema = new ActivationStateMutationSchema();
     schema.setState(state.getReference());
-    schema.setStart(current.getEmittionDate());
-    schema.setEmittionDate(current.getEmittionDate());
+    schema.setStart(current.getEmissionDate());
+    schema.setEmittionDate(current.getEmissionDate());
     schema.correlate("start", current);
     
     _manager.execute(schema);
