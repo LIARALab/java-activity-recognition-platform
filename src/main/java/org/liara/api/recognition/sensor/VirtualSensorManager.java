@@ -4,7 +4,9 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.jboss.logging.Logger;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.event.*;
+import org.liara.api.event.NodeEvent;
+import org.liara.api.event.SensorEvent;
+import org.liara.api.event.StateEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
@@ -87,7 +89,7 @@ public class VirtualSensorManager
   }
   
   @EventListener
-  public void onSensorCreation (@NonNull final SensorWasCreatedEvent event) {
+  public void onSensorCreation (@NonNull final SensorEvent event) {
     final Sensor sensor = event.getSensor();
     if (VirtualSensorHandler.isVirtual(sensor)) {
       VirtualSensorRunner.create(this, sensor);
@@ -114,7 +116,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) {
+  public void sensorWasCreated (@NonNull final SensorEvent event) {
     for (final VirtualSensorRunner runner : _runners.values()) {
       runner.getHandler().sensorWasCreated(event);
     }
@@ -128,7 +130,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void nodeWasCreated (@NonNull final NodeWasCreatedEvent event) {
+  public void nodeWasCreated (@NonNull final NodeEvent event) {
     for (final VirtualSensorRunner runner : _runners.values()) {
       runner.getHandler().nodeWasCreated(event);
     }
@@ -142,7 +144,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void stateWasCreated (@NonNull final StateWasCreatedEvent event) {
+  public void stateWasCreated (@NonNull final StateEvent event) {
     for (final VirtualSensorRunner runner : _runners.values()) {
       runner.getHandler().stateWasCreated(event);
     }

@@ -1,13 +1,6 @@
 package org.liara.api.recognition.sensor;
 
-import org.liara.api.event.NodeWasCreatedEvent;
-import org.liara.api.event.NodeWillBeCreatedEvent;
-import org.liara.api.event.SensorWasCreatedEvent;
-import org.liara.api.event.SensorWillBeCreatedEvent;
-import org.liara.api.event.StateWasCreatedEvent;
-import org.liara.api.event.StateWasMutatedEvent;
-import org.liara.api.event.StateWillBeCreatedEvent;
-import org.liara.api.event.StateWillBeMutatedEvent;
+import org.liara.api.event.*;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -40,19 +33,19 @@ public abstract class AbstractVirtualSensorHandler implements VirtualSensorHandl
   public void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event) { }
 
   @Override
-  public void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) { }
+  public void sensorWasCreated (@NonNull final SensorEvent event) { }
 
   @Override
   public void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event) { }
 
   @Override
-  public void nodeWasCreated (@NonNull final NodeWasCreatedEvent event) { }
+  public void nodeWasCreated (@NonNull final NodeEvent event) { }
 
   @Override
   public void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event) { }
 
   @Override
-  public void stateWasCreated (@NonNull final StateWasCreatedEvent event) { }
+  public void stateWasCreated (@NonNull final StateEvent event) { }
 
   @Override
   public void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event) { }

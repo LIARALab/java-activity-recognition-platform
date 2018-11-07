@@ -15,9 +15,6 @@ public class LocalSensorRepository
        extends LocalApplicationEntityRepository<Sensor>
        implements SensorRepository
 {
-  @NonNull
-  private LocalNodeRepository _nodes;
-
   @Nullable
   private Map<String, Set<Sensor>> _sensorsByType;
 

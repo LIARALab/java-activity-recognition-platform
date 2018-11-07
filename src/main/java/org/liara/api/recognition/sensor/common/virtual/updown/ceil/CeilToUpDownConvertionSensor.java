@@ -12,7 +12,7 @@ import org.liara.api.data.schema.BooleanStateCreationSchema;
 import org.liara.api.data.schema.BooleanStateMutationSchema;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.data.schema.StateDeletionSchema;
-import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateEvent;
 import org.liara.api.event.StateWasMutatedEvent;
 import org.liara.api.event.StateWillBeDeletedEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
@@ -95,7 +95,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
 
   @Override
   public void stateWasCreated (
-    @NonNull final StateWasCreatedEvent event
+    @NonNull final StateEvent event
   ) {
     super.stateWasCreated(event);
 

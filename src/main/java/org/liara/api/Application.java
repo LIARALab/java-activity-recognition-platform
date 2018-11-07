@@ -22,7 +22,6 @@
 package org.liara.api;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.configuration.SwaggerConfiguration;
 import org.liara.api.recognition.sensor.VirtualSensorManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

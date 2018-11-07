@@ -6,6 +6,4 @@ import org.liara.api.data.tree.NestedSetRepository;
 public interface NodeRepository
   extends NestedSetRepository,
           ApplicationEntityRepository<Node>
-{
-
-}
+{}

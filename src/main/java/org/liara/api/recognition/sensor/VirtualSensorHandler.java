@@ -2,7 +2,9 @@ package org.liara.api.recognition.sensor;
 
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.event.*;
+import org.liara.api.event.NodeEvent;
+import org.liara.api.event.SensorEvent;
+import org.liara.api.event.StateEvent;
 import org.springframework.lang.NonNull;
 
 public interface VirtualSensorHandler
@@ -45,15 +47,15 @@ public interface VirtualSensorHandler
 
   default void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event) {}
 
-  default void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) {}
+  default void sensorWasCreated (@NonNull final SensorEvent event) {}
 
   default void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event) {}
 
-  default void nodeWasCreated (@NonNull final NodeWasCreatedEvent event) {}
+  default void nodeWasCreated (@NonNull final NodeEvent event) {}
 
   default void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event) {}
 
-  default void stateWasCreated (@NonNull final StateWasCreatedEvent event) {}
+  default void stateWasCreated (@NonNull final StateEvent event) {}
 
   default void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event) {}
 

@@ -13,7 +13,7 @@ import java.util.List;
 
 
 public class LocalNodeRepository
-       extends LocalApplicationEntityRepository<Node>
+  extends LocalApplicationEntityRepository<Node>
   implements NestedSetRepository,
              NodeRepository
 {
@@ -36,7 +36,7 @@ public class LocalNodeRepository
     @NonNull final Node node
   )
   {
-    return (List<Node>) _tree.getChildrenOf(node);
+    return (List<@NonNull Node>) _tree.getChildrenOf(node);
   }
 
   @Override
@@ -44,7 +44,7 @@ public class LocalNodeRepository
     @NonNull final Node node
   )
   {
-    return (List<Node>) _tree.getAllChildrenOf(node);
+    return (List<@NonNull Node>) _tree.getAllChildrenOf(node);
   }
 
   @Override
@@ -62,9 +62,8 @@ public class LocalNodeRepository
 
   @Override
   public void attachChild (@NonNull final NestedSet node) {
-    if (node instanceof Node) {
+    if (node instanceof Node && getParent().contains((Node) node)) {
       _tree.attachChild(node);
-      add((ApplicationEntity) node);
     }
   }
 
@@ -73,15 +72,14 @@ public class LocalNodeRepository
     @NonNull final NestedSet node, @Nullable final NestedSet parent
   )
   {
-    if (node instanceof Node) {
+    if (node instanceof Node && getParent().contains((Node) node)) {
       _tree.attachChild(node, parent);
-      add((ApplicationEntity) node);
     }
   }
 
   @Override
   public void removeChild (@NonNull final NestedSet node) {
-    _tree.removeNode(node);
+    _tree.attachChild(node);
   }
 
   @Override
@@ -90,18 +88,29 @@ public class LocalNodeRepository
   }
 
   @Override
-  protected void trackedEntityWasAdded (@NonNull final Node entity) {
-    super.trackedEntityWasAdded(entity);
-    if (!_tree.contains(entity)) {
-      _tree.attachChild(entity);
+  public void onUpdate (
+    @Nullable final ApplicationEntity oldEntity, @NonNull final ApplicationEntity newEntity
+  )
+  {
+    super.onUpdate(oldEntity, newEntity);
+
+    if (newEntity instanceof Node) {
+      if (oldEntity != null) {
+        _tree.removeNode((Node) oldEntity);
+      }
+      _tree.attachChild((Node) newEntity);
     }
   }
 
   @Override
-  protected void trackedEntityWasRemoved (@NonNull final Node entity) {
-    super.trackedEntityWasRemoved(entity);
-    if (_tree.contains(entity)) {
-      _tree.removeNode(entity);
+  public void onRemove (
+    @NonNull final ApplicationEntity entity
+  )
+  {
+    super.onRemove(entity);
+
+    if (entity instanceof Node) {
+      _tree.removeNode((Node) entity);
     }
   }
 }

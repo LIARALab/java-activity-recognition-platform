@@ -4,7 +4,7 @@ import org.liara.api.data.entity.Node;
 import org.liara.api.data.schema.NodeCreationSchema;
 import org.liara.api.data.schema.SchemaHandler;
 import org.liara.api.data.tree.NestedSetRepository;
-import org.liara.api.event.NodeWasCreatedEvent;
+import org.liara.api.event.NodeEvent;
 import org.liara.api.event.NodeWillBeCreatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -51,8 +51,8 @@ public class NodeCreationSchemaHandler
                             (creationSchema.getParent() == null) ? null
                                                                  : creationSchema.getParent().resolve(entityManager)
     );
-   
-    _eventPublisher.publishEvent(new NodeWasCreatedEvent(this, node));
+
+    _eventPublisher.publishEvent(new NodeEvent(this, node));
     return node;
   }
 }

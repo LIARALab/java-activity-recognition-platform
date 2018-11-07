@@ -3,7 +3,7 @@ package org.liara.api.data.handler;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.schema.SchemaHandler;
 import org.liara.api.data.schema.SensorCreationSchema;
-import org.liara.api.event.SensorWasCreatedEvent;
+import org.liara.api.event.SensorEvent;
 import org.liara.api.event.SensorWillBeCreatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -44,7 +44,7 @@ public class SensorCreationSchemaHandler
     sensor.setNode(creationSchema.getParent().resolve(entityManager));
     sensor.setUnit(creationSchema.getUnit());
     entityManager.persist(sensor);
-    _eventPublisher.publishEvent(new SensorWasCreatedEvent(this, sensor));
+    _eventPublisher.publishEvent(new SensorEvent(this, sensor));
     
     return sensor;
   }

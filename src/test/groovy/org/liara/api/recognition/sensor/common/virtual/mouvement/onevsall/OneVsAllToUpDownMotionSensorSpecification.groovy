@@ -12,7 +12,7 @@ import org.liara.api.data.repository.local.LocalBooleanStateRepository
 import org.liara.api.data.repository.local.LocalNodeRepository
 import org.liara.api.data.repository.local.LocalSensorRepository
 import org.liara.api.data.schema.*
-import org.liara.api.event.StateWasCreatedEvent
+import org.liara.api.event.StateEvent
 import org.liara.api.event.StateWasMutatedEvent
 import org.liara.api.event.StateWillBeDeletedEvent
 import org.liara.api.recognition.sensor.VirtualSensorRunner
@@ -144,7 +144,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       entityManager[emitter].addState(state)
       entityManager.add(state)
       runner.getHandler()
-            .stateWasCreated(new StateWasCreatedEvent(this, state))
+            .stateWasCreated(new StateEvent(this, state))
     }
     
     return states

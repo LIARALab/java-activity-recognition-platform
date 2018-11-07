@@ -3,7 +3,7 @@ package org.liara.api.data.handler;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.schema.StateCreationSchema;
-import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateEvent;
 import org.liara.api.event.StateWillBeCreatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -58,7 +58,7 @@ public class BaseStateCreationSchemaHandler<Schema extends StateCreationSchema>
     _publisher.publishEvent(new StateWillBeCreatedEvent(this, schema));
     final State state = instanciate(manager, schema);
     manager.persist(state);
-    _publisher.publishEvent(new StateWasCreatedEvent(this, state));
+    _publisher.publishEvent(new StateEvent(this, state));
     
     return state;
   }
