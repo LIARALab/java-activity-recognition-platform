@@ -3,7 +3,7 @@ package org.liara.api.test.builder.node;
 import com.google.common.collect.Streams;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.data.repository.local.ApplicationEntityManager;
 import org.liara.api.test.builder.Builder;
 import org.liara.api.test.builder.IdentityBuilder;
 import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
@@ -71,7 +71,7 @@ public abstract class BaseNodeBuilder<Self extends BaseNodeBuilder<Self, Entity>
   }
 
   @Override
-  public Entity buildFor (@NonNull final LocalEntityManager entityManager) {
+  public Entity buildFor (@NonNull final ApplicationEntityManager entityManager) {
     final Entity result = super.buildFor(entityManager);
     entityManager.addAll(result.getSensors());
     Streams.stream(result.getSensors()).forEach(x -> entityManager.addAll(x.getStates()));

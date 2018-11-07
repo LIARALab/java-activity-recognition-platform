@@ -63,9 +63,4 @@ public class TagRelation
   public void setTagIdentifier (@Nullable final ApplicationEntityReference<? extends Tag> tagIdentifier) {
     _tagIdentifier = tagIdentifier;
   }
-
-  @Override
-  public @NonNull TagRelation clone () {
-    return new TagRelation(this);
-  }
 }

@@ -32,9 +32,4 @@ public class Tag
   public void setName (@Nullable final String name) {
     _name = name;
   }
-
-  @Override
-  public @NonNull Tag clone () {
-    return new Tag();
-  }
 }

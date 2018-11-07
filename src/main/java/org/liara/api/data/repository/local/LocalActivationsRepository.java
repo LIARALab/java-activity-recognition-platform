@@ -13,7 +13,7 @@ public class LocalActivationsRepository
   extends LocalStateRepository<ActivationState>
        implements ActivationsRepository
 {
-  public static LocalActivationsRepository from (@NonNull final LocalEntityManager parent) {
+  public static LocalActivationsRepository from (@NonNull final ApplicationEntityManager parent) {
     final LocalActivationsRepository result = new LocalActivationsRepository();
     parent.addListener(result);
     return result;

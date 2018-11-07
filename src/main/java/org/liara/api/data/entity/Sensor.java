@@ -145,11 +145,5 @@ public class Sensor
   public @NonNull ApplicationEntityReference<? extends Sensor> getReference () {
     return ApplicationEntityReference.of(this);
   }
-
-  @Override
-  public @NonNull Sensor clone ()
-  {
-    return new Sensor(this);
-  }
 }
 

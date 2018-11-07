@@ -39,6 +39,7 @@ public class Node
 {
   @Nullable
   private String _name;
+
   @NonNull
   private NestedSetCoordinates _coordinates;
 
@@ -87,10 +88,5 @@ public class Node
   @Transient
   public @NonNull ApplicationEntityReference<? extends Node> getReference () {
     return ApplicationEntityReference.of(this);
-  }
-
-  @Override
-  public @NonNull Node clone () {
-    return new Node(this);
   }
 }

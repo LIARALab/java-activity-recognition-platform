@@ -7,9 +7,9 @@ import org.liara.api.data.entity.state.BooleanState
 import org.liara.api.data.entity.state.State
 import org.liara.api.data.handler.LocalActivationStateMutationSchemaHandler
 import org.liara.api.data.handler.LocalActivationStateSchemaHandler
+import org.liara.api.data.repository.local.ApplicationEntityManager
 import org.liara.api.data.repository.local.LocalActivationsRepository
 import org.liara.api.data.repository.local.LocalBooleanStateRepository
-import org.liara.api.data.repository.local.LocalEntityManager
 import org.liara.api.data.repository.local.LocalNodeRepository
 import org.liara.api.data.schema.*
 import org.liara.api.event.StateWasCreatedEvent
@@ -38,7 +38,7 @@ class UpDownToActivationSensorSpecification
    */
   Node buildingTestHouseWithSourceSequence (
     @NonNull final Closure<?> sequenceConfigurator,
-    @NonNull final LocalEntityManager entityManager
+    @NonNull final ApplicationEntityManager entityManager
   ) {
     final LocalNodeRepository nodes = LocalNodeRepository.from(entityManager)
     
@@ -67,7 +67,7 @@ class UpDownToActivationSensorSpecification
    */
   VirtualSensorRunner buildRunnerForHouse (
     @NonNull final Node house,
-    @NonNull final LocalEntityManager entityManager,
+    @NonNull final ApplicationEntityManager entityManager,
     @NonNull final SchemaManager schemaManager
   ) {
     final Node livingRoom = house.getFirstChildWithName("living-room").get()
@@ -117,7 +117,7 @@ class UpDownToActivationSensorSpecification
    */
   List<State> emit (
     @NonNull final ApplicationEntityReference<Sensor> emitter,
-    @NonNull final LocalEntityManager entityManager,
+    @NonNull final ApplicationEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
     @NonNull final List<State> states
   ) {
@@ -141,7 +141,7 @@ class UpDownToActivationSensorSpecification
    */
   List<State> mutate (
     @NonNull final ApplicationEntityReference<Sensor> emitter,
-    @NonNull final LocalEntityManager entityManager,
+    @NonNull final ApplicationEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
     @NonNull final List<BooleanStateMutationSchema> mutations
   ) {
@@ -169,7 +169,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it emit activations at the initialization in accordance with it's source sensor data" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -249,7 +249,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it ignore non determinant source sensor emittion" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -299,7 +299,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it extends an activation if a up flag was discovered before another one" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -349,7 +349,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it can also extends infinite activation if a up flag was discovered before another one" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -398,7 +398,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it truncate an activation if a down flag was discovered in it" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -448,7 +448,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it create an activation if an up flag was discovered before another down flag and outer of any existing activation" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -503,7 +503,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it create an infinite activation if an up flag was discovered without any down flag after it" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -558,7 +558,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it terminate infinite activation when a down flag was discovered in it" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -607,7 +607,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it split an infinite activation in two if a down flag was discovered between two up flags" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -666,7 +666,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it split an activation in two if a down flag was discovered between two up flags" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -726,7 +726,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it extends activation if one of its boundary was moved" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -814,7 +814,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it act like if a state was created if the mutated state was not an activation boundary" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -865,7 +865,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it truncate an activation if its start boundary is moved too far away from its original location and if the activation contains another up flag" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -925,7 +925,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it remove an activation if its start boundary is moved too far away from its original location and if the activation does not contains another up flag" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -982,7 +982,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it extand an activation if its end boundary is moved too far away from its original location and if another down flag is present after the old end" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -1042,7 +1042,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it merge two activation state if the down flag between them is moved too far away" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -1105,7 +1105,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it merge two activation state if the down flag between them is changed into an up flag" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -1167,7 +1167,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it extend an activation state if its end flag is changed into an up flag and another down flag exists after it" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -1226,7 +1226,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it truncate an activation state if its start flag is changed into a down flag and another up flag exists after it" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -1285,7 +1285,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it delete an activation state if its start flag is changed into a down flag and no other up flag exists after it" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -1341,7 +1341,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it ignore no-boundary deletion" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -1389,7 +1389,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it merge two activation if the down flag between them is deleted" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -1443,7 +1443,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it extend an activation if its end flag is removed and another end flag exists after it" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -1494,7 +1494,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it change a finite activation to an infinite activation if its end flag is removed" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -1543,7 +1543,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it truncate an activation state if its start flag is removed and another up flag exists after it" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"
@@ -1594,7 +1594,7 @@ class UpDownToActivationSensorSpecification
    */
   def "it remove an activation state if its start flag is removed and no other up flag exists after it" () {
     given: "an entity manager and a schemaManager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house with some source data"

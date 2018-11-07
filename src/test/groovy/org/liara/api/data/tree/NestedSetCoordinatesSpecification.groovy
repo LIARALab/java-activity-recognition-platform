@@ -3,7 +3,8 @@ package org.liara.api.data.tree
 
 import spock.lang.Specification
 
-public class NestedSetCoordinatesSpecification extends Specification
+class NestedSetCoordinatesSpecification
+  extends Specification
 {
   def "it instantiate the coordinates of a leaf element of a root node when you use its default constructor" () {
     given: "a NestedSetCoordinates object instantiated from its default constructor"
@@ -54,7 +55,7 @@ public class NestedSetCoordinatesSpecification extends Specification
   }
   
   def "it allows you to get the size of the described set" () {
-    expect: "to get a valid size for each created valid set coordinates"
+    expect: "to get a valid getSize for each created valid set coordinates"
       for (int size = 0; size < 10; ++size) {
         new NestedSetCoordinates(5, 5 + size * 2 + 1, 1).size == size
       }
@@ -62,7 +63,7 @@ public class NestedSetCoordinatesSpecification extends Specification
   
   def "it allows you to change the coordinates of the set" () {
     given: "a NestedSetCoordinates object"
-      final NestedSetCoordinates instance = new NestedSetCoordinates(); 
+    final NestedSetCoordinates instance = new NestedSetCoordinates()
     
     expect: "to change the coordinates of the set instance when setters are called"
       instance.start == 1

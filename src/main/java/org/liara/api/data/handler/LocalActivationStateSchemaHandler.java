@@ -1,17 +1,18 @@
 package org.liara.api.data.handler;
 
 import org.liara.api.data.entity.state.ActivationState;
-import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.data.repository.local.ApplicationEntityManager;
 import org.liara.api.data.schema.ActivationStateCreationSchema;
 import org.springframework.lang.NonNull;
 
 public class LocalActivationStateSchemaHandler
        extends BaseLocalStateCreationSchemaHandler<ActivationStateCreationSchema, ActivationState>
 {
-  @NonNull private final LocalEntityManager _manager;
+  @NonNull
+  private final ApplicationEntityManager _manager;
   
   public LocalActivationStateSchemaHandler(
-    @NonNull final LocalEntityManager manager
+    @NonNull final ApplicationEntityManager manager
   ) { 
     super(manager); 
     _manager = manager;

@@ -2,7 +2,7 @@ package org.liara.api.data.handler;
 
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.data.repository.local.ApplicationEntityManager;
 import org.liara.api.data.schema.BooleanStateMutationSchema;
 import org.springframework.lang.NonNull;
 
@@ -10,9 +10,9 @@ public class LocalBooleanStateMutationSchemaHandler
        extends LocalStateMutationSchemaHandler<BooleanStateMutationSchema>
 {
   @NonNull
-  private final LocalEntityManager _entityManager;
-  
-  public LocalBooleanStateMutationSchemaHandler(@NonNull final LocalEntityManager manager) {
+  private final ApplicationEntityManager _entityManager;
+
+  public LocalBooleanStateMutationSchemaHandler (@NonNull final ApplicationEntityManager manager) {
     super(manager);
     _entityManager = manager;
   }

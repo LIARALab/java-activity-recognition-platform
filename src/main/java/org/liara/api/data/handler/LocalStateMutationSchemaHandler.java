@@ -3,7 +3,7 @@ package org.liara.api.data.handler;
 import com.google.common.base.Function;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.data.repository.local.ApplicationEntityManager;
 import org.liara.api.data.schema.StateMutationSchema;
 import org.springframework.lang.NonNull;
 
@@ -13,10 +13,10 @@ public class LocalStateMutationSchemaHandler<Schema extends StateMutationSchema>
        implements Function<Schema, State>
 {
   @NonNull
-  private final LocalEntityManager _manager;
+  private final ApplicationEntityManager _manager;
   
   public LocalStateMutationSchemaHandler (
-    @NonNull final LocalEntityManager manager
+    @NonNull final ApplicationEntityManager manager
   ) {
     _manager = manager;
   }

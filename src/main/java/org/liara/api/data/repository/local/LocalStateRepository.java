@@ -47,7 +47,7 @@ public class LocalStateRepository<TimeState extends State>
   }
 
   public static <TimeState extends State> LocalStateRepository<TimeState> create (
-    @NonNull final LocalEntityManager entityManager,
+    @NonNull final ApplicationEntityManager entityManager,
     @NonNull final Class<TimeState> type
   ) {
     final LocalStateRepository<TimeState> result = new LocalStateRepository<>(type);

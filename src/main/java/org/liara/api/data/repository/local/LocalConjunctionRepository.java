@@ -13,7 +13,7 @@ import java.time.ZonedDateTime;
 import java.util.*;
 
 public class LocalConjunctionRepository
-  extends BaseLocalRepository
+  extends LocalRepository
   implements ConjunctionRepository
 {
   @NonNull

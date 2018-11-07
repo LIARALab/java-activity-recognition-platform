@@ -143,7 +143,7 @@ class LocalStateRepositorySpecification
   def "it allows you to get states that was emitted before another state" () {
     given: "a local time series repository with some states registered in"
     final LocalStateRepository<BooleanState> repository = LocalStateRepository.create(
-        new LocalEntityManager(), BooleanState.class
+      new ApplicationEntityManager(), BooleanState.class
       )
     final Set<Sensor<BooleanState>> sensors = randomUpDownSensors(10, 30)
 
@@ -169,7 +169,7 @@ class LocalStateRepositorySpecification
   def "it allows you to get states that was emitted after another state" () {
     given: "a local time series repository with some states registered in"
     final LocalStateRepository<BooleanState> repository = LocalStateRepository.create(
-        new LocalEntityManager(), BooleanState.class
+      new ApplicationEntityManager(), BooleanState.class
       )
     final Set<Sensor<BooleanState>> sensors = randomUpDownSensors(10, 30)
 
@@ -193,7 +193,7 @@ class LocalStateRepositorySpecification
   def "it allows you to get all states that was emitted by a given sensor" () {
     given: "a local time series repository with some states registered in"
     final LocalStateRepository<BooleanState> repository = LocalStateRepository.create(
-      new LocalEntityManager(), BooleanState.class
+      new ApplicationEntityManager(), BooleanState.class
     )
     final Set<Sensor<BooleanState>> sensors = randomUpDownSensors(10, 30)
 
@@ -214,7 +214,7 @@ class LocalStateRepositorySpecification
   def "it allows you to get a slice of states that was emitted by a given sensor" () {
     given: "a local time series repository with some states registered in"
     final LocalStateRepository<BooleanState> repository = LocalStateRepository.create(
-      new LocalEntityManager(), BooleanState.class
+      new ApplicationEntityManager(), BooleanState.class
     )
     final Set<Sensor<BooleanState>> sensors = randomUpDownSensors(10, 30)
 
@@ -239,7 +239,7 @@ class LocalStateRepositorySpecification
   def "it allows you to find a state of a given sensor with a particular correlation" () {
     given: "a local time series repository with some states registered in"
     final LocalStateRepository<ActivityState> repository = LocalStateRepository.create(
-      new LocalEntityManager(), ActivityState.class
+      new ApplicationEntityManager(), ActivityState.class
     )
     final Set<Sensor<ActivityState>> sensors = randomActivitySensors((String[]) ['first', 'second', 'third'])
 
@@ -289,7 +289,7 @@ class LocalStateRepositorySpecification
   def "it allows you to find all states of with a correlation" () {
     given: "a local time series repository with some states registered in"
     final LocalStateRepository<ActivityState> repository = LocalStateRepository.create(
-      new LocalEntityManager(), ActivityState.class
+      new ApplicationEntityManager(), ActivityState.class
     )
     final Set<Sensor<ActivityState>> sensors = randomActivitySensors((String[]) ['first', 'second', 'third'])
 
@@ -339,7 +339,7 @@ class LocalStateRepositorySpecification
   def "it allows you to find a state of a given sensor with a bunch of correlations" () {
     given: "a local time series repository with some states registered in"
     final LocalStateRepository<ActivityState> repository = LocalStateRepository.create(
-      new LocalEntityManager(), ActivityState.class
+      new ApplicationEntityManager(), ActivityState.class
     )
     final Set<Sensor<ActivityState>> sensors = randomActivitySensors((String[]) ['first', 'second', 'third'])
 
@@ -382,7 +382,7 @@ class LocalStateRepositorySpecification
   def "it allows you to find a state of a given sensor with a correlation with a particular value" () {
     given: "a local time series repository with some states registered in"
     final LocalStateRepository<ActivityState> repository = LocalStateRepository.create(
-      new LocalEntityManager(), ActivityState.class
+      new ApplicationEntityManager(), ActivityState.class
     )
     final Set<Sensor<ActivityState>> sensors = randomActivitySensors((String[]) ['first', 'second', 'third'])
 

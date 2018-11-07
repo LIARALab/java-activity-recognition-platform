@@ -20,8 +20,8 @@ public class LocalSensorRepository
 
   @Nullable
   private Map<String, Set<Sensor>> _sensorsByType;
-  
-  public static LocalSensorRepository from (@NonNull final LocalEntityManager manager) {
+
+  public static LocalSensorRepository from (@NonNull final ApplicationEntityManager manager) {
     final LocalSensorRepository result = new LocalSensorRepository();
     manager.addListener(result);
     return result;

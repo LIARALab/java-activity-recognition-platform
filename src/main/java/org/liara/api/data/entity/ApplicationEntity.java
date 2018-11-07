@@ -228,12 +228,4 @@ public class ApplicationEntity
 
     return false;
   }
-
-  /**
-   * @see Cloneable#clone()
-   */
-  @Override
-  public @NonNull ApplicationEntity clone () {
-    return new ApplicationEntity(this);
-  }
 }

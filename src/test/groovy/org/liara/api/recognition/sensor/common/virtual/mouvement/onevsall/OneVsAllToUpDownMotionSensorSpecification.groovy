@@ -7,8 +7,8 @@ import org.liara.api.data.entity.state.BooleanState
 import org.liara.api.data.entity.state.State
 import org.liara.api.data.handler.LocalBooleanStateCreationSchemaHandler
 import org.liara.api.data.handler.LocalBooleanStateMutationSchemaHandler
+import org.liara.api.data.repository.local.ApplicationEntityManager
 import org.liara.api.data.repository.local.LocalBooleanStateRepository
-import org.liara.api.data.repository.local.LocalEntityManager
 import org.liara.api.data.repository.local.LocalNodeRepository
 import org.liara.api.data.repository.local.LocalSensorRepository
 import org.liara.api.data.schema.*
@@ -33,7 +33,7 @@ class OneVsAllToUpDownMotionSensorSpecification
        extends Specification
 {
   Node buildTestHouse (
-    @NonNull final LocalEntityManager entityManager,
+    @NonNull final ApplicationEntityManager entityManager,
     @NonNull final List<String> rooms
   ) {
     final LocalNodeRepository nodes = LocalNodeRepository.from(entityManager)
@@ -67,7 +67,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   }
 
   void buildTestScenario (
-    @NonNull final LocalEntityManager entityManager,
+    @NonNull final ApplicationEntityManager entityManager,
     @NonNull final Node house,
     @NonNull final ZonedDateTime startDate,
     @NonNull final List<List<Object>> scenario
@@ -113,7 +113,7 @@ class OneVsAllToUpDownMotionSensorSpecification
 
   void delete (
     @NonNull final VirtualSensorRunner runner,
-    @NonNull final LocalEntityManager entityManager,
+    @NonNull final ApplicationEntityManager entityManager,
     @NonNull final Collection<State> states
   ) {
     for (final State state : states) {
@@ -136,7 +136,7 @@ class OneVsAllToUpDownMotionSensorSpecification
    */
   List<State> emit (
     @NonNull final ApplicationEntityReference<Sensor> emitter,
-    @NonNull final LocalEntityManager entityManager,
+    @NonNull final ApplicationEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
     @NonNull final List<State> states
   ) {
@@ -153,7 +153,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   VirtualSensorRunner buildRunnerForHouse (
     @NonNull final Node house,
     @NonNull final String room,
-    @NonNull final LocalEntityManager entityManager,
+    @NonNull final ApplicationEntityManager entityManager,
     @NonNull final SchemaManager schemaManager  
   ) {
     final Node roomNode = house.getFirstChildWithName(room).get()
@@ -194,7 +194,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   }
 
   List<State> mutate (
-    @NonNull final LocalEntityManager entityManager,
+    @NonNull final ApplicationEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
     @NonNull final List<BooleanStateMutationSchema> mutations
   ) {
@@ -218,7 +218,7 @@ class OneVsAllToUpDownMotionSensorSpecification
     
   def "it emit boundaries flags from existing sensor data when the virtual sensor is initialized" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house and a scenario for it"
@@ -294,7 +294,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it ignore false flags creation" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house and a scenario for it"
@@ -343,7 +343,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it emit an up flag when a valid motion sensor emit a up flag" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house and a scenario for it"
@@ -389,7 +389,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it emit flags if they are different from their predecessor or their successor" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house and a scenario for it"
@@ -475,7 +475,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it emit a down flag when an invalid motion sensor emit a up flag" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house and a scenario for it"
@@ -520,7 +520,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it ignore consecutive valid emittion" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -567,7 +567,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it ignore consecutive invalid emittion" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -614,7 +614,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it move a up flag if another up flag is emitted before him (no content before)" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -675,7 +675,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it move a up flag if another up flag is emitted before him (with content before)" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -744,7 +744,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it move a down flag if another down flag is emitted before him (no content before)" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -805,7 +805,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it move a down flag if another down flag is emitted before him (with content before)" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -874,7 +874,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it create two flags if a down flag is discovered between two up flags" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -946,7 +946,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it act like if a flag was created if an uncorreled up flag is moved" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1004,7 +1004,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it ignore uncorreled flags up to down value change" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1063,7 +1063,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it move boundaries if boundaries are near of their origin" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1152,7 +1152,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it delete a boundary flag and recreate it if the flag is moved too far away from its original location (right)" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1215,7 +1215,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it delete a boundary flag and recreate it if the flag is moved too far away from its original location (left)" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1278,7 +1278,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it merge flags if an update made two flags of the same type in sequence" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1347,7 +1347,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it move a flag, if a correled flag was moved and another flag of the same type exists after it" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1422,7 +1422,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it move a flag, if it is the only flag discovered and if its value does not change" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1476,7 +1476,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it delete a flag, if it is the only flag discovered and if its value change" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1530,7 +1530,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it ignore down flag deletion" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1591,7 +1591,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it ignore uncorreled flag deletion" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1654,7 +1654,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it remove a flag if its correlated flag is removed and no valid flag exists near it" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1716,7 +1716,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it move a flag if its correlated flag is removed and another valid flag exists near it" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1784,7 +1784,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it remove two flags if a deletion result in the merging of two up flags" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"
@@ -1850,7 +1850,7 @@ class OneVsAllToUpDownMotionSensorSpecification
   
   def "it can remove starting flags when they related flags are removed" () {
     given: "an entity manager and a schema manager"
-      final LocalEntityManager entityManager = new LocalEntityManager()
+    final ApplicationEntityManager entityManager = new ApplicationEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
     
     and: "an house"

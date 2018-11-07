@@ -2,7 +2,7 @@ package org.liara.api.data.handler;
 
 import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.data.repository.local.ApplicationEntityManager;
 import org.liara.api.data.schema.ActivationStateMutationSchema;
 import org.springframework.lang.NonNull;
 
@@ -10,10 +10,10 @@ public class LocalActivationStateMutationSchemaHandler
        extends LocalStateMutationSchemaHandler<ActivationStateMutationSchema>
 {
   @NonNull
-  private final LocalEntityManager _manager;
+  private final ApplicationEntityManager _manager;
   
   public LocalActivationStateMutationSchemaHandler (
-    @NonNull final LocalEntityManager manager
+    @NonNull final ApplicationEntityManager manager
   ) {
     super(manager);
     _manager = manager;

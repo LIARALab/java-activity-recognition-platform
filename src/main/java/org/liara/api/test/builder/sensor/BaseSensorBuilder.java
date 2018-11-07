@@ -5,7 +5,7 @@ import groovy.lang.Closure;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.data.repository.local.ApplicationEntityManager;
 import org.liara.api.test.builder.Builder;
 import org.liara.api.test.builder.IdentityBuilder;
 import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
@@ -104,7 +104,7 @@ public abstract class BaseSensorBuilder<
   }
 
   @Override
-  public Entity buildFor (@NonNull final LocalEntityManager entityManager) {
+  public Entity buildFor (@NonNull final ApplicationEntityManager entityManager) {
     final Entity result = super.buildFor(entityManager);
     entityManager.addAll(result.getStates());
     return result;

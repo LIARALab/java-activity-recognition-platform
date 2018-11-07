@@ -15,7 +15,7 @@ public class LocalBooleanStateRepository
   extends LocalStateRepository<BooleanState>
        implements BooleanStateRepository
 {
-  public static LocalBooleanStateRepository from (@NonNull final LocalEntityManager parent) {
+  public static LocalBooleanStateRepository from (@NonNull final ApplicationEntityManager parent) {
     final LocalBooleanStateRepository result = new LocalBooleanStateRepository();
     result.setParent(parent);
     return result;

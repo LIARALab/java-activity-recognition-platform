@@ -1,20 +1,19 @@
 package org.liara.api.test.builder.state;
 
+import groovy.lang.Closure;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.repository.local.ApplicationEntityManager;
+import org.liara.api.test.builder.Builder;
+import org.liara.api.utils.Closures;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.liara.api.data.entity.state.State;
-import org.liara.api.data.repository.local.LocalEntityManager;
-import org.liara.api.test.builder.Builder;
-import org.liara.api.utils.Closures;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
-
-import groovy.lang.Closure;
 
 public class StateSequenceBuilder implements Builder<StateSequenceBuilder, List<State>>
 {
@@ -119,8 +118,8 @@ public class StateSequenceBuilder implements Builder<StateSequenceBuilder, List<
     return _states.stream().map(BaseStateBuilder::build)
                            .collect(Collectors.toList());
   }
-  
-  public List<State> buildFor (@NonNull final LocalEntityManager manager) {
+
+  public List<State> buildFor (@NonNull final ApplicationEntityManager manager) {
     final List<State> result = build();
     manager.addAll(result);
     return result;

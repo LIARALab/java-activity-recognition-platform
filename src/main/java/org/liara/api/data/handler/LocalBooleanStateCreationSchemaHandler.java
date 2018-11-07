@@ -1,14 +1,14 @@
 package org.liara.api.data.handler;
 
 import org.liara.api.data.entity.state.BooleanState;
-import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.data.repository.local.ApplicationEntityManager;
 import org.liara.api.data.schema.BooleanStateCreationSchema;
 import org.springframework.lang.NonNull;
 
 public class LocalBooleanStateCreationSchemaHandler
        extends BaseLocalStateCreationSchemaHandler<BooleanStateCreationSchema, BooleanState>
 {
-  public LocalBooleanStateCreationSchemaHandler(LocalEntityManager manager) {
+  public LocalBooleanStateCreationSchemaHandler (ApplicationEntityManager manager) {
     super(manager);
   }
 

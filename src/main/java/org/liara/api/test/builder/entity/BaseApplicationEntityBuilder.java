@@ -1,12 +1,12 @@
 package org.liara.api.test.builder.entity;
 
-import java.time.ZonedDateTime;
-
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.data.repository.local.ApplicationEntityManager;
 import org.liara.api.test.builder.Builder;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+
+import java.time.ZonedDateTime;
 
 public abstract class BaseApplicationEntityBuilder<
                         Self extends BaseApplicationEntityBuilder<Self, Entity>, 
@@ -55,7 +55,7 @@ public abstract class BaseApplicationEntityBuilder<
   
   public abstract Entity build ();
 
-  public Entity buildFor (@NonNull final LocalEntityManager entityManager) {
+  public Entity buildFor (@NonNull final ApplicationEntityManager entityManager) {
     final Entity result = build();
     entityManager.add(result);
     return result;

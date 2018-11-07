@@ -44,7 +44,8 @@ public class DatabaseApplicationEntityRepository<Entity extends ApplicationEntit
   @Override
   public @NonNull List<@NonNull Entity> findAll (@NonNull final Cursor cursor) {
     @NonNull final TypedQuery<Entity> query = _entityManager.createQuery(
-      "SELECT entity FROM " + _type.getName() + " entity", _type).setFirstResult(cursor.getOffset());
+      "SELECT entity FROM " + _type.getName() + " entity ORDER BY entity.identifier ASC", _type)
+                                                            .setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 

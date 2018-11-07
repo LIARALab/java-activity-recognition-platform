@@ -1,7 +1,7 @@
 package org.liara.api.data.handler;
 
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.data.repository.local.ApplicationEntityManager;
 import org.liara.api.data.schema.StateCreationSchema;
 import org.springframework.lang.NonNull;
 
@@ -9,7 +9,7 @@ public class LocalStateCreationSchemaHandler
        extends BaseLocalStateCreationSchemaHandler<StateCreationSchema, State>
 {
   public LocalStateCreationSchemaHandler(
-    @NonNull final LocalEntityManager manager
+    @NonNull final ApplicationEntityManager manager
   ) { super(manager); }
 
   @Override

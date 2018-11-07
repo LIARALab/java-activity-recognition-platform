@@ -19,8 +19,8 @@ public class LocalNodeRepository
 {
   @NonNull
   private final LocalNestedSetTree _tree;
-  
-  public static LocalNodeRepository from (@NonNull final LocalEntityManager manager) {
+
+  public static LocalNodeRepository from (@NonNull final ApplicationEntityManager manager) {
     final LocalNodeRepository result = new LocalNodeRepository();
     manager.addListener(result);
     return result;
