@@ -3,7 +3,7 @@ package org.liara.api.data.repository.local;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.BooleanState;
-import org.liara.api.data.repository.BooleanStateRepository;
+import org.liara.api.data.repository.ValueStateRepository;
 import org.springframework.lang.NonNull;
 
 import java.time.ZonedDateTime;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class LocalBooleanStateRepository
   extends LocalStateRepository<BooleanState>
-       implements BooleanStateRepository
+  implements ValueStateRepository
 {
   public static LocalBooleanStateRepository from (@NonNull final ApplicationEntityManager parent) {
     final LocalBooleanStateRepository result = new LocalBooleanStateRepository();

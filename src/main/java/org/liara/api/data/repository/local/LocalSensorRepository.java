@@ -1,13 +1,15 @@
 package org.liara.api.data.repository.local;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
-import org.springframework.lang.NonNull;
+import org.liara.api.utils.Duplicator;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,80 +19,83 @@ public class LocalSensorRepository
 {
   @Nullable
   private Map<String, Set<Sensor>> _sensorsByType;
-
-  public static LocalSensorRepository from (@NonNull final ApplicationEntityManager manager) {
-    final LocalSensorRepository result = new LocalSensorRepository();
-    manager.addListener(result);
-    return result;
-  }
   
   public LocalSensorRepository() {
     super(Sensor.class);
     _sensorsByType = new HashMap<>();
-    _nodes = new LocalNodeRepository();
   }
   
   @Override
-  public List<Sensor> getSensorsOfType (
+  public @NonNull List<@NonNull Sensor> getSensorsOfType (
     @NonNull final String type
   ) {
     if (_sensorsByType.containsKey(type)) {
-      return new ArrayList<>(_sensorsByType.get(type));
+      return _sensorsByType.get(type)
+                           .stream()
+                           .map(Duplicator::duplicate)
+                           .sorted(ApplicationEntity::orderByIdentifier)
+                           .collect(Collectors.toList());
     } else {
       return Collections.emptyList();
     }
   }
 
   @Override
-  public List<Sensor> getSensorsOfTypeIntoNode (
+  public @NonNull List<@NonNull Sensor> getSensorsOfTypeIntoNode (
     @NonNull final String type, @NonNull final ApplicationEntityReference<? extends Node> node
   ) {
+    if (getParent() == null) return Collections.emptyList();
+
+    @NonNull final NodeRepository nodeRepository = getParent().repository(LocalNodeRepository.class);
+
     return getSensorsOfType(type).stream().filter(sensor -> {
-      Node parent = sensor.getNode();
+      @Nullable Node parent = nodeRepository.find(sensor.getNodeIdentifier()).get();
       
       while (parent != null) {
         if (Objects.equals(parent.getReference(), node)) {
           return true;
         } else {
-          parent = _nodes.getParentOf(parent);
+          parent = nodeRepository.getParentOf(parent);
         }
       }
       
       return false;
-    }).collect(Collectors.toList());
+    }).sorted(ApplicationEntity::orderByIdentifier).collect(Collectors.toList());
   }
 
   @Override
-  protected void entityWasAdded (@NonNull final ApplicationEntity entity) {
-    super.entityWasAdded(entity);
-    _nodes.entityWasAdded(entity);
-  }
+  public void onUpdate (
+    @Nullable final ApplicationEntity oldEntity, @NonNull final ApplicationEntity newEntity
+  )
+  {
+    super.onUpdate(oldEntity, newEntity);
 
-  @Override
-  protected void entityWasRemoved (@NonNull final ApplicationEntity entity) {
-    super.entityWasRemoved(entity);
-    _nodes.entityWasRemoved(entity);
-  }
+    if (newEntity instanceof Sensor) {
+      @Nullable final Sensor oldSensor = (Sensor) oldEntity;
+      @NonNull final Sensor  newSensor = (Sensor) newEntity;
 
-  @Override
-  protected void trackedEntityWasAdded (@NonNull final Sensor entity) {
-    super.trackedEntityWasAdded(entity);
-    
-    if (!_sensorsByType.containsKey(entity.getType())) {
-      _sensorsByType.put(entity.getType(), new HashSet<>());
+      if (oldSensor != null) {
+        _sensorsByType.get(oldSensor.getType()).remove(oldSensor);
+      } else if (!_sensorsByType.containsKey(newSensor.getType())) {
+        _sensorsByType.put(newSensor.getType(), new HashSet<>());
+      }
+
+      _sensorsByType.get(newSensor.getType()).add(newSensor);
     }
-    
-    _sensorsByType.get(entity.getType()).add(entity);
   }
 
   @Override
-  protected void trackedEntityWasRemoved (@NonNull final Sensor entity) {
-    super.trackedEntityWasRemoved(entity);
-    
-    _sensorsByType.get(entity.getType()).remove(entity);
-    
-    if (_sensorsByType.get(entity.getType()).isEmpty()) {
-      _sensorsByType.remove(entity.getType());
+  public void onRemove (@NonNull final ApplicationEntity entity) {
+    super.onRemove(entity);
+
+    if (entity instanceof Sensor) {
+      @NonNull final Sensor sensor = (Sensor) entity;
+
+      _sensorsByType.get(sensor.getType()).remove(sensor);
+
+      if (_sensorsByType.get(sensor.getType()).isEmpty()) {
+        _sensorsByType.remove(sensor.getType());
+      }
     }
   }
 }

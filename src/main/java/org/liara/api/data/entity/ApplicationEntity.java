@@ -38,6 +38,19 @@ public class ApplicationEntity
   @Nullable
   private ZonedDateTime _deletionDate;
 
+  public static <Entity extends ApplicationEntity> int orderByIdentifier (
+    @NonNull final Entity left, @NonNull final Entity right
+  )
+  {
+    if (left.getIdentifier() == null && right.getIdentifier() == null) {
+      return 0;
+    } else if (left.getIdentifier() == null || right.getIdentifier() == null) {
+      return left.getIdentifier() == null ? -1 : +1;
+    } else {
+      return left.getIdentifier().compareTo(right.getIdentifier());
+    }
+  }
+
   /**
    * Instantiate a new empty application entity.
    */

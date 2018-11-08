@@ -7,8 +7,8 @@ import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.ActivationsRepository;
-import org.liara.api.data.repository.BooleanStateRepository;
 import org.liara.api.data.repository.NodeRepository;
+import org.liara.api.data.repository.ValueStateRepository;
 import org.liara.api.data.schema.ActivationStateCreationSchema;
 import org.liara.api.data.schema.ActivationStateMutationSchema;
 import org.liara.api.data.schema.SchemaManager;
@@ -45,15 +45,14 @@ public class UpDownToActivationSensor
   private final ActivationsRepository _outputs;
   
   @NonNull
-  private final BooleanStateRepository _inputs;
+  private final ValueStateRepository _inputs;
   
   @NonNull
   private final NodeRepository _nodes;
   
   @Autowired
   public UpDownToActivationSensor (
-    @NonNull final SchemaManager manager,
-    @NonNull final BooleanStateRepository inputs,
+    @NonNull final SchemaManager manager, @NonNull final ValueStateRepository inputs,
     @NonNull final ActivationsRepository outputs,
     @NonNull final NodeRepository nodes
   ) {

@@ -3,7 +3,7 @@ package org.liara.api.data.repository.database;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.BooleanState;
-import org.liara.api.data.repository.BooleanStateRepository;
+import org.liara.api.data.repository.ValueStateRepository;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Primary
 public class DatabaseBooleanStateRepository
   extends DatabaseStateRepository<BooleanState>
-       implements BooleanStateRepository
+  implements ValueStateRepository
 {
   @NonNull
   private final EntityManager _entityManager;

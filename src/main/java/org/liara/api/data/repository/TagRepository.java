@@ -15,7 +15,17 @@ public interface TagRepository
     @NonNull final Class<? extends ApplicationEntity> type, @Nullable final Long identifier
   );
 
-  default @NonNull List<@NonNull Tag> findTagsOf (@NonNull final ApplicationEntityReference<?> reference) {
+  default @NonNull List<@NonNull Tag> findTagsOf (
+    @NonNull final ApplicationEntityReference<?> reference
+  )
+  {
     return findTagsOf(reference.getType(), reference.getIdentifier());
+  }
+
+  default @NonNull List<@NonNull Tag> findTagsOf (
+    @NonNull final ApplicationEntity entity
+  )
+  {
+    return findTagsOf(entity);
   }
 }

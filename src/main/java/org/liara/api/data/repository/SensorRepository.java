@@ -9,19 +9,19 @@ import java.util.List;
 
 public interface SensorRepository extends ApplicationEntityRepository<Sensor>
 {
-  default List<Sensor> getSensorsOfType (@NonNull final Class<?> type) {
-    return getSensorsOfType(type.getName());
-  }
+  default @NonNull List<@NonNull Sensor> getSensorsOfType (
+    @NonNull final Class<?> type
+  )
+  { return getSensorsOfType(type.getName()); }
 
-  List<Sensor> getSensorsOfType (@NonNull final String type);
+  @NonNull List<@NonNull Sensor> getSensorsOfType (@NonNull final String type);
 
-  default List<Sensor> getSensorsOfTypeIntoNode (
+  default @NonNull List<@NonNull Sensor> getSensorsOfTypeIntoNode (
     @NonNull final Class<?> type, @NonNull final ApplicationEntityReference<? extends Node> node
-  ) {
-    return getSensorsOfTypeIntoNode(type.getName(), node);
-  }
+  )
+  { return getSensorsOfTypeIntoNode(type.getName(), node); }
 
-  List<Sensor> getSensorsOfTypeIntoNode (
+  @NonNull List<@NonNull Sensor> getSensorsOfTypeIntoNode (
     @NonNull final String type, @NonNull final ApplicationEntityReference<? extends Node> node
   );
 }

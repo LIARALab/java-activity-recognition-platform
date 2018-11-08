@@ -5,9 +5,9 @@ import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.repository.BooleanStateRepository;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
+import org.liara.api.data.repository.ValueStateRepository;
 import org.liara.api.data.schema.BooleanStateCreationSchema;
 import org.liara.api.data.schema.BooleanStateMutationSchema;
 import org.liara.api.data.schema.SchemaManager;
@@ -40,7 +40,7 @@ public class OneVsAllToUpDownMotionSensor
   private final SchemaManager _schemaManager;
   
   @NonNull
-  private final BooleanStateRepository _flags;
+  private final ValueStateRepository _flags;
   
   @NonNull
   private final SensorRepository _sensors;
@@ -50,8 +50,7 @@ public class OneVsAllToUpDownMotionSensor
   
   @Autowired
   public OneVsAllToUpDownMotionSensor (
-    @NonNull final SchemaManager schemaManager,
-    @NonNull final BooleanStateRepository flags,
+    @NonNull final SchemaManager schemaManager, @NonNull final ValueStateRepository flags,
     @NonNull final SensorRepository sensors,
     @NonNull final NodeRepository nodes
   ) {
