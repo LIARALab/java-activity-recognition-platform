@@ -48,6 +48,12 @@ public class Node
     _coordinates = new NestedSetCoordinates();
   }
 
+  public Node (@NonNull final NodeSchema toCopy) {
+    super(toCopy);
+    _name = toCopy.getName();
+    _coordinates = new NestedSetCoordinates();
+  }
+
   public Node (@NonNull final Node toCopy) {
     super(toCopy);
     _name = toCopy.getName();

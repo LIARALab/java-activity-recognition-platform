@@ -26,9 +26,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.schema.SchemaManager;
-import org.liara.api.data.schema.SensorCreationSchema;
+import org.liara.api.data.repository.NodeRepository;
+import org.liara.api.event.ApplicationEntityEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,21 +55,26 @@ public class SensorCollectionController
   extends BaseRestController
 {
   @NonNull
-  private final SchemaManager _schemaManager;
+  private final EntityManager _entityManager;
 
   @NonNull
-  private final EntityManager _entityManager;
+  private final NodeRepository _nodeRepository;
+
+  @NonNull
+  private final ApplicationEventPublisher _applicationEventPublisher;
 
   @Autowired
   public SensorCollectionController (
-    @NonNull final SchemaManager schemaManager,
     @NonNull final EntityManager entityManager,
+    @NonNull final NodeRepository nodeRepository,
+    @NonNull final ApplicationEventPublisher applicationEventPublisher,
     @NonNull final CollectionFactory collections
   )
   {
     super(collections);
+    _applicationEventPublisher = applicationEventPublisher;
+    _nodeRepository = nodeRepository;
     _entityManager = entityManager;
-    _schemaManager = schemaManager;
   }
 
   @GetMapping("/sensors/count")
@@ -95,12 +101,12 @@ public class SensorCollectionController
   @PostMapping("/sensors")
   @Transactional
   public ResponseEntity<Void> create (
-    @NonNull final HttpServletRequest request,
-    @NonNull @Valid @RequestBody final SensorCreationSchema schema
+    @NonNull final HttpServletRequest request, @NonNull @Valid @RequestBody final Sensor sensor
   )
   {
-    final Sensor sensor = _schemaManager.execute(schema);
-    
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Initialize(this, sensor));
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, sensor));
+
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Location", request.getRequestURI() + "/" + sensor.getIdentifier());
     
@@ -112,7 +118,7 @@ public class SensorCollectionController
     @NonNull final HttpServletRequest request, @PathVariable @NonNull final Long identifier
   )
   {
-    return _entityManager.find(Sensor.class, identifier).getNode();
+    return _nodeRepository.find(_entityManager.find(Sensor.class, identifier).getNodeIdentifier()).get();
   }
 
   /*

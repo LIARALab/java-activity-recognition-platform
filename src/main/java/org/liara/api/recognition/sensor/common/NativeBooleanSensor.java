@@ -1,9 +1,9 @@
 package org.liara.api.recognition.sensor.common;
 
-import org.liara.api.data.entity.state.BooleanState;
+import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.recognition.sensor.EmitStateOfType;
 
-@EmitStateOfType(BooleanState.class)
+@EmitStateOfType(ValueState.Boolean.class)
 public interface NativeBooleanSensor 
        extends NativeSensor
 { }

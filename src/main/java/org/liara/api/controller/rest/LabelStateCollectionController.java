@@ -24,7 +24,7 @@ package org.liara.api.controller.rest;
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
-import org.liara.api.data.entity.state.ActivationState;
+import org.liara.api.data.entity.state.LabelState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,38 +38,38 @@ import java.util.List;
 @Api(tags = {
   "states<activation>"
 }, description = "", produces = "application/json", consumes = "application/json", protocols = "http")
-public class ActivationStateCollectionController
+public class LabelStateCollectionController
   extends BaseRestController
 {
   @Autowired
-  public ActivationStateCollectionController (
+  public LabelStateCollectionController (
     @NonNull final CollectionFactory collections
   )
   {
     super(collections);
   }
 
-  @GetMapping("/states<activation>/count")
+  @GetMapping("/states<label>/count")
   public @NonNull Long count (
     @NonNull final HttpServletRequest request
   )
   {
-    return count(ActivationState.class, request);
+    return count(LabelState.class, request);
   }
 
-  @GetMapping("/states<activation>")
-  public @NonNull ResponseEntity<@NonNull List<@NonNull ActivationState>> index (
+  @GetMapping("/states<label>")
+  public @NonNull ResponseEntity<@NonNull List<@NonNull LabelState>> index (
     @NonNull final HttpServletRequest request
   )
   {
-    return index(ActivationState.class, request);
+    return index(LabelState.class, request);
   }
 
-  @GetMapping("/states<activation>/{identifier}")
-  public @NonNull ActivationState get (
+  @GetMapping("/states<label>/{identifier}")
+  public @NonNull LabelState get (
     @PathVariable final Long identifier
   )
   {
-    return get(ActivationState.class, identifier);
+    return get(LabelState.class, identifier);
   }
 }

@@ -24,7 +24,7 @@ package org.liara.api.controller.rest;
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
-import org.liara.api.data.entity.state.IntegerState;
+import org.liara.api.data.entity.state.ValueState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,9 +37,8 @@ import java.util.List;
 @RestController
 @Api(
     tags = {
-      "state<int>"
+      "states<integer>"
     },
-    description = "",
     produces = "application/json",
     consumes = "application/json",
     protocols = "http"
@@ -55,27 +54,27 @@ public final class IntegerStateCollectionController
     super(collections);
   }
 
-  @GetMapping("/states<int>/count")
+  @GetMapping("/states<integer>/count")
   public @NonNull Long count (
     @NonNull final HttpServletRequest request
   )
   {
-    return count(IntegerState.class, request);
+    return count(ValueState.Integer.class, request);
   }
 
-  @GetMapping("/states<int>")
-  public @NonNull ResponseEntity<@NonNull List<@NonNull IntegerState>> index (
+  @GetMapping("/states<integer>")
+  public @NonNull ResponseEntity<@NonNull List<ValueState.@NonNull Integer>> index (
     @NonNull final HttpServletRequest request
   )
   {
-    return index(IntegerState.class, request);
+    return index(ValueState.Integer.class, request);
   }
 
-  @GetMapping("/states<int>/{identifier}")
-  public @NonNull IntegerState get (
+  @GetMapping("/states<integer>/{identifier}")
+  public ValueState.@NonNull Integer get (
     @PathVariable final Long identifier
   )
   {
-    return get(IntegerState.class, identifier);
+    return get(ValueState.Integer.class, identifier);
   }
 }

@@ -5,16 +5,16 @@ import org.liara.api.data.entity.Sensor
 import org.liara.api.data.entity.reference.ApplicationEntityReference
 import org.liara.api.data.entity.state.BooleanState
 import org.liara.api.data.entity.state.State
-import org.liara.api.data.handler.LocalActivationStateMutationSchemaHandler
-import org.liara.api.data.handler.LocalActivationStateSchemaHandler
 import org.liara.api.data.repository.local.ApplicationEntityManager
-import org.liara.api.data.repository.local.LocalActivationsRepository
-import org.liara.api.data.repository.local.LocalBooleanStateRepository
+import org.liara.api.data.repository.local.LocalLabelStateRepository
 import org.liara.api.data.repository.local.LocalNodeRepository
+import org.liara.api.data.repository.local.LocalValueStateRepository
 import org.liara.api.data.schema.*
 import org.liara.api.event.StateEvent
 import org.liara.api.event.StateWasMutatedEvent
 import org.liara.api.event.StateWillBeDeletedEvent
+import org.liara.api.io.LocalActivationStateSchemaHandler
+import org.liara.api.io.LocalApplicationEntityDriver
 import org.liara.api.recognition.sensor.VirtualSensorRunner
 import org.liara.api.test.builder.node.NodeBuilder
 import org.liara.api.test.builder.sensor.SensorBuilder
@@ -91,15 +91,15 @@ class UpDownToActivationSensorSpecification
     
     schemaManager.registerHandler(
       ActivationStateMutationSchema.class,
-      new LocalActivationStateMutationSchemaHandler(entityManager)
+      new LocalApplicationEntityDriver(entityManager)
     )
     
     final VirtualSensorRunner runner = VirtualSensorRunner.unbound(
       outputSensor,
       Mockito.spy(new UpDownToActivationSensor(
         schemaManager,
-        LocalBooleanStateRepository.from(entityManager),
-        LocalActivationsRepository.from(entityManager),
+        LocalValueStateRepository.from(entityManager),
+        LocalLabelStateRepository.from(entityManager),
         LocalNodeRepository.of(house)
       ))
     )
@@ -192,7 +192,7 @@ class UpDownToActivationSensorSpecification
     and: "a runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
       
     when: "we initialize the up-down to activation sensor"
       runner.initialize()
@@ -265,7 +265,7 @@ class UpDownToActivationSensorSpecification
     and: "an initialized runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
 
       runner.initialize()
       schemaManager.reset()
@@ -315,8 +315,8 @@ class UpDownToActivationSensorSpecification
     and: "an initialized runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
 
       runner.initialize()
       schemaManager.reset()
@@ -364,8 +364,8 @@ class UpDownToActivationSensorSpecification
     and: "an initialized runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -414,8 +414,8 @@ class UpDownToActivationSensorSpecification
     and: "an initialized runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -466,8 +466,8 @@ class UpDownToActivationSensorSpecification
     and: "an initialized runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -521,8 +521,8 @@ class UpDownToActivationSensorSpecification
     and: "an initialized runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -573,8 +573,8 @@ class UpDownToActivationSensorSpecification
     and: "an initialized runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -623,8 +623,8 @@ class UpDownToActivationSensorSpecification
     and: "an initialized runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -683,8 +683,8 @@ class UpDownToActivationSensorSpecification
     and: "an initialized runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -747,8 +747,8 @@ class UpDownToActivationSensorSpecification
     and: "an initialized runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -835,8 +835,8 @@ class UpDownToActivationSensorSpecification
     and: "an initialized runner for the output sensor that tracks the input sensor"
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -887,8 +887,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -946,8 +946,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1004,8 +1004,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1063,8 +1063,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1126,8 +1126,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1189,8 +1189,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1248,8 +1248,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1306,8 +1306,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1364,8 +1364,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1409,8 +1409,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1464,8 +1464,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1513,8 +1513,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1564,8 +1564,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1614,8 +1614,8 @@ class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
+    final LocalLabelStateRepository outputs = LocalLabelStateRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()

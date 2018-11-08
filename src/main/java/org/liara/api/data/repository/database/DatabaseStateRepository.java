@@ -40,7 +40,7 @@ public class DatabaseStateRepository<TimeState extends State>
   @Override
   public @NonNull List<@NonNull TimeState> findPrevious (
     @NonNull final ZonedDateTime date,
-    @NonNull final ApplicationEntityReference<? extends Sensor> sensor,
+    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors,
     @NonNull final Cursor cursor
   ) {
     @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
@@ -50,11 +50,12 @@ public class DatabaseStateRepository<TimeState extends State>
         "  FROM ",
         getManagedEntity().getName(),
         " state ",
-        " WHERE state.emissionDate < :date ",
-        "   AND state.sensorIdentifier = :sensor",
+        " WHERE state.emissionDate < :date ", "   AND state.sensorIdentifier IN :sensors",
         " ORDER BY state.emissionDate DESC"
-      ), getManagedEntity()
-    ).setParameter("date", date).setParameter("sensor", sensor).setFirstResult(cursor.getOffset());
+      ), getManagedEntity())
+                                                               .setParameter("date", date)
+                                                               .setParameter("sensors", sensors)
+                                                               .setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -64,7 +65,7 @@ public class DatabaseStateRepository<TimeState extends State>
   @Override
   public @NonNull List<@NonNull TimeState> findNext (
     @NonNull final ZonedDateTime date,
-    @NonNull final ApplicationEntityReference<? extends Sensor> sensor,
+    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors,
     @NonNull final Cursor cursor
   ) {
     @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
@@ -74,31 +75,12 @@ public class DatabaseStateRepository<TimeState extends State>
         "  FROM ",
         getManagedEntity().getName(),
         " state ",
-        " WHERE state.emissionDate < :date ",
-        "   AND state.sensor.identifier = :sensor ",
+        " WHERE state.emissionDate < :date ", "   AND state.sensorIdentifier IN :sensors ",
         " ORDER BY state.emissionDate ASC"
-      ), getManagedEntity()
-    ).setParameter("date", date).setParameter("sensor", sensor).setFirstResult(cursor.getOffset());
-
-    if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
-
-    return query.getResultList();
-  }
-  
-  @Override
-  public @NonNull List<@NonNull TimeState> find (
-    @NonNull final ApplicationEntityReference<? extends Sensor> sensor, @NonNull final Cursor cursor
-  ) {
-    @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
-      String.join(
-        "",
-        "SELECT state ",
-        "  FROM ",
-        getManagedEntity().getName(),
-        " state ",
-        " WHERE state.sensor.identifier = :sensor ",
-        " ORDER BY state.emissionDate ASC"
-      ), getManagedEntity()).setParameter("sensor", sensor).setFirstResult(cursor.getOffset());
+      ), getManagedEntity())
+                                                               .setParameter("date", date)
+                                                               .setParameter("sensors", sensors)
+                                                               .setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -113,7 +95,8 @@ public class DatabaseStateRepository<TimeState extends State>
       String.join(
         "",
         "SELECT state ", "  FROM ", getManagedEntity().getName(), " state ",
-        " WHERE state.sensor.identifier IN :sensors ", " ORDER BY state.emissionDate ASC"
+        " WHERE state.sensorIdentifier IN :sensors ",
+        " ORDER BY state.emissionDate ASC"
       ), getManagedEntity()).setParameter("sensors", sensors).setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
@@ -123,17 +106,16 @@ public class DatabaseStateRepository<TimeState extends State>
 
   @Override
   public @NonNull Optional<TimeState> findLast (
-    @NonNull ApplicationEntityReference<? extends Sensor> sensor
+    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors
   ) {
     @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(String.join(
       "",
       "SELECT state ",
       "  FROM ",
       getManagedEntity().getName(),
-      " state ",
-      " WHERE state.sensor.identifier = :sensor ",
+      " state ", " WHERE state.sensorIdentifier IN :sensors",
       " ORDER BY state.emissionDate DESC"
-    ), getManagedEntity()).setParameter("sensor", sensor).setFirstResult(0).setMaxResults(1);
+    ), getManagedEntity()).setParameter("sensor", sensors).setFirstResult(0).setMaxResults(1);
 
     @NonNull final List<@NonNull TimeState> result = query.getResultList();
 

@@ -2,6 +2,7 @@ package org.liara.api.recognition.sensor;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jboss.logging.Logger;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.event.NodeEvent;
@@ -10,7 +11,6 @@ import org.liara.api.event.StateEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
@@ -33,7 +33,7 @@ public class VirtualSensorManager
   private final EntityManager _entityManager;
   
   @NonNull
-  private final BiMap<Long, VirtualSensorRunner> _runners = HashBiMap.create();
+  private final BiMap<@NonNull Long, @NonNull VirtualSensorRunner> _runners = HashBiMap.create();
   
   @Autowired
   public VirtualSensorManager (
@@ -76,14 +76,15 @@ public class VirtualSensorManager
     _logger.info("Virtual sensor manager initialization...");
     _logger.info("Finding virtual sensors in application database...");
 
-    final List<Sensor> sensors = _entityManager.createQuery(String.join("",
-                                                                        "SELECT ",
-                                                                        Sensor.class.getName(),
-                                                                        " sensor ",
-                                                                        "WHERE sensor._virtual = true"
+    @NonNull final List<@NonNull Sensor> sensors = _entityManager.createQuery(String.join(
+      "",
+      "SELECT ",
+      Sensor.class.getName(),
+      " sensor ",
+      "WHERE sensor._virtual = true"
     ), Sensor.class).getResultList();
-    
-    for (final Sensor sensor : sensors) {
+
+    for (@NonNull final Sensor sensor : sensors) {
       VirtualSensorRunner.restart(this, sensor);
     }
   }
@@ -100,8 +101,8 @@ public class VirtualSensorManager
   public void beforeApplicationShutdown () {
     _logger.info("Virtual sensor manager destruction...");
     _logger.info("Stopping all running virtual sensors...");
-    
-    for (final VirtualSensorRunner runner : _runners.values()) {
+
+    for (@NonNull final VirtualSensorRunner runner : _runners.values()) {
       runner.pause();
     }
     
@@ -109,78 +110,78 @@ public class VirtualSensorManager
   }
   
   @EventListener
-  public void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event) {
+  public void sensorWillBeCreated (final SensorEvent.@NonNull WillBeCreated event) {
     for (final VirtualSensorRunner runner : _runners.values()) {
       runner.getHandler().sensorWillBeCreated(event);
     }
   }
 
   @EventListener
-  public void sensorWasCreated (@NonNull final SensorEvent event) {
+  public void sensorWasCreated (final SensorEvent.@NonNull WasCreated event) {
     for (final VirtualSensorRunner runner : _runners.values()) {
       runner.getHandler().sensorWasCreated(event);
     }
   }
 
   @EventListener
-  public void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event) {
+  public void nodeWillBeCreated (final NodeEvent.@NonNull WillBeCreated event) {
     for (final VirtualSensorRunner runner : _runners.values()) {
       runner.getHandler().nodeWillBeCreated(event);
     }
   }
 
   @EventListener
-  public void nodeWasCreated (@NonNull final NodeEvent event) {
+  public void nodeWasCreated (final NodeEvent.@NonNull WasCreated event) {
     for (final VirtualSensorRunner runner : _runners.values()) {
       runner.getHandler().nodeWasCreated(event);
     }
   }
 
   @EventListener
-  public void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event) {
+  public void stateWillBeCreated (final StateEvent.@NonNull WillBeCreated event) {
     for (final VirtualSensorRunner runner : _runners.values()) {
       runner.getHandler().stateWillBeCreated(event);
     }
   }
 
   @EventListener
-  public void stateWasCreated (@NonNull final StateEvent event) {
+  public void stateWasCreated (final StateEvent.@NonNull WasCreated event) {
     for (final VirtualSensorRunner runner : _runners.values()) {
       runner.getHandler().stateWasCreated(event);
     }
   }
 
   @EventListener
-  public void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event) {
+  public void stateWillBeMutated (final StateEvent.@NonNull WillBeMutated event) {
     for (final VirtualSensorRunner runner : _runners.values()) {
       runner.getHandler().stateWillBeMutated(event);
     }
   }
 
   @EventListener
-  public void stateWasMutated (@NonNull final StateWasMutatedEvent event) {
+  public void stateWasMutated (final StateEvent.@NonNull WasMutated event) {
     for (final VirtualSensorRunner runner : _runners.values()) {
       runner.getHandler().stateWasMutated(event);
     }
   }
-  
-  public VirtualSensorRunner getRunner (@NonNull final Long identifier) {
+
+  public @NonNull VirtualSensorRunner getRunner (@NonNull final Long identifier) {
     return _runners.get(identifier);
   }
-  
-  public VirtualSensorRunner getRunner (@NonNull final Sensor sensor) {
+
+  public @NonNull VirtualSensorRunner getRunner (@NonNull final Sensor sensor) {
     return _runners.get(sensor.getIdentifier());
   }
-  
-  public Set<VirtualSensorRunner> getRunners () {
+
+  public @NonNull Set<@NonNull VirtualSensorRunner> getRunners () {
     return Collections.unmodifiableSet(_runners.values());
   }
-  
-  public Iterator<VirtualSensorRunner> runners () {
+
+  public @NonNull Iterator<@NonNull VirtualSensorRunner> runners () {
     return getRunners().iterator();
   }
-  
-  public ApplicationContext getApplicationContext () {
+
+  public @NonNull ApplicationContext getApplicationContext () {
     return _applicationContext;
   }
 }

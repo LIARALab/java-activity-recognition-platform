@@ -1,8 +1,10 @@
 package org.liara.api.recognition.sensor;
 
-import org.liara.api.event.*;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.event.NodeEvent;
+import org.liara.api.event.SensorEvent;
+import org.liara.api.event.StateEvent;
 
 public abstract class AbstractVirtualSensorHandler implements VirtualSensorHandler
 {
@@ -30,30 +32,30 @@ public abstract class AbstractVirtualSensorHandler implements VirtualSensorHandl
   }
 
   @Override
-  public void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event) { }
+  public void sensorWillBeCreated (final SensorEvent.@NonNull WillBeCreated event) { }
 
   @Override
-  public void sensorWasCreated (@NonNull final SensorEvent event) { }
+  public void sensorWasCreated (final SensorEvent.@NonNull WasCreated event) { }
 
   @Override
-  public void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event) { }
+  public void nodeWillBeCreated (final NodeEvent.@NonNull WillBeCreated event) { }
 
   @Override
-  public void nodeWasCreated (@NonNull final NodeEvent event) { }
+  public void nodeWasCreated (final NodeEvent.@NonNull WasCreated event) { }
 
   @Override
-  public void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event) { }
+  public void stateWillBeCreated (final StateEvent.@NonNull WillBeCreated event) { }
 
   @Override
-  public void stateWasCreated (@NonNull final StateEvent event) { }
+  public void stateWasCreated (final StateEvent.@NonNull WasCreated event) { }
 
   @Override
-  public void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event) { }
+  public void stateWillBeMutated (final StateEvent.@NonNull WillBeMutated event) { }
 
   @Override
-  public void stateWasMutated (@NonNull final StateWasMutatedEvent event) { }
+  public void stateWasMutated (final StateEvent.@NonNull WasMutated event) { }
 
-  public VirtualSensorRunner getRunner () {
+  public @NonNull VirtualSensorRunner getRunner () {
     return _runner;
   }
 }

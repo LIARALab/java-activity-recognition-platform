@@ -8,9 +8,12 @@ import org.springframework.context.ApplicationEvent;
 
 import java.util.Objects;
 
-public class NodeEvent
+public abstract class NodeEvent
   extends ApplicationEvent
 {
+  @NonNull
+  private final Node _node;
+
   public NodeEvent (
     @NonNull final Object source,
     @NonNull final Node node
@@ -19,26 +22,13 @@ public class NodeEvent
     _node = Duplicator.duplicate(node);
   }
 
-  public NodeEvent (@NonNull final NodeEvent toCopy) {
-    super(toCopy);
-    _node = toCopy.getNode();
-  }
-
-  /**
-   *
-   */
-  private static final long serialVersionUID = 1561166985562831238L;
-
-  @NonNull
-  private final Node _node;
-
   public @NonNull Node getNode () {
     return Duplicator.duplicate(_node);
   }
 
   @Override
   public int hashCode () {
-    return Objects.hash(_node);
+    return Objects.hash(getNode());
   }
 
   @Override
@@ -50,7 +40,8 @@ public class NodeEvent
       @NonNull final NodeEvent otherEvent = (NodeEvent) other;
 
       return Objects.equals(getSource(), otherEvent.getSource()) &&
-             Objects.equals(getTimestamp(), otherEvent.getTimestamp()) && Objects.equals(_node, otherEvent.getNode());
+             Objects.equals(getTimestamp(), otherEvent.getTimestamp()) &&
+             Objects.equals(getNode(), otherEvent.getNode());
     }
 
     return false;
@@ -62,10 +53,6 @@ public class NodeEvent
     public WillBeCreated (@NonNull final Object source, @NonNull final Node node) {
       super(source, node);
     }
-
-    public WillBeCreated (@NonNull final WillBeCreated toCopy) {
-      super(toCopy);
-    }
   }
 
   public static class WasCreated
@@ -73,10 +60,6 @@ public class NodeEvent
   {
     public WasCreated (@NonNull final Object source, @NonNull final Node node) {
       super(source, node);
-    }
-
-    public WasCreated (@NonNull final WasCreated toCopy) {
-      super(toCopy);
     }
   }
 }

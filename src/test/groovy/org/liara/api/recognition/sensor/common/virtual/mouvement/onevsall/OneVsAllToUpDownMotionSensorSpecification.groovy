@@ -5,16 +5,16 @@ import org.liara.api.data.entity.Sensor
 import org.liara.api.data.entity.reference.ApplicationEntityReference
 import org.liara.api.data.entity.state.BooleanState
 import org.liara.api.data.entity.state.State
-import org.liara.api.data.handler.LocalBooleanStateCreationSchemaHandler
-import org.liara.api.data.handler.LocalBooleanStateMutationSchemaHandler
 import org.liara.api.data.repository.local.ApplicationEntityManager
-import org.liara.api.data.repository.local.LocalBooleanStateRepository
 import org.liara.api.data.repository.local.LocalNodeRepository
 import org.liara.api.data.repository.local.LocalSensorRepository
+import org.liara.api.data.repository.local.LocalValueStateRepository
 import org.liara.api.data.schema.*
 import org.liara.api.event.StateEvent
 import org.liara.api.event.StateWasMutatedEvent
 import org.liara.api.event.StateWillBeDeletedEvent
+import org.liara.api.io.LocalBooleanStateCreationSchemaHandler
+import org.liara.api.io.LocalBooleanStateMutationSchemaHandler
 import org.liara.api.recognition.sensor.VirtualSensorRunner
 import org.liara.api.test.builder.node.NodeBuilder
 import org.liara.api.test.builder.sensor.SensorBuilder
@@ -185,7 +185,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       outputSensor,
       Mockito.spy(new OneVsAllToUpDownMotionSensor(
         schemaManager,
-        LocalBooleanStateRepository.from(entityManager),
+        LocalValueStateRepository.from(entityManager),
         LocalSensorRepository.from(entityManager)
       ))
     )
@@ -246,7 +246,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
       
     when: "we initialize the sensor"
       runner.initialize()
@@ -319,7 +319,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
       
       runner.initialize()
       schemaManager.reset()
@@ -359,7 +359,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
       
       runner.initialize()
       schemaManager.reset()
@@ -405,7 +405,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
       
       runner.initialize()
       schemaManager.reset()
@@ -491,7 +491,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
       
       runner.initialize()
       schemaManager.reset()
@@ -536,7 +536,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
       
       runner.initialize()
       
@@ -583,7 +583,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
       
       runner.initialize()
       
@@ -630,7 +630,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
       
       runner.initialize()
       
@@ -699,7 +699,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
       
       runner.initialize()
       
@@ -760,7 +760,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
       
       runner.initialize()
       
@@ -829,7 +829,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -890,7 +890,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -961,7 +961,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1019,7 +1019,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1078,7 +1078,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1167,7 +1167,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1230,7 +1230,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1293,7 +1293,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1362,7 +1362,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1437,7 +1437,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1491,7 +1491,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1545,7 +1545,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1606,7 +1606,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1669,7 +1669,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1731,7 +1731,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1799,7 +1799,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       
@@ -1865,7 +1865,7 @@ class OneVsAllToUpDownMotionSensorSpecification
       final ApplicationEntityReference<Sensor> livingRoomSensor = house.getFirstSensorWithName(["living-room", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> kitchenSensor = house.getFirstSensorWithName(["kitchen", "input"]).get().getReference()
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["kitchen", "output"]).get().getReference()
-      final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
+    final LocalValueStateRepository flags = LocalValueStateRepository.from(entityManager)
             
       runner.initialize()
       

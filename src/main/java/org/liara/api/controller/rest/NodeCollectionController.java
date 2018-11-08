@@ -25,9 +25,10 @@ import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
 import org.liara.api.data.entity.Node;
-import org.liara.api.data.schema.NodeCreationSchema;
-import org.liara.api.data.schema.SchemaManager;
+import org.liara.api.data.entity.NodeSchema;
+import org.liara.api.event.ApplicationEntityEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,19 +52,19 @@ import java.util.List;
  * A controller for all API endpoints that read, write or update information about nodes.
  * 
  * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
- */ public final class NodeCollectionControllerBase
+ */ public final class NodeCollectionController
   extends BaseRestController
 {
   @NonNull
-  private final SchemaManager _schemaManager;
+  private final ApplicationEventPublisher _applicationEventPublisher;
 
   @Autowired
-  public NodeCollectionControllerBase (
-    @NonNull final SchemaManager schemaManager, @NonNull final CollectionFactory collections
+  public NodeCollectionController (
+    @NonNull final ApplicationEventPublisher applicationEventPublisher, @NonNull final CollectionFactory collections
   )
   {
     super(collections);
-    _schemaManager = schemaManager;
+    _applicationEventPublisher = applicationEventPublisher;
   }
 
   /**
@@ -102,12 +103,12 @@ import java.util.List;
   
   @PostMapping("/nodes")
   public @NonNull ResponseEntity<Void> create (
-    @NonNull final HttpServletRequest request,
-    @NonNull @Valid @RequestBody final NodeCreationSchema schema
+    @NonNull final HttpServletRequest request, @NonNull @Valid @RequestBody final NodeSchema node
   )
   {
-    final Node node = _schemaManager.execute(schema);
-    
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Initialize(this, node));
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, node));
+
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Location", request.getRequestURI() + "/" + node.getIdentifier());
     

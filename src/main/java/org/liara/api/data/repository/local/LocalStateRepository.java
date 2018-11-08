@@ -34,17 +34,19 @@ public class LocalStateRepository<TimeState extends State>
   @Override
   public @NonNull List<@NonNull TimeState> findPrevious (
     @NonNull final ZonedDateTime date,
-    @NonNull final ApplicationEntityReference<? extends Sensor> sensor,
+    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors,
     @NonNull final Cursor cursor
   ) {
-    if (_statesBySensors.containsKey(sensor.getIdentifier())) {
-      @NonNull final List<@NonNull TimeState> result = _statesBySensors.get(sensor.getIdentifier())
-                                                                       .headSet(new Entry<>(date), false)
-                                                                       .stream()
-                                                                       .map(Entry::getState)
-                                                                       .map(Duplicator::duplicate)
-                                                                       .sorted(this::sortByDateDescending)
-                                                                       .collect(Collectors.toList());
+    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensors);
+
+
+    if (union.size() >= 0) {
+      @NonNull final List<@NonNull TimeState> result = union.headSet(new Entry<>(date), false)
+                                                            .stream()
+                                                            .map(Entry::getState)
+                                                            .map(Duplicator::duplicate)
+                                                            .sorted(this::sortByDateDescending)
+                                                            .collect(Collectors.toList());
 
       if (cursor.hasLimit()) {
         return result.subList(cursor.getOffset(), cursor.getOffset() + cursor.getLimit());
@@ -67,18 +69,20 @@ public class LocalStateRepository<TimeState extends State>
   @Override
   public @NonNull List<@NonNull TimeState> findNext (
     @NonNull final ZonedDateTime date,
-    @NonNull final ApplicationEntityReference<? extends Sensor> sensor,
+    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors,
     @NonNull final Cursor cursor
   )
   {
-    if (_statesBySensors.containsKey(sensor.getIdentifier())) {
-      @NonNull final List<@NonNull TimeState> result = _statesBySensors.get(sensor.getIdentifier())
-                                                                       .tailSet(new Entry<>(date), false)
-                                                                       .stream()
-                                                                       .map(Entry::getState)
-                                                                       .map(Duplicator::duplicate)
-                                                                       .sorted(this::sortByDateAscending)
-                                                                       .collect(Collectors.toList());
+    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensors);
+
+
+    if (union.size() > 0) {
+      @NonNull final List<@NonNull TimeState> result = union.tailSet(new Entry<>(date), false)
+                                                            .stream()
+                                                            .map(Entry::getState)
+                                                            .map(Duplicator::duplicate)
+                                                            .sorted(this::sortByDateAscending)
+                                                            .collect(Collectors.toList());
 
       if (cursor.hasLimit()) {
         return result.subList(cursor.getOffset(), cursor.getOffset() + cursor.getLimit());
@@ -88,6 +92,7 @@ public class LocalStateRepository<TimeState extends State>
     } else {
       return Collections.emptyList();
     }
+
   }
 
   @Override
@@ -118,15 +123,9 @@ public class LocalStateRepository<TimeState extends State>
     @NonNull final Cursor cursor
   )
   {
-    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = new TreeSet<>();
+    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensors);
 
-    for (@NonNull final ApplicationEntityReference<? extends Sensor> sensor : sensors) {
-      if (_statesBySensors.containsKey(sensor.getIdentifier())) {
-        union.addAll(_statesBySensors.get(sensor.getIdentifier()));
-      }
-    }
-
-    if (union.size() >= 0) {
+    if (union.size() > 0) {
       @NonNull final List<@NonNull TimeState> result = union.stream()
                                                             .map(Entry::getState)
                                                             .map(Duplicator::duplicate)
@@ -144,12 +143,40 @@ public class LocalStateRepository<TimeState extends State>
   }
 
   @Override
-  public @NonNull Optional<TimeState> findLast (@NonNull final ApplicationEntityReference<? extends Sensor> sensor) {
-    if (_statesBySensors.containsKey(sensor.getIdentifier())) {
-      return Optional.of(_statesBySensors.get(sensor.getIdentifier()).last().getState());
+  public @NonNull Optional<TimeState> findLast (
+    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors
+  )
+  {
+    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensors);
+
+    if (union.size() > 0) {
+      return Optional.of(union.last().getState());
     } else {
       return Optional.empty();
     }
+  }
+
+  private @NonNull TreeSet<@NonNull Entry<TimeState>> getStatesOf (
+    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors
+  )
+  {
+    if (sensors.size() == 0) return new TreeSet<>();
+
+    @NonNull final TreeSet<@NonNull Entry<TimeState>> union;
+
+    if (sensors.size() == 1) {
+      union = _statesBySensors.getOrDefault(sensors.iterator().next(), new TreeSet<>());
+    } else {
+      union = new TreeSet<>();
+
+      for (@NonNull final ApplicationEntityReference<? extends Sensor> sensor : sensors) {
+        if (_statesBySensors.containsKey(sensor.getIdentifier())) {
+          union.addAll(_statesBySensors.get(sensor.getIdentifier()));
+        }
+      }
+    }
+
+    return union;
   }
 
   @Override

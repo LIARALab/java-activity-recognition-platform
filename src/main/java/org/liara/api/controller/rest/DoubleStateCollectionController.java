@@ -24,7 +24,7 @@ package org.liara.api.controller.rest;
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
-import org.liara.api.data.entity.state.DoubleState;
+import org.liara.api.data.entity.state.ValueState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +37,7 @@ import java.util.List;
 @RestController
 @Api(
     tags = {
-      "state<double>"
+      "states<double>"
     },
     description = "",
     produces = "application/json",
@@ -60,22 +60,22 @@ public final class DoubleStateCollectionController
     @NonNull final HttpServletRequest request
   )
   {
-    return count(DoubleState.class, request);
+    return count(ValueState.Double.class, request);
   }
 
   @GetMapping("/states<double>")
-  public @NonNull ResponseEntity<@NonNull List<@NonNull DoubleState>> index (
+  public @NonNull ResponseEntity<@NonNull List<ValueState.@NonNull Double>> index (
     @NonNull final HttpServletRequest request
   )
   {
-    return index(DoubleState.class, request);
+    return index(ValueState.Double.class, request);
   }
 
   @GetMapping("/states<double>/{identifier}")
-  public @NonNull DoubleState get (
+  public ValueState.@NonNull Double get (
     @PathVariable final Long identifier
   )
   {
-    return get(DoubleState.class, identifier);
+    return get(ValueState.Double.class, identifier);
   }
 }

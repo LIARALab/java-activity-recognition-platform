@@ -24,7 +24,7 @@ package org.liara.api.controller.rest;
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
-import org.liara.api.data.entity.state.BooleanState;
+import org.liara.api.data.entity.state.ValueState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,7 +37,7 @@ import java.util.List;
 @RestController
 @Api(
     tags = {
-      "state<boolean>"
+      "states<boolean>"
     },
     description = "All sensor-related operation.",
     produces = "application/json",
@@ -60,22 +60,22 @@ public class BooleanStateCollectionController
     @NonNull final HttpServletRequest request
   )
   {
-    return count(BooleanState.class, request);
+    return count(ValueState.Boolean.class, request);
   }
 
   @GetMapping("/states<boolean>")
-  public @NonNull ResponseEntity<@NonNull List<@NonNull BooleanState>> index (
+  public @NonNull ResponseEntity<@NonNull List<ValueState.@NonNull Boolean>> index (
     @NonNull final HttpServletRequest request
   )
   {
-    return index(BooleanState.class, request);
+    return index(ValueState.Boolean.class, request);
   }
 
   @GetMapping("/states<boolean>/{identifier}")
-  public @NonNull BooleanState get (
+  public ValueState.@NonNull Boolean get (
     @PathVariable final Long identifier
   )
   {
-    return get(BooleanState.class, identifier);
+    return get(ValueState.Boolean.class, identifier);
   }
 }

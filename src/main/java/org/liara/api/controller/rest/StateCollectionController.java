@@ -21,24 +21,19 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.schema.SchemaManager;
-import org.liara.api.data.schema.StateCreationSchema;
-import org.liara.api.data.schema.StateMutationSchema;
+import org.liara.api.event.ApplicationEntityEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.Errors;
-import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,7 +41,6 @@ import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -72,7 +66,7 @@ public class StateCollectionController
   private final Validator _validator;
 
   @NonNull
-  private final SchemaManager _schemaManager;
+  private final ApplicationEventPublisher _applicationEventPublisher;
 
   @NonNull
   private final EntityManager _entityManager;
@@ -81,8 +75,7 @@ public class StateCollectionController
   public StateCollectionController (
     @NonNull final ObjectMapper mapper,
     @NonNull final ApplicationContext context,
-    @NonNull final Validator validator,
-    @NonNull final SchemaManager schemaManager,
+    @NonNull final Validator validator, @NonNull final ApplicationEventPublisher applicationEventPublisher,
     @NonNull final EntityManager entityManager,
     @NonNull final CollectionFactory collections
   )
@@ -91,7 +84,7 @@ public class StateCollectionController
     _mapper = mapper;
     _context = context;
     _validator = validator;
-    _schemaManager = schemaManager;
+    _applicationEventPublisher = applicationEventPublisher;
     _entityManager = entityManager;
   }
 
@@ -124,16 +117,16 @@ public class StateCollectionController
     @PathVariable final Long identifier
   )
   {
-    return get(State.class, identifier).getSensor();
+    return get(State.class, identifier).getSensorIdentifier().resolve(_entityManager);
   }
 
   @PostMapping("/states")
   @Transactional
   public @NonNull ResponseEntity<Void> create (
-    @NonNull final HttpServletRequest request,
-    @NonNull @Valid @RequestBody final StateCreationSchema schema
+    @NonNull final HttpServletRequest request, @NonNull @Valid @RequestBody final State state
   ) {
-    final State state = _schemaManager.execute(schema);
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Initialize(this, state));
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, state));
     
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Location", request.getRequestURI() + "/" + state.getIdentifier());
@@ -145,26 +138,12 @@ public class StateCollectionController
   @Transactional
   public ResponseEntity<?> update (
     @NonNull final HttpServletRequest request,
-    @PathVariable final long identifier,
-    @NonNull @RequestBody final String jsonText,
-    @NonNull final Errors errors
-  ) throws IOException {
-    final TreeNode json = _mapper.readTree(jsonText);
-    
-    if (json.isObject()) {
-      final ObjectNode node = (ObjectNode) json;
-      node.set("identifier", _mapper.valueToTree(identifier));
-    }
-    
-    final StateMutationSchema schema = _mapper.treeToValue(json, StateMutationSchema.class);
-    
-    ValidationUtils.invokeValidator(_validator, schema, errors);
-    
-    if (errors.hasErrors()) {
-      return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
-    }
-    
-    _schemaManager.execute(schema);
+    @PathVariable final long identifier, @NonNull @RequestBody final State update
+  )
+  {
+    update.setIdentifier(identifier);
+
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, update));
     
     return new ResponseEntity<Void>(HttpStatus.OK);
   }
