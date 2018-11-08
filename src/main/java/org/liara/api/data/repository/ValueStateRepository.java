@@ -98,53 +98,59 @@ public interface ValueStateRepository<Value>
     @NonNull final Cursor cursor
   );
 
-  default Optional<ValueState<Value>> findNextWithValue (
-    @NonNull final ValueState<Value> created, @NonNull final ApplicationEntityReference<? extends Sensor> inputSensors,
-    final boolean value
+  default @NonNull Optional<ValueState<Value>> findNextWithValue (
+    @NonNull final ValueState<Value> created,
+    @NonNull final ApplicationEntityReference<? extends Sensor> inputSensors,
+    @NonNull final Value value
   ) {
     return findNextWithValue(created.getEmissionDate(), Collections.singletonList(inputSensors), value);
   }
 
-  default Optional<ValueState<Value>> findNextWithValue (
-    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference<? extends Sensor> inputSensors,
-    final boolean value
+  default @NonNull Optional<ValueState<Value>> findNextWithValue (
+    @NonNull final ZonedDateTime date,
+    @NonNull final ApplicationEntityReference<? extends Sensor> inputSensors,
+    @NonNull final Value value
   ) {
     return findNextWithValue(date, Collections.singletonList(inputSensors), value);
   }
 
-  default Optional<ValueState<Value>> findNextWithValue (
+  default @NonNull Optional<ValueState<Value>> findNextWithValue (
     @NonNull final ValueState<Value> created,
-    @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors,
-    final boolean value
+    @NonNull final List<@NonNull ApplicationEntityReference<? extends Sensor>> inputSensors,
+    @NonNull final Value value
   ) {
     return findNextWithValue(created.getEmissionDate(), inputSensors, value);
   }
 
-  default Optional<ValueState<Value>> findNextWithValue (
+  default @NonNull Optional<ValueState<Value>> findNextWithValue (
     @NonNull final ZonedDateTime emittionDate,
-    @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors,
-    final boolean value
+    @NonNull final List<ApplicationEntityReference<? extends Sensor>> inputSensors, @NonNull final Value value
   ) {
-    final List<ValueState<Value>> result = findNextWithValue(emittionDate, inputSensors, value, 1);
+    @NonNull final List<@NonNull ValueState<Value>> result = findNextWithValue(
+      emittionDate,
+      inputSensors,
+      value,
+      Cursor.FIRST
+    );
     
     if (result.size() <= 0) return Optional.empty();
     else return Optional.ofNullable(result.get(0));
   }
 
-  default List<ValueState<Value>> findNextWithValue (
-    @NonNull final ValueState<Value> created, @NonNull final ApplicationEntityReference<? extends Sensor> inputSensor,
-    final boolean value,
-    final int count
+  default @NonNull List<@NonNull ValueState<Value>> findNextWithValue (
+    @NonNull final ValueState<Value> created,
+    @NonNull final ApplicationEntityReference<? extends Sensor> inputSensor,
+    @NonNull final Value value,
+    @NonNull final Cursor cursor
   ) {
     return findNextWithValue(
       created.getEmissionDate(),
       Collections.singletonList(inputSensor),
-      value,
-      count
+      value, cursor
     );
   }
 
-  default List<ValueState<Value>> findNextWithValue (
+  default @NonNull List<@NonNull ValueState<Value>> findNextWithValue (
     @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference<? extends Sensor> inputSensor,
     final boolean value,
     final int count
