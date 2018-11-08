@@ -2,6 +2,7 @@ package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
@@ -14,29 +15,32 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class OneVsAllToUpDownMotionSensorConfiguration
-       implements SensorConfiguration
+  implements SensorConfiguration
 {  
   @NonNull
-  private final Set<ApplicationEntityReference<Sensor>> _validInputs = new HashSet<>();
+  private final Set<@NonNull ApplicationEntityReference<? extends Sensor>> _validInputs;
   
   @NonNull
-  private final Set<ApplicationEntityReference<Sensor>> _ignoredInputs = new HashSet<>();
-  
-  public OneVsAllToUpDownMotionSensorConfiguration () { }
+  private final Set<@NonNull ApplicationEntityReference<? extends Sensor>> _ignoredInputs;
+
+  public OneVsAllToUpDownMotionSensorConfiguration () {
+    _validInputs = new HashSet<>();
+    _ignoredInputs = new HashSet<>();
+  }
   
   public OneVsAllToUpDownMotionSensorConfiguration (
     @NonNull final OneVsAllToUpDownMotionSensorConfiguration toCopy
   ) {
-    _validInputs.addAll(toCopy.getValidInputs());
-    _ignoredInputs.addAll(toCopy.getIgnoredInputs());
+    _validInputs = new HashSet<>(toCopy.getValidInputs());
+    _ignoredInputs = new HashSet<>(toCopy.getIgnoredInputs());
   }
   
   public OneVsAllToUpDownMotionSensorConfiguration (
-    @NonNull final Collection<ApplicationEntityReference<Sensor>> validInputs,
-    @NonNull final Collection<ApplicationEntityReference<Sensor>> ignoredInputs
+    @NonNull final Collection<@NonNull ApplicationEntityReference<Sensor>> validInputs,
+    @NonNull final Collection<@NonNull ApplicationEntityReference<Sensor>> ignoredInputs
   ) {
-    _validInputs.addAll(validInputs);
-    _ignoredInputs.addAll(ignoredInputs);
+    _validInputs = new HashSet<>(validInputs);
+    _ignoredInputs = new HashSet<>(ignoredInputs);
   }
   
   public boolean isValidInput (@NonNull final Sensor sensor) {
@@ -48,24 +52,27 @@ public class OneVsAllToUpDownMotionSensorConfiguration
   }
 
   public boolean isValidInput (@NonNull final State state) {
-    return _validInputs.contains(ApplicationEntityReference.of(state.getSensor()));
+    return _validInputs.contains(state.getSensorIdentifier());
   }
-  
-  public Iterable<ApplicationEntityReference<Sensor>> validInputs () {
+
+  public @NonNull Iterable<@NonNull ApplicationEntityReference<? extends Sensor>> validInputs () {
     return Collections.unmodifiableSet(_validInputs);
   }
-  
-  public Iterable<ApplicationEntityReference<Sensor>> ignoredInputs () {
+
+  public @NonNull Iterable<@NonNull ApplicationEntityReference<? extends Sensor>> ignoredInputs () {
     return Collections.unmodifiableSet(_ignoredInputs);
   }
   
   @ValidApplicationEntityReference
-  public Set<ApplicationEntityReference<Sensor>> getValidInputs () {
+  public @NonNull Set<@NonNull ApplicationEntityReference<? extends Sensor>> getValidInputs () {
     return Collections.unmodifiableSet(_validInputs);
   }
   
   @JsonSetter
-  public void setValidInputs (@Nullable final Collection<ApplicationEntityReference<Sensor>> inputs) {
+  public void setValidInputs (
+    @Nullable final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> inputs
+  )
+  {
     _validInputs.clear();
 
     if (inputs != null) {
@@ -82,16 +89,19 @@ public class OneVsAllToUpDownMotionSensorConfiguration
   }
 
   public boolean isIgnoredInput (@NonNull final State state) {
-    return _ignoredInputs.contains(ApplicationEntityReference.of(state.getSensor()));
+    return _ignoredInputs.contains(state.getSensorIdentifier());
   }
   
   @ValidApplicationEntityReference()
-  public Set<ApplicationEntityReference<Sensor>> getIgnoredInputs () {
+  public @NonNull Set<@NonNull ApplicationEntityReference<? extends Sensor>> getIgnoredInputs () {
     return Collections.unmodifiableSet(_ignoredInputs);
   }
   
   @JsonSetter
-  public void setIgnoredInputs (@Nullable final Collection<ApplicationEntityReference<Sensor>> ignored) {
+  public void setIgnoredInputs (
+    @Nullable final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> ignored
+  )
+  {
     _ignoredInputs.clear();
     
     if (ignored != null) {
@@ -109,9 +119,5 @@ public class OneVsAllToUpDownMotionSensorConfiguration
 
   public boolean isInvalidInput (@NonNull final State state) {
     return !isValidInput(state) && !isIgnoredInput(state);
-  }
-  
-  public OneVsAllToUpDownMotionSensorConfiguration clone () {
-    return new OneVsAllToUpDownMotionSensorConfiguration(this);
   }
 }
