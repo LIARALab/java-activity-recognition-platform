@@ -60,6 +60,10 @@ compileJpaModelgen {
   ]
 }
 
+jacoco {
+  toolVersion = "0.8.2"
+}
+
 jacocoTestReport {
   reports {
     html.destination file('${buildDir}/reports/coverage')

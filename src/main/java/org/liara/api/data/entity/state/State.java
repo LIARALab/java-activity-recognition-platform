@@ -21,7 +21,6 @@
  ******************************************************************************/
 package org.liara.api.data.entity.state;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
@@ -67,8 +66,7 @@ public class State extends ApplicationEntity
     _sensor = null;
     _correlations = new HashMap<>();
   }
-  
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
+
   public ZonedDateTime getEmittionDate () {
     return _emittionDate;
   }

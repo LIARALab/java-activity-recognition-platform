@@ -21,7 +21,6 @@
  ******************************************************************************/
 package org.liara.api.data.entity.state;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
@@ -104,8 +103,7 @@ public class ActivationState extends State
       return getDuration().getNano() / 1_000_000L;
     }
   }
-  
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
+
   public ZonedDateTime getEnd () {
     return _end;
   }
@@ -131,7 +129,6 @@ public class ActivationState extends State
     _node = node;
   }
 
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
   public ZonedDateTime getStart () {
     return _start;
   }
