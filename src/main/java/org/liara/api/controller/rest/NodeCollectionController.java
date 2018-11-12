@@ -25,8 +25,8 @@ import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
 import org.liara.api.data.entity.Node;
-import org.liara.api.data.entity.NodeSchema;
-import org.liara.api.event.ApplicationEntityEvent;
+import org.liara.api.data.entity.schema.NodeSchema;
+import org.liara.api.event.NodeEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
@@ -106,8 +106,7 @@ import java.util.List;
     @NonNull final HttpServletRequest request, @NonNull @Valid @RequestBody final NodeSchema node
   )
   {
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Initialize(this, node));
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, node));
+    _applicationEventPublisher.publishEvent(new NodeEvent.Create(this, node));
 
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Location", request.getRequestURI() + "/" + node.getIdentifier());

@@ -1,29 +1,25 @@
-package org.liara.api.recognition.sensor.common.virtual.updown.activation;
+package org.liara.api.recognition.sensor.common.virtual.updown.label;
 
-import org.liara.api.data.entity.Node;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
-import org.liara.api.data.entity.state.ActivationState;
-import org.liara.api.data.entity.state.BooleanState;
+import org.liara.api.data.entity.state.LabelState;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.data.repository.LabelStateRepository;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.ValueStateRepository;
-import org.liara.api.data.schema.ActivationStateCreationSchema;
-import org.liara.api.data.schema.ActivationStateMutationSchema;
-import org.liara.api.data.schema.SchemaManager;
-import org.liara.api.data.schema.StateDeletionSchema;
+import org.liara.api.event.ApplicationEntityEvent;
 import org.liara.api.event.StateEvent;
-import org.liara.api.event.StateWasMutatedEvent;
-import org.liara.api.event.StateWillBeDeletedEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.EmitStateOfType;
 import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
+import org.liara.api.utils.Duplicator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -31,56 +27,48 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-@UseSensorConfigurationOfType(UpDownToActivationSensorConfiguration.class)
-@EmitStateOfType(ActivationState.class)
+@UseSensorConfigurationOfType(UpDownToLabelSensorConfiguration.class)
+@EmitStateOfType(LabelState.class)
 @Component
 @Scope("prototype")
-public class UpDownToActivationSensor 
+public class UpDownToLabelSensor
        extends AbstractVirtualSensorHandler
 {
   @NonNull
-  private final SchemaManager _manager;
+  private final ApplicationEventPublisher _publisher;
   
   @NonNull
   private final LabelStateRepository _outputs;
   
   @NonNull
-  private final ValueStateRepository _inputs;
+  private final ValueStateRepository<Boolean> _inputs;
   
   @NonNull
   private final NodeRepository _nodes;
   
   @Autowired
-  public UpDownToActivationSensor (
-    @NonNull final SchemaManager manager, @NonNull final ValueStateRepository inputs,
+  public UpDownToLabelSensor (
+    @NonNull final ApplicationEventPublisher publisher, @NonNull final ValueStateRepository inputs,
     @NonNull final LabelStateRepository outputs,
     @NonNull final NodeRepository nodes
   ) {
-    _manager = manager;
+    _publisher = publisher;
     _inputs = inputs;
     _outputs = outputs;
     _nodes = nodes;
   }
-  
-  public UpDownToActivationSensorConfiguration getConfiguration () {
-    return getRunner().getSensor().getConfiguration().as(
-      UpDownToActivationSensorConfiguration.class
+
+  public @NonNull UpDownToLabelSensorConfiguration getConfiguration () {
+    return getRunner().getSensor().getConfiguration().as(UpDownToLabelSensorConfiguration.class
     );
   }
-  
-  public Sensor getSensor () {
+
+  public @NonNull Sensor getSensor () {
     return getRunner().getSensor();
   }
-  
-  public ApplicationEntityReference<Sensor> getInputSensor () {
-    return getConfiguration().getInputSensor();
-  }
-  
-  public Node getActivatedNode () {
-    final ApplicationEntityReference<Node> result = getConfiguration().getActivatedNode();
 
-    return (result.isNull()) ? getRunner().getSensor().getNode()
-                             : _nodes.find(result).get();
+  public @NonNull ApplicationEntityReference<Sensor> getInputSensor () {
+    return getConfiguration().getInputSensor();
   }
   
   @Override
@@ -88,21 +76,17 @@ public class UpDownToActivationSensor
     @NonNull final VirtualSensorRunner runner
   ) {
     super.initialize(runner);
-    
-    final List<BooleanState> initializationStates = _inputs.findAll(getInputSensor());
-    ActivationState          current              = null;
-    
-    _manager.flush();
-    _manager.clear();
+
+    @NonNull final List<@NonNull ValueState<Boolean>> initializationStates = _inputs.find(getInputSensor());
+    LabelState                                        current              = null;
     
     for (int index = 0; index < initializationStates.size(); ++index) {
       current = initialize(current, initializationStates.get(index));
     }
   }
 
-  private ActivationState initialize (
-    @Nullable final ActivationState current, 
-    @NonNull final BooleanState next
+  private @Nullable LabelState initialize (
+    @Nullable final LabelState current, @NonNull final ValueState<Boolean> next
   ) {
     if (next.getValue() && current == null) {
       return begin(next); 
@@ -116,17 +100,17 @@ public class UpDownToActivationSensor
 
   @Override
   public void stateWasCreated (
-    @NonNull final StateEvent event
+    final StateEvent.@NonNull WasCreated event
   ) {
     super.stateWasCreated(event);
 
-    if (Objects.equals(event.getState().getSensor(), getInputSensor())) {
-      inputStateWasCreated((BooleanState) event.getState());
+    if (Objects.equals(event.getState().getSensorIdentifier(), getInputSensor())) {
+      inputStateWasCreated((ValueState<Boolean>) event.getState());
     }
   }
 
-  public void inputStateWasCreated (@NonNull final BooleanState current) {
-    final Optional<ActivationState> previous = _outputs.findAt(
+  public void inputStateWasCreated (@NonNull final ValueState<Boolean> current) {
+    @NonNull final Optional<LabelState> previous = _outputs.findAt(
       current.getEmissionDate(),
       getSensor().getReference()
     );
@@ -139,31 +123,28 @@ public class UpDownToActivationSensor
   }
 
   private void onAloneInput (
-    @NonNull final BooleanState current
+    @NonNull final ValueState<Boolean> current
   ) {
     if (current.getValue()) return;
-    
-    final Optional<BooleanState> next = _inputs.findNext(current);
+
+    @NonNull final Optional<ValueState<Boolean>> next = _inputs.findNext(current);
 
     if (!next.isPresent()) {
       begin(current);
     } else if (next.get().getValue()) {
-      begin(current, (ActivationState) _outputs.findWithCorrelation("start", next.get().getReference(),
-          getSensor().getReference()
-      ).get(0));
+      begin(current, findLabelStateThatStartBy(next.get().getReference())).get(0);
     } else {
       create(current, next.get());
     }
   }
 
   private void onInnerInput (
-    @NonNull final ActivationState previous, 
-    @NonNull final BooleanState current
+    @NonNull final LabelState previous, @NonNull final ValueState<Boolean> current
   ) {
     if (current.getValue()) return;
 
-    final State                  endState  = previous.getCorrelation("end").get();
-    final Optional<BooleanState> nextState = _inputs.findNext(current);
+    @NonNull final State                         endState  = findEnd(previous).get();
+    @NonNull final Optional<ValueState<Boolean>> nextState = _inputs.findNext(current);
     
     finish(previous, current);
     
@@ -178,28 +159,26 @@ public class UpDownToActivationSensor
 
   @Override
   public void stateWasMutated (
-    @NonNull final StateWasMutatedEvent event
+    final StateEvent.@NonNull WasMutated event
   ) {
     super.stateWasMutated(event);
-    
-    if (Objects.equals(event.getNewValue().getSensor(), getInputSensor())) {
-      inputStateWasMutated((BooleanState) event.getOldValue(), (BooleanState) event.getNewValue()
+
+    if (Objects.equals(event.getNewValue().getSensorIdentifier(), getInputSensor())) {
+      inputStateWasMutated((ValueState<Boolean>) event.getOldValue(), (ValueState<Boolean>) event.getNewValue()
       );
     }
   }
   
   public void inputStateWasMutated (
-    @NonNull final BooleanState previous,
-    @NonNull final BooleanState next
+    @NonNull final ValueState<Boolean> previous, @NonNull final ValueState<Boolean> next
   ) {
-    final Optional<ActivationState> correlated = _outputs.findFirstWithAnyCorrelation(
-      Arrays.asList("start", "end"), 
-      next.getReference(), getSensor().getReference()
+    @NonNull final Optional<LabelState> correlated = findLabelStateThatStartOrEndBy(next.getReference(),
+                                                                                    getSensor().getReference()
     );
-    
-    if (correlated.isPresent() == false) {
+
+    if (!correlated.isPresent()) {
       inputStateWasCreated(next);
-    } else if (Objects.equals(next.getEmissionDate(), previous.getEmissionDate()) == false &&
+    } else if (!Objects.equals(next.getEmissionDate(), previous.getEmissionDate()) &&
       next.getValue() == previous.getValue()
     ) {
       onBoundaryLocationChange(correlated.get(), next);
@@ -209,10 +188,9 @@ public class UpDownToActivationSensor
   }
 
   private void onBoundaryLocationChange (
-    @NonNull final ActivationState correlated, 
-    @NonNull final BooleanState changed
+    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
   ) {
-    if (changed.equals(correlated.getCorrelation("start"))) {
+    if (changed.equals(getStartOf(correlated))) {
       onStartBoundaryLocationChange(correlated, changed);
     } else {
       onEndBoundaryLocationChange(correlated, changed);
@@ -220,17 +198,13 @@ public class UpDownToActivationSensor
   }
 
   private void onEndBoundaryLocationChange (
-    @NonNull final ActivationState correlated, 
-    @NonNull final BooleanState changed
+    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
   ) {
-    final BooleanState next = _inputs.findNext(
-      correlated.getEnd(), 
-      ApplicationEntityReference.of(changed.getSensor())
+    @Nullable final ValueState<Boolean> next = _inputs.findNext(correlated.getEnd(), changed.getSensorIdentifier()
     ).orElse(null);
-    
-    final BooleanState previous = _inputs.findPrevious(
-      correlated.getEnd(), 
-      ApplicationEntityReference.of(changed.getSensor())
+
+    @Nullable final ValueState<Boolean> previous = _inputs.findPrevious(
+      correlated.getEnd(), changed.getSensorIdentifier()
     ).orElse(null);
     
     if (Objects.equals(next, changed) || Objects.equals(previous, changed)) {
@@ -241,17 +215,14 @@ public class UpDownToActivationSensor
   }
 
   private void onStartBoundaryLocationChange (
-    @NonNull final ActivationState correlated, 
-    @NonNull final BooleanState changed
+    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
   ) {
-    final BooleanState next = (BooleanState) _inputs.findNext(
-      correlated.getStart(),
-      changed.getSensor().getReference()
+    @Nullable final ValueState<Boolean> next = _inputs.findNext(
+      correlated.getStart(), changed.getSensorIdentifier()
     ).orElse(null);
 
-    final BooleanState previous = (BooleanState) _inputs.findPrevious(
-      correlated.getStart(),
-      changed.getSensor().getReference()
+    final ValueState<Boolean> previous = _inputs.findPrevious(
+      correlated.getStart(), changed.getSensorIdentifier()
     ).orElse(null);
     
     if (Objects.equals(next, changed) || Objects.equals(previous, changed)) {
@@ -262,10 +233,9 @@ public class UpDownToActivationSensor
   }
 
   private void onBoundaryTypeChange (
-    @NonNull final ActivationState correlated, 
-    @NonNull final BooleanState changed
-  ) {    
-    if (Objects.equals(changed, correlated.getCorrelation("start"))) {
+    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
+  ) {
+    if (Objects.equals(changed, getStartOf(correlated))) {
       onStartBoundaryTypeChange(correlated, changed);
     } else {
       onEndBoundaryTypeChange(correlated, changed);
@@ -273,28 +243,25 @@ public class UpDownToActivationSensor
   }
 
   private void onEndBoundaryTypeChange (
-    @NonNull final ActivationState correlated, 
-    @NonNull final BooleanState changed
+    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
   ) {
-    final BooleanState next = _inputs.findNext((BooleanState) correlated.getCorrelation("end").get()).orElse(null);
+    @Nullable final ValueState<Boolean> next = _inputs.findNext(getEndOf(correlated)).orElse(null);
     resolveHardEndMutation(correlated, changed, next);
   }
 
   private void onStartBoundaryTypeChange (
-    @NonNull final ActivationState correlated, 
-    @NonNull final BooleanState changed
+    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
   ) {
-    final BooleanState next = (BooleanState) _inputs.findNext(
-      correlated.getStart(),
-      changed.getSensor().getReference()
+    @Nullable final ValueState<Boolean> next = _inputs.findNext(
+      correlated.getStart(), changed.getSensorIdentifier()
     ).orElse(null);
     resolveHardStartMutation(correlated, changed, next);
   }
 
   private void resolveHardStartMutation (
-    @NonNull final ActivationState correlated,
-    @NonNull final BooleanState changed,
-    @Nullable final BooleanState next
+    @NonNull final LabelState correlated,
+    @NonNull final ValueState<Boolean> changed,
+    @Nullable final ValueState<Boolean> next
   ) {
     if (next != null && next.getValue()) {
       begin(next, correlated);
@@ -307,9 +274,9 @@ public class UpDownToActivationSensor
 
 
   private void resolveHardEndMutation (
-    @NonNull final ActivationState correlated,
-    @NonNull final BooleanState changed,
-    @Nullable final BooleanState next
+    @NonNull final LabelState correlated,
+    @NonNull final ValueState<Boolean> changed,
+    @Nullable final ValueState<Boolean> next
   ) {
     if (next != null && next.getValue()) {
       merge(correlated, _outputs.findFirstWithAnyCorrelation(
@@ -326,23 +293,21 @@ public class UpDownToActivationSensor
 
   @Override
   public void stateWillBeDeleted (
-    @NonNull final StateWillBeDeletedEvent event
+    @NonNull final StateEvent.WillBeDeleted event
   ) {
     super.stateWillBeDeleted(event);
-    
-    if (event.getState().getState().is(BooleanState.class)) {
-      final BooleanState state = _inputs.find(event.getState().getState().as(BooleanState.class)).get();
 
-      if (state.getSensor().equals(getInputSensor())) {
-        inputStateWillBeDeleted(state);
+    if (event.getState() instanceof ValueState.Boolean) {
+      if (event.getState().getSensorIdentifier().equals(getInputSensor())) {
+        inputStateWillBeDeleted((ValueState.Boolean) event.getState());
       }
     }
   }
 
   public void inputStateWillBeDeleted (
-    @NonNull final BooleanState state
+    @NonNull final ValueState<Boolean> state
   ) {
-    final Optional<ActivationState> correlated = _outputs.findFirstWithAnyCorrelation(
+    @NonNull final Optional<LabelState> correlated = _outputs.findFirstWithAnyCorrelation(
       Arrays.asList("start", "end"),
       ApplicationEntityReference.of(state), 
       ApplicationEntityReference.of(getSensor())
@@ -354,12 +319,11 @@ public class UpDownToActivationSensor
   }
 
   private void onBoundaryDeletion (
-    @NonNull final ActivationState correlated, 
-    @NonNull final BooleanState state
+    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> state
   ) {
-    final BooleanState next = _inputs.findNext(state).orElse(null);
+    final ValueState<Boolean> next = _inputs.findNext(state).orElse(null);
 
-    if (Objects.equals(correlated.getCorrelation("end").get(), state)) {
+    if (Objects.equals(getEndOf(correlated), state)) {
       if (next != null && next.getValue()) {
         merge(correlated, _outputs.findFirstWithAnyCorrelation(
           Arrays.asList("start", "end"),
@@ -379,24 +343,22 @@ public class UpDownToActivationSensor
   }
 
   private void merge (
-    @NonNull final ActivationState left, 
-    @NonNull final ActivationState right
+    @NonNull final LabelState left, @NonNull final LabelState right
   ) {
-    final State end = right.getCorrelation("end").get();
+    @NonNull final State end = getEndOf(right);
     delete(right);
     finish(left, end);
   }
 
-  private void delete (@NonNull final ActivationState right) {
-    final StateDeletionSchema deletion = new StateDeletionSchema(right);
-    _manager.execute(deletion);
+  private void delete (@NonNull final LabelState right) {
+    _publisher.publishEvent(new ApplicationEntityEvent.Delete(this, right));
   }
 
   private void finish (
-    @NonNull final ActivationState current, 
+    @NonNull final LabelState current,
     @Nullable final State next
   ) {
-    final ActivationStateMutationSchema mutation = new ActivationStateMutationSchema();
+    @NonNull final LabelState mutation = Duplicator.duplicate(current);
     
     if (next == null) {
       mutation.setEnd(null);
@@ -411,15 +373,15 @@ public class UpDownToActivationSensor
     _manager.execute(mutation);
   }
 
-  private ActivationState begin (@NonNull final State start) {
+  private LabelState begin (@NonNull final State start) {
     return create(start, null);
   }
-  
-  private ActivationState create (
+
+  private LabelState create (
     @NonNull final State start, 
     @Nullable final State end
   ) {
-    final ActivationStateCreationSchema creation = new ActivationStateCreationSchema();
+    final LabelStateCreationSchema creation = new LabelStateCreationSchema();
     creation.setEmittionDate(start.getEmissionDate());
     creation.setNode(getActivatedNode().getReference());
     creation.setSensor(getSensor().getReference());
@@ -435,10 +397,9 @@ public class UpDownToActivationSensor
   }
   
   private void begin (
-    @NonNull final BooleanState current, 
-    @NonNull final ActivationState state
+    @NonNull final ValueState<Boolean> current, @NonNull final LabelState state
   ) {
-    final ActivationStateMutationSchema schema = new ActivationStateMutationSchema();
+    final LabelStateMutationSchema schema = new LabelStateMutationSchema();
     schema.setState(state.getReference());
     schema.setStart(current.getEmissionDate());
     schema.setEmittionDate(current.getEmissionDate());

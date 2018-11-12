@@ -125,7 +125,6 @@ public class StateCollectionController
   public @NonNull ResponseEntity<Void> create (
     @NonNull final HttpServletRequest request, @NonNull @Valid @RequestBody final State state
   ) {
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Initialize(this, state));
     _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, state));
     
     final HttpHeaders headers = new HttpHeaders();

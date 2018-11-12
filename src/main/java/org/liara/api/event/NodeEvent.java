@@ -3,6 +3,7 @@ package org.liara.api.event;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Node;
+import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.utils.Duplicator;
 import org.springframework.context.ApplicationEvent;
 
@@ -45,6 +46,23 @@ public abstract class NodeEvent
     }
 
     return false;
+  }
+
+  public static class Create
+    extends ApplicationEntityEvent
+  {
+    @NonNull
+    private final NodeSchema _schema;
+
+    public Create (@NonNull final Object source, @NonNull final NodeSchema schema) {
+      super(source);
+
+      _schema = Duplicator.duplicate(schema);
+    }
+
+    public @NonNull NodeSchema getSchema () {
+      return Duplicator.duplicate(_schema);
+    }
   }
 
   public static class WillBeCreated

@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.data.tree.NestedSet;
 import org.liara.api.data.tree.NestedSetCoordinates;
 
@@ -49,7 +50,6 @@ public class Node
   }
 
   public Node (@NonNull final NodeSchema toCopy) {
-    super(toCopy);
     _name = toCopy.getName();
     _coordinates = new NestedSetCoordinates();
   }

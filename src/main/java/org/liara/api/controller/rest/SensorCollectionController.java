@@ -104,7 +104,6 @@ public class SensorCollectionController
     @NonNull final HttpServletRequest request, @NonNull @Valid @RequestBody final Sensor sensor
   )
   {
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Initialize(this, sensor));
     _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, sensor));
 
     final HttpHeaders headers = new HttpHeaders();

@@ -1,4 +1,4 @@
-package org.liara.api.recognition.sensor.common.virtual.updown.activation
+package org.liara.api.recognition.sensor.common.virtual.updown.label
 
 import org.liara.api.data.entity.Node
 import org.liara.api.data.entity.Sensor
@@ -74,9 +74,9 @@ class UpDownToActivationSensorSpecification
     final Sensor inputSensor = house.getFirstSensorWithName(["living-room", "input"]).get()
     
     final Sensor outputSensor = SensorBuilder.ofType(
-      UpDownToActivationSensor.class, {
+      UpDownToLabelSensor.class, {
         withName "output"
-        withConfiguration new UpDownToActivationSensorConfiguration(
+      withConfiguration new UpDownToLabelSensorConfiguration(
           inputSensor, livingRoom
         )
       }
@@ -96,7 +96,8 @@ class UpDownToActivationSensorSpecification
     
     final VirtualSensorRunner runner = VirtualSensorRunner.unbound(
       outputSensor,
-      Mockito.spy(new UpDownToActivationSensor(
+      Mockito.spy(
+        new UpDownToLabelSensor(
         schemaManager,
         LocalValueStateRepository.from(entityManager),
         LocalLabelStateRepository.from(entityManager),
@@ -855,8 +856,8 @@ class UpDownToActivationSensorSpecification
       )
       
     then: "we expect that the underlying handler will act accordingly"
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -915,8 +916,8 @@ class UpDownToActivationSensorSpecification
           "state"              : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -972,8 +973,8 @@ class UpDownToActivationSensorSpecification
           "state": outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1032,8 +1033,8 @@ class UpDownToActivationSensorSpecification
           "state"            : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1095,8 +1096,8 @@ class UpDownToActivationSensorSpecification
           "state"            : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1157,8 +1158,8 @@ class UpDownToActivationSensorSpecification
           "state"            : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1216,8 +1217,8 @@ class UpDownToActivationSensorSpecification
           "state"            : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1275,8 +1276,8 @@ class UpDownToActivationSensorSpecification
           "state"              : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1331,8 +1332,8 @@ class UpDownToActivationSensorSpecification
           "state": outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**

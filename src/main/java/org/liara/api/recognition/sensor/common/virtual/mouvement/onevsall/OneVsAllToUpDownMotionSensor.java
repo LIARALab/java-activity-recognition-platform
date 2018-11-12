@@ -4,8 +4,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.ValueState;
+import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
 import org.liara.api.data.repository.ValueStateRepository;
@@ -16,6 +18,7 @@ import org.liara.api.recognition.sensor.EmitStateOfType;
 import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
 import org.liara.api.recognition.sensor.common.NativeMotionSensor;
+import org.liara.api.utils.Duplicator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
@@ -43,15 +46,19 @@ public class OneVsAllToUpDownMotionSensor
   private final SensorRepository _sensors;
 
   @NonNull
+  private final CorrelationRepository _correlations;
+
+  @NonNull
   private final NodeRepository _nodes;
 
   @Autowired
   public OneVsAllToUpDownMotionSensor (
     @NonNull final ApplicationEventPublisher publisher, @NonNull final ValueStateRepository<Boolean> flags,
-    @NonNull final SensorRepository sensors,
+    @NonNull final SensorRepository sensors, @NonNull final CorrelationRepository correlations,
     @NonNull final NodeRepository nodes
   )
   {
+    _correlations = correlations;
     _applicationEventPublisher = publisher;
     _flags = flags;
     _sensors = sensors;
@@ -105,7 +112,7 @@ public class OneVsAllToUpDownMotionSensor
 
   @Override
   public void stateWasCreated (
-    @NonNull final StateEvent.WasCreated event
+    final StateEvent.@NonNull WasCreated event
   )
   {
     super.stateWasCreated(event);
@@ -176,7 +183,7 @@ public class OneVsAllToUpDownMotionSensor
 
   @Override
   public void stateWasMutated (
-    @NonNull final StateEvent.WasMutated event
+    final StateEvent.@NonNull WasMutated event
   )
   {
     super.stateWasMutated(event);
@@ -192,16 +199,30 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final ValueState<Boolean> base, @NonNull final ValueState<Boolean> updated
   )
   {
-    @NonNull final Optional<ValueState<Boolean>> correlation = _flags.findFirstWithCorrelation("base",
-                                                                                               updated.getReference(),
-                                                                                               getSensor().getReference()
-                                                                                                          .as(Sensor.class)
-    );
+    @NonNull final Optional<ValueState<Boolean>> correlation = findRelatedResult(updated.getReference());
 
     if (correlation.isPresent()) {
       onCorrelledMotionStateWasMutated(base, updated);
     } else if (updated.getValue()) {
       onMotionStateWasCreated(updated);
+    }
+  }
+
+  private @NonNull Optional<ValueState<Boolean>> findRelatedResult (
+    @NonNull final ApplicationEntityReference<? extends State> reference
+  )
+  {
+    @NonNull final Optional<Correlation> correlation =
+      _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
+      getSensor().getReference(),
+      "origin",
+      reference
+    );
+
+    if (correlation.isPresent()) {
+      return _flags.find(correlation.get().getStartStateIdentifier().getIdentifier());
+    } else {
+      return Optional.empty();
     }
   }
 
@@ -247,7 +268,7 @@ public class OneVsAllToUpDownMotionSensor
 
   @Override
   public void stateWillBeDeleted (
-    @NonNull final StateEvent.WillBeDeleted event
+    final StateEvent.@NonNull WillBeDeleted event
   )
   {
     super.stateWillBeDeleted(event);
@@ -263,8 +284,7 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   public void onMotionStateWillBeDeleted (@NonNull final ValueState<Boolean> state) {
-    if (!_flags.findFirstWithCorrelation("base", state.getReference(), getSensor().getReference().as(Sensor.class))
-               .isPresent()) return;
+    if (!findRelatedResult(state.getReference()).isPresent()) return;
 
     final List<ApplicationEntityReference<? extends Sensor>> inputs   = getInputSensors();
     final Optional<ValueState<Boolean>>                      previous = _flags.findPreviousWithValue(
@@ -310,12 +330,9 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void delete (@NonNull final ValueState<Boolean> state) {
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Delete(this,
-                                                                              _flags.findFirstWithCorrelation("base",
-                                                                                                              state.getReference(),
-                                                                                                              getSensor()
-                                                                                                                .getReference()
-                                                                              ).get()
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Delete(
+      this,
+      findRelatedResult(state.getReference()).get()
     ));
   }
 
@@ -323,18 +340,22 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final ValueState<Boolean> from, @NonNull final ValueState<Boolean> to
   )
   {
-    @NonNull final State toMove = (State) _flags.findFirstWithCorrelation("base",
-                                                                          from.getReference(),
-                                                                          getSensor().getReference()
-    ).get();
+    @NonNull final ValueState<Boolean> toMove = Duplicator.duplicate(findRelatedResult(from.getReference()).get());
+    toMove.setEmissionDate(to.getEmissionDate());
 
-    final ValueState.BooleanMutationSchema mutation = new ValueState.BooleanMutationSchema();
-    mutation.setState(toMove.getReference());
-    mutation.setEmittionDate(to.getEmissionDate());
-    if (Objects.equals(from, to) == false) {
-      mutation.correlate("base", to);
+    if (!Objects.equals(from, to)) {
+      @NonNull final Correlation correlation =
+        Duplicator.duplicate(_correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(getSensor().getReference(),
+                                                                                                                                       "origin",
+                                                                                                                                       toMove
+                                                                                                                                         .getReference()
+      ).get());
+      correlation.setEndStateIdentifier(to.getReference());
+
+      _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, toMove, correlation));
+    } else {
+      _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, toMove));
     }
-    _schemaManager.execute(mutation);
   }
 
   private void emit (@NonNull final ValueState<Boolean> created) {
@@ -342,14 +363,18 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void emit (@NonNull final State state, final boolean up) {
-    @NonNull final ValueState.Boolean flag = new ValueState.Boolean();
+    final ValueState.@NonNull Boolean flag = new ValueState.Boolean();
 
     flag.setEmissionDate(state.getEmissionDate());
     flag.setSensorIdentifier(getSensor().getReference());
     flag.setValue(up);
 
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, flag));
+    @NonNull final Correlation correlation = new Correlation();
 
-    creation.correlate("base", state);
+    correlation.setStartStateIdentifier(flag.getReference());
+    correlation.setEndStateIdentifier(state.getReference());
+    correlation.setName("origin");
+
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, flag, correlation));
   }
 }

@@ -1,6 +1,7 @@
 package org.liara.api.io;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.event.ApplicationEntityEvent;
 import org.liara.api.event.StateEvent;
@@ -12,6 +13,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
+import java.util.WeakHashMap;
 
 @Component
 @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -23,46 +25,70 @@ public class DatabaseStateDriver
   @NonNull
   private final EntityManager _entityManager;
 
+  @NonNull
+  private final WeakHashMap<@NonNull State, @NonNull State> _oldStates;
+
   @Autowired
   public DatabaseStateDriver (
     @NonNull final ApplicationEventPublisher publisher, @NonNull final EntityManager entityManager
   )
   {
     _publisher = publisher;
+    _oldStates = new WeakHashMap<>();
     _entityManager = entityManager;
   }
 
   @EventListener
-  public void create (final ApplicationEntityEvent.@NonNull Create creation) {
-    if (creation.getApplicationEntity() instanceof State) {
-      @NonNull final State state = (State) creation.getApplicationEntity();
-
-      _publisher.publishEvent(new StateEvent.WillBeCreated(this, state));
-      _entityManager.persist(state);
-      _publisher.publishEvent(new StateEvent.WasCreated(this, state));
+  public void willCreate (final ApplicationEntityEvent.@NonNull WillCreate creation) {
+    for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
+      if (entity instanceof State) _publisher.publishEvent(new StateEvent.WillBeCreated(this, (State) entity));
     }
   }
 
   @EventListener
-  public void mutate (final ApplicationEntityEvent.@NonNull Update mutation) {
-    if (mutation.getApplicationEntity() instanceof State) {
-      @NonNull final State state    = (State) mutation.getApplicationEntity();
-      @NonNull final State oldState = _entityManager.find(state.getClass(), state.getIdentifier());
-
-      _publisher.publishEvent(new StateEvent.WillBeMutated(this, oldState, state));
-      _entityManager.persist(state);
-      _publisher.publishEvent(new StateEvent.WasMutated(this, oldState, state));
+  public void didCreate (final ApplicationEntityEvent.@NonNull DidCreate creation) {
+    for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
+      if (entity instanceof State) _publisher.publishEvent(new StateEvent.WasCreated(this, (State) entity));
     }
   }
 
   @EventListener
-  public void delete (final ApplicationEntityEvent.@NonNull Delete deletion) {
-    if (deletion.getApplicationEntity() instanceof State) {
-      @NonNull final State state = (State) deletion.getApplicationEntity();
+  public void willDelete (final ApplicationEntityEvent.@NonNull WillDelete deletion) {
+    for (@NonNull final ApplicationEntity entity : deletion.getEntities()) {
+      if (entity instanceof State) _publisher.publishEvent(new StateEvent.WillBeDeleted(this, (State) entity));
+    }
+  }
 
-      _publisher.publishEvent(new StateEvent.WillBeDeleted(this, state));
-      _entityManager.remove(state);
-      _publisher.publishEvent(new StateEvent.WasDeleted(this, state));
+  @EventListener
+  public void didDelete (final ApplicationEntityEvent.@NonNull DidDelete deletion) {
+    for (@NonNull final ApplicationEntity entity : deletion.getEntities()) {
+      if (entity instanceof State) _publisher.publishEvent(new StateEvent.WasDeleted(this, (State) entity));
+    }
+  }
+
+  @EventListener
+  public void willUpdate (final ApplicationEntityEvent.@NonNull WillUpdate mutation) {
+    for (@NonNull final ApplicationEntity entity : mutation.getEntities()) {
+      if (entity instanceof State) {
+        @NonNull final State newState = (State) entity;
+        @NonNull final State oldState = newState.getReference().resolve(_entityManager);
+
+        _oldStates.put(newState, oldState);
+        _publisher.publishEvent(new StateEvent.WillBeMutated(this, oldState, newState));
+      }
+    }
+  }
+
+  @EventListener
+  public void didUpdate (final ApplicationEntityEvent.@NonNull DidUpdate mutation) {
+    for (@NonNull final ApplicationEntity entity : mutation.getEntities()) {
+      if (entity instanceof State) {
+        @NonNull final State newState = (State) entity;
+        @NonNull final State oldState = _oldStates.get(newState);
+
+        _oldStates.remove(newState, oldState);
+        _publisher.publishEvent(new StateEvent.WasMutated(this, oldState, newState));
+      }
     }
   }
 }

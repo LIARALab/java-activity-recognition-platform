@@ -1,15 +1,15 @@
-package org.liara.api.data.entity;
+package org.liara.api.data.entity.schema;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
-import javax.persistence.Column;
-import javax.persistence.Transient;
-
 public class NodeSchema
-  extends ApplicationEntity
 {
+  @Nullable
+  private Long _identifier;
+
   @Nullable
   private String _name;
 
@@ -19,12 +19,21 @@ public class NodeSchema
   public NodeSchema () {
     _name = null;
     _parent = ApplicationEntityReference.empty(Node.class);
+    _identifier = null;
   }
 
   public NodeSchema (@NonNull final NodeSchema toCopy) {
-    super(toCopy);
     _name = toCopy.getName();
     _parent = toCopy.getParent();
+    _identifier = toCopy.getIdentifier();
+  }
+
+  public @Nullable Long getIdentifier () {
+    return _identifier;
+  }
+
+  public void setIdentifier (@Nullable final Long identifier) {
+    _identifier = identifier;
   }
 
   /**
@@ -34,7 +43,6 @@ public class NodeSchema
    *
    * @return The name of this node.
    */
-  @Column(name = "name", nullable = false)
   public @Nullable String getName () {
     return _name;
   }
@@ -55,11 +63,5 @@ public class NodeSchema
 
   public void setParent (@Nullable final ApplicationEntityReference<Node> parent) {
     _parent = parent;
-  }
-
-  @Override
-  @Transient
-  public @NonNull ApplicationEntityReference<? extends NodeSchema> getReference () {
-    return ApplicationEntityReference.of(this);
   }
 }
