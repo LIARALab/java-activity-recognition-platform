@@ -4,9 +4,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.LabelState;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.ValueState;
+import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.LabelStateRepository;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.ValueStateRepository;
@@ -42,20 +44,26 @@ public class UpDownToLabelSensor
   
   @NonNull
   private final ValueStateRepository<Boolean> _inputs;
-  
+
+  @NonNull
+  private final CorrelationRepository _correlations;
+
   @NonNull
   private final NodeRepository _nodes;
   
   @Autowired
   public UpDownToLabelSensor (
-    @NonNull final ApplicationEventPublisher publisher, @NonNull final ValueStateRepository inputs,
+    @NonNull final ApplicationEventPublisher publisher,
+    @NonNull final ValueStateRepository inputs,
     @NonNull final LabelStateRepository outputs,
-    @NonNull final NodeRepository nodes
+    @NonNull final NodeRepository nodes,
+    @NonNull final CorrelationRepository correlations
   ) {
     _publisher = publisher;
     _inputs = inputs;
     _outputs = outputs;
     _nodes = nodes;
+    _correlations = correlations;
   }
 
   public @NonNull UpDownToLabelSensorConfiguration getConfiguration () {
@@ -67,7 +75,7 @@ public class UpDownToLabelSensor
     return getRunner().getSensor();
   }
 
-  public @NonNull ApplicationEntityReference<Sensor> getInputSensor () {
+  public @NonNull ApplicationEntityReference<? extends Sensor> getInputSensor () {
     return getConfiguration().getInputSensor();
   }
   
@@ -358,19 +366,17 @@ public class UpDownToLabelSensor
     @NonNull final LabelState current,
     @Nullable final State next
   ) {
-    @NonNull final LabelState mutation = Duplicator.duplicate(current);
-    
-    if (next == null) {
-      mutation.setEnd(null);
-      mutation.decorrelate("end");
-    } else {
-      mutation.setEnd(next.getEmissionDate());
-      mutation.correlate("end", next);
-    }
+    @NonNull final LabelState  mutation       = Duplicator.duplicate(current);
+    @NonNull final Correlation endCorrelation = getEndCorrelation(current);
+    mutation.setEnd(next == null ? null : next.getEmissionDate());
 
-    mutation.setState(current.getReference());
-    
-    _manager.execute(mutation);
+    if (next == null) {
+      _publisher.publishEvent(new ApplicationEntityEvent.Delete(endCorrelation));
+      _publisher.publishEvent(new ApplicationEntityEvent.Update(current));
+    } else {
+      endCorrelation.setEndStateIdentifier(next.getReference());
+      _publisher.publishEvent(new ApplicationEntityEvent.Update(current, endCorrelation));
+    }
   }
 
   private LabelState begin (@NonNull final State start) {
@@ -381,15 +387,18 @@ public class UpDownToLabelSensor
     @NonNull final State start, 
     @Nullable final State end
   ) {
-    final LabelStateCreationSchema creation = new LabelStateCreationSchema();
-    creation.setEmittionDate(start.getEmissionDate());
-    creation.setNode(getActivatedNode().getReference());
-    creation.setSensor(getSensor().getReference());
-    creation.setStart(start.getEmissionDate());
-    creation.correlate("start", start);
+    @NonNull final LabelState  state            = new LabelState();
+    @NonNull final Correlation startCorrelation = new Correlation();
+
+    state.setEmissionDate(start.getEmissionDate());
+    state.setSensorIdentifier(getSensor().getReference());
+    state.setStart(start.getEmissionDate());
+
+    startCorrelation.setName("start");
+    startCorrelation.setStartStateIdentifier();
     
     if (end != null) {
-      creation.setEnd(end.getEmissionDate());
+      state.setEnd(end.getEmissionDate());
       creation.correlate("end", end);
     }
     

@@ -24,39 +24,40 @@ class LocalApplicationEntityRepositorySpecification
   
   def "it allows you to instanciate an empty repository for a given entity type" () {
     expect: "to instanciate an empty repository when the default constructor is invoked"
-      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
-        new ApplicationEntityManager(), Sensor.class
+    final LocalApplicationEntityRepository<Sensor> repository = new ApplicationEntityManager().repository(
+      LocalApplicationEntityRepository, Sensor.class
       )
-      
-      repository.size() == 0
+
     repository.findAll().empty
   }
   
   def "it allows you to register new entities one by one into the repository" () {
     given: "an empty repository"
-      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
-        new ApplicationEntityManager(), Sensor.class
+    final ApplicationEntityManager manager = new ApplicationEntityManager()
+    final LocalApplicationEntityRepository<Sensor> repository = manager.repository(
+      LocalApplicationEntityRepository, Sensor.class
       )
       
     and: "a list of entities to register"
       final List<Sensor> entities = generateEntities(20)
       
     when: "we register new entities one by one into the given repository"
-      entities.forEach({ x -> repository.add(x) })
+    entities.forEach({ x -> manager.merge(x) })
       
     then: "we expect that all added entities was registered into the given repository"
-      repository.size() == entities.size()
+    repository.findAll().size() == entities.size()
       for (final ApplicationEntity entity : entities) {
-        repository.contains(entity) == true
+        repository.find(entity.reference.identifier).present
       }
   }
   
   def "it allows you to register a bunch of entities into the repository" () {
     given: "an empty repository"
-      final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
-        new ApplicationEntityManager(), Sensor.class
+    final ApplicationEntityManager manager = new ApplicationEntityManager()
+    final LocalApplicationEntityRepository<Sensor> repository = manager.repository(
+      LocalApplicationEntityRepository, Sensor.class
       )
-      
+
     and: "a list of entities to register"
       final List<Sensor> entities = generateEntities(20)
       
