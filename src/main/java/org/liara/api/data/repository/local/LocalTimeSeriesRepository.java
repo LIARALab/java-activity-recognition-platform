@@ -1,19 +1,6 @@
 package org.liara.api.data.repository.local;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
+import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.State;
@@ -21,58 +8,32 @@ import org.liara.api.data.repository.TimeSeriesRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
 public class LocalTimeSeriesRepository<TimeState extends State>
        extends LocalApplicationEntityRepository<TimeState>
        implements TimeSeriesRepository<TimeState>
 {
-  private static class Entry<TimeState extends State> implements Comparable<Entry<TimeState>> {
-    @NonNull
-    private final ZonedDateTime _emittion;
-    
-    @Nullable
-    private final TimeState _state;
-    
-    public Entry (@NonNull final TimeState state) {
-      _state = state;
-      _emittion = state.getEmittionDate();
-    }
-    
-    public Entry (@NonNull final ZonedDateTime emittion) {
-      _state = null;
-      _emittion = emittion;
-    }
-    
-    @Override
-    public int compareTo (@NonNull final Entry<TimeState> other) {
-      return this.getEmittion().compareTo(other.getEmittion());
-    }
-    
-    public ZonedDateTime getEmittion () {
-      return _emittion;
-    }
-    
-    public TimeState getState () {
-      return _state;
-    }
+  @Override
+  public List<TimeState> findAllAt (
+    @NonNull final ZonedDateTime time, @NonNull final Collection<ApplicationEntityReference<Sensor>> sensors
+  )
+  {
+    final List<TimeState> result = new ArrayList<>();
 
-    @Override
-    public boolean equals (@NonNull final Object object) {
-      if (object == this) return true;
-      if (object == null) return false;
-      
-      if (object instanceof Entry) {
-        final Entry<?> other = Entry.class.cast(object);
-        
-        return Objects.equals(_emittion, other.getEmittion());
-      } else {
-        return false;
+    for (final ApplicationEntityReference<Sensor> sensor : sensors) {
+      if (_statesBySensors.containsKey(sensor.getIdentifier())) {
+        final Set<Entry<TimeState>> valid = _statesBySensors.get(sensor.getIdentifier())
+                                                            .tailSet(new Entry<>(time), true)
+                                                            .headSet(new Entry<>(time), true);
+        for (final Entry<TimeState> entry : valid) { result.add(entry.getState()); }
       }
     }
 
-    @Override
-    public int hashCode () {
-      return Objects.hash(_emittion);
-    }
+    result.sort(Comparator.comparing(ApplicationEntity::getIdentifier));
+    return result;
   }
   
   @NonNull
@@ -121,7 +82,59 @@ public class LocalTimeSeriesRepository<TimeState extends State>
     
     return result;
   }
-  
+
+  private static class Entry<TimeState extends State>
+    implements Comparable<Entry<TimeState>>
+  {
+    @NonNull
+    private final ZonedDateTime _emittion;
+
+    @Nullable
+    private final TimeState _state;
+
+    public Entry (@NonNull final TimeState state) {
+      _state = state;
+      _emittion = state.getEmittionDate();
+    }
+
+    public Entry (@NonNull final ZonedDateTime emittion) {
+      _state = null;
+      _emittion = emittion;
+    }
+
+    @Override
+    public int compareTo (@NonNull final Entry<TimeState> other) {
+      return this.getEmittion().compareTo(other.getEmittion());
+    }
+
+    public ZonedDateTime getEmittion () {
+      return _emittion;
+    }
+
+    public TimeState getState () {
+      return _state;
+    }
+
+    @Override
+    public boolean equals (@NonNull final Object object) {
+      if (object == this) return true;
+      if (object == null) return false;
+
+      if (object instanceof Entry) {
+        final Entry<?> other = (Entry) object;
+
+        return Objects.equals(_emittion, other.getEmittion());
+      } else {
+        return false;
+      }
+    }
+
+    @Override
+    public int hashCode () {
+      return Objects.hash(_emittion);
+    }
+  }
+
   @Override
   public List<TimeState> findPrevious (
     @NonNull final ZonedDateTime date, 

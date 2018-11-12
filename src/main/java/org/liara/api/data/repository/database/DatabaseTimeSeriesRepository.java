@@ -1,31 +1,24 @@
 package org.liara.api.data.repository.database;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.MapJoin;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.sensor.Sensor_;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.entity.state.State_;
 import org.liara.api.data.repository.TimeSeriesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
@@ -49,7 +42,31 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
     _entityManager = entityManager;
     _stateType = stateType;
   }
-  
+
+  @Override
+  public List<TimeState> findAllAt (
+    @NonNull final ZonedDateTime date, @NonNull final Collection<ApplicationEntityReference<Sensor>> sensors
+  )
+  {
+    return _entityManager.createQuery(String.join(
+      "",
+      "SELECT state ",
+      "  FROM ",
+      _stateType.getName(),
+      " state ",
+      " WHERE state._emittionDate = :date ",
+      "   AND state._sensor._identifier IN :sensors",
+      " ORDER BY state._identifier ASC"
+    ), _stateType)
+                         .setParameter("date", date)
+                         .setParameter("sensors",
+                                       sensors.stream()
+                                              .map(ApplicationEntityReference::getIdentifier)
+                                              .collect(Collectors.toList())
+                         )
+                         .getResultList();
+  }
+
   @Override
   public List<TimeState> findPrevious (
     @NonNull final ZonedDateTime date,
@@ -168,14 +185,13 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
     for (final Map.Entry<String, ApplicationEntityReference<? extends State>> correlation : correlations.entrySet()) {
       predicates.add(builder.equal(
         rootCorrelations.on(
-          builder.equal(rootCorrelations.key(), correlation.getKey())
-        ).value().get(Sensor_._identifier), 
+          builder.equal(rootCorrelations.key(), correlation.getKey())).value().get("_identifier"),
         correlation.getValue().getIdentifier()
       ));
     }
     
     predicates.add(builder.equal(
-      root.get(State_._sensor).get(Sensor_._identifier),
+      root.get("_sensor").get("_identifier"),
       sensor.getIdentifier()
     ));
     

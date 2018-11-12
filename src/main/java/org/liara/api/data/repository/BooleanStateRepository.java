@@ -1,34 +1,34 @@
 package org.liara.api.data.repository;
 
-import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
 import org.springframework.lang.NonNull;
 
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 public interface BooleanStateRepository extends TimeSeriesRepository<BooleanState>
 {
-  public default Optional<BooleanState> findPreviousWithValue (
+  default Optional<BooleanState> findPreviousWithValue (
     @NonNull final BooleanState created, 
     @NonNull final ApplicationEntityReference<Sensor> inputSensors,
     final boolean value
   ) {
     return findPreviousWithValue(created.getEmittionDate(), Collections.singletonList(inputSensors), value);
   }
-  
-  public default Optional<BooleanState> findPreviousWithValue (
+
+  default Optional<BooleanState> findPreviousWithValue (
     @NonNull final ZonedDateTime date, 
     @NonNull final ApplicationEntityReference<Sensor> inputSensors,
     final boolean value
   ) {
     return findPreviousWithValue(date, Collections.singletonList(inputSensors), value);
   }
-  
-  public default Optional<BooleanState> findPreviousWithValue (
+
+  default Optional<BooleanState> findPreviousWithValue (
     @NonNull final BooleanState created, 
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
     final boolean value
@@ -36,7 +36,7 @@ public interface BooleanStateRepository extends TimeSeriesRepository<BooleanStat
     return findPreviousWithValue(created.getEmittionDate(), inputSensors, value);
   }
 
-  public default Optional<BooleanState> findPreviousWithValue (
+  default Optional<BooleanState> findPreviousWithValue (
     @NonNull final ZonedDateTime emittionDate, 
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
     final boolean value
@@ -47,7 +47,7 @@ public interface BooleanStateRepository extends TimeSeriesRepository<BooleanStat
     else return Optional.ofNullable(result.get(0));
   }
 
-  public default List<BooleanState> findPreviousWithValue (
+  default List<BooleanState> findPreviousWithValue (
     @NonNull final BooleanState created, 
     @NonNull final ApplicationEntityReference<Sensor> inputSensor,
     final boolean value,
@@ -60,8 +60,8 @@ public interface BooleanStateRepository extends TimeSeriesRepository<BooleanStat
       count
     );
   }
-  
-  public default List<BooleanState> findPreviousWithValue (
+
+  default List<BooleanState> findPreviousWithValue (
     @NonNull final ZonedDateTime date, 
     @NonNull final ApplicationEntityReference<Sensor> inputSensor,
     final boolean value,
@@ -75,7 +75,7 @@ public interface BooleanStateRepository extends TimeSeriesRepository<BooleanStat
     );
   }
 
-  public default List<BooleanState> findPreviousWithValue (
+  default List<BooleanState> findPreviousWithValue (
     @NonNull final BooleanState created, 
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
     final boolean value,
@@ -89,30 +89,30 @@ public interface BooleanStateRepository extends TimeSeriesRepository<BooleanStat
     );
   }
 
-  public List<BooleanState> findPreviousWithValue (
+  List<BooleanState> findPreviousWithValue (
     @NonNull final ZonedDateTime date, 
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
     final boolean value,
     final int count
   );
-  
-  public default Optional<BooleanState> findNextWithValue (
+
+  default Optional<BooleanState> findNextWithValue (
     @NonNull final BooleanState created, 
     @NonNull final ApplicationEntityReference<Sensor> inputSensors,
     final boolean value
   ) {
     return findNextWithValue(created.getEmittionDate(), Collections.singletonList(inputSensors), value);
   }
-  
-  public default Optional<BooleanState> findNextWithValue (
+
+  default Optional<BooleanState> findNextWithValue (
     @NonNull final ZonedDateTime date, 
     @NonNull final ApplicationEntityReference<Sensor> inputSensors,
     final boolean value
   ) {
     return findNextWithValue(date, Collections.singletonList(inputSensors), value);
   }
-  
-  public default Optional<BooleanState> findNextWithValue (
+
+  default Optional<BooleanState> findNextWithValue (
     @NonNull final BooleanState created, 
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
     final boolean value
@@ -120,7 +120,7 @@ public interface BooleanStateRepository extends TimeSeriesRepository<BooleanStat
     return findNextWithValue(created.getEmittionDate(), inputSensors, value);
   }
 
-  public default Optional<BooleanState> findNextWithValue (
+  default Optional<BooleanState> findNextWithValue (
     @NonNull final ZonedDateTime emittionDate, 
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
     final boolean value
@@ -131,7 +131,7 @@ public interface BooleanStateRepository extends TimeSeriesRepository<BooleanStat
     else return Optional.ofNullable(result.get(0));
   }
 
-  public default List<BooleanState> findNextWithValue (
+  default List<BooleanState> findNextWithValue (
     @NonNull final BooleanState created, 
     @NonNull final ApplicationEntityReference<Sensor> inputSensor,
     final boolean value,
@@ -144,8 +144,8 @@ public interface BooleanStateRepository extends TimeSeriesRepository<BooleanStat
       count
     );
   }
-  
-  public default List<BooleanState> findNextWithValue (
+
+  default List<BooleanState> findNextWithValue (
     @NonNull final ZonedDateTime date, 
     @NonNull final ApplicationEntityReference<Sensor> inputSensor,
     final boolean value,
@@ -159,7 +159,7 @@ public interface BooleanStateRepository extends TimeSeriesRepository<BooleanStat
     );
   }
 
-  public default List<BooleanState> findNextWithValue (
+  default List<BooleanState> findNextWithValue (
     @NonNull final BooleanState created, 
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
     final boolean value,
@@ -173,14 +173,14 @@ public interface BooleanStateRepository extends TimeSeriesRepository<BooleanStat
     );
   }
 
-  public List<BooleanState> findNextWithValue (
+  List<BooleanState> findNextWithValue (
     @NonNull final ZonedDateTime date, 
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
     final boolean value,
     final int count
   );
 
-  public List<BooleanState> findAllWithValue (
+  List<BooleanState> findAllWithValue (
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors, 
     final boolean value
   );

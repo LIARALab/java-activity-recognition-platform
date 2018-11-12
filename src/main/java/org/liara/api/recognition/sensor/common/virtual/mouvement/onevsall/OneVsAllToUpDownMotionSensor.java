@@ -1,19 +1,9 @@
 package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.state.BooleanState;
-import org.liara.api.data.entity.state.BooleanStateCreationSchema;
-import org.liara.api.data.entity.state.BooleanStateMutationSchema;
-import org.liara.api.data.entity.state.BooleanStateSnapshot;
-import org.liara.api.data.entity.state.State;
-import org.liara.api.data.entity.state.StateDeletionSchema;
+import org.liara.api.data.entity.state.*;
 import org.liara.api.data.repository.BooleanStateRepository;
 import org.liara.api.data.repository.SensorRepository;
 import org.liara.api.data.schema.SchemaManager;
@@ -29,6 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @UseSensorConfigurationOfType(OneVsAllToUpDownMotionSensorConfiguration.class)
 @EmitStateOfType(BooleanState.class)
@@ -117,12 +112,11 @@ public class OneVsAllToUpDownMotionSensor
   ) {
     super.stateWasCreated(event);
     
-    if (
-      event.getState().getModel().getSensor().isOfType(NativeMotionSensor.class) && 
-      BooleanState.class.cast(event.getState().getModel()).getValue() &&
+    if (event.getState().getModel().getSensor().isOfType(NativeMotionSensor.class) &&
+        ((BooleanState) event.getState().getModel()).getValue() &&
       getConfiguration().isIgnoredInput(event.getState().getModel()) == false
     ) {
-      onMotionStateWasCreated(BooleanState.class.cast(event.getState().getModel()));
+      onMotionStateWasCreated((BooleanState) event.getState().getModel());
     }
   }
 
@@ -130,6 +124,7 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final BooleanState created
   ) {
     if (created.getValue() == false) return;
+    if (isDuplicate(created)) return;
     
     final List<ApplicationEntityReference<Sensor>> inputSensors = getInputSensors();
     final Optional<BooleanState> previous = _flags.findPreviousWithValue(created, inputSensors, true);
@@ -140,6 +135,13 @@ public class OneVsAllToUpDownMotionSensor
     } else if (!areOfSameType(previous.get(), created)) {
       onRightMotionStateWasCreated(created, next);
     }
+  }
+
+  private boolean isDuplicate (@NonNull final BooleanState created) {
+    final List<BooleanState>     states = _flags.findAllAt(created, getInputSensors());
+    final Optional<BooleanState> state  = states.stream().filter(x -> x.getValue()).findFirst();
+
+    return !state.get().equals(created);
   }
 
   private void onLeftMotionStateWasCreated (
@@ -186,9 +188,7 @@ public class OneVsAllToUpDownMotionSensor
       event.getNewValue().getModel().getSensor().isOfType(NativeMotionSensor.class) &&
       getConfiguration().isIgnoredInput(event.getNewValue().getModel()) == false
     ) {
-      onMotionStateWasMutated(
-        BooleanStateSnapshot.class.cast(event.getOldValue()),
-        BooleanState.class.cast(event.getNewValue().getModel())
+      onMotionStateWasMutated((BooleanStateSnapshot) event.getOldValue(), (BooleanState) event.getNewValue().getModel()
       );
     }
   }
