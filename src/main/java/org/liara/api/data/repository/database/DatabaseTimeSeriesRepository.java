@@ -75,12 +75,11 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
         " WHERE state._emittionDate < :date ",
-        "   AND state._sensor._identifier = :sensor",
-        " ORDER BY state._emittionDate DESC"
+        "   AND state._sensor._identifier = :sensor", " ORDER BY state._emittionDate DESC, state._identifier ASC"
       ), _stateType
     ).setParameter("date", date)
      .setParameter("sensor", sensor.getIdentifier())
@@ -96,12 +95,11 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
         " WHERE state._emittionDate < :date ",
-        "   AND state._sensor._identifier = :sensor ",
-        " ORDER BY state._emittionDate ASC"
+        "   AND state._sensor._identifier = :sensor ", " ORDER BY state._emittionDate ASC, state._identifier ASC"
       ), _stateType
     ).setParameter("date", date)
      .setParameter("sensor", sensor.getIdentifier())
@@ -117,11 +115,10 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
-        " WHERE state._sensor._identifier = :sensor ",
-        " ORDER BY state._emittionDate ASC"
+        " WHERE state._sensor._identifier = :sensor ", " ORDER BY state._emittionDate ASC, state._identifier ASC"
       ), _stateType
     ).setParameter("sensor", sensor.getIdentifier())
      .setMaxResults(count)
@@ -135,11 +132,10 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
-        " WHERE state._sensor._identifier = :sensor ",
-        " ORDER BY state._emittionDate ASC"
+        " WHERE state._sensor._identifier = :sensor ", " ORDER BY state._emittionDate ASC, state._identifier ASC"
       ), _stateType
     ).setParameter("sensor", sensor.getIdentifier())
      .getResultList();
@@ -153,11 +149,12 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
         " WHERE state._correlations[:key] = :correlated",
-        "   AND state._sensor._identifier = :sensor"
+        "   AND state._sensor._identifier = :sensor",
+        " ORDER BY state._identifier ASC"
       ), _stateType
     ).setParameter("correlated", correlated.getIdentifier())
      .setParameter("sensor", sensor.getIdentifier())
@@ -209,12 +206,13 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
         " WHERE KEY(state._correlations) IN :keys ",
         "   AND state._correlations._identifier = :correlated ",
-        "   AND state._sensor._identifier = :sensor "
+        "   AND state._sensor._identifier = :sensor ",
+        " ORDER BY state._identifier ASC"
       ), _stateType
     ).setParameter("correlated", correlated.getIdentifier())
      .setParameter("sensor", sensor.getIdentifier())
@@ -228,11 +226,10 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
-        " WHERE state._sensor._identifier IN :sensors ",
-        " ORDER BY state._emittionDate ASC"
+        " WHERE state._sensor._identifier IN :sensors ", " ORDER BY state._emittionDate ASC, state._identifier ASC"
       ), _stateType
     ).setParameter(
       "sensors", 
@@ -285,12 +282,11 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
         " WHERE state._emittionDate > :date ",
-        "   AND state._sensor._identifier IN :sensors ",
-        " ORDER BY state._emittionDate ASC"
+        "   AND state._sensor._identifier IN :sensors ", " ORDER BY state._emittionDate ASC, state._identifier ASC"
       ), _stateType
     ).setParameter("date", date)
      .setParameter(
@@ -307,12 +303,11 @@ public class DatabaseTimeSeriesRepository<TimeState extends State>
   ) {
     return _entityManager.createQuery(
       String.join(
-        "", 
+        "",
         "SELECT state ",
         "  FROM ", _stateType.getName(), " state ",
         " WHERE state._emittionDate < :date ",
-        "   AND state._sensor._identifier IN :sensors ",
-        " ORDER BY state._emittionDate DESC"
+        "   AND state._sensor._identifier IN :sensors ", " ORDER BY state._emittionDate DESC, state._identifier ASC"
       ), _stateType
     ).setParameter("date", date)
      .setParameter(

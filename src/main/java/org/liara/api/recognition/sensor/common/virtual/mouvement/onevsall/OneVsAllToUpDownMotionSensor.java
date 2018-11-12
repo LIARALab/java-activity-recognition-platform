@@ -89,16 +89,18 @@ public class OneVsAllToUpDownMotionSensor
     
     for (int index = 0; index < states.size(); ++index) {
       final BooleanState current = states.get(index);
-      
-      if (previous == null || areOfSameType(previous, current) == false) {
-        emit(current, configuration.isValidInput(current));
-      }
-      
-      previous = current;
-    
-      if (index % 500 == 0 && index != 0) {
-        _schemaManager.flush();
-        _schemaManager.clear();
+
+      if (previous == null || !previous.getEmittionDate().equals(current)) {
+        if (previous == null || areOfSameType(previous, current) == false) {
+          emit(current, configuration.isValidInput(current));
+        }
+
+        previous = current;
+
+        if (index % 500 == 0 && index != 0) {
+          _schemaManager.flush();
+          _schemaManager.clear();
+        }
       }
     }
     
