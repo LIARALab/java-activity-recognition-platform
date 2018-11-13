@@ -369,12 +369,14 @@ public class OneVsAllToUpDownMotionSensor
     flag.setSensorIdentifier(getSensor().getReference());
     flag.setValue(up);
 
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, flag));
+
     @NonNull final Correlation correlation = new Correlation();
 
     correlation.setStartStateIdentifier(flag.getReference());
     correlation.setEndStateIdentifier(state.getReference());
     correlation.setName("origin");
 
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, flag, correlation));
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, correlation));
   }
 }

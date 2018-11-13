@@ -124,6 +124,11 @@ public class ApplicationEntityManager
     return _entities.contains(type, identifier);
   }
 
+  public boolean contains (@NonNull final ApplicationEntityReference<?> reference) {
+    if (reference.getIdentifier() == null) return false;
+    return _entities.contains(reference.getType(), reference.getIdentifier());
+  }
+
   public void clear () {
     for (@NonNull final ApplicationEntity entity : _entities) {
       for (@NonNull final ApplicationEntityManagerListener listener : _listeners) {

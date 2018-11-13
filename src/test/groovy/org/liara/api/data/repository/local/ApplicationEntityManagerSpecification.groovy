@@ -1,7 +1,6 @@
 package org.liara.api.data.repository.local
 
 import org.liara.api.data.entity.ApplicationEntity
-import org.liara.api.data.entity.Sensor
 import org.liara.api.data.entity.reference.ApplicationEntityReference
 import org.liara.api.data.entity.state.ValueState
 import spock.lang.Specification
@@ -88,80 +87,117 @@ class ApplicationEntityManagerSpecification
   def "it allows you to remove all entities of a particular type" () {
     given: "a manager with some entities registered in"
     final ApplicationEntityManager manager = new ApplicationEntityManager()
-    final List<ValueState.Integer> aEntities = generateStates(ValueState.Integer.class, 20)
-    final List<ValueState.Double> bEntities = generateStates(ValueState.Double.class, 10)
-    final List<ValueState.Byte> cEntities = generateStates(ValueState.Byte.class, 10)
-    final List<ValueState> entities = []
-    entities.addAll(aEntities)
-    entities.addAll(bEntities)
-    entities.addAll(cEntities)
-    Collections.shuffle(entities)
+    final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
+      ValueState.Integer.class: generateStates(ValueState.Integer.class, 23),
+      ValueState.Double.class : generateStates(ValueState.Double.class, 5),
+      ValueState.Short.class  : generateStates(ValueState.Short.class, 3),
+    ]
 
-    entities.forEach({ x -> manager.merge(x) })
+    entities.values().stream().flatMap({ x -> x.stream() })
+            .forEach({ x -> manager.merge(x) })
 
     when: "we clear the repository of one type of entities"
     manager.clear(ValueState.Double.class)
 
     then: "we expect that the repository removed all entities of the given type"
-    manager.size == entities.size() - bEntities.size()
-    for (final ValueState.Double state : bEntities) {
-      !manager.contains(state)
+    manager.size == entities[ValueState.Integer.class].size() - entities[ValueState.Short.class].size()
+    for (final ApplicationEntity entity : entities[ValueState.Double.class]) {
+      !manager.contains(entity)
     }
   }
 
-  def "it allows to retrieve all entities of a particular type" () {
-    given: "a repository with some entities registered in"
-    final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
-      new ApplicationEntityManager(), Sensor.class
-    )
-    final List<Sensor> entities = generateEntities(20)
+  def "it allows to retrieve all entities of a given type" () {
+    given: "a manager"
+    final ApplicationEntityManager manager = new ApplicationEntityManager()
 
-    repository.addAll(entities)
+    when: "we add entities of multiple types"
+    final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
+      ValueState.Integer.class: generateStates(ValueState.Integer.class, 23),
+      ValueState.Double.class : generateStates(ValueState.Double.class, 5),
+      ValueState.Short.class  : generateStates(ValueState.Short.class, 3),
+    ]
 
-    when: "we find all entities of the repository"
-    final List<ApplicationEntity> results = repository.findAll()
+    entities.values().stream().flatMap({ x -> x.stream() })
+            .forEach({ x -> manager.merge(x) })
 
-    then: "we expect that all added entities are returned"
-    new HashSet<>(entities).equals(new HashSet<>(results)) == true
+    then: "we expect that we can retrieve collections of entities of a given type"
+    for (
+      final Map.Entry<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entry : entities.entrySet()
+    ) {
+      new HashSet<>(manager.findAll(entry.key)) == new HashSet<>(entry.value)
+    }
   }
 
-  def "it allows to retrieve an entity of the repository by using a reference over it" () {
-    given: "a repository with some entities registered in"
-    final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
-      new ApplicationEntityManager(), Sensor.class
-    )
-    final List<Sensor> entities = generateEntities(20)
+  def "it allows to retrieve an entity of by using its reference" () {
+    given: "a manager"
+    final ApplicationEntityManager manager = new ApplicationEntityManager()
 
-    repository.addAll(entities)
+    when: "we add entities of multiple types"
+    final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
+      ValueState.Integer.class: generateStates(ValueState.Integer.class, 23),
+      ValueState.Double.class : generateStates(ValueState.Double.class, 5),
+      ValueState.Short.class  : generateStates(ValueState.Short.class, 3),
+    ]
 
-    when: "we find one entity by using its reference"
-    final ApplicationEntity toGet = entities.get(8)
-    final ApplicationEntityReference<ApplicationEntity> reference = ApplicationEntityReference.of(toGet)
-    final Optional<ApplicationEntity> returned = repository.find(reference)
+    entities.values().stream().flatMap({ x -> x.stream() })
+            .forEach({ x -> manager.merge(x) })
 
-    then: "we expect to get that entity"
-    returned.isPresent() == true
-    returned.get().equals(toGet) == true
-
-    when: "we use a reference over an entity that does not exists in the repository"
-    final Optional<ApplicationEntity> emptyResult = repository.find(
-      ApplicationEntityReference.of(ApplicationEntity.class, 95648654768543L)
-    )
-
-    then: "we expect to get an empty optional"
-    emptyResult.isPresent() == false
+    then: "we expect to be able to get entities by using their references"
+    final Iterator<? extends ApplicationEntity> entitiesToTest = entities.values()
+                                                                         .stream()
+                                                                         .flatMap({ x -> x.stream() })
+                                                                         .iterator()
+    while (entitiesToTest.hasNext()) {
+      final ApplicationEntity toTest = entitiesToTest.next()
+      manager.find(toTest.reference).get() == toTest
+    }
   }
 
-  def "it allows to check if the repository contains an entity by using its identifier" () {
-    expect: "to return true if the entity is registered into the repository, false otherwise"
-    final LocalApplicationEntityRepository<Sensor> repository = LocalApplicationEntityRepository.from(
-      new ApplicationEntityManager(), Sensor.class
-    )
-    final List<Sensor> entities = generateEntities(20)
+  def "it return an empty optional when we try to find an entity with a reference that refer nothing" () {
+    given: "a manager"
+    final ApplicationEntityManager manager = new ApplicationEntityManager()
 
-    repository.addAll(entities)
+    when: "we add entities of multiple types"
+    final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
+      ValueState.Integer.class: generateStates(ValueState.Integer.class, 23),
+      ValueState.Double.class : generateStates(ValueState.Double.class, 5),
+      ValueState.Short.class  : generateStates(ValueState.Short.class, 3),
+    ]
 
-    repository.contains(entities.get(5).getIdentifier()) == true
-    repository.contains(95648654768543L) == false
+    entities.values().stream().flatMap({ x -> x.stream() })
+            .forEach({ x -> manager.merge(x) })
+
+    then: "we expect to get an empty optional if we search for an entity that does not exists"
+    !manager.find(ApplicationEntityReference.of(ValueState.Byte.class, 5)).present
+    !manager.find(ApplicationEntityReference.of(ValueState.Double.class, 256)).present
+  }
+
+  def "it allows to check if an entity is registered by using its identifier" () {
+    given: "a manager"
+    final ApplicationEntityManager manager = new ApplicationEntityManager()
+
+    when: "we add entities of multiple types"
+    final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
+      ValueState.Integer.class: generateStates(ValueState.Integer.class, 23),
+      ValueState.Double.class : generateStates(ValueState.Double.class, 5),
+      ValueState.Short.class  : generateStates(ValueState.Short.class, 3),
+    ]
+
+    entities.values().stream().flatMap({ x -> x.stream() })
+            .forEach({ x -> manager.merge(x) })
+
+    then: "we expect to be able to check if an entity is registered by using its reference"
+    final Iterator<? extends ApplicationEntity> entitiesToTest = entities.values()
+                                                                         .stream()
+                                                                         .flatMap({ x -> x.stream() })
+                                                                         .iterator()
+
+    while (entitiesToTest.hasNext()) {
+      final ApplicationEntity toTest = entitiesToTest.next()
+      manager.contains(toTest.getReference())
+    }
+
+    !manager.contains(ApplicationEntityReference.of(ValueState.Byte.class, 5))
+    !manager.contains(ApplicationEntityReference.of(ValueState.Double.class, 256))
   }
 }

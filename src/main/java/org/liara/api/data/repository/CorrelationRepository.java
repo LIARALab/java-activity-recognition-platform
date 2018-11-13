@@ -91,8 +91,8 @@ public interface CorrelationRepository
   );
 
   default @NonNull Optional<Correlation> findFirstCorrelationWithNameAndThatEndsBy (
-    @NonNull final String name, @NonNull final ApplicationEntityReference<? extends State> state,
-    )
+    @NonNull final String name, @NonNull final ApplicationEntityReference<? extends State> state
+  )
   {
     @NonNull final List<@NonNull Correlation> result = findCorrelationsWithNameAndThatEndsBy(name, state, Cursor.FIRST);
     return result.size() > 0 ? Optional.of(result.get(0)) : Optional.empty();
