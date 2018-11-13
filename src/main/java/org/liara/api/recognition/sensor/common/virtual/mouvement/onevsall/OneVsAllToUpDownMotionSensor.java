@@ -90,18 +90,18 @@ public class OneVsAllToUpDownMotionSensor
     for (int index = 0; index < states.size(); ++index) {
       final BooleanState current = states.get(index);
 
-      if (previous == null || !previous.getEmittionDate().equals(current)) {
-        if (previous == null || areOfSameType(previous, current) == false) {
-          emit(current, configuration.isValidInput(current));
-        }
-
-        previous = current;
-
-        if (index % 500 == 0 && index != 0) {
-          _schemaManager.flush();
-          _schemaManager.clear();
-        }
+      //if (previous == null /*|| !Objects.equals(previous.getEmittionDate(), current.getEmittionDate())*/) {
+      if (previous == null || !areOfSameType(previous, current)) {
+        emit(current, configuration.isValidInput(current));
       }
+
+      previous = current;
+
+      if (index % 500 == 0 && index != 0) {
+        _schemaManager.flush();
+        _schemaManager.clear();
+      }
+      //}
     }
     
     _schemaManager.flush();
@@ -125,8 +125,8 @@ public class OneVsAllToUpDownMotionSensor
   public void onMotionStateWasCreated (
     @NonNull final BooleanState created
   ) {
-    if (created.getValue() == false) return;
-    if (isDuplicate(created)) return;
+    if (!created.getValue()) return;
+    //if (isDuplicate(created)) return;
     
     final List<ApplicationEntityReference<Sensor>> inputSensors = getInputSensors();
     final Optional<BooleanState> previous = _flags.findPreviousWithValue(created, inputSensors, true);
