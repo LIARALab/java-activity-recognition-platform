@@ -4,17 +4,17 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.data.entity.state.Correlation;
+import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.ValueStateRepository;
 import org.liara.api.event.ApplicationEntityEvent;
 import org.liara.api.event.StateEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
-import org.liara.api.recognition.sensor.EmitStateOfType;
-import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
+import org.liara.api.recognition.sensor.type.ComputedSensorType;
 import org.liara.api.utils.Duplicator;
 import org.liara.collection.operator.cursoring.Cursor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,11 +27,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-@UseSensorConfigurationOfType(CeilToUpDownConvertionSensorConfiguration.class)
-@EmitStateOfType(ValueState.Boolean.class)
 @Component
 @Scope("prototype")
-public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
+public class CeilToUpDownConvertionSensor
+  extends AbstractVirtualSensorHandler
+  implements ComputedSensorType
+
 {
   @NonNull
   private final ApplicationEventPublisher _eventPublisher;
@@ -65,7 +66,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     );
   }
 
-  public @NonNull ApplicationEntityReference<? extends Sensor> getInputSensor () {
+  public @NonNull Long getInputSensor () {
     return getConfiguration().getInputSensor();
   }
 
@@ -165,14 +166,14 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
 
   private @Nullable ValueState<Boolean> findResultCorrelatedWith (@NonNull final ValueState<Number> toDelete) {
     @NonNull final Optional<Correlation> correlation =
-      _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(getSensor().getReference(),
-                                                                                                                         "current",
-                                                                                                                         toDelete
-                                                                                                                           .getReference()
+      _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
+      getSensor().getIdentifier(),
+      "current",
+      toDelete.getIdentifier()
     );
 
     if (correlation.isPresent()) {
-      return _output.find(correlation.get().getStartStateIdentifier().getIdentifier()).orElse(null);
+      return _output.find(correlation.get().getStartStateIdentifier()).orElse(null);
     } else {
       return null;
     }
@@ -201,7 +202,12 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   }
 
   private @NonNull Correlation getPrevious (@NonNull final ValueState<Boolean> target) {
-    return _correlations.findCorrelationsWithNameAndThatStartBy("previous", target.getReference(), Cursor.FIRST).get(0);
+    return _correlations
+             .findCorrelationsWithNameAndThatStartBy("previous",
+                                                     target.getIdentifier(),
+                                                     Cursor.FIRST
+             )
+             .get(0);
   }
 
   private void correctDown (
@@ -213,7 +219,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     mutation.setValue(false);
 
     @NonNull final Correlation correlation = getPrevious(correlated);
-    correlation.setEndStateIdentifier(current.getReference());
+    correlation.setEndStateIdentifier(current.getIdentifier());
 
     _eventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, mutation, correlation));
   }
@@ -227,7 +233,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     mutation.setValue(true);
 
     @NonNull final Correlation correlation = getPrevious(correlated);
-    correlation.setEndStateIdentifier(current.getReference());
+    correlation.setEndStateIdentifier(current.getIdentifier());
 
     _eventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, mutation, correlation));
   }
@@ -288,24 +294,24 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     @Nullable final ValueState<Number> previous, @NonNull final ValueState<Number> current, final boolean up
   ) {
     @NonNull final ValueState<Boolean> result = new ValueState.Boolean();
-    result.setSensorIdentifier(getSensor().getReference());
+    result.setSensorIdentifier(getSensor().getIdentifier());
     result.setEmissionDate(interpolate(previous, current));
     result.setValue(up);
 
     _eventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, result));
 
     @NonNull final Correlation currentCorrelation = new Correlation();
-    currentCorrelation.setStartStateIdentifier(result.getReference());
+    currentCorrelation.setStartStateIdentifier(result.getIdentifier());
     currentCorrelation.setName("current");
-    currentCorrelation.setEndStateIdentifier(current.getReference());
+    currentCorrelation.setEndStateIdentifier(current.getIdentifier());
 
     _eventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, currentCorrelation));
 
     if (previous != null) {
       @NonNull final Correlation previousCorrelation = new Correlation();
-      previousCorrelation.setStartStateIdentifier(result.getReference());
+      previousCorrelation.setStartStateIdentifier(result.getIdentifier());
       previousCorrelation.setName("previous");
-      previousCorrelation.setEndStateIdentifier(previous.getReference());
+      previousCorrelation.setEndStateIdentifier(previous.getIdentifier());
 
       _eventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, previousCorrelation));
     }
@@ -322,5 +328,20 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
           "The interpolation type : " + String.valueOf(getInterpolationType()) + " is not implemented yet."
         );
     }
+  }
+
+  @Override
+  public @NonNull Class<? extends State> getEmittedStateClass () {
+    return ValueState.Boolean.class;
+  }
+
+  @Override
+  public @NonNull Class<? extends SensorConfiguration> getConfigurationClass () {
+    return CeilToUpDownConvertionSensorConfiguration.class;
+  }
+
+  @Override
+  public @NonNull String getName () {
+    return "liara:ceil";
   }
 }

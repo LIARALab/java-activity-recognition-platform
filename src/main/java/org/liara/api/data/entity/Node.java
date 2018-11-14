@@ -24,12 +24,13 @@ package org.liara.api.data.entity;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
-import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.data.tree.NestedSet;
 import org.liara.api.data.tree.NestedSetCoordinates;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 
 @Entity
 @Table(name = "nodes")
@@ -46,11 +47,6 @@ public class Node
 
   public Node () {
     _name = null;
-    _coordinates = new NestedSetCoordinates();
-  }
-
-  public Node (@NonNull final NodeSchema toCopy) {
-    _name = toCopy.getName();
     _coordinates = new NestedSetCoordinates();
   }
 
@@ -88,11 +84,5 @@ public class Node
 
   public void setCoordinates (@Nullable final NestedSetCoordinates coordinates) {
     _coordinates = (coordinates == null) ? new NestedSetCoordinates() : new NestedSetCoordinates(coordinates);
-  }
-
-  @Override
-  @Transient
-  public @NonNull ApplicationEntityReference<? extends Node> getReference () {
-    return ApplicationEntityReference.of(this);
   }
 }

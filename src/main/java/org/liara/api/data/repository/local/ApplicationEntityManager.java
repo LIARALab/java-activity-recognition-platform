@@ -3,10 +3,8 @@ package org.liara.api.data.repository.local;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.utils.InstanceDescriptor;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.*;
 
 public class ApplicationEntityManager
@@ -33,16 +31,15 @@ public class ApplicationEntityManager
     return _entities.contains(type, identifier) ? Optional.of(_entities.get(type, identifier)) : Optional.empty();
   }
 
-  public <Entity extends ApplicationEntity> @NonNull Optional<? extends Entity> find (
-    @NonNull final ApplicationEntityReference<Entity> reference
-  ) {
-    return reference.getIdentifier() == null ? Optional.empty() : find(reference.getType(), reference.getIdentifier());
-  }
-
   public <Entity extends ApplicationEntity> @NonNull Entity getAt (
-    @NonNull final ApplicationEntityReference<Entity> reference
+    @NonNull final Class<Entity> type, @NonNull final Long identifier
   )
-  { return find(reference).orElseThrow(EntityNotFoundException::new); }
+  {
+    return find(
+      type,
+      identifier
+    ).orElseThrow();
+  }
 
   public <Entity extends ApplicationEntity> @NonNull List<@NonNull Entity> findAll (@NonNull final Class<Entity> type) {
     return _entities.get(type);
@@ -122,11 +119,6 @@ public class ApplicationEntityManager
 
   public boolean contains (@NonNull final Class<? extends ApplicationEntity> type, @NonNull final Long identifier) {
     return _entities.contains(type, identifier);
-  }
-
-  public boolean contains (@NonNull final ApplicationEntityReference<?> reference) {
-    if (reference.getIdentifier() == null) return false;
-    return _entities.contains(reference.getType(), reference.getIdentifier());
   }
 
   public void clear () {

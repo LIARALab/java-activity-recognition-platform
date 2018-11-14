@@ -14,7 +14,14 @@ public enum ValueSensorType
   INTEGER("liara:integer", ValueState.Integer.class),
   LONG("liara:boolean", ValueState.Long.class),
   FLOAT("liara:float", ValueState.Float.class),
-  DOUBLE("liara:double", ValueState.Double.class);
+  DOUBLE(
+    "liara:double",
+    ValueState.Double.class
+  ),
+  MOTION(
+    "liara:motion",
+    ValueState.Boolean.class
+  );
 
   @NonNull
   private final String _name;

@@ -1,8 +1,6 @@
 package org.liara.api.data.repository.database;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.CorrelationRepository;
@@ -28,17 +26,22 @@ public class DatabaseCorrelationRepository
 
   @Override
   public @NonNull List<@NonNull Correlation> findCorrelationsOf (
-    @NonNull final ApplicationEntityReference<? extends State> state, @NonNull final Cursor cursor
+    @NonNull final Long stateIdentifier, @NonNull final Cursor cursor
   )
   {
-    @NonNull final TypedQuery<Correlation> query =
-      _entityManager.createQuery("SELECT correlation FROM " + getManagedEntity().getName() + " correlation " +
-                                                                              "WHERE correlation.startStateIdentifier" +
-                                 " = :state OR correlation.endStateIdentifier = :state " +
+    @NonNull final TypedQuery<Correlation> query = _entityManager
+                                                     .createQuery(
+                                                       "SELECT correlation FROM " + getManagedEntity().getName() +
+                                                       " correlation " + "WHERE correlation" + ".startStateIdentifier" +
+                                                       " = :state OR correlation.endStateIdentifier = " +
+                                                       ":stateIdentifier " +
                                                                               "ORDER BY correlation.identifier",
                                                                               getManagedEntity()
     )
-                                                                 .setParameter("state", state)
+                                                     .setParameter(
+                                                       "stateIdentifier",
+                                                       stateIdentifier
+                                                     )
                                                                  .setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
@@ -48,16 +51,19 @@ public class DatabaseCorrelationRepository
 
   @Override
   public @NonNull List<@NonNull Correlation> findCorrelationsThatStartBy (
-    @NonNull final ApplicationEntityReference<? extends State> state, @NonNull final Cursor cursor
+    @NonNull final Long stateIdentifier, @NonNull final Cursor cursor
   )
   {
     @NonNull final TypedQuery<Correlation> query =
       _entityManager.createQuery("SELECT correlation FROM " + getManagedEntity().getName() + " correlation " +
-                                                                              "WHERE correlation.startStateIdentifier" +
-                                 " = :state " + "ORDER BY correlation.identifier",
+                                 "WHERE correlation" + ".startStateIdentifier" + " = :stateIdentifier " +
+                                 "ORDER BY correlation.identifier",
                                                                               getManagedEntity()
     )
-                                                                 .setParameter("state", state)
+        .setParameter(
+          "stateIdentifier",
+          stateIdentifier
+        )
                                                                  .setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
@@ -67,19 +73,21 @@ public class DatabaseCorrelationRepository
 
   @Override
   public @NonNull List<@NonNull Correlation> findCorrelationsWithNameAndThatStartBy (
-    @NonNull final String name,
-    @NonNull final ApplicationEntityReference<? extends State> state,
+    @NonNull final String name, @NonNull final Long stateIdentifier,
     @NonNull final Cursor cursor
   )
   {
     @NonNull final TypedQuery<Correlation> query =
       _entityManager.createQuery("SELECT correlation FROM " + getManagedEntity().getName() + " correlation " +
-                                                                              "WHERE correlation.startStateIdentifier" +
-                                 " = :state AND correlation.name = :name " +
-                                                                              "ORDER BY correlation.identifier",
+                                 "WHERE correlation" + ".startStateIdentifier" +
+                                 " = :stateIdentifier AND correlation.name = :name " +
+                                 "ORDER BY correlation.identifier",
                                                                               getManagedEntity()
     )
-                                                                 .setParameter("state", state)
+        .setParameter(
+          "stateIdentifier",
+          stateIdentifier
+        )
                                                                  .setParameter("name", name)
                                                                  .setFirstResult(cursor.getOffset());
 
@@ -90,26 +98,33 @@ public class DatabaseCorrelationRepository
 
   @Override
   public @NonNull List<@NonNull Correlation> findCorrelationsFromSeriesWithNameAndThatStartBy (
-    @NonNull final ApplicationEntityReference<? extends Sensor> sensor,
-    @NonNull final String name,
-    @NonNull final ApplicationEntityReference<? extends State> state,
+    @NonNull final Long sensorIdentifier,
+    @NonNull final String name, @NonNull final Long stateIdentifier,
     @NonNull final Cursor cursor
   )
   {
-    @NonNull final TypedQuery<Correlation> query =
-      _entityManager.createQuery("SELECT correlation FROM " + getManagedEntity().getName() + " correlation " + "INNER" +
-                                 " JOIN " +
-                                                                              State.class.getName() + " state ON " +
-                                 "correlation.startStateIdentifier = state.identifier " +
-                                                                              "WHERE correlation.startStateIdentifier" +
-                                 " = :state " + "  AND correlation.name = :name " +
-                                                                              "  AND state.sensorIdentifier = :sensor" +
-                                 " " + "ORDER BY correlation.identifier",
-                                                                              getManagedEntity()
+    @NonNull final TypedQuery<Correlation> query = _entityManager
+                                                     .createQuery(
+                                                       "SELECT correlation FROM " + getManagedEntity().getName() +
+                                                       " correlation " + "INNER" + " JOIN " + State.class.getName() +
+                                                       " stateIdentifier ON " +
+                                                       "correlation.startStateIdentifier = stateIdentifier.identifier" +
+                                                       " " +
+                                                       "WHERE correlation" + ".startStateIdentifier" +
+                                                       " = :stateIdentifier " + "  AND correlation.name = :name " +
+                                                       "  AND stateIdentifier.sensorIdentifier = " +
+                                                       ":sensorIdentifier" + " " + "ORDER BY correlation.identifier",
+                                                       getManagedEntity()
     )
-                                                                 .setParameter("state", state)
+                                                     .setParameter(
+                                                       "stateIdentifier",
+                                                       stateIdentifier
+                                                     )
                                                                  .setParameter("name", name)
-                                                                 .setParameter("sensor", sensor)
+                                                     .setParameter(
+                                                       "sensorIdentifier",
+                                                       sensorIdentifier
+                                                     )
                                                                  .setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
@@ -119,13 +134,13 @@ public class DatabaseCorrelationRepository
 
   @Override
   public @NonNull List<@NonNull Correlation> findCorrelationsThatEndsBy (
-    @NonNull final ApplicationEntityReference<? extends State> state, @NonNull final Cursor cursor
+    @NonNull final Long state, @NonNull final Cursor cursor
   )
   {
     @NonNull final TypedQuery<Correlation> query =
       _entityManager.createQuery("SELECT correlation FROM " + getManagedEntity().getName() + " correlation " +
-                                                                              "WHERE correlation.endStateIdentifier =" +
-                                 " :state " + "ORDER BY correlation.identifier",
+                                 "WHERE correlation.endStateIdentifier " + "=" + " :state " +
+                                 "ORDER BY correlation.identifier",
                                                                               getManagedEntity()
     )
                                                                  .setParameter("state", state)
@@ -138,16 +153,25 @@ public class DatabaseCorrelationRepository
 
   @Override
   public @NonNull List<@NonNull Correlation> findCorrelationsWithNameAndThatEndsBy (
-    @NonNull final String name,
-    @NonNull final ApplicationEntityReference<? extends State> state,
+    @NonNull final String name, @NonNull final Long stateIdentifier,
     @NonNull final Cursor cursor
   )
   {
     @NonNull final TypedQuery<Correlation> query = _entityManager.createQuery(
       "SELECT correlation FROM " + getManagedEntity().getName() + " correlation " +
-      "WHERE correlation.endStateIdentifier = :state AND correlation.name = :name " + "ORDER BY correlation.identifier",
+      "WHERE correlation.endStateIdentifier = :stateIdentifier AND correlation.name = :name " +
+      "ORDER BY correlation.identifier",
       getManagedEntity()
-    ).setParameter("state", state).setParameter("name", name).setFirstResult(cursor.getOffset());
+    )
+                                                     .setParameter(
+                                                       "stateIdentifier",
+                                                       stateIdentifier
+                                                     )
+                                                     .setParameter(
+                                                       "name",
+                                                       name
+                                                     )
+                                                     .setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -156,21 +180,32 @@ public class DatabaseCorrelationRepository
 
   @Override
   public @NonNull List<@NonNull Correlation> findCorrelationsFromSeriesWithNameAndThatEndsBy (
-    @NonNull final ApplicationEntityReference<? extends Sensor> sensor,
-    @NonNull final String name,
-    @NonNull final ApplicationEntityReference<? extends State> state,
+    @NonNull final Long sensorIdentifier,
+    @NonNull final String name, @NonNull final Long stateIdentifier,
     @NonNull final Cursor cursor
   )
   {
-    @NonNull final TypedQuery<Correlation> query = _entityManager.createQuery("SELECT correlation FROM " + getManagedEntity().getName() + " correlation " + "INNER JOIN " +
-                                                                              State.class.getName() + " state ON correlation.startStateIdentifier = state.identifier " +
-                                                                              "WHERE correlation.endStateIdentifier = :state " + "  AND correlation.name = :name " +
-                                                                              "  AND state.sensorIdentifier = :sensor " + "ORDER BY correlation.identifier",
+    @NonNull final TypedQuery<Correlation> query = _entityManager
+                                                     .createQuery(
+                                                       "SELECT correlation FROM " + getManagedEntity().getName() +
+                                                       " correlation " + "INNER" + " JOIN " + State.class.getName() +
+                                                       " stateIdentifier ON " +
+                                                       "correlation.startStateIdentifier = stateIdentifier.identifier " +
+                                                       "WHERE correlation.endStateIdentifier =" + " :stateIdentifier " +
+                                                       "  AND correlation.name = :name " +
+                                                       "  AND stateIdentifier.sensorIdentifier = :sensorIdentifier" +
+                                                       " " + "ORDER BY correlation.identifier",
                                                                               getManagedEntity()
     )
-                                                                 .setParameter("state", state)
+                                                     .setParameter(
+                                                       "stateIdentifier",
+                                                       stateIdentifier
+                                                     )
                                                                  .setParameter("name", name)
-                                                                 .setParameter("sensor", sensor)
+                                                     .setParameter(
+                                                       "sensorIdentifier",
+                                                       sensorIdentifier
+                                                     )
                                                                  .setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());

@@ -1,8 +1,6 @@
 package org.liara.api.data.repository.database;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.data.repository.ValueStateRepository;
 import org.liara.collection.operator.cursoring.Cursor;
@@ -35,8 +33,7 @@ public class DatabaseValueStateRepository<Value>
 
   @Override
   public @NonNull List<@NonNull ValueState<Value>> findPreviousWithValue (
-    @NonNull final ZonedDateTime date,
-    @NonNull final List<@NonNull ApplicationEntityReference<? extends Sensor>> inputSensors,
+    @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
@@ -50,10 +47,13 @@ public class DatabaseValueStateRepository<Value>
         " WHERE state.emissionDate < :date ",
         "   AND state.sensorIdentifier IN :sensors ",
         "   AND state.value = :value",
-        " ORDER BY state.emissionDate DESC"
+        " ORDER BY state.emissionDate DESC, state.identifier DESC"
       ), getManagedEntity()
     ).setParameter("date", date)
-                                                                        .setParameter("sensors", inputSensors)
+                                                            .setParameter(
+                                                              "sensors",
+                                                              inputSensorIdentifiers
+                                                            )
                                                                         .setParameter("value", value)
                                                                         .setFirstResult(cursor.getOffset());
 
@@ -64,8 +64,7 @@ public class DatabaseValueStateRepository<Value>
 
   @Override
   public @NonNull List<@NonNull ValueState<Value>> findNextWithValue (
-    @NonNull final ZonedDateTime date,
-    @NonNull final List<@NonNull ApplicationEntityReference<? extends Sensor>> inputSensors,
+    @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
@@ -82,7 +81,10 @@ public class DatabaseValueStateRepository<Value>
         " ORDER BY state.emissionDate ASC"
       ), getManagedEntity()
     ).setParameter("date", date)
-                                                                        .setParameter("sensors", inputSensors)
+                                                            .setParameter(
+                                                              "sensors",
+                                                              inputSensorIdentifiers
+                                                            )
                                                                         .setParameter("value", value)
                                                                         .setFirstResult(cursor.getOffset());
 
@@ -93,7 +95,7 @@ public class DatabaseValueStateRepository<Value>
 
   @Override
   public @NonNull List<@NonNull ValueState<Value>> findAllWithValue (
-    @NonNull final List<@NonNull ApplicationEntityReference<? extends Sensor>> inputSensors,
+    @NonNull final List<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
@@ -108,7 +110,10 @@ public class DatabaseValueStateRepository<Value>
         "   AND state.value = :value",
         " ORDER BY state.emissionDate ASC"
       ), getManagedEntity())
-                                                                        .setParameter("sensors", inputSensors)
+                                                            .setParameter(
+                                                              "sensors",
+                                                              inputSensorIdentifiers
+                                                            )
                                                                         .setParameter("value", value)
                                                                         .setFirstResult(cursor.getOffset());
 

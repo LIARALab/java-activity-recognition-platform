@@ -6,7 +6,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
@@ -37,19 +36,6 @@ public class ApplicationEntity
 
   @Nullable
   private ZonedDateTime _deletionDate;
-
-  public static <Entity extends ApplicationEntity> int orderByIdentifier (
-    @NonNull final Entity left, @NonNull final Entity right
-  )
-  {
-    if (left.getIdentifier() == null && right.getIdentifier() == null) {
-      return 0;
-    } else if (left.getIdentifier() == null || right.getIdentifier() == null) {
-      return left.getIdentifier() == null ? -1 : +1;
-    } else {
-      return left.getIdentifier().compareTo(right.getIdentifier());
-    }
-  }
 
   /**
    * Instantiate a new empty application entity.
@@ -114,7 +100,7 @@ public class ApplicationEntity
     _identifier = identifier;
   }
 
-  @Column(name = "uuid", nullable = false, updatable = true, unique = true)
+  @Column(name = "uuid", nullable = false, unique = true)
   public @Nullable UUID getUUID () {
     return _uuid;
   }
@@ -133,7 +119,7 @@ public class ApplicationEntity
    *
    * @return The date of the first insertion of this entity into the application database.
    */
-  @Column(name = "created_at", nullable = false, updatable = false, unique = false)
+  @Column(name = "created_at", nullable = false, updatable = false, precision = 6)
   @ColumnDefault(value = "CURRENT_TIMESTAMP")
   public @Nullable ZonedDateTime getCreationDate () {
     return _creationDate;
@@ -157,7 +143,7 @@ public class ApplicationEntity
    *
    * @return The date of deletion of this entity from the application database.
    */
-  @Column(name = "deleted_at", nullable = true, updatable = true, unique = false)
+  @Column(name = "deleted_at", precision = 6)
   public @Nullable ZonedDateTime getDeletionDate () {
     return _deletionDate;
   }
@@ -178,7 +164,7 @@ public class ApplicationEntity
    *
    * @return The date of the last mutation of this entity into the database.
    */
-  @Column(name = "updated_at", nullable = false, updatable = true, unique = false)
+  @Column(name = "updated_at", nullable = false, precision = 6)
   @ColumnDefault(value = "CURRENT_TIMESTAMP")
   @UpdateTimestamp
   public @Nullable ZonedDateTime getUpdateDate () {
@@ -202,17 +188,6 @@ public class ApplicationEntity
   @Transient
   public @NonNull Class<? extends ApplicationEntity> getBaseClass () {
     return ApplicationEntity.getBaseTypeOf(getClass());
-  }
-
-  /**
-   * Return a reference on this entity.
-   *
-   * @return A reference on this entity.
-   */
-  @JsonIgnore
-  @Transient
-  public @NonNull ApplicationEntityReference<? extends ApplicationEntity> getReference () {
-    return ApplicationEntityReference.of(this);
   }
 
   /**

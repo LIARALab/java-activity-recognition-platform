@@ -5,7 +5,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
 import org.liara.api.utils.Duplicator;
@@ -18,7 +17,7 @@ public class LocalSensorRepository
        implements SensorRepository
 {
   @Nullable
-  private Map<String, Set<Sensor>> _sensorsByType;
+  private Map<@NonNull String, @NonNull Set<@NonNull Sensor>> _sensorsByType;
   
   public LocalSensorRepository() {
     super(Sensor.class);
@@ -32,8 +31,7 @@ public class LocalSensorRepository
     if (_sensorsByType.containsKey(type)) {
       return _sensorsByType.get(type)
                            .stream()
-                           .map(Duplicator::duplicate)
-                           .sorted(ApplicationEntity::orderByIdentifier)
+                           .map(Duplicator::duplicate).sorted(Comparator.comparing(ApplicationEntity::getIdentifier))
                            .collect(Collectors.toList());
     } else {
       return Collections.emptyList();
@@ -42,7 +40,7 @@ public class LocalSensorRepository
 
   @Override
   public @NonNull List<@NonNull Sensor> getSensorsOfTypeIntoNode (
-    @NonNull final String type, @NonNull final ApplicationEntityReference<? extends Node> node
+    @NonNull final String type, @NonNull final Long nodeIdentifier
   ) {
     if (getParent() == null) return Collections.emptyList();
 
@@ -52,7 +50,10 @@ public class LocalSensorRepository
       @Nullable Node parent = nodeRepository.find(sensor.getNodeIdentifier()).get();
       
       while (parent != null) {
-        if (Objects.equals(parent.getReference(), node)) {
+        if (Objects.equals(
+          parent.getIdentifier(),
+          nodeIdentifier
+        )) {
           return true;
         } else {
           parent = nodeRepository.getParentOf(parent);
@@ -60,7 +61,7 @@ public class LocalSensorRepository
       }
       
       return false;
-    }).sorted(ApplicationEntity::orderByIdentifier).collect(Collectors.toList());
+    }).sorted(Comparator.comparing(ApplicationEntity::getIdentifier)).collect(Collectors.toList());
   }
 
   @Override
@@ -77,7 +78,10 @@ public class LocalSensorRepository
       if (oldSensor != null) {
         _sensorsByType.get(oldSensor.getType()).remove(oldSensor);
       } else if (!_sensorsByType.containsKey(newSensor.getType())) {
-        _sensorsByType.put(newSensor.getType(), new HashSet<>());
+        _sensorsByType.put(
+          newSensor.getType().getName(),
+          new HashSet<>()
+        );
       }
 
       _sensorsByType.get(newSensor.getType()).add(newSensor);

@@ -2,7 +2,6 @@ package org.liara.api.data.entity;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,13 +13,13 @@ public class TagRelation
   extends ApplicationEntity
 {
   @Nullable
-  private ApplicationEntityReference<? extends ApplicationEntity> _entityIdentifier;
+  private Long _entityIdentifier;
 
   @Nullable
   private Class<? extends ApplicationEntity> _entityType;
 
   @Nullable
-  private ApplicationEntityReference<? extends Tag> _tagIdentifier;
+  private Long _tagIdentifier;
 
   public TagRelation () {
     _entityIdentifier = null;
@@ -35,12 +34,12 @@ public class TagRelation
   }
 
   @Column(name = "entity_identifier", nullable = false)
-  public @Nullable ApplicationEntityReference<? extends ApplicationEntity> getEntityIdentifier () {
+  public @Nullable Long getEntityIdentifier () {
     return _entityIdentifier;
   }
 
   public void setEntityIdentifier (
-    @Nullable final ApplicationEntityReference<? extends ApplicationEntity> entityIdentifier
+    @Nullable final Long entityIdentifier
   )
   {
     _entityIdentifier = entityIdentifier;
@@ -56,11 +55,11 @@ public class TagRelation
   }
 
   @Column(name = "tag_identifier", nullable = false)
-  public @Nullable ApplicationEntityReference<? extends Tag> getTagIdentifier () {
+  public @Nullable Long getTagIdentifier () {
     return _tagIdentifier;
   }
 
-  public void setTagIdentifier (@Nullable final ApplicationEntityReference<? extends Tag> tagIdentifier) {
+  public void setTagIdentifier (@Nullable final Long tagIdentifier) {
     _tagIdentifier = tagIdentifier;
   }
 }

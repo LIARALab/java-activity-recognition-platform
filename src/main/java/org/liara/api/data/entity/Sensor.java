@@ -1,10 +1,9 @@
 package org.liara.api.data.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.recognition.sensor.type.SensorType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -21,16 +20,13 @@ public class Sensor
   private String _name;
 
   @Nullable
-  private String _type;
+  private SensorType _type;
 
   @Nullable
   private String _unit;
 
   @Nullable
-  private ApplicationEntityReference<? extends Node> _nodeIdentifier;
-
-  @Nullable
-  private Boolean _isVirtual;
+  private Long _nodeIdentifier;
 
   @Nullable
   private SensorConfiguration _configuration;
@@ -42,7 +38,6 @@ public class Sensor
     _unit = null;
     _nodeIdentifier = null;
     _configuration = null;
-    _isVirtual = null;
   }
 
   public Sensor (@NonNull final Sensor toCopy) {
@@ -50,8 +45,8 @@ public class Sensor
     _name = toCopy.getName();
     _type = toCopy.getType();
     _unit = toCopy.getUnit();
+    _nodeIdentifier = toCopy.getNodeIdentifier();
     _configuration = toCopy.getConfiguration();
-    _isVirtual = toCopy.isVirtual();
   }
 
   @Column(name = "name", nullable = false)
@@ -64,36 +59,21 @@ public class Sensor
   }
 
   @Column(name = "node_identifier", nullable = false)
-  public @Nullable ApplicationEntityReference<? extends Node> getNodeIdentifier () {
+  public @Nullable Long getNodeIdentifier () {
     return _nodeIdentifier;
   }
 
-  public void setNodeIdentifier (ApplicationEntityReference nodeIdentifier) {
+  public void setNodeIdentifier (@Nullable final Long nodeIdentifier) {
     _nodeIdentifier = nodeIdentifier;
   }
 
   @Column(name = "type", nullable = false, updatable = true, unique = false)
-  public @Nullable String getType () {
+  public @Nullable SensorType getType () {
     return _type;
   }
 
-  public void setType (@Nullable final String type) {
+  public void setType (@Nullable final SensorType type) {
     _type = type;
-  }
-
-  @JsonIgnore
-  @Transient
-  public @Nullable Class<?> getTypeClass () {
-    try {
-      return (_type == null) ? null : Class.forName(_type);
-    } catch (final ClassNotFoundException exception) {
-      throw new Error("Invalid sensor type " + _type + ", no class found for the given type.");
-    }
-  }
-
-  @Transient
-  public void setTypeClass (@Nullable final Class<?> type) {
-    _type = (type == null) ? null : type.getTypeName();
   }
 
   @Column(name = "unit", nullable = true, updatable = true, unique = false)
@@ -114,36 +94,6 @@ public class Sensor
   @Transient
   public void setConfiguration (@Nullable final SensorConfiguration configuration) {
     _configuration = configuration;
-  }
-
-  @Transient
-  public boolean isOfType (@NonNull final Class<?> type) {
-    return _type.equals(type.getName());
-  }
-
-  @Column(name = "is_virtual_sensor", nullable = false, updatable = true, unique = false)
-  public @Nullable Boolean isVirtual () {
-    return _isVirtual;
-  }
-
-  public void setVirtual (@Nullable final Boolean isVirtual) {
-    _isVirtual = isVirtual;
-  }
-
-  @Transient
-  public @Nullable Boolean isNative () {
-    return !_isVirtual;
-  }
-
-  @Transient
-  public void setNative (@Nullable final Boolean isNative) {
-    _isVirtual = (isNative == null) ? null : !isNative;
-  }
-
-  @Override
-  @Transient
-  public @NonNull ApplicationEntityReference<? extends Sensor> getReference () {
-    return ApplicationEntityReference.of(this);
   }
 }
 

@@ -3,7 +3,7 @@ package org.liara.api.recognition.sensor.common.virtual.updown.label;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.LabelState;
 import org.liara.api.data.entity.state.State;
@@ -15,9 +15,8 @@ import org.liara.api.data.repository.ValueStateRepository;
 import org.liara.api.event.ApplicationEntityEvent;
 import org.liara.api.event.StateEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
-import org.liara.api.recognition.sensor.EmitStateOfType;
-import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
+import org.liara.api.recognition.sensor.type.ComputedSensorType;
 import org.liara.api.utils.Duplicator;
 import org.liara.collection.operator.cursoring.Cursor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +28,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-@UseSensorConfigurationOfType(UpDownToLabelSensorConfiguration.class)
-@EmitStateOfType(LabelState.class)
 @Component
 @Scope("prototype")
 public class UpDownToLabelSensor
   extends AbstractVirtualSensorHandler
+  implements ComputedSensorType
 {
   @NonNull
   private final ApplicationEventPublisher _publisher;
@@ -75,7 +73,7 @@ public class UpDownToLabelSensor
     return getRunner().getSensor();
   }
 
-  public @NonNull ApplicationEntityReference<? extends Sensor> getInputSensor () {
+  public @NonNull Long getInputSensor () {
     return getConfiguration().getInputSensor();
   }
 
@@ -121,7 +119,9 @@ public class UpDownToLabelSensor
   }
 
   public void inputStateWasCreated (@NonNull final ValueState<Boolean> current) {
-    @NonNull final Optional<LabelState> previous = _outputs.findAt(current.getEmissionDate(), getSensor().getReference()
+    @NonNull final Optional<LabelState> previous = _outputs.findAt(
+      current.getEmissionDate(),
+      getSensor().getIdentifier()
     );
 
     if (previous.isPresent() && previous.get().contains(current.getEmissionDate())) {
@@ -142,7 +142,10 @@ public class UpDownToLabelSensor
     if (!next.isPresent()) {
       begin(current);
     } else if (next.get().getValue()) {
-      begin(current, findLabelStateCorrelatedWith(next.get().getReference()).get());
+      begin(
+        current,
+        findLabelStateCorrelatedWith(next.get().getIdentifier()).get()
+      );
     } else {
       create(current, next.get());
     }
@@ -184,7 +187,7 @@ public class UpDownToLabelSensor
     @NonNull final ValueState<Boolean> previous, @NonNull final ValueState<Boolean> next
   )
   {
-    @NonNull final Optional<LabelState> correlated = findLabelStateCorrelatedWith(next.getReference());
+    @NonNull final Optional<LabelState> correlated = findLabelStateCorrelatedWith(next.getIdentifier());
 
     if (!correlated.isPresent()) {
       inputStateWasCreated(next);
@@ -293,7 +296,10 @@ public class UpDownToLabelSensor
   )
   {
     if (next != null && next.getValue()) {
-      merge(correlated, findLabelStateCorrelatedWith(next.getReference()).get());
+      merge(
+        correlated,
+        findLabelStateCorrelatedWith(next.getIdentifier()).get()
+      );
     } else {
       finish(correlated, next);
     }
@@ -319,7 +325,7 @@ public class UpDownToLabelSensor
     @NonNull final ValueState<Boolean> state
   )
   {
-    @NonNull final Optional<LabelState> correlated = findLabelStateCorrelatedWith(state.getReference());
+    @NonNull final Optional<LabelState> correlated = findLabelStateCorrelatedWith(state.getIdentifier());
 
     if (correlated.isPresent()) {
       onBoundaryDeletion(correlated.get(), state);
@@ -334,7 +340,10 @@ public class UpDownToLabelSensor
 
     if (Objects.equals(getEnd(correlated).get(), state)) {
       if (next != null && next.getValue()) {
-        merge(correlated, findLabelStateCorrelatedWith(next.getReference()).get());
+        merge(
+          correlated,
+          findLabelStateCorrelatedWith(next.getIdentifier()).get()
+        );
       } else {
         finish(correlated, next);
       }
@@ -371,7 +380,7 @@ public class UpDownToLabelSensor
       _publisher.publishEvent(new ApplicationEntityEvent.Delete(endCorrelation));
       _publisher.publishEvent(new ApplicationEntityEvent.Update(current));
     } else {
-      endCorrelation.setEndStateIdentifier(next.getReference());
+      endCorrelation.setEndStateIdentifier(next.getIdentifier());
       _publisher.publishEvent(new ApplicationEntityEvent.Update(current, endCorrelation));
     }
   }
@@ -387,7 +396,7 @@ public class UpDownToLabelSensor
     @NonNull final LabelState state = new LabelState();
 
     state.setEmissionDate(start.getEmissionDate());
-    state.setSensorIdentifier(getSensor().getReference());
+    state.setSensorIdentifier(getSensor().getIdentifier());
     state.setStart(start.getEmissionDate());
     state.setEnd(end == null ? null : end.getEmissionDate());
 
@@ -396,8 +405,8 @@ public class UpDownToLabelSensor
     @NonNull final Correlation startCorrelation = new Correlation();
 
     startCorrelation.setName("start");
-    startCorrelation.setStartStateIdentifier(state.getReference());
-    startCorrelation.setEndStateIdentifier(start.getReference());
+    startCorrelation.setStartStateIdentifier(state.getIdentifier());
+    startCorrelation.setEndStateIdentifier(start.getIdentifier());
 
     _publisher.publishEvent(new ApplicationEntityEvent.Create(this, startCorrelation));
 
@@ -405,8 +414,8 @@ public class UpDownToLabelSensor
       @NonNull final Correlation endCorrelation = new Correlation();
 
       startCorrelation.setName("end");
-      startCorrelation.setStartStateIdentifier(state.getReference());
-      startCorrelation.setEndStateIdentifier(end.getReference());
+      startCorrelation.setStartStateIdentifier(state.getIdentifier());
+      startCorrelation.setEndStateIdentifier(end.getIdentifier());
 
       _publisher.publishEvent(new ApplicationEntityEvent.Create(this, endCorrelation));
     }
@@ -423,59 +432,76 @@ public class UpDownToLabelSensor
     mutation.setEmissionDate(current.getEmissionDate());
 
     @NonNull final Correlation startCorrelation = getStartCorrelation(state);
-    startCorrelation.setEndStateIdentifier(state.getReference());
+    startCorrelation.setEndStateIdentifier(state.getIdentifier());
 
     _publisher.publishEvent(new ApplicationEntityEvent.Update(this, state, startCorrelation));
   }
 
   private @NonNull Correlation getStartCorrelation (@NonNull final LabelState label) {
-    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(getSensor().getReference(),
-                                                                              "start",
-                                                                              label.getReference()
+    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
+      getSensor().getIdentifier(),
+      "start",
+      label.getIdentifier()
     ).get();
   }
 
   private @NonNull ValueState<Boolean> getStart (@NonNull final LabelState label) {
-    return _inputs.find(getStartCorrelation(label).getEndStateIdentifier().getIdentifier()).get();
+    return _inputs.find(getStartCorrelation(label).getEndStateIdentifier()).get();
   }
 
   private @NonNull Optional<Correlation> getEndCorrelation (@NonNull final LabelState label) {
-    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(getSensor().getReference(),
-                                                                              "end",
-                                                                              label.getReference()
+    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
+      getSensor().getIdentifier(),
+      "end",
+      label.getIdentifier()
     );
   }
 
   private @NonNull Optional<ValueState<Boolean>> getEnd (@NonNull final LabelState label) {
     @NonNull final Optional<Correlation> correlation = getEndCorrelation(label);
 
-    return correlation.isPresent() ? _inputs.find(correlation.get().getEndStateIdentifier().getIdentifier())
+    return correlation.isPresent() ? _inputs.find(correlation.get().getEndStateIdentifier())
                                    : Optional.empty();
   }
 
   private @NonNull Optional<LabelState> findLabelStateCorrelatedWith (
-    @NonNull final ApplicationEntityReference<? extends State> state
+    @NonNull final Long state
   ) {
     @NonNull final Optional<Correlation> start = _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
-      getSensor().getReference(),
+      getSensor().getIdentifier(),
       "start",
       state
     );
 
     if (start.isPresent()) {
-      return _outputs.find(start.get().getStartStateIdentifier().getIdentifier());
+      return _outputs.find(start.get().getStartStateIdentifier());
     }
 
     @NonNull final Optional<Correlation> end = _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
-      getSensor().getReference(),
+      getSensor().getIdentifier(),
       "end",
       state
     );
 
     if (end.isPresent()) {
-      return _outputs.find(end.get().getStartStateIdentifier().getIdentifier());
+      return _outputs.find(end.get().getStartStateIdentifier());
     } else {
       return Optional.empty();
     }
+  }
+
+  @Override
+  public @NonNull Class<? extends State> getEmittedStateClass () {
+    return LabelState.class;
+  }
+
+  @Override
+  public @NonNull Class<? extends SensorConfiguration> getConfigurationClass () {
+    return UpDownToLabelSensorConfiguration.class;
+  }
+
+  @Override
+  public @NonNull String getName () {
+    return "liara:updownlabel";
   }
 }

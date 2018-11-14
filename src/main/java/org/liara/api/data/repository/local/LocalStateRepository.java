@@ -3,8 +3,6 @@ package org.liara.api.data.repository.local;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.StateRepository;
 import org.liara.api.utils.Duplicator;
@@ -33,11 +31,10 @@ public class LocalStateRepository<TimeState extends State>
 
   @Override
   public @NonNull List<@NonNull TimeState> findPrevious (
-    @NonNull final ZonedDateTime date,
-    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors,
+    @NonNull final ZonedDateTime date, @NonNull final Collection<@NonNull Long> sensorIdentifiers,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensors);
+    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensorIdentifiers);
 
 
     if (union.size() >= 0) {
@@ -68,12 +65,11 @@ public class LocalStateRepository<TimeState extends State>
 
   @Override
   public @NonNull List<@NonNull TimeState> findNext (
-    @NonNull final ZonedDateTime date,
-    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors,
+    @NonNull final ZonedDateTime date, @NonNull final Collection<@NonNull Long> sensorIdentifiers,
     @NonNull final Cursor cursor
   )
   {
-    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensors);
+    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensorIdentifiers);
 
 
     if (union.size() > 0) {
@@ -97,10 +93,10 @@ public class LocalStateRepository<TimeState extends State>
 
   @Override
   public @NonNull List<@NonNull TimeState> find (
-    @NonNull final ApplicationEntityReference<? extends Sensor> sensor, @NonNull final Cursor cursor
+    @NonNull final Long sensorIdentifier, @NonNull final Cursor cursor
   ) {
-    if (_statesBySensors.containsKey(sensor.getIdentifier())) {
-      @NonNull final List<@NonNull TimeState> result = _statesBySensors.get(sensor.getIdentifier())
+    if (_statesBySensors.containsKey(sensorIdentifier)) {
+      @NonNull final List<@NonNull TimeState> result = _statesBySensors.get(sensorIdentifier)
                                                                        .stream()
                                                                        .map(Entry::getState)
                                                                        .map(Duplicator::duplicate)
@@ -119,11 +115,11 @@ public class LocalStateRepository<TimeState extends State>
 
   @Override
   public @NonNull List<@NonNull TimeState> find (
-    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors,
+    @NonNull final Collection<@NonNull Long> sensorIdentifiers,
     @NonNull final Cursor cursor
   )
   {
-    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensors);
+    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensorIdentifiers);
 
     if (union.size() > 0) {
       @NonNull final List<@NonNull TimeState> result = union.stream()
@@ -144,10 +140,10 @@ public class LocalStateRepository<TimeState extends State>
 
   @Override
   public @NonNull Optional<TimeState> findLast (
-    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors
+    @NonNull final Collection<@NonNull Long> sensorIdentifiers
   )
   {
-    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensors);
+    @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensorIdentifiers);
 
     if (union.size() > 0) {
       return Optional.of(union.last().getState());
@@ -157,21 +153,24 @@ public class LocalStateRepository<TimeState extends State>
   }
 
   private @NonNull TreeSet<@NonNull Entry<TimeState>> getStatesOf (
-    @NonNull final Collection<@NonNull ApplicationEntityReference<? extends Sensor>> sensors
+    @NonNull final Collection<@NonNull Long> sensorIdentifiers
   )
   {
-    if (sensors.size() == 0) return new TreeSet<>();
+    if (sensorIdentifiers.size() == 0) return new TreeSet<>();
 
     @NonNull final TreeSet<@NonNull Entry<TimeState>> union;
 
-    if (sensors.size() == 1) {
-      union = _statesBySensors.getOrDefault(sensors.iterator().next(), new TreeSet<>());
+    if (sensorIdentifiers.size() == 1) {
+      union = _statesBySensors.getOrDefault(
+        sensorIdentifiers.iterator().next(),
+        new TreeSet<>()
+      );
     } else {
       union = new TreeSet<>();
 
-      for (@NonNull final ApplicationEntityReference<? extends Sensor> sensor : sensors) {
-        if (_statesBySensors.containsKey(sensor.getIdentifier())) {
-          union.addAll(_statesBySensors.get(sensor.getIdentifier()));
+      for (@NonNull final Long sensor : sensorIdentifiers) {
+        if (_statesBySensors.containsKey(sensor)) {
+          union.addAll(_statesBySensors.get(sensor));
         }
       }
     }
@@ -191,12 +190,15 @@ public class LocalStateRepository<TimeState extends State>
       @NonNull final TimeState  newState = getManagedEntity().cast(newEntity);
 
       if (oldEntity != null) {
-        _statesBySensors.get(oldState.getSensorIdentifier().getIdentifier()).remove(new Entry<>(oldState));
-      } else if (!_statesBySensors.containsKey(newState.getSensorIdentifier().getIdentifier())) {
-        _statesBySensors.put(newState.getSensorIdentifier().getIdentifier(), new TreeSet<>());
+        _statesBySensors.get(oldState.getSensorIdentifier()).remove(new Entry<>(oldState));
+      } else if (!_statesBySensors.containsKey(newState.getSensorIdentifier())) {
+        _statesBySensors.put(
+          newState.getSensorIdentifier(),
+          new TreeSet<>()
+        );
       }
 
-      _statesBySensors.get(newState.getSensorIdentifier().getIdentifier()).add(new Entry<>(newState));
+      _statesBySensors.get(newState.getSensorIdentifier()).add(new Entry<>(newState));
     }
   }
 
@@ -207,10 +209,10 @@ public class LocalStateRepository<TimeState extends State>
     if (getManagedEntity().isInstance(entity)) {
       @NonNull final TimeState state = getManagedEntity().cast(entity);
 
-      _statesBySensors.get(state.getSensorIdentifier().getIdentifier()).remove(new Entry<>(state));
+      _statesBySensors.get(state.getSensorIdentifier()).remove(new Entry<>(state));
 
-      if (_statesBySensors.get(state.getSensorIdentifier().getIdentifier()).size() <= 0) {
-        _statesBySensors.remove(state.getSensorIdentifier().getIdentifier());
+      if (_statesBySensors.get(state.getSensorIdentifier()).size() <= 0) {
+        _statesBySensors.remove(state.getSensorIdentifier());
       }
     }
   }

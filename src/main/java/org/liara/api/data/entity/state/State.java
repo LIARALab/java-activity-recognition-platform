@@ -24,8 +24,6 @@ package org.liara.api.data.entity.state;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
@@ -39,7 +37,7 @@ public class State extends ApplicationEntity
   private ZonedDateTime _emissionDate;
 
   @Nullable
-  private ApplicationEntityReference<? extends Sensor> _sensorIdentifier;
+  private Long _sensorIdentifier;
   
   public State () {
     _emissionDate = null;
@@ -53,26 +51,20 @@ public class State extends ApplicationEntity
   }
 
   @Column(name = "sensor_identifier", nullable = false)
-  public @Nullable ApplicationEntityReference<? extends Sensor> getSensorIdentifier () {
+  public @Nullable Long getSensorIdentifier () {
     return _sensorIdentifier;
   }
 
-  public void setSensorIdentifier (@Nullable final ApplicationEntityReference<? extends Sensor> sensorIdentifier) {
+  public void setSensorIdentifier (@Nullable final Long sensorIdentifier) {
     _sensorIdentifier = sensorIdentifier;
   }
 
-  @Column(name = "emitted_at", nullable = false, updatable = true, unique = false)
+  @Column(name = "emitted_at", nullable = false, precision = 6)
   public @Nullable ZonedDateTime getEmissionDate () {
     return _emissionDate;
   }
 
   public void setEmissionDate (@Nullable final ZonedDateTime emissionDate) {
     _emissionDate = emissionDate;
-  }
-
-  @Override
-  @Transient
-  public @NonNull ApplicationEntityReference<? extends State> getReference () {
-    return ApplicationEntityReference.of(this);
   }
 }

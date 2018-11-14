@@ -2,8 +2,6 @@ package org.liara.api.data.entity.schema;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.data.entity.Node;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
 public class NodeSchema
 {
@@ -14,11 +12,11 @@ public class NodeSchema
   private String _name;
 
   @Nullable
-  private ApplicationEntityReference<Node> _parent;
+  private Long _parent;
 
   public NodeSchema () {
     _name = null;
-    _parent = ApplicationEntityReference.empty(Node.class);
+    _parent = null;
     _identifier = null;
   }
 
@@ -56,12 +54,11 @@ public class NodeSchema
     _name = name;
   }
 
-  public @Nullable
-  final ApplicationEntityReference<Node> getParent () {
+  public @Nullable Long getParent () {
     return _parent;
   }
 
-  public void setParent (@Nullable final ApplicationEntityReference<Node> parent) {
+  public void setParent (@Nullable final Long parent) {
     _parent = parent;
   }
 }

@@ -1,8 +1,6 @@
 package org.liara.api.data.repository.local;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.entity.state.LabelState;
 import org.liara.api.data.repository.LabelStateRepository;
 
@@ -19,8 +17,11 @@ public class LocalLabelStateRepository
 
   @Override
   public @NonNull Optional<LabelState> findAt (
-    @NonNull final ZonedDateTime area, @NonNull final ApplicationEntityReference<? extends Sensor> sensor
+    @NonNull final ZonedDateTime area, @NonNull final Long sensorIdentifier
   ) {
-    return findPrevious(area, sensor);
+    return findPrevious(
+      area,
+      sensorIdentifier
+    );
   }
 }

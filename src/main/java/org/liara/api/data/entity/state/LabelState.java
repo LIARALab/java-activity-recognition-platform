@@ -2,7 +2,6 @@ package org.liara.api.data.entity.state;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
 import javax.persistence.*;
 import java.time.Duration;
@@ -84,11 +83,5 @@ public class LabelState
     } else {
       return date.compareTo(getStart()) >= 0 && date.compareTo(getEnd()) < 0;
     }
-  }
-
-  @Override
-  @Transient
-  public @NonNull ApplicationEntityReference<? extends LabelState> getReference () {
-    return ApplicationEntityReference.of(this);
   }
 }

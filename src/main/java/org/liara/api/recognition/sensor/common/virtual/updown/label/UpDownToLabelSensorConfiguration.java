@@ -5,7 +5,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.validation.Required;
 import org.liara.api.validation.ValidApplicationEntityReference;
 
@@ -17,13 +16,13 @@ public class UpDownToLabelSensorConfiguration
 {
   @NonNull
   private final List<@NonNull String>                        _tags;
-  @NonNull
-  private       ApplicationEntityReference<? extends Sensor> _inputSensor;
+  @Nullable
+  private       Long                                         _inputSensor;
   @Nullable
   private       String                                       _label;
 
   public UpDownToLabelSensorConfiguration () {
-    _inputSensor = ApplicationEntityReference.empty(Sensor.class);
+    _inputSensor = null;
     _tags = new ArrayList<>();
     _label = null;
   }
@@ -31,7 +30,7 @@ public class UpDownToLabelSensorConfiguration
   public UpDownToLabelSensorConfiguration (
     @Nullable final Sensor inputSensor, @Nullable final String label
   ) {
-    _inputSensor = inputSensor == null ? ApplicationEntityReference.empty(Sensor.class) : inputSensor.getReference();
+    _inputSensor = inputSensor.getIdentifier();
     _tags = new ArrayList<>();
     _label = label;
   }
@@ -65,16 +64,16 @@ public class UpDownToLabelSensorConfiguration
 
   @ValidApplicationEntityReference
   @Required
-  public @NonNull ApplicationEntityReference<? extends Sensor> getInputSensor () {
+  public @NonNull Long getInputSensor () {
     return _inputSensor;
   }
 
   @JsonSetter
   public void setInputSensor (
-    @Nullable final ApplicationEntityReference<Sensor> sensor
+    @Nullable final Long sensor
   )
   {
-    _inputSensor = sensor == null ? ApplicationEntityReference.empty(Sensor.class) : sensor;
+    _inputSensor = sensor;
   }
 
   public @NonNull UpDownToLabelSensorConfiguration clone () {

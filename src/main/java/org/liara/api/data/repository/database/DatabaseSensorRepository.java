@@ -3,7 +3,6 @@ package org.liara.api.data.repository.database;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,7 @@ public class DatabaseSensorRepository
   }
 
   @Override
-  public List<Sensor> getSensorsOfType (
+  public @NonNull List<@NonNull Sensor> getSensorsOfType (
     @NonNull final String type
   ) {
     return _entityManager.createQuery(
@@ -51,10 +50,13 @@ public class DatabaseSensorRepository
   }
 
   @Override
-  public List<Sensor> getSensorsOfTypeIntoNode (
-    @NonNull final String type, @NonNull final ApplicationEntityReference<? extends Node> nodeReference
+  public @NonNull List<@NonNull Sensor> getSensorsOfTypeIntoNode (
+    @NonNull final String type, @NonNull final Long nodeIdentifier
   ) {
-    final Node node = _entityManager.find(Node.class, nodeReference.getIdentifier());
+    final Node node = _entityManager.find(
+      Node.class,
+      nodeIdentifier
+    );
     
     return _entityManager.createQuery(
       String.join(

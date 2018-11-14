@@ -3,7 +3,7 @@ package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.ValueState;
@@ -14,10 +14,8 @@ import org.liara.api.data.repository.ValueStateRepository;
 import org.liara.api.event.ApplicationEntityEvent;
 import org.liara.api.event.StateEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
-import org.liara.api.recognition.sensor.EmitStateOfType;
-import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
-import org.liara.api.recognition.sensor.type.NativeMotionSensor;
+import org.liara.api.recognition.sensor.type.ComputedSensorType;
 import org.liara.api.utils.Duplicator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,12 +27,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-@UseSensorConfigurationOfType(OneVsAllToUpDownMotionSensorConfiguration.class)
-@EmitStateOfType(ValueState.Boolean.class)
 @Component
 @Scope("prototype")
 public class OneVsAllToUpDownMotionSensor
   extends AbstractVirtualSensorHandler
+  implements ComputedSensorType
 {
   @NonNull
   private final ApplicationEventPublisher _applicationEventPublisher;
@@ -73,8 +70,8 @@ public class OneVsAllToUpDownMotionSensor
     return getRunner().getSensor();
   }
 
-  public @NonNull List<@NonNull ApplicationEntityReference<? extends Sensor>> getInputSensors () {
-    final @NonNull List<@NonNull ApplicationEntityReference<? extends Sensor>> result = new ArrayList<>();
+  public @NonNull List<@NonNull Long> getInputSensors () {
+    final @NonNull List<@NonNull Long> result = new ArrayList<>();
 
     _sensors.getSensorsOfTypeIntoNode(NativeMotionSensor.class,
                                       _nodes.getRoot(_nodes.find(getSensor().getNodeIdentifier()).get()).getReference()
@@ -129,7 +126,7 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final ValueState<Boolean> created
   )
   {
-    @NonNull final List<@NonNull ApplicationEntityReference<? extends Sensor>> inputSensors = getInputSensors();
+    @NonNull final List<@NonNull Long> inputSensors = getInputSensors();
     @NonNull final Optional<ValueState<Boolean>>                               previous     =
       _flags.findPreviousWithValue(
       created,
@@ -209,14 +206,14 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private @NonNull Optional<ValueState<Boolean>> findRelatedResult (
-    @NonNull final ApplicationEntityReference<? extends State> reference
+    @NonNull final Long reference
   )
   {
     @NonNull final Optional<Correlation> correlation =
       _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
-      getSensor().getReference(),
-      "origin",
-      reference
+        getSensor().getIdentifier(),
+        "origin",
+        reference
     );
 
     if (correlation.isPresent()) {
@@ -230,7 +227,7 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final ValueState<Boolean> base, @NonNull final ValueState<Boolean> updated
   )
   {
-    @NonNull final List<@NonNull ApplicationEntityReference<? extends Sensor>> inputSensors = getInputSensors();
+    @NonNull final List<@NonNull Long> inputSensors = getInputSensors();
     @NonNull final Optional<ValueState<Boolean>> previous = _flags.findPreviousWithValue(base.getEmissionDate(),
                                                                                          inputSensors,
                                                                                          true
@@ -251,7 +248,7 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final ValueState<Boolean> updated, @NonNull final Optional<ValueState<Boolean>> next
   )
   {
-    if (next.isPresent() == false) {
+    if (!next.isPresent()) {
       delete(updated);
       onMotionStateWasCreated(updated);
     } else if (Objects.equals(next.get(), updated)) {
@@ -284,9 +281,9 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   public void onMotionStateWillBeDeleted (@NonNull final ValueState<Boolean> state) {
-    if (!findRelatedResult(state.getReference()).isPresent()) return;
+    if (!findRelatedResult(state.getIdentifier()).isPresent()) return;
 
-    final List<ApplicationEntityReference<? extends Sensor>> inputs   = getInputSensors();
+    final List<Long> inputs = getInputSensors();
     final Optional<ValueState<Boolean>>                      previous = _flags.findPreviousWithValue(
       state.getEmissionDate(),
       inputs,
@@ -332,7 +329,7 @@ public class OneVsAllToUpDownMotionSensor
   private void delete (@NonNull final ValueState<Boolean> state) {
     _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Delete(
       this,
-      findRelatedResult(state.getReference()).get()
+      findRelatedResult(state.getIdentifier()).get()
     ));
   }
 
@@ -340,17 +337,18 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final ValueState<Boolean> from, @NonNull final ValueState<Boolean> to
   )
   {
-    @NonNull final ValueState<Boolean> toMove = Duplicator.duplicate(findRelatedResult(from.getReference()).get());
+    @NonNull final ValueState<Boolean> toMove = Duplicator.duplicate(findRelatedResult(from.getIdentifier()).get());
     toMove.setEmissionDate(to.getEmissionDate());
 
     if (!Objects.equals(from, to)) {
-      @NonNull final Correlation correlation =
-        Duplicator.duplicate(_correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(getSensor().getReference(),
-                                                                                                                                       "origin",
-                                                                                                                                       toMove
+      @NonNull final Correlation correlation = Duplicator.duplicate(_correlations
+                                                                      .findFirstCorrelationFromSeriesWithNameAndThatStartBy(
+                                                                        getSensor().getIdentifier(),
+                                                                        "origin",
+                                                                        toMove
                                                                                                                                          .getReference()
       ).get());
-      correlation.setEndStateIdentifier(to.getReference());
+      correlation.setEndStateIdentifier(to.getIdentifier());
 
       _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, toMove, correlation));
     } else {
@@ -366,17 +364,32 @@ public class OneVsAllToUpDownMotionSensor
     final ValueState.@NonNull Boolean flag = new ValueState.Boolean();
 
     flag.setEmissionDate(state.getEmissionDate());
-    flag.setSensorIdentifier(getSensor().getReference());
+    flag.setSensorIdentifier(getSensor().getIdentifier());
     flag.setValue(up);
 
     _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, flag));
 
     @NonNull final Correlation correlation = new Correlation();
 
-    correlation.setStartStateIdentifier(flag.getReference());
-    correlation.setEndStateIdentifier(state.getReference());
+    correlation.setStartStateIdentifier(flag.getIdentifier());
+    correlation.setEndStateIdentifier(state.getIdentifier());
     correlation.setName("origin");
 
     _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, correlation));
+  }
+
+  @Override
+  public @NonNull Class<? extends State> getEmittedStateClass () {
+    return ValueState.Boolean.class;
+  }
+
+  @Override
+  public @NonNull Class<? extends SensorConfiguration> getConfigurationClass () {
+    return OneVsAllToUpDownMotionSensorConfiguration.class;
+  }
+
+  @Override
+  public @NonNull String getName () {
+    return "liara:onevsall";
   }
 }

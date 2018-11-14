@@ -2,7 +2,6 @@ package org.liara.api.recognition.sensor;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.state.State;
 import org.liara.api.event.NodeEvent;
 import org.liara.api.event.SensorEvent;
 import org.liara.api.event.StateEvent;
@@ -11,25 +10,6 @@ public interface VirtualSensorHandler
 {
   static boolean isVirtual (@NonNull final Sensor sensor) {
     return VirtualSensorHandler.class.isAssignableFrom(sensor.getTypeClass());
-  }
-
-  static @NonNull Class<? extends State> emittedStateOf (@NonNull final Sensor sensor) {
-    final Class<?>        typeClass  = sensor.getTypeClass();
-    final EmitStateOfType annotation = typeClass.getAnnotation(EmitStateOfType.class);
-
-    if (annotation == null) {
-      throw new Error(String.join(
-        "",
-        "Unnable to retrieve the emitted state type of this sensor because the ",
-        "type of this sensor ",
-        typeClass.toString(),
-        " does not declare any ",
-        EmitStateOfType.class.toString(),
-        " annotation."
-      ));
-    } else {
-      return annotation.value();
-    }
   }
 
   /**

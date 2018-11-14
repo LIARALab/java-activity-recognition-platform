@@ -3,7 +3,6 @@ package org.liara.api.data.entity.state;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -14,10 +13,10 @@ public class Correlation
   extends ApplicationEntity
 {
   @Nullable
-  private ApplicationEntityReference<? extends State> _startStateIdentifier;
+  private Long _startStateIdentifier;
 
   @Nullable
-  private ApplicationEntityReference<? extends State> _endStateIdentifier;
+  private Long _endStateIdentifier;
 
   @Nullable
   private String _name;
@@ -34,22 +33,19 @@ public class Correlation
     _name = toCopy.getName();
   }
 
-  public @Nullable ApplicationEntityReference<? extends State> getStartStateIdentifier () {
+  public @Nullable Long getStartStateIdentifier () {
     return _startStateIdentifier;
   }
 
-  public void setStartStateIdentifier (@Nullable final ApplicationEntityReference<? extends State> startStateIdentifier) {
+  public void setStartStateIdentifier (@Nullable final Long startStateIdentifier) {
     _startStateIdentifier = startStateIdentifier;
   }
 
-  public @Nullable ApplicationEntityReference<? extends State> getEndStateIdentifier () {
+  public @Nullable Long getEndStateIdentifier () {
     return _endStateIdentifier;
   }
 
-  public void setEndStateIdentifier (
-    @Nullable final ApplicationEntityReference<? extends State> endStateIdentifier
-  )
-  {
+  public void setEndStateIdentifier (@Nullable final Long endStateIdentifier) {
     _endStateIdentifier = endStateIdentifier;
   }
 
