@@ -91,9 +91,4 @@ public class LabelState
   public @NonNull ApplicationEntityReference<? extends LabelState> getReference () {
     return ApplicationEntityReference.of(this);
   }
-
-  @Override
-  public @NonNull LabelState clone () {
-    return new LabelState(this);
-  }
 }

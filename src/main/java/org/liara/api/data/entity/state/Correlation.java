@@ -60,9 +60,4 @@ public class Correlation
   public void setName (@Nullable final String name) {
     _name = name;
   }
-
-  @Override
-  public @NonNull Correlation clone () {
-    return new Correlation(this);
-  }
 }

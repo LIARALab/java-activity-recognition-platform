@@ -5,7 +5,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.cfg.NotYetImplementedException;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.reference.ApplicationEntityReference;
+import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.ValueState;
+import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.ValueStateRepository;
 import org.liara.api.event.ApplicationEntityEvent;
 import org.liara.api.event.StateEvent;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Component;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @UseSensorConfigurationOfType(CeilToUpDownConvertionSensorConfiguration.class)
 @EmitStateOfType(ValueState.Boolean.class)
@@ -34,21 +37,26 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   private final ApplicationEventPublisher _eventPublisher;
   
   @NonNull
-  private final ValueStateRepository<? extends Number> _input;
+  private final ValueStateRepository<Number> _input;
 
   @NonNull
   private final ValueStateRepository<Boolean> _output;
+
+  @NonNull
+  private final CorrelationRepository _correlations;
   
   @Autowired
   public CeilToUpDownConvertionSensor (
     @NonNull final ApplicationEventPublisher eventPublisher,
-    @NonNull final ValueStateRepository<? extends Number> input,
-    @NonNull final ValueStateRepository<Boolean> output
+    @NonNull final ValueStateRepository<Number> input,
+    @NonNull final ValueStateRepository<Boolean> output,
+    @NonNull final CorrelationRepository correlations
   ) {
     super();
     _eventPublisher = eventPublisher;
     _input = input;
     _output = output;
+    _correlations = correlations;
   }
 
   public @NonNull CeilToUpDownConvertionSensorConfiguration getConfiguration () {
@@ -79,7 +87,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   ) {
     super.initialize(runner);
 
-    @NonNull final List<@NonNull ValueState<? extends Number>> states = _input.find(getInputSensor(), Cursor.ALL);
+    @NonNull final List<@NonNull ValueState<Number>> states = _input.find(getInputSensor(), Cursor.ALL);
     
     if (states.size() > 0) {
       discover(null, states.get(0));
@@ -97,15 +105,15 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     super.stateWasCreated(event);
 
     if (Objects.equals(event.getState().getSensorIdentifier(), getInputSensor())) {
-      inputStateWasCreated((ValueState<? extends Number>) event.getState());
+      inputStateWasCreated((ValueState<Number>) event.getState());
     }
   }
 
   private void inputStateWasCreated (
-    @NonNull final ValueState<? extends Number> current
+    @NonNull final ValueState<Number> current
   ) {
-    @Nullable final ValueState<? extends Number> previous = _input.findPrevious(current).orElse(null);
-    @Nullable final ValueState<? extends Number> next     = _input.findNext(current).orElse(null);
+    @Nullable final ValueState<Number> previous = _input.findPrevious(current).orElse(null);
+    @Nullable final ValueState<Number> next     = _input.findNext(current).orElse(null);
     
     discover(previous, current);
     correct(current, next);
@@ -118,14 +126,13 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
    super.stateWasMutated(event);
 
     if (Objects.equals(event.getNewValue().getSensorIdentifier(), getInputSensor())) {
-      inputStateWasMutated((ValueState<? extends Number>) event.getOldValue(),
-                           (ValueState<? extends Number>) event.getNewValue()
+      inputStateWasMutated((ValueState<Number>) event.getOldValue(), (ValueState<Number>) event.getNewValue()
      );
    }
   }
 
   private void inputStateWasMutated (
-    @NonNull final ValueState<? extends Number> old, @NonNull final ValueState<? extends Number> current
+    @NonNull final ValueState<Number> old, @NonNull final ValueState<Number> current
   ) {
     if (!Objects.equals(current.getValue(), old.getValue())) {
       correct(_input.findPrevious(current).orElse(null), current);
@@ -140,37 +147,43 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     super.stateWillBeDeleted(event);
 
     if (Objects.equals(event.getState().getSensorIdentifier(), getInputSensor())) {
-      inputStateWillBeDeleted((ValueState<? extends Number>) event.getState());
+      inputStateWillBeDeleted((ValueState<Number>) event.getState());
     }
   }
   
   private void inputStateWillBeDeleted (
-    @NonNull final ValueState<? extends Number> toDelete
+    @NonNull final ValueState<Number> toDelete
   ) {
-    @Nullable final ValueState<? extends Number> previous = _input.findPrevious(toDelete).orElse(null);
-    @Nullable final ValueState<? extends Number> next     = _input.findNext(toDelete).orElse(null);
+    @Nullable final ValueState<Number> previous = _input.findPrevious(toDelete).orElse(null);
+    @Nullable final ValueState<Number> next     = _input.findNext(toDelete).orElse(null);
 
-    @Nullable final ValueState<Boolean> related = _output.findFirstWithCorrelation(
-      "current",
-      toDelete.getReference(),
-      getInputSensor()
-    )
-                                        .orElse(null);
+    @Nullable final ValueState<Boolean> related = findResultCorrelatedWith(toDelete);
     
     if (related != null) delete(related);
     if (next != null) correct(previous, next);
   }
 
+  private @Nullable ValueState<Boolean> findResultCorrelatedWith (@NonNull final ValueState<Number> toDelete) {
+    @NonNull final Optional<Correlation> correlation =
+      _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(getSensor().getReference(),
+                                                                                                                         "current",
+                                                                                                                         toDelete
+                                                                                                                           .getReference()
+    );
+
+    if (correlation.isPresent()) {
+      return _output.find(correlation.get().getStartStateIdentifier().getIdentifier()).orElse(null);
+    } else {
+      return null;
+    }
+  }
+
   private void correct (
-    @NonNull final ValueState<? extends Number> current, @Nullable final ValueState<? extends Number> next
+    @NonNull final ValueState<Number> current, @Nullable final ValueState<Number> next
   ) {
     if (next == null) return;
 
-    @Nullable final ValueState<Boolean> correlated = _output.findFirstWithCorrelation("current",
-                                                                                      next.getReference(),
-                                                                                      getInputSensor()
-    )
-                                                            .orElse(null);
+    @Nullable final ValueState<Boolean> correlated = findResultCorrelatedWith(next);
     
     if (correlated == null) {
       discover(current, next);
@@ -187,33 +200,40 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
     _eventPublisher.publishEvent(new ApplicationEntityEvent.Delete(correlated));
   }
 
+  private @NonNull Correlation getPrevious (@NonNull final ValueState<Boolean> target) {
+    return _correlations.findCorrelationsWithNameAndThatStartBy("previous", target.getReference(), Cursor.FIRST).get(0);
+  }
+
   private void correctDown (
-    @NonNull final ValueState<? extends Number> current,
-    @NonNull final ValueState<? extends Number> next,
+    @NonNull final ValueState<Number> current, @NonNull final ValueState<Number> next,
     @NonNull final ValueState<Boolean> correlated
   ) {
     @NonNull final ValueState<Boolean> mutation = Duplicator.duplicate(correlated);
-    mutation.correlate("previous", current);
     mutation.setEmissionDate(interpolate(current, next));
     mutation.setValue(false);
-    _schemaManager.execute(mutation);
+
+    @NonNull final Correlation correlation = getPrevious(correlated);
+    correlation.setEndStateIdentifier(current.getReference());
+
+    _eventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, mutation, correlation));
   }
 
   private void correctUp (
-    @NonNull final ValueState<? extends Number> current,
-    @NonNull final ValueState<? extends Number> next,
+    @NonNull final ValueState<Number> current, @NonNull final ValueState<Number> next,
     @NonNull final ValueState<Boolean> correlated
   ) {
-    final ValueState<Boolean> MutationSchema mutation = new ValueState<Boolean> MutationSchema();
-    mutation.setState(correlated.getReference());
-    mutation.correlate("previous", current);
-    mutation.setEmittionDate(interpolate(current, next));
+    @NonNull final ValueState<Boolean> mutation = Duplicator.duplicate(correlated);
+    mutation.setEmissionDate(interpolate(current, next));
     mutation.setValue(true);
-    _schemaManager.execute(mutation);
+
+    @NonNull final Correlation correlation = getPrevious(correlated);
+    correlation.setEndStateIdentifier(current.getReference());
+
+    _eventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, mutation, correlation));
   }
 
   private void discover (
-    @Nullable final ValueState<? extends Number> previous, @NonNull final ValueState<? extends Number> current
+    @Nullable final ValueState<Number> previous, @NonNull final ValueState<Number> current
   ) {
     if (previous == null) {
       if (current.getValue().doubleValue() > getCeil()) {
@@ -234,7 +254,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   }
   
   private boolean isDown (
-    @NonNull final ValueState<? extends Number> previous, @NonNull final ValueState<? extends Number> current
+    @NonNull final ValueState<Number> previous, @NonNull final ValueState<Number> current
   ) {
     return isDown(previous.getValue().doubleValue(), current.getValue().doubleValue());
   }
@@ -244,7 +264,7 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   }
   
   private boolean isUp (
-    @NonNull final ValueState<? extends Number> previous, @NonNull final ValueState<? extends Number> current
+    @NonNull final ValueState<Number> previous, @NonNull final ValueState<Number> current
   ) {
     return isUp(previous.getValue().doubleValue(), current.getValue().doubleValue()
     );  
@@ -255,44 +275,51 @@ public class CeilToUpDownConvertionSensor extends AbstractVirtualSensorHandler
   }
 
   private void emitDown (
-    @Nullable final ValueState<? extends Number> previous, @NonNull final ValueState<? extends Number> current
-  ) {
-    final ValueState<Boolean> CreationSchema creation = new ValueState<Boolean> CreationSchema();
-    creation.setSensor(getSensor().getReference());
-    creation.setEmittionDate(interpolate(previous, current));
-    creation.setValue(false);
-    if (previous != null) creation.correlate("previous", previous);
-    creation.correlate("current", current);
-    
-    _schemaManager.execute(creation);
-  }
+    @Nullable final ValueState<Number> previous, @NonNull final ValueState<Number> current
+  )
+  { emit(previous, current, false); }
 
   private void emitUp (
-    @Nullable final ValueState<? extends Number> previous, @NonNull final ValueState<? extends Number> current
+    @Nullable final ValueState<Number> previous, @NonNull final ValueState<Number> current
+  )
+  { emit(previous, current, true);}
+
+  private void emit (
+    @Nullable final ValueState<Number> previous, @NonNull final ValueState<Number> current, final boolean up
   ) {
-    final ValueState<Boolean> CreationSchema creation = new ValueState<Boolean> CreationSchema();
-    creation.setSensor(getSensor().getReference());
-    creation.setEmittionDate(interpolate(previous, current));
-    creation.setValue(true);
-    if (previous != null) creation.correlate("previous", previous);
-    creation.correlate("current", current);
-    
-    _schemaManager.execute(creation);
+    @NonNull final ValueState<Boolean> result = new ValueState.Boolean();
+    result.setSensorIdentifier(getSensor().getReference());
+    result.setEmissionDate(interpolate(previous, current));
+    result.setValue(up);
+
+    _eventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, result));
+
+    @NonNull final Correlation currentCorrelation = new Correlation();
+    currentCorrelation.setStartStateIdentifier(result.getReference());
+    currentCorrelation.setName("current");
+    currentCorrelation.setEndStateIdentifier(current.getReference());
+
+    _eventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, currentCorrelation));
+
+    if (previous != null) {
+      @NonNull final Correlation previousCorrelation = new Correlation();
+      previousCorrelation.setStartStateIdentifier(result.getReference());
+      previousCorrelation.setName("previous");
+      previousCorrelation.setEndStateIdentifier(previous.getReference());
+
+      _eventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, previousCorrelation));
+    }
   }
-  
-  private ZonedDateTime interpolate (
-    @Nullable final ValueState<? extends Number> previous, @NonNull final ValueState<? extends Number> current
+
+  private @NonNull ZonedDateTime interpolate (
+    @Nullable final ValueState<Number> previous, @NonNull final ValueState<Number> current
   ) {
     switch (getInterpolationType()) {
       case NONE:
         return current.getEmissionDate();
       default :
         throw new NotYetImplementedException(
-          String.join(
-            "",
-            "The interpolation type : ", String.valueOf(getInterpolationType()), " is",
-            " not implemented yet."
-          )
+          "The interpolation type : " + String.valueOf(getInterpolationType()) + " is not implemented yet."
         );
     }
   }

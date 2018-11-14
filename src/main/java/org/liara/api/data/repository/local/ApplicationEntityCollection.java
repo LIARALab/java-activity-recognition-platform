@@ -47,7 +47,7 @@ public class ApplicationEntityCollection
   public void add (@NonNull final ApplicationEntity entity) {
     if (entity.getIdentifier() == null) entity.setIdentifier(_identifiers.next(entity));
 
-    if (_entities.contains(entity)) {
+    if (!_entities.contains(entity)) {
       @NonNull final ApplicationEntity clone = Duplicator.duplicate(entity);
       @NonNull Class                   type  = entity.getClass();
 
@@ -128,12 +128,16 @@ public class ApplicationEntityCollection
 
   public void clear (@NonNull final Class<? extends ApplicationEntity> type) {
     if (_entityIndex.containsKey(type)) {
-      _entityIndex.get(type).values().forEach(this::remove);
+      for (@NonNull final ApplicationEntity entity : new HashSet<>(_entityIndex.get(type).values())) {
+        remove(entity);
+      }
     }
   }
 
   public void clear () {
-    _entities.forEach(this::remove);
+    for (@NonNull final ApplicationEntity entity : new HashSet<>(_entities)) {
+      remove(entity);
+    }
   }
 
   public @NonNegative int getSize () {

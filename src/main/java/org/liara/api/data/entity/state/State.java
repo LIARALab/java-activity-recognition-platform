@@ -75,10 +75,4 @@ public class State extends ApplicationEntity
   public @NonNull ApplicationEntityReference<? extends State> getReference () {
     return ApplicationEntityReference.of(this);
   }
-
-  @Override
-  public @NonNull State clone ()
-  {
-    return new State(this);
-  }
 }

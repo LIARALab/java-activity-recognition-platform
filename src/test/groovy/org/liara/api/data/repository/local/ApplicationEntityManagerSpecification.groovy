@@ -88,9 +88,9 @@ class ApplicationEntityManagerSpecification
     given: "a manager with some entities registered in"
     final ApplicationEntityManager manager = new ApplicationEntityManager()
     final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
-      ValueState.Integer.class: generateStates(ValueState.Integer.class, 23),
-      ValueState.Double.class : generateStates(ValueState.Double.class, 5),
-      ValueState.Short.class  : generateStates(ValueState.Short.class, 3),
+      (ValueState.Integer.class): generateStates(ValueState.Integer.class, 23),
+      (ValueState.Double.class) : generateStates(ValueState.Double.class, 5),
+      (ValueState.Short.class)  : generateStates(ValueState.Short.class, 3)
     ]
 
     entities.values().stream().flatMap({ x -> x.stream() })
@@ -100,7 +100,7 @@ class ApplicationEntityManagerSpecification
     manager.clear(ValueState.Double.class)
 
     then: "we expect that the repository removed all entities of the given type"
-    manager.size == entities[ValueState.Integer.class].size() - entities[ValueState.Short.class].size()
+    manager.size == entities[ValueState.Integer.class].size() + entities[ValueState.Short.class].size()
     for (final ApplicationEntity entity : entities[ValueState.Double.class]) {
       !manager.contains(entity)
     }
@@ -112,9 +112,9 @@ class ApplicationEntityManagerSpecification
 
     when: "we add entities of multiple types"
     final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
-      ValueState.Integer.class: generateStates(ValueState.Integer.class, 23),
-      ValueState.Double.class : generateStates(ValueState.Double.class, 5),
-      ValueState.Short.class  : generateStates(ValueState.Short.class, 3),
+      (ValueState.Integer.class): generateStates(ValueState.Integer.class, 23),
+      (ValueState.Double.class) : generateStates(ValueState.Double.class, 5),
+      (ValueState.Short.class)  : generateStates(ValueState.Short.class, 3)
     ]
 
     entities.values().stream().flatMap({ x -> x.stream() })
@@ -134,9 +134,9 @@ class ApplicationEntityManagerSpecification
 
     when: "we add entities of multiple types"
     final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
-      ValueState.Integer.class: generateStates(ValueState.Integer.class, 23),
-      ValueState.Double.class : generateStates(ValueState.Double.class, 5),
-      ValueState.Short.class  : generateStates(ValueState.Short.class, 3),
+      (ValueState.Integer.class): generateStates(ValueState.Integer.class, 23),
+      (ValueState.Double.class) : generateStates(ValueState.Double.class, 5),
+      (ValueState.Short.class)  : generateStates(ValueState.Short.class, 3)
     ]
 
     entities.values().stream().flatMap({ x -> x.stream() })
@@ -159,9 +159,9 @@ class ApplicationEntityManagerSpecification
 
     when: "we add entities of multiple types"
     final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
-      ValueState.Integer.class: generateStates(ValueState.Integer.class, 23),
-      ValueState.Double.class : generateStates(ValueState.Double.class, 5),
-      ValueState.Short.class  : generateStates(ValueState.Short.class, 3),
+      (ValueState.Integer.class): generateStates(ValueState.Integer.class, 23),
+      (ValueState.Double.class) : generateStates(ValueState.Double.class, 5),
+      (ValueState.Short.class)  : generateStates(ValueState.Short.class, 3)
     ]
 
     entities.values().stream().flatMap({ x -> x.stream() })
@@ -178,9 +178,9 @@ class ApplicationEntityManagerSpecification
 
     when: "we add entities of multiple types"
     final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
-      ValueState.Integer.class: generateStates(ValueState.Integer.class, 23),
-      ValueState.Double.class : generateStates(ValueState.Double.class, 5),
-      ValueState.Short.class  : generateStates(ValueState.Short.class, 3),
+      (ValueState.Integer.class): generateStates(ValueState.Integer.class, 23),
+      (ValueState.Double.class) : generateStates(ValueState.Double.class, 5),
+      (ValueState.Short.class)  : generateStates(ValueState.Short.class, 3)
     ]
 
     entities.values().stream().flatMap({ x -> x.stream() })

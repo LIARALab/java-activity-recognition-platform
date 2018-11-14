@@ -48,7 +48,7 @@ public interface ValueStateRepository<Value>
                                                                           value,
                                                                           Cursor.FIRST
     );
-    
+
     if (result.size() <= 0) return Optional.empty();
     else return Optional.ofNullable(result.get(0));
   }
@@ -133,7 +133,7 @@ public interface ValueStateRepository<Value>
       value,
       Cursor.FIRST
     );
-    
+
     if (result.size() <= 0) return Optional.empty();
     else return Optional.ofNullable(result.get(0));
   }

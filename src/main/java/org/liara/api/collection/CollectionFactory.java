@@ -21,15 +21,24 @@ public class CollectionFactory
     _entityManager = entityManager;
   }
 
-  public <Entity> @NonNull CollectionRequestConfiguration<Entity> getConfiguration (@NonNull final Class<Entity> entity) {
+  public <Entity> @NonNull CollectionRequestConfiguration<Entity> getConfiguration (
+    @NonNull final Class<Entity> entity
+  )
+  {
     return new EntityBasedCollectionConfiguration<>(_entityManager, entity);
   }
 
-  public <Entity> @NonNull JPAEntityCollection<Entity> getCollection (@NonNull final Class<Entity> entity) {
+  public <Entity> @NonNull JPAEntityCollection<Entity> getCollection (
+    @NonNull final Class<Entity> entity
+  )
+  {
     return new JPAEntityCollection<>(_entityManager, entity);
   }
 
-  public <Entity> @NonNull Entity getEntity (@NonNull final Class<Entity> entity, @NonNull final Long identifier) {
+  public <Entity> @NonNull Entity getEntity (
+    @NonNull final Class<Entity> entity, @NonNull final Long identifier
+  )
+  {
     return _entityManager.find(entity, identifier);
   }
 }

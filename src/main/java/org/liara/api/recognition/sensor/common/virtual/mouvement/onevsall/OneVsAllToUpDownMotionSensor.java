@@ -17,7 +17,7 @@ import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.EmitStateOfType;
 import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
-import org.liara.api.recognition.sensor.common.NativeMotionSensor;
+import org.liara.api.recognition.sensor.type.NativeMotionSensor;
 import org.liara.api.utils.Duplicator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
