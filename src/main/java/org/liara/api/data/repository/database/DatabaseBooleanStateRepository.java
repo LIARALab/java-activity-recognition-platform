@@ -31,6 +31,49 @@ public class DatabaseBooleanStateRepository
 
   @Override
   public List<BooleanState> findPreviousWithValue (
+    @NonNull final BooleanState created,
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
+    final boolean value,
+    final int count
+  )
+  {
+    return _entityManager
+             .createQuery(
+               String.join("",
+                           "SELECT state ",
+                           "  FROM ",
+                           BooleanState.class.getName(),
+                           " state ",
+                           " WHERE (state._emittionDate < :date OR ",
+                           "   (state._emittionDate = :date AND state._identifier < :identifier))",
+                           "   AND state._sensor._identifier IN :sensors ",
+                           "   AND state._value = :value",
+                           " ORDER BY state._emittionDate DESC, state._identifier DESC"
+               ),
+               BooleanState.class
+             )
+             .setParameter(
+               "date",
+               created.getEmittionDate()
+             )
+             .setParameter(
+               "identifier",
+               created.getIdentifier()
+             )
+             .setParameter(
+               "sensors",
+               inputSensors.stream().map(ApplicationEntityReference::getIdentifier).collect(Collectors.toSet())
+             )
+             .setParameter(
+               "value",
+               value
+             )
+             .setMaxResults(count)
+             .getResultList();
+  }
+
+  @Override
+  public List<BooleanState> findPreviousWithValue (
     @NonNull final ZonedDateTime date,
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
     final boolean value,
@@ -43,7 +86,8 @@ public class DatabaseBooleanStateRepository
         "  FROM ", BooleanState.class.getName(), " state ",
         " WHERE state._emittionDate < :date ",
         "   AND state._sensor._identifier IN :sensors ",
-        "   AND state._value = :value", " ORDER BY state._emittionDate DESC, state._identifier ASC"
+        "   AND state._value = :value",
+        " ORDER BY state._emittionDate DESC, state._identifier DESC"
       ), BooleanState.class
     ).setParameter("date", date)
      .setParameter(
@@ -55,6 +99,49 @@ public class DatabaseBooleanStateRepository
      .setParameter("value", value)
      .setMaxResults(count)
      .getResultList();
+  }
+
+  @Override
+  public List<BooleanState> findNextWithValue (
+    @NonNull final BooleanState created,
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
+    final boolean value,
+    final int count
+  )
+  {
+    return _entityManager
+             .createQuery(
+               String.join("",
+                           "SELECT state ",
+                           "  FROM ",
+                           BooleanState.class.getName(),
+                           " state ",
+                           " WHERE (state._emittionDate > :date OR ",
+                           "   (state._emittionDate = :date AND state._identifier > :identifier))",
+                           "   AND state._sensor._identifier IN :sensors ",
+                           "   AND state._value = :value",
+                           " ORDER BY state._emittionDate ASC, state._identifier ASC"
+               ),
+               BooleanState.class
+             )
+             .setParameter(
+               "date",
+               created.getEmittionDate()
+             )
+             .setParameter(
+               "identifier",
+               created.getIdentifier()
+             )
+             .setParameter(
+               "sensors",
+               inputSensors.stream().map(ApplicationEntityReference::getIdentifier).collect(Collectors.toSet())
+             )
+             .setParameter(
+               "value",
+               value
+             )
+             .setMaxResults(count)
+             .getResultList();
   }
 
   @Override
@@ -71,7 +158,8 @@ public class DatabaseBooleanStateRepository
         "  FROM ", BooleanState.class.getName(), " state ",
         " WHERE state._emittionDate > :date ",
         "   AND state._sensor._identifier IN :sensors ",
-        "   AND state._value = :value", " ORDER BY state._emittionDate ASC, state._identifier ASC"
+        "   AND state._value = :value",
+        " ORDER BY state._emittionDate ASC, state._identifier ASC"
       ), BooleanState.class
     ).setParameter("date", date)
      .setParameter(
@@ -96,7 +184,8 @@ public class DatabaseBooleanStateRepository
         "SELECT state ",
         "  FROM ", BooleanState.class.getName(), " state ",
         " WHERE state._sensor._identifier IN :sensors ",
-        "   AND state._value = :value", " ORDER BY state._emittionDate ASC, state._identifier ASC"
+        "   AND state._value = :value",
+        " ORDER BY state._emittionDate ASC, state._identifier ASC"
       ), BooleanState.class
     ).setParameter(
        "sensors", 

@@ -1,15 +1,17 @@
 package org.liara.api.data.repository.local;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.BooleanState;
 import org.liara.api.data.repository.BooleanStateRepository;
 import org.springframework.lang.NonNull;
+
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class LocalBooleanStateRepository 
        extends LocalTimeSeriesRepository<BooleanState>
@@ -23,6 +25,39 @@ public class LocalBooleanStateRepository
   
   public LocalBooleanStateRepository() {
     super(BooleanState.class);
+  }
+
+  @Override
+  public List<BooleanState> findPreviousWithValue (
+    @NonNull final BooleanState created,
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
+    final boolean value,
+    final int count
+  )
+  {
+    final List<BooleanState> previous = findAllPrevious(
+      created.getEmittionDate().plusSeconds(1),
+      inputSensors
+    );
+    return previous
+             .stream()
+             .filter(state -> Objects.equals(
+               state.getValue(),
+               value
+             ) && (
+                                state.getEmittionDate().compareTo(created.getEmittionDate()) < 0 || (
+                                  Objects.equals(
+                                    state.getEmittionDate(),
+                                    created.getEmittionDate()
+                                  ) && state.getIdentifier() < created.getIdentifier()
+                                )
+                              ))
+             .sorted(Comparator
+                       .comparing(BooleanState::getEmittionDate)
+                       .thenComparing(BooleanState::getIdentifier)
+                       .reversed())
+             .limit(count)
+             .collect(Collectors.toList());
   }
 
   @Override
@@ -42,6 +77,35 @@ public class LocalBooleanStateRepository
     }
     
     return result;
+  }
+
+  @Override
+  public List<BooleanState> findNextWithValue (
+    @NonNull final BooleanState created,
+    @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors,
+    final boolean value,
+    final int count
+  )
+  {
+    return findAllNext(
+      created.getEmittionDate().minusSeconds(1),
+      inputSensors
+    )
+             .stream()
+             .filter(state -> Objects.equals(
+               state.getValue(),
+               value
+             ) && (
+                                state.getEmittionDate().compareTo(created.getEmittionDate()) > 0 || (
+                                  Objects.equals(
+                                    state.getEmittionDate(),
+                                    created.getEmittionDate()
+                                  ) && state.getIdentifier() > created.getIdentifier()
+                                )
+                              ))
+             .sorted(Comparator.comparing(BooleanState::getEmittionDate).thenComparing(BooleanState::getIdentifier))
+             .limit(count)
+             .collect(Collectors.toList());
   }
 
   @Override

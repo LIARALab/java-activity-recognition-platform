@@ -31,18 +31,18 @@ public class ApplicationEntity
   @Nullable
   private Long          _identifier;
 
-  @Column(name = "created_at", nullable = false, updatable = false, unique = false)
+  @Column(name = "created_at", nullable = false, updatable = false, unique = false, precision = 6)
   @ColumnDefault(value = "CURRENT_TIMESTAMP")
   @Nullable
   private ZonedDateTime _creationDate;
 
-  @Column(name = "updated_at", nullable = false, updatable = true, unique = false)
+  @Column(name = "updated_at", nullable = false, updatable = true, unique = false, precision = 6)
   @ColumnDefault(value = "CURRENT_TIMESTAMP")
   @UpdateTimestamp
   @Nullable
   private ZonedDateTime _updateDate;
 
-  @Column(name = "deleted_at", nullable = true, updatable = true, unique = false)
+  @Column(name = "deleted_at", nullable = true, updatable = true, unique = false, precision = 6)
   @Nullable
   private ZonedDateTime _deletionDate;
   

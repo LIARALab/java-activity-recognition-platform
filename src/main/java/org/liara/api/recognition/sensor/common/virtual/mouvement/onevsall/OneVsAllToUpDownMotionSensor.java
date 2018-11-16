@@ -139,13 +139,6 @@ public class OneVsAllToUpDownMotionSensor
     }
   }
 
-  private boolean isDuplicate (@NonNull final BooleanState created) {
-    final List<BooleanState>     states = _flags.findAllAt(created, getInputSensors());
-    final Optional<BooleanState> state  = states.stream().filter(x -> x.getValue()).findFirst();
-
-    return !state.get().equals(created);
-  }
-
   private void onLeftMotionStateWasCreated (
     @NonNull final BooleanState created, 
     @NonNull final Optional<BooleanState> next

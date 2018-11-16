@@ -1,15 +1,6 @@
 package org.liara.api.data.entity.state;
 
-import java.time.Duration;
-import java.time.ZonedDateTime;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.Table;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.schema.UseCreationSchema;
@@ -17,7 +8,14 @@ import org.liara.api.data.schema.UseMutationSchema;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.Table;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import java.time.Duration;
+import java.time.ZonedDateTime;
 
 @Entity
 @Table(name = "states_activity")
@@ -54,10 +52,10 @@ public class ActivityState extends State
   @Column(name = "tag", nullable = false, updatable = true, unique = false)
   private String _tag;
 
-  @Column(name = "start", nullable = false, updatable = true, unique = false)
+  @Column(name = "start", nullable = false, updatable = true, unique = false, precision = 6)
   private ZonedDateTime _start;
 
-  @Column(name = "end", nullable = true, updatable = true, unique = false)
+  @Column(name = "end", nullable = true, updatable = true, unique = false, precision = 6)
   private ZonedDateTime _end;
 
   public ActivityState () { 

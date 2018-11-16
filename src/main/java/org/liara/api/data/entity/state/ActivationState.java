@@ -69,11 +69,11 @@ public class ActivationState extends State
       )
     );
   };
-  
-  @Column(name = "start", nullable = false, unique = false, updatable = true)
+
+  @Column(name = "start", nullable = false, unique = false, updatable = true, precision = 6)
   private ZonedDateTime _start;
 
-  @Column(name = "end", nullable = true, unique = false, updatable = true)
+  @Column(name = "end", nullable = true, unique = false, updatable = true, precision = 6)
   private ZonedDateTime _end;
   
   @ManyToOne(optional = false)

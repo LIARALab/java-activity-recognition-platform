@@ -28,20 +28,14 @@ public interface TimeSeriesRepository<TimeState extends State>
     @NonNull final ApplicationEntityReference<TimeState> identifier
   );
 
-  default Optional<TimeState> findPrevious (@NonNull final TimeState state) {
+  default Optional<TimeState> findPrevious (
+    @NonNull final TimeState state
+  )
+  {
     return findPrevious(
       state.getEmittionDate(), 
       ApplicationEntityReference.of(state.getSensor())
     );
-  }
-
-  default Optional<TimeState> findPrevious (
-    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference<Sensor> sensor
-  ) {
-    final List<TimeState> result = findPrevious(date, sensor, 1);
-    
-    return result.size() > 0 ? Optional.ofNullable(result.get(0)) 
-                             : Optional.empty();
   }
 
   default List<TimeState> findPrevious (
@@ -52,6 +46,19 @@ public interface TimeSeriesRepository<TimeState extends State>
       ApplicationEntityReference.of(state.getSensor()),
       count
     );
+  }
+
+  default Optional<TimeState> findPrevious (
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference<Sensor> sensor
+  )
+  {
+    final List<TimeState> result = findPrevious(
+      date,
+      sensor,
+      1
+    );
+
+    return result.size() > 0 ? Optional.ofNullable(result.get(0)) : Optional.empty();
   }
 
   List<TimeState> findPrevious (

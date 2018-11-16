@@ -46,8 +46,8 @@ import java.util.stream.Collectors;
 @UseCreationSchema(StateCreationSchema.class)
 @UseMutationSchema(StateMutationSchema.class)
 public class State extends ApplicationEntity
-{  
-  @Column(name = "emitted_at", nullable = false, updatable = true, unique = false)
+{
+  @Column(name = "emitted_at", nullable = false, updatable = true, unique = false, precision = 6)
   private ZonedDateTime _emittionDate;
   
   @ManyToOne(optional = false)
