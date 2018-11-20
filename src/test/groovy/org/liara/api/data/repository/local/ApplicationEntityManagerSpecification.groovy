@@ -1,7 +1,6 @@
 package org.liara.api.data.repository.local
 
 import org.liara.api.data.entity.ApplicationEntity
-import org.liara.api.data.entity.reference.ApplicationEntityReference
 import org.liara.api.data.entity.state.ValueState
 import spock.lang.Specification
 
@@ -128,7 +127,7 @@ class ApplicationEntityManagerSpecification
     }
   }
 
-  def "it allows to retrieve an entity of by using its reference" () {
+  def "it allows to retrieve an entity of by using its identifier" () {
     given: "a manager"
     final ApplicationEntityManager manager = new ApplicationEntityManager()
 
@@ -149,11 +148,11 @@ class ApplicationEntityManagerSpecification
                                                                          .iterator()
     while (entitiesToTest.hasNext()) {
       final ApplicationEntity toTest = entitiesToTest.next()
-      manager.find(toTest.reference).get() == toTest
+      manager.find(toTest.class, toTest.identifier).get() == toTest
     }
   }
 
-  def "it return an empty optional when we try to find an entity with a reference that refer nothing" () {
+  def "it return an empty optional when we try to find an entity with an unknown identifier" () {
     given: "a manager"
     final ApplicationEntityManager manager = new ApplicationEntityManager()
 
@@ -168,8 +167,8 @@ class ApplicationEntityManagerSpecification
             .forEach({ x -> manager.merge(x) })
 
     then: "we expect to get an empty optional if we search for an entity that does not exists"
-    !manager.find(ApplicationEntityReference.of(ValueState.Byte.class, 5)).present
-    !manager.find(ApplicationEntityReference.of(ValueState.Double.class, 256)).present
+    !manager.find(ValueState.Byte.class, 5).present
+    !manager.find(ValueState.Double.class, 256).present
   }
 
   def "it allows to check if an entity is registered by using its identifier" () {
@@ -194,10 +193,10 @@ class ApplicationEntityManagerSpecification
 
     while (entitiesToTest.hasNext()) {
       final ApplicationEntity toTest = entitiesToTest.next()
-      manager.contains(toTest.getReference())
+      manager.contains(toTest.class, toTest.identifier)
     }
 
-    !manager.contains(ApplicationEntityReference.of(ValueState.Byte.class, 5))
-    !manager.contains(ApplicationEntityReference.of(ValueState.Double.class, 256))
+    !manager.contains(ValueState.Byte.class, 5)
+    !manager.contains(ValueState.Double.class, 256)
   }
 }

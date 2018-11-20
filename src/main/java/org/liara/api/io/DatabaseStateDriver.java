@@ -71,7 +71,7 @@ public class DatabaseStateDriver
     for (@NonNull final ApplicationEntity entity : mutation.getEntities()) {
       if (entity instanceof State) {
         @NonNull final State newState = (State) entity;
-        @NonNull final State oldState = newState.getReference().resolve(_entityManager);
+        @NonNull final State oldState = _entityManager.find(newState.getClass(), newState.getIdentifier());
 
         _oldStates.put(newState, oldState);
         _publisher.publishEvent(new StateEvent.WillBeMutated(this, oldState, newState));

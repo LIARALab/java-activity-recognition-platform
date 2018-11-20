@@ -60,13 +60,9 @@ dependencies {
   testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.+'
 }
 
-
-//compileJpaModelgen {
-//  includes += [
-//    "**/org/liara/api/data/entity/**/*",
-//    "**/org/liara/api/data/tree/**/*"
-//  ]
-//}
+bootRun {
+  args = ["--development"]
+}
 
 jacoco {
   toolVersion = "0.8.2"

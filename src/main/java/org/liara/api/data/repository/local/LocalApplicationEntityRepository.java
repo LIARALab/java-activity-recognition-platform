@@ -5,14 +5,19 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.repository.ApplicationEntityRepository;
 import org.liara.collection.operator.cursoring.Cursor;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class LocalApplicationEntityRepository<Entity extends ApplicationEntity>
   extends LocalRepository
-       implements ApplicationEntityRepository<Entity>
+  implements ApplicationEntityRepository<Entity>
 {
   @NonNull
   private final Class<Entity> _type;

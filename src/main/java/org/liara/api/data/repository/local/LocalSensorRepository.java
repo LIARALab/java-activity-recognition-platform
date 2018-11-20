@@ -8,31 +8,36 @@ import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
 import org.liara.api.utils.Duplicator;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class LocalSensorRepository
-       extends LocalApplicationEntityRepository<Sensor>
-       implements SensorRepository
+  extends LocalApplicationEntityRepository<Sensor>
+  implements SensorRepository
 {
   @Nullable
   private Map<@NonNull String, @NonNull Set<@NonNull Sensor>> _sensorsByType;
-  
+
   public LocalSensorRepository() {
     super(Sensor.class);
     _sensorsByType = new HashMap<>();
   }
-  
+
   @Override
   public @NonNull List<@NonNull Sensor> getSensorsOfType (
     @NonNull final String type
   ) {
     if (_sensorsByType.containsKey(type)) {
       return _sensorsByType.get(type)
-                           .stream()
-                           .map(Duplicator::duplicate).sorted(Comparator.comparing(ApplicationEntity::getIdentifier))
-                           .collect(Collectors.toList());
+               .stream()
+               .map(Duplicator::duplicate).sorted(Comparator.comparing(ApplicationEntity::getIdentifier))
+               .collect(Collectors.toList());
     } else {
       return Collections.emptyList();
     }
@@ -48,18 +53,15 @@ public class LocalSensorRepository
 
     return getSensorsOfType(type).stream().filter(sensor -> {
       @Nullable Node parent = nodeRepository.find(sensor.getNodeIdentifier()).get();
-      
+
       while (parent != null) {
-        if (Objects.equals(
-          parent.getIdentifier(),
-          nodeIdentifier
-        )) {
+        if (Objects.equals(parent.getIdentifier(), nodeIdentifier)) {
           return true;
         } else {
           parent = nodeRepository.getParentOf(parent);
         }
       }
-      
+
       return false;
     }).sorted(Comparator.comparing(ApplicationEntity::getIdentifier)).collect(Collectors.toList());
   }
@@ -78,10 +80,7 @@ public class LocalSensorRepository
       if (oldSensor != null) {
         _sensorsByType.get(oldSensor.getType()).remove(oldSensor);
       } else if (!_sensorsByType.containsKey(newSensor.getType())) {
-        _sensorsByType.put(
-          newSensor.getType().getName(),
-          new HashSet<>()
-        );
+        _sensorsByType.put(newSensor.getType().getName(), new HashSet<>());
       }
 
       _sensorsByType.get(newSensor.getType()).add(newSensor);

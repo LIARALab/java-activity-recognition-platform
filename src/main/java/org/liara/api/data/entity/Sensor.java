@@ -3,7 +3,7 @@ package org.liara.api.data.entity;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.recognition.sensor.type.SensorType;
+import org.liara.api.validation.ApplicationEntityReference;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -59,6 +59,7 @@ public class Sensor
   }
 
   @Column(name = "node_identifier", nullable = false)
+  @ApplicationEntityReference(Node.class)
   public @Nullable Long getNodeIdentifier () {
     return _nodeIdentifier;
   }

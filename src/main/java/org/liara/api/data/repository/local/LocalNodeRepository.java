@@ -8,10 +8,14 @@ import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.tree.LocalNestedSetTree;
 import org.liara.api.data.tree.NestedSet;
 import org.liara.api.data.tree.NestedSetRepository;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class LocalNodeRepository
   extends LocalApplicationEntityRepository<Node>
   implements NestedSetRepository,

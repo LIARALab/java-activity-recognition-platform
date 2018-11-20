@@ -5,8 +5,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
+import org.liara.api.validation.ApplicationEntityReference;
 import org.liara.api.validation.Required;
-import org.liara.api.validation.ValidApplicationEntityReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +16,10 @@ public class UpDownToLabelSensorConfiguration
 {
   @NonNull
   private final List<@NonNull String>                        _tags;
+
   @Nullable
   private       Long                                         _inputSensor;
+
   @Nullable
   private       String                                       _label;
 
@@ -62,7 +64,7 @@ public class UpDownToLabelSensorConfiguration
     _label = label;
   }
 
-  @ValidApplicationEntityReference
+  @ApplicationEntityReference(Sensor.class)
   @Required
   public @NonNull Long getInputSensor () {
     return _inputSensor;

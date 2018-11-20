@@ -153,7 +153,8 @@ public final class EntityBasedSelectionConfiguration<Entity>
 
   @Override
   public @NonNull APIRequestParser<Operator> getParser () {
-    return APIRequestParser.compose((APIRequestParser<Operator>[]) _parsers.values().toArray()).map(Composition::of);
+    return APIRequestParser.compose(_parsers.values().toArray((APIRequestParser<Operator>[]) new APIRequestParser[0]))
+             .map(Composition::of);
   }
 
   public @NonNull APIRequestValidator getAttributeValidator (

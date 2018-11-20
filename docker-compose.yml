@@ -1,12 +1,12 @@
 version: "3.5"
 services:
   sapa-api:
-    image: depot.domus.usherbrooke.ca:4567/sapa/activity-agent-api:latest
-    container_name: "sapa-api"
+    image: depot.domus.usherbrooke.ca:4567/sapa/activity-agent-api-v2:latest
+    container_name: "sapa-api-v2"
     depends_on:
       - sapa-api-database
     environment:
-      DATABASE_URL: mysql://sapa-api-database:3306/api
+      DATABASE_URL: mysql://sapa-api-v2-database:3306/api
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: sapa
     ports:
@@ -15,9 +15,11 @@ services:
       - sapa-api
   sapa-api-database:
     image: mysql:latest
-    container_name: "sapa-api-database"
+    container_name: "sapa-api-v2-database"
     expose:
       - 3306
+    ports:
+    - "3306:3306"
     environment:
       MYSQL_DATABASE: api
       MYSQL_ROOT_PASSWORD: sapa
@@ -25,6 +27,6 @@ services:
       - sapa-api
 networks:
   sapa-api:
-    name: "sapa-api"
+    name: "sapa-api-v2"
     driver: bridge
 

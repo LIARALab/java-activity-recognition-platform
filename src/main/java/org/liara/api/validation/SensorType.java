@@ -21,34 +21,29 @@
  ******************************************************************************/
 package org.liara.api.validation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import org.liara.api.validator.SensorTypeValidator;
 
+import javax.validation.Constraint;
+import javax.validation.Payload;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import org.liara.api.validator.OptionalSensorTypeValidator;
-import org.liara.api.validator.StringSensorTypeValidator;
 
 @Retention(RUNTIME)
 @Target({ TYPE, FIELD, METHOD, PARAMETER})
 @Documented
-@Constraint(validatedBy = { 
-  StringSensorTypeValidator.class,
-  OptionalSensorTypeValidator.class
+@Constraint(validatedBy = {
+  SensorTypeValidator.class
 })
 public @interface SensorType
 {
-  public String message () default "The given value is nor a valid native sensor type, nor a valid virtual sensor type.";
+  String message () default "The given value is not a valid sensor type.";
 
-  public Class<?>[] groups () default {};
-  
-  public Class<? extends Payload>[] payload () default {};
+  Class<?>[] groups () default {};
+
+  Class<? extends Payload>[] payload () default {};
 }

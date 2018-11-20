@@ -1,6 +1,7 @@
 package org.liara.api.recognition.sensor.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.data.entity.SensorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;

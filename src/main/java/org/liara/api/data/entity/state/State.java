@@ -24,6 +24,8 @@ package org.liara.api.data.entity.state;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.validation.ApplicationEntityReference;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
@@ -51,6 +53,7 @@ public class State extends ApplicationEntity
   }
 
   @Column(name = "sensor_identifier", nullable = false)
+  @ApplicationEntityReference(Sensor.class)
   public @Nullable Long getSensorIdentifier () {
     return _sensorIdentifier;
   }

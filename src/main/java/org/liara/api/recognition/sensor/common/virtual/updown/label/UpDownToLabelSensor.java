@@ -11,7 +11,7 @@ import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.LabelStateRepository;
 import org.liara.api.data.repository.NodeRepository;
-import org.liara.api.data.repository.ValueStateRepository;
+import org.liara.api.data.repository.SapaRepositories;
 import org.liara.api.event.ApplicationEntityEvent;
 import org.liara.api.event.StateEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
@@ -40,8 +40,7 @@ public class UpDownToLabelSensor
   @NonNull
   private final LabelStateRepository _outputs;
 
-  @NonNull
-  private final ValueStateRepository<Boolean> _inputs;
+  private final SapaRepositories.@NonNull Boolean _inputs;
 
   @NonNull
   private final CorrelationRepository _correlations;
@@ -51,8 +50,7 @@ public class UpDownToLabelSensor
 
   @Autowired
   public UpDownToLabelSensor (
-    @NonNull final ApplicationEventPublisher publisher,
-    @NonNull final ValueStateRepository inputs,
+    @NonNull final ApplicationEventPublisher publisher, final SapaRepositories.@NonNull Boolean inputs,
     @NonNull final LabelStateRepository outputs,
     @NonNull final NodeRepository nodes,
     @NonNull final CorrelationRepository correlations
@@ -84,8 +82,8 @@ public class UpDownToLabelSensor
   {
     super.initialize(runner);
 
-    @NonNull final List<@NonNull ValueState<Boolean>> initializationStates = _inputs.find(getInputSensor(), Cursor.ALL);
-    LabelState                                        current              = null;
+    @NonNull final List<ValueState.@NonNull Boolean> initializationStates = _inputs.find(getInputSensor(), Cursor.ALL);
+    LabelState                                       current              = null;
 
     for (int index = 0; index < initializationStates.size(); ++index) {
       current = initialize(current, initializationStates.get(index));
@@ -93,7 +91,7 @@ public class UpDownToLabelSensor
   }
 
   private @Nullable LabelState initialize (
-    @Nullable final LabelState current, @NonNull final ValueState<Boolean> next
+    @Nullable final LabelState current, final ValueState.@NonNull Boolean next
   )
   {
     if (next.getValue() && current == null) {
@@ -114,11 +112,11 @@ public class UpDownToLabelSensor
     super.stateWasCreated(event);
 
     if (Objects.equals(event.getState().getSensorIdentifier(), getInputSensor())) {
-      inputStateWasCreated((ValueState<Boolean>) event.getState());
+      inputStateWasCreated((ValueState.Boolean) event.getState());
     }
   }
 
-  public void inputStateWasCreated (@NonNull final ValueState<Boolean> current) {
+  public void inputStateWasCreated (final ValueState.@NonNull Boolean current) {
     @NonNull final Optional<LabelState> previous = _outputs.findAt(
       current.getEmissionDate(),
       getSensor().getIdentifier()
@@ -132,12 +130,12 @@ public class UpDownToLabelSensor
   }
 
   private void onAloneInput (
-    @NonNull final ValueState<Boolean> current
+    final ValueState.@NonNull Boolean current
   )
   {
     if (current.getValue()) return;
 
-    @NonNull final Optional<ValueState<Boolean>> next = _inputs.findNext(current);
+    @NonNull final Optional<ValueState.Boolean> next = _inputs.findNext(current);
 
     if (!next.isPresent()) {
       begin(current);
@@ -152,13 +150,13 @@ public class UpDownToLabelSensor
   }
 
   private void onInnerInput (
-    @NonNull final LabelState previous, @NonNull final ValueState<Boolean> current
+    @NonNull final LabelState previous, final ValueState.@NonNull Boolean current
   )
   {
     if (current.getValue()) return;
 
-    @NonNull final State                         endState  = getEnd(previous).get();
-    @NonNull final Optional<ValueState<Boolean>> nextState = _inputs.findNext(current);
+    @NonNull final State                        endState  = getEnd(previous).get();
+    @NonNull final Optional<ValueState.Boolean> nextState = _inputs.findNext(current);
 
     finish(previous, current);
 
@@ -179,12 +177,12 @@ public class UpDownToLabelSensor
     super.stateWasMutated(event);
 
     if (Objects.equals(event.getNewValue().getSensorIdentifier(), getInputSensor())) {
-      inputStateWasMutated((ValueState<Boolean>) event.getOldValue(), (ValueState<Boolean>) event.getNewValue());
+      inputStateWasMutated((ValueState.Boolean) event.getOldValue(), (ValueState.Boolean) event.getNewValue());
     }
   }
 
   public void inputStateWasMutated (
-    @NonNull final ValueState<Boolean> previous, @NonNull final ValueState<Boolean> next
+    final ValueState.@NonNull Boolean previous, final ValueState.@NonNull Boolean next
   )
   {
     @NonNull final Optional<LabelState> correlated = findLabelStateCorrelatedWith(next.getIdentifier());
@@ -200,7 +198,7 @@ public class UpDownToLabelSensor
   }
 
   private void onBoundaryLocationChange (
-    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
+    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
   )
   {
     if (changed.equals(getStart(correlated))) {
@@ -211,13 +209,14 @@ public class UpDownToLabelSensor
   }
 
   private void onEndBoundaryLocationChange (
-    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
+    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
   )
   {
-    @Nullable final ValueState<Boolean> next = _inputs.findNext(correlated.getEnd(), changed.getSensorIdentifier())
+    final ValueState.@Nullable Boolean next = _inputs.findNext(correlated.getEnd(), changed.getSensorIdentifier())
                                                       .orElse(null);
 
-    @Nullable final ValueState<Boolean> previous = _inputs.findPrevious(correlated.getEnd(),
+    final ValueState.@Nullable Boolean previous = _inputs.findPrevious(
+      correlated.getEnd(),
                                                                         changed.getSensorIdentifier()
     ).orElse(null);
 
@@ -229,13 +228,13 @@ public class UpDownToLabelSensor
   }
 
   private void onStartBoundaryLocationChange (
-    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
+    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
   )
   {
-    @Nullable final ValueState<Boolean> next = _inputs.findNext(correlated.getStart(), changed.getSensorIdentifier())
+    final ValueState.@Nullable Boolean next = _inputs.findNext(correlated.getStart(), changed.getSensorIdentifier())
                                                       .orElse(null);
 
-    final ValueState<Boolean> previous = _inputs.findPrevious(correlated.getStart(), changed.getSensorIdentifier())
+    final ValueState.Boolean previous = _inputs.findPrevious(correlated.getStart(), changed.getSensorIdentifier())
                                                 .orElse(null);
 
     if (Objects.equals(next, changed) || Objects.equals(previous, changed)) {
@@ -246,7 +245,7 @@ public class UpDownToLabelSensor
   }
 
   private void onBoundaryTypeChange (
-    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
+    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
   )
   {
     if (Objects.equals(changed, getStart(correlated))) {
@@ -257,26 +256,26 @@ public class UpDownToLabelSensor
   }
 
   private void onEndBoundaryTypeChange (
-    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
+    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
   )
   {
-    @Nullable final ValueState<Boolean> next = _inputs.findNext(getEnd(correlated).get()).orElse(null);
+    final ValueState.@Nullable Boolean next = _inputs.findNext(getEnd(correlated).get()).orElse(null);
     resolveHardEndMutation(correlated, changed, next);
   }
 
   private void onStartBoundaryTypeChange (
-    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> changed
+    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
   )
   {
-    @Nullable final ValueState<Boolean> next = _inputs.findNext(correlated.getStart(), changed.getSensorIdentifier())
+    final ValueState.@Nullable Boolean next = _inputs.findNext(correlated.getStart(), changed.getSensorIdentifier())
                                                       .orElse(null);
     resolveHardStartMutation(correlated, changed, next);
   }
 
   private void resolveHardStartMutation (
     @NonNull final LabelState correlated,
-    @NonNull final ValueState<Boolean> changed,
-    @Nullable final ValueState<Boolean> next
+    final ValueState.@NonNull Boolean changed,
+    final ValueState.@Nullable Boolean next
   )
   {
     if (next != null && next.getValue()) {
@@ -291,8 +290,8 @@ public class UpDownToLabelSensor
 
   private void resolveHardEndMutation (
     @NonNull final LabelState correlated,
-    @NonNull final ValueState<Boolean> changed,
-    @Nullable final ValueState<Boolean> next
+    final ValueState.@NonNull Boolean changed,
+    final ValueState.@Nullable Boolean next
   )
   {
     if (next != null && next.getValue()) {
@@ -322,7 +321,7 @@ public class UpDownToLabelSensor
   }
 
   public void inputStateWillBeDeleted (
-    @NonNull final ValueState<Boolean> state
+    final ValueState.@NonNull Boolean state
   )
   {
     @NonNull final Optional<LabelState> correlated = findLabelStateCorrelatedWith(state.getIdentifier());
@@ -333,10 +332,10 @@ public class UpDownToLabelSensor
   }
 
   private void onBoundaryDeletion (
-    @NonNull final LabelState correlated, @NonNull final ValueState<Boolean> state
+    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean state
   )
   {
-    final ValueState<Boolean> next = _inputs.findNext(state).orElse(null);
+    final ValueState.Boolean next = _inputs.findNext(state).orElse(null);
 
     if (Objects.equals(getEnd(correlated).get(), state)) {
       if (next != null && next.getValue()) {
@@ -424,7 +423,7 @@ public class UpDownToLabelSensor
   }
 
   private void begin (
-    @NonNull final ValueState<Boolean> current, @NonNull final LabelState state
+    final ValueState.@NonNull Boolean current, @NonNull final LabelState state
   )
   {
     @NonNull final LabelState mutation = Duplicator.duplicate(state);
@@ -445,7 +444,7 @@ public class UpDownToLabelSensor
     ).get();
   }
 
-  private @NonNull ValueState<Boolean> getStart (@NonNull final LabelState label) {
+  private ValueState.@NonNull Boolean getStart (@NonNull final LabelState label) {
     return _inputs.find(getStartCorrelation(label).getEndStateIdentifier()).get();
   }
 
@@ -457,7 +456,7 @@ public class UpDownToLabelSensor
     );
   }
 
-  private @NonNull Optional<ValueState<Boolean>> getEnd (@NonNull final LabelState label) {
+  private @NonNull Optional<ValueState.Boolean> getEnd (@NonNull final LabelState label) {
     @NonNull final Optional<Correlation> correlation = getEndCorrelation(label);
 
     return correlation.isPresent() ? _inputs.find(correlation.get().getEndStateIdentifier())

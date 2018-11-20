@@ -25,6 +25,7 @@ import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
 import org.liara.api.data.entity.state.ValueState;
+import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +40,6 @@ import java.util.List;
     tags = {
       "states<boolean>"
     },
-    description = "All sensor-related operation.",
     produces = "application/json",
     consumes = "application/json",
     protocols = "http"
@@ -59,6 +59,7 @@ public class BooleanStateCollectionController
   public @NonNull Long count (
     @NonNull final HttpServletRequest request
   )
+  throws InvalidAPIRequestException
   {
     return count(ValueState.Boolean.class, request);
   }
@@ -67,6 +68,7 @@ public class BooleanStateCollectionController
   public @NonNull ResponseEntity<@NonNull List<ValueState.@NonNull Boolean>> index (
     @NonNull final HttpServletRequest request
   )
+  throws InvalidAPIRequestException
   {
     return index(ValueState.Boolean.class, request);
   }

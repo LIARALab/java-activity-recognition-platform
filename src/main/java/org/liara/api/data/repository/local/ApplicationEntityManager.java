@@ -4,9 +4,14 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.utils.InstanceDescriptor;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class ApplicationEntityManager
 {
   @NonNull
@@ -16,8 +21,7 @@ public class ApplicationEntityManager
   private final Set<@NonNull ApplicationEntityManagerListener> _listeners;
 
   @NonNull
-  private final Map<@NonNull InstanceDescriptor<? extends ApplicationEntityManagerListener>,
-                       @NonNull ApplicationEntityManagerListener> _repositories;
+  private final Map<@NonNull InstanceDescriptor<? extends ApplicationEntityManagerListener>, @NonNull ApplicationEntityManagerListener> _repositories;
 
   public ApplicationEntityManager () {
     _entities = new ApplicationEntityCollection();
@@ -35,10 +39,7 @@ public class ApplicationEntityManager
     @NonNull final Class<Entity> type, @NonNull final Long identifier
   )
   {
-    return find(
-      type,
-      identifier
-    ).orElseThrow();
+    return find(type, identifier).orElseThrow();
   }
 
   public <Entity extends ApplicationEntity> @NonNull List<@NonNull Entity> findAll (@NonNull final Class<Entity> type) {
@@ -112,7 +113,7 @@ public class ApplicationEntityManager
 
     return type.cast(_repositories.get(descriptor));
   }
-  
+
   public boolean contains (@NonNull final ApplicationEntity entity) {
     return _entities.contains(entity);
   }

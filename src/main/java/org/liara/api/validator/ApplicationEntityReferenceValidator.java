@@ -21,21 +21,24 @@
  ******************************************************************************/
 package org.liara.api.validator;
 
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
-import org.liara.api.validation.ValidApplicationEntityReference;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.validation.ApplicationEntityReference;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
 
-import javax.annotation.Nullable;
 import javax.persistence.EntityManager;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
 public class ApplicationEntityReferenceValidator
-  implements ConstraintValidator<ValidApplicationEntityReference, ApplicationEntityReference>
+  implements ConstraintValidator<ApplicationEntityReference, Long>
 {
   @NonNull
   private final EntityManager _entityManager;
+
+  @Nullable
+  private Class<? extends ApplicationEntity> _entityType;
 
   @Autowired 
   public ApplicationEntityReferenceValidator(
@@ -43,19 +46,19 @@ public class ApplicationEntityReferenceValidator
   ) { _entityManager = entityManager; }
   
   @Override
-  public void initialize (@NonNull final ValidApplicationEntityReference constraintAnnotation) { 
-    
+  public void initialize (@NonNull final ApplicationEntityReference constraintAnnotation) {
+    _entityType = constraintAnnotation.value();
   }
 
   @Override
   public boolean isValid (
-    @Nullable final ApplicationEntityReference value,
+    @Nullable final Long value,
     @NonNull final ConstraintValidatorContext context
   ) {
-    if (value == null || value.isNull()) {
+    if (value == null) {
       return true;
     } else {
-      return value.resolve(_entityManager) != null;
+      return _entityManager.find(_entityType, value) != null;
     }
   }
 }

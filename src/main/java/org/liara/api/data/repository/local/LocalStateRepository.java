@@ -7,13 +7,18 @@ import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.StateRepository;
 import org.liara.api.utils.Duplicator;
 import org.liara.collection.operator.cursoring.Cursor;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class LocalStateRepository<TimeState extends State>
-       extends LocalApplicationEntityRepository<TimeState>
+  extends LocalApplicationEntityRepository<TimeState>
   implements StateRepository<TimeState>
 {
   @NonNull
@@ -31,19 +36,18 @@ public class LocalStateRepository<TimeState extends State>
 
   @Override
   public @NonNull List<@NonNull TimeState> findPrevious (
-    @NonNull final ZonedDateTime date, @NonNull final Collection<@NonNull Long> sensorIdentifiers,
-    @NonNull final Cursor cursor
+    @NonNull final ZonedDateTime date, @NonNull final Collection<@NonNull Long> sensorIdentifiers, @NonNull final Cursor cursor
   ) {
     @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensorIdentifiers);
 
 
     if (union.size() >= 0) {
       @NonNull final List<@NonNull TimeState> result = union.headSet(new Entry<>(date), false)
-                                                            .stream()
-                                                            .map(Entry::getState)
-                                                            .map(Duplicator::duplicate)
-                                                            .sorted(this::sortByDateDescending)
-                                                            .collect(Collectors.toList());
+                                                         .stream()
+                                                         .map(Entry::getState)
+                                                         .map(Duplicator::duplicate)
+                                                         .sorted(this::sortByDateDescending)
+                                                         .collect(Collectors.toList());
 
       if (cursor.hasLimit()) {
         return result.subList(cursor.getOffset(), cursor.getOffset() + cursor.getLimit());
@@ -65,8 +69,7 @@ public class LocalStateRepository<TimeState extends State>
 
   @Override
   public @NonNull List<@NonNull TimeState> findNext (
-    @NonNull final ZonedDateTime date, @NonNull final Collection<@NonNull Long> sensorIdentifiers,
-    @NonNull final Cursor cursor
+    @NonNull final ZonedDateTime date, @NonNull final Collection<@NonNull Long> sensorIdentifiers, @NonNull final Cursor cursor
   )
   {
     @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensorIdentifiers);
@@ -74,11 +77,11 @@ public class LocalStateRepository<TimeState extends State>
 
     if (union.size() > 0) {
       @NonNull final List<@NonNull TimeState> result = union.tailSet(new Entry<>(date), false)
-                                                            .stream()
-                                                            .map(Entry::getState)
-                                                            .map(Duplicator::duplicate)
-                                                            .sorted(this::sortByDateAscending)
-                                                            .collect(Collectors.toList());
+                                                         .stream()
+                                                         .map(Entry::getState)
+                                                         .map(Duplicator::duplicate)
+                                                         .sorted(this::sortByDateAscending)
+                                                         .collect(Collectors.toList());
 
       if (cursor.hasLimit()) {
         return result.subList(cursor.getOffset(), cursor.getOffset() + cursor.getLimit());
@@ -97,11 +100,11 @@ public class LocalStateRepository<TimeState extends State>
   ) {
     if (_statesBySensors.containsKey(sensorIdentifier)) {
       @NonNull final List<@NonNull TimeState> result = _statesBySensors.get(sensorIdentifier)
-                                                                       .stream()
-                                                                       .map(Entry::getState)
-                                                                       .map(Duplicator::duplicate)
-                                                                       .sorted(this::sortByDateAscending)
-                                                                       .collect(Collectors.toList());
+                                                         .stream()
+                                                         .map(Entry::getState)
+                                                         .map(Duplicator::duplicate)
+                                                         .sorted(this::sortByDateAscending)
+                                                         .collect(Collectors.toList());
 
       if (cursor.hasLimit()) {
         return result.subList(cursor.getOffset(), cursor.getOffset() + cursor.getLimit());
@@ -115,18 +118,17 @@ public class LocalStateRepository<TimeState extends State>
 
   @Override
   public @NonNull List<@NonNull TimeState> find (
-    @NonNull final Collection<@NonNull Long> sensorIdentifiers,
-    @NonNull final Cursor cursor
+    @NonNull final Collection<@NonNull Long> sensorIdentifiers, @NonNull final Cursor cursor
   )
   {
     @NonNull final TreeSet<@NonNull Entry<TimeState>> union = getStatesOf(sensorIdentifiers);
 
     if (union.size() > 0) {
       @NonNull final List<@NonNull TimeState> result = union.stream()
-                                                            .map(Entry::getState)
-                                                            .map(Duplicator::duplicate)
-                                                            .sorted(this::sortByDateAscending)
-                                                            .collect(Collectors.toList());
+                                                         .map(Entry::getState)
+                                                         .map(Duplicator::duplicate)
+                                                         .sorted(this::sortByDateAscending)
+                                                         .collect(Collectors.toList());
 
       if (cursor.hasLimit()) {
         return result.subList(cursor.getOffset(), cursor.getOffset() + cursor.getLimit());
@@ -161,10 +163,7 @@ public class LocalStateRepository<TimeState extends State>
     @NonNull final TreeSet<@NonNull Entry<TimeState>> union;
 
     if (sensorIdentifiers.size() == 1) {
-      union = _statesBySensors.getOrDefault(
-        sensorIdentifiers.iterator().next(),
-        new TreeSet<>()
-      );
+      union = _statesBySensors.getOrDefault(sensorIdentifiers.iterator().next(), new TreeSet<>());
     } else {
       union = new TreeSet<>();
 
@@ -192,10 +191,7 @@ public class LocalStateRepository<TimeState extends State>
       if (oldEntity != null) {
         _statesBySensors.get(oldState.getSensorIdentifier()).remove(new Entry<>(oldState));
       } else if (!_statesBySensors.containsKey(newState.getSensorIdentifier())) {
-        _statesBySensors.put(
-          newState.getSensorIdentifier(),
-          new TreeSet<>()
-        );
+        _statesBySensors.put(newState.getSensorIdentifier(), new TreeSet<>());
       }
 
       _statesBySensors.get(newState.getSensorIdentifier()).add(new Entry<>(newState));

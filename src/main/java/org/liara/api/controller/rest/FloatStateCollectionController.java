@@ -24,7 +24,7 @@ package org.liara.api.controller.rest;
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
-import org.liara.api.data.entity.state.LabelState;
+import org.liara.api.data.entity.state.ValueState;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,42 +37,42 @@ import java.util.List;
 
 @RestController
 @Api(tags = {
-  "states<activation>"
-}, description = "", produces = "application/json", consumes = "application/json", protocols = "http")
-public class LabelStateCollectionController
+  "states<float>"
+}, produces = "application/json", consumes = "application/json", protocols = "http")
+public final class FloatStateCollectionController
   extends BaseRestController
 {
   @Autowired
-  public LabelStateCollectionController (
+  public FloatStateCollectionController (
     @NonNull final CollectionFactory collections
   )
   {
     super(collections);
   }
 
-  @GetMapping("/states<label>/count")
+  @GetMapping("/states<float>/count")
   public @NonNull Long count (
     @NonNull final HttpServletRequest request
   )
   throws InvalidAPIRequestException
   {
-    return count(LabelState.class, request);
+    return count(ValueState.Float.class, request);
   }
 
-  @GetMapping("/states<label>")
-  public @NonNull ResponseEntity<@NonNull List<@NonNull LabelState>> index (
+  @GetMapping("/states<float>")
+  public @NonNull ResponseEntity<@NonNull List<ValueState.@NonNull Float>> index (
     @NonNull final HttpServletRequest request
   )
   throws InvalidAPIRequestException
   {
-    return index(LabelState.class, request);
+    return index(ValueState.Float.class, request);
   }
 
-  @GetMapping("/states<label>/{identifier}")
-  public @NonNull LabelState get (
+  @GetMapping("/states<float>/{identifier}")
+  public ValueState.@NonNull Float get (
     @PathVariable final Long identifier
   )
   {
-    return get(LabelState.class, identifier);
+    return get(ValueState.Float.class, identifier);
   }
 }

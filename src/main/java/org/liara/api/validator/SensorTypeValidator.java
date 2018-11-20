@@ -21,33 +21,34 @@
  ******************************************************************************/
 package org.liara.api.validator;
 
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
-import org.liara.api.validation.Required;
+import org.liara.api.recognition.sensor.type.SensorTypeManager;
+import org.liara.api.validation.SensorType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
-import javax.annotation.Nullable;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-public class RequiredIterableApplicationEntityReferenceValidator 
-       implements ConstraintValidator<Required, Iterable<ApplicationEntityReference<?>>>
+public class SensorTypeValidator
+  implements ConstraintValidator<SensorType, String>
 {
-  @Override
-  public void initialize (@NonNull final Required constraintAnnotation) { 
-    
+  @NonNull
+  private final SensorTypeManager _sensorTypeManager;
+
+  @Autowired
+  public SensorTypeValidator (
+    @NonNull final SensorTypeManager sensorTypeManager
+  )
+  {
+    _sensorTypeManager = sensorTypeManager;
   }
 
   @Override
   public boolean isValid (
-    @Nullable final Iterable<ApplicationEntityReference<?>> value, 
+    @Nullable final String value,
     @NonNull final ConstraintValidatorContext context
   ) {
-    if (value == null) return false;
-    
-    for (final ApplicationEntityReference<?> reference : value) {
-      if (reference == null || reference.isNull()) return false;
-    }
-    
-    return true;
+    return value == null || _sensorTypeManager.contains(value);
   }
 }

@@ -87,7 +87,7 @@ public final class EntityBasedOrderingConfiguration<Entity>
 
   @Override
   public @NonNull APIRequestValidator getValidator () {
-    return APIRequestValidator.composse(_executors.values().toArray(new APIRequestValidator[0]));
+    return APIRequestValidator.composse(new APIRequestOrderingParser(getExecutor()));
   }
 
   @Override

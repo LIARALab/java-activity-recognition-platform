@@ -27,6 +27,7 @@ import org.liara.api.collection.CollectionFactory;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.event.NodeEvent;
+import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
@@ -80,7 +81,11 @@ import java.util.List;
    * @return An HTTP response with the user requested data.
    */
   @GetMapping("/nodes/count")
-  public @NonNull Long count (@NonNull final HttpServletRequest request) {
+  public @NonNull Long count (
+    @NonNull final HttpServletRequest request
+  )
+  throws InvalidAPIRequestException
+  {
     return count(Node.class, request);
   }
 
@@ -96,7 +101,10 @@ import java.util.List;
    * @return
    */
   @GetMapping("/nodes")
-  public @NonNull ResponseEntity<@NonNull List<@NonNull Node>> index (@NonNull final HttpServletRequest request)
+  public @NonNull ResponseEntity<@NonNull List<@NonNull Node>> index (
+    @NonNull final HttpServletRequest request
+  )
+  throws InvalidAPIRequestException
   {
     return index(Node.class, request);
   }

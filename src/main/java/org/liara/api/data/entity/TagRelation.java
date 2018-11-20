@@ -2,6 +2,7 @@ package org.liara.api.data.entity;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.validation.ApplicationEntityReference;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -55,6 +56,7 @@ public class TagRelation
   }
 
   @Column(name = "tag_identifier", nullable = false)
+  @ApplicationEntityReference(Tag.class)
   public @Nullable Long getTagIdentifier () {
     return _tagIdentifier;
   }

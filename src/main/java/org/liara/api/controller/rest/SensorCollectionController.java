@@ -28,6 +28,7 @@ import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.event.ApplicationEntityEvent;
+import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
@@ -78,7 +79,11 @@ public class SensorCollectionController
   }
 
   @GetMapping("/sensors/count")
-  public @NonNull Long count (@NonNull final HttpServletRequest request) {
+  public @NonNull Long count (
+    @NonNull final HttpServletRequest request
+  )
+  throws InvalidAPIRequestException
+  {
     return count(Sensor.class, request);
   }
 
@@ -86,6 +91,7 @@ public class SensorCollectionController
   public @NonNull ResponseEntity<@NonNull List<@NonNull Sensor>> index (
     @NonNull final HttpServletRequest request
   )
+  throws InvalidAPIRequestException
   {
     return index(Sensor.class, request);
   }

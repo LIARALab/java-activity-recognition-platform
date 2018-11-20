@@ -21,42 +21,33 @@
  ******************************************************************************/
 package org.liara.api.validation;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import org.liara.api.validator.OptionalRequiredValidator;
+import org.liara.api.validator.OptionalStringRequiredValidator;
+import org.liara.api.validator.RequiredValidator;
+import org.liara.api.validator.StringRequiredValidator;
 
+import javax.validation.Constraint;
+import javax.validation.Payload;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
-
-import org.liara.api.validator.OptionalRequiredValidator;
-import org.liara.api.validator.OptionalStringRequiredValidator;
-import org.liara.api.validator.RequiredApplicationEntityReferenceValidator;
-import org.liara.api.validator.RequiredIterableApplicationEntityReferenceValidator;
-import org.liara.api.validator.RequiredValidator;
-import org.liara.api.validator.StringRequiredValidator;
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Retention(RUNTIME)
 @Target({ TYPE, FIELD, METHOD, PARAMETER})
 @Documented
-@Constraint(validatedBy = { 
+@Constraint(validatedBy = {
   StringRequiredValidator.class,
   OptionalStringRequiredValidator.class,
-  RequiredValidator.class,
-  OptionalRequiredValidator.class,
-  RequiredApplicationEntityReferenceValidator.class,
-  RequiredIterableApplicationEntityReferenceValidator.class
+  RequiredValidator.class, OptionalRequiredValidator.class
 })
 public @interface Required
 {
-  public String message () default "The required field is empty.";
+  String message () default "The required field is empty.";
 
-  public Class<?>[] groups () default {};
-  
-  public Class<? extends Payload>[] payload () default {};
+  Class<?>[] groups () default {};
+
+  Class<? extends Payload>[] payload () default {};
 }

@@ -28,8 +28,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.Arrays;
+import java.util.logging.Logger;
 
 @SpringBootApplication
 @Import(
@@ -39,9 +44,41 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 )
 public class Application
 {
-  public static void main (@NonNull String[] args) {
+  private static @NonNull String[] ARGUMENTS = new String[0];
+
+  public static @NonNull String[] getStartingArguments () {
+    return Arrays.copyOf(Application.ARGUMENTS, Application.ARGUMENTS.length);
+  }
+
+  public static boolean isFlagPassed (@NonNull final String fullName) {
+    @NonNull final String argumentToFind = "--" + fullName;
+    for (@NonNull final String argument : Application.ARGUMENTS) {
+      if (argument.equals(argumentToFind)) return true;
+    }
+
+    return false;
+  }
+
+  public static void main (@NonNull final String[] args) {
+    Application.ARGUMENTS = args;
+
     @NonNull final ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
     context.getBean(VirtualSensorManager.class).start();
+  }
+
+  @Bean
+  public static @NonNull PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer () {
+    @NonNull final PropertySourcesPlaceholderConfigurer result = new PropertySourcesPlaceholderConfigurer();
+
+    if (isFlagPassed("development")) {
+      Logger.getLogger(Application.class.toString()).info(
+        "Application launched in development mode, see application-development.properties file for more information.");
+      result.setLocation(new ClassPathResource("application-development.properties"));
+    } else {
+      result.setLocation(new ClassPathResource("application.properties"));
+    }
+
+    return result;
   }
   
   @Bean

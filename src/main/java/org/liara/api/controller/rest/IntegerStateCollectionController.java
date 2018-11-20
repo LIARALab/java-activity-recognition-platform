@@ -25,6 +25,7 @@ import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
 import org.liara.api.data.entity.state.ValueState;
+import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -58,6 +59,7 @@ public final class IntegerStateCollectionController
   public @NonNull Long count (
     @NonNull final HttpServletRequest request
   )
+  throws InvalidAPIRequestException
   {
     return count(ValueState.Integer.class, request);
   }
@@ -66,6 +68,7 @@ public final class IntegerStateCollectionController
   public @NonNull ResponseEntity<@NonNull List<ValueState.@NonNull Integer>> index (
     @NonNull final HttpServletRequest request
   )
+  throws InvalidAPIRequestException
   {
     return index(ValueState.Integer.class, request);
   }

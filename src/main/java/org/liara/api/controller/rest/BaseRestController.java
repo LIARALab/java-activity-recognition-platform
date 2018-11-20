@@ -27,6 +27,7 @@ import org.liara.api.collection.CollectionRequestConfiguration;
 import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.APIRequest;
 import org.liara.request.validator.APIRequestValidation;
+import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,6 +47,7 @@ public class BaseRestController
   protected <Entity> @NonNull Long count (
     @NonNull final Class<Entity> entity, @NonNull final HttpServletRequest request
   )
+  throws InvalidAPIRequestException
   {
     return apply(_collections.getCollection(entity), _collections.getConfiguration(entity), request).select(
       "COUNT(:this)",
@@ -57,6 +59,7 @@ public class BaseRestController
     @NonNull final Class<Entity> entity,
     @NonNull final HttpServletRequest request
   )
+  throws InvalidAPIRequestException
   {
     return toResponse(apply(_collections.getCollection(entity), _collections.getConfiguration(entity), request));
   }
@@ -86,6 +89,7 @@ public class BaseRestController
     @NonNull final CollectionRequestConfiguration<Entity> configuration,
     @NonNull final HttpServletRequest request
   )
+  throws InvalidAPIRequestException
   {
     final APIRequest apiRequest           = new APIRequest(request.getParameterMap());
     final APIRequestValidation validation = configuration.validate(apiRequest);

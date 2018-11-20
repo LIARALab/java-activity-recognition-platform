@@ -16,15 +16,15 @@ import java.util.List;
 @Component
 @Scope("prototype")
 @Primary
-public class DatabaseValueStateRepository<Value>
-  extends DatabaseStateRepository<ValueState<Value>>
-  implements ValueStateRepository<Value>
+public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
+  extends DatabaseStateRepository<Wrapper>
+  implements ValueStateRepository<Value, Wrapper>
 {
   @NonNull
   private final EntityManager _entityManager;
 
   public DatabaseValueStateRepository (
-    @NonNull final EntityManager entityManager, @NonNull final Class<ValueState<Value>> type
+    @NonNull final EntityManager entityManager, @NonNull final Class<Wrapper> type
   )
   {
     super(entityManager, type);
@@ -32,30 +32,25 @@ public class DatabaseValueStateRepository<Value>
   }
 
   @Override
-  public @NonNull List<@NonNull ValueState<Value>> findPreviousWithValue (
+  public @NonNull List<@NonNull Wrapper> findPreviousWithValue (
     @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
-  ) {
-    @NonNull final TypedQuery<ValueState<Value>> states = _entityManager.createQuery(
-      String.join(
-        "",
-        "SELECT state ",
-        "  FROM ",
-        getManagedEntity().getName(),
-        " state ",
-        " WHERE state.emissionDate < :date ",
-        "   AND state.sensorIdentifier IN :sensors ",
-        "   AND state.value = :value",
-        " ORDER BY state.emissionDate DESC, state.identifier DESC"
-      ), getManagedEntity()
-    ).setParameter("date", date)
-                                                            .setParameter(
-                                                              "sensors",
-                                                              inputSensorIdentifiers
-                                                            )
-                                                                        .setParameter("value", value)
-                                                                        .setFirstResult(cursor.getOffset());
+  )
+  {
+    @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(java.lang.String.join("",
+      "SELECT state ",
+      "  FROM ",
+      getManagedEntity().getName(),
+      " state ",
+      " WHERE state" + ".emissionDate < " + ":date ",
+      "   AND state" + ".sensorIdentifier " + "IN " + ":sensors ",
+      "   AND state.value " + "= :value",
+      " ORDER BY state" + ".emissionDate " + "DESC, state" + ".identifier DESC"
+    ), getManagedEntity()).setParameter("date", date).setParameter("sensors", inputSensorIdentifiers).setParameter(
+      "value",
+      value
+    ).setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) states.setMaxResults(cursor.getLimit());
 
@@ -63,30 +58,27 @@ public class DatabaseValueStateRepository<Value>
   }
 
   @Override
-  public @NonNull List<@NonNull ValueState<Value>> findNextWithValue (
+  public @NonNull List<@NonNull Wrapper> findNextWithValue (
     @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
-  ) {
-    @NonNull final TypedQuery<ValueState<Value>> states = _entityManager.createQuery(
-      String.join(
-        "",
-        "SELECT state ",
-        "  FROM ",
-        getManagedEntity().getName(),
-        " state ",
-        " WHERE state.emissionDate > :date ",
-        "   AND state.sensorIdentifier IN :sensors ",
-        "   AND state.value = :value",
-        " ORDER BY state.emissionDate ASC"
-      ), getManagedEntity()
-    ).setParameter("date", date)
-                                                            .setParameter(
-                                                              "sensors",
-                                                              inputSensorIdentifiers
-                                                            )
-                                                                        .setParameter("value", value)
-                                                                        .setFirstResult(cursor.getOffset());
+  )
+  {
+    @NonNull final TypedQuery<Wrapper> states;
+
+    states = _entityManager.createQuery(java.lang.String.join("",
+      "SELECT state ",
+      "  FROM ",
+      getManagedEntity().getName(),
+      " state ",
+      " WHERE state.emissionDate > :date ",
+      "   AND state.sensorIdentifier IN :sensors ",
+      "   AND state.value = :value",
+      " ORDER BY state.emissionDate ASC"
+    ), getManagedEntity()).setParameter("date", date).setParameter("sensors", inputSensorIdentifiers).setParameter(
+      "value",
+      value
+    ).setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) states.setMaxResults(cursor.getLimit());
 
@@ -94,28 +86,20 @@ public class DatabaseValueStateRepository<Value>
   }
 
   @Override
-  public @NonNull List<@NonNull ValueState<Value>> findAllWithValue (
-    @NonNull final List<@NonNull Long> inputSensorIdentifiers,
-    @NonNull final Value value,
-    @NonNull final Cursor cursor
-  ) {
-    @NonNull final TypedQuery<ValueState<Value>> states = _entityManager.createQuery(
-      String.join(
-        "",
-        "SELECT state ",
-        "  FROM ",
-        getManagedEntity().getName(),
-        " state ",
-        " WHERE state.sensorIdentifier IN :sensors ",
-        "   AND state.value = :value",
-        " ORDER BY state.emissionDate ASC"
-      ), getManagedEntity())
-                                                            .setParameter(
-                                                              "sensors",
-                                                              inputSensorIdentifiers
-                                                            )
-                                                                        .setParameter("value", value)
-                                                                        .setFirstResult(cursor.getOffset());
+  public @NonNull List<@NonNull Wrapper> findAllWithValue (
+    @NonNull final List<@NonNull Long> inputSensorIdentifiers, @NonNull final Value value, @NonNull final Cursor cursor
+  )
+  {
+    @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(java.lang.String.join("",
+      "SELECT state ",
+      "  FROM ",
+      getManagedEntity().getName(),
+      " state ",
+      " WHERE state" + ".sensorIdentifier IN :sensors ",
+      "   AND state.value = :value",
+      " ORDER BY state.emissionDate ASC"
+    ), getManagedEntity()).setParameter("sensors", inputSensorIdentifiers).setParameter("value", value).setFirstResult(
+      cursor.getOffset());
 
     if (cursor.hasLimit()) states.setMaxResults(cursor.getLimit());
 

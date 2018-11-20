@@ -28,6 +28,7 @@ import org.liara.api.collection.CollectionFactory;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.event.ApplicationEntityEvent;
+import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
@@ -92,6 +93,7 @@ public class StateCollectionController
   public @NonNull Long count (
     @NonNull final HttpServletRequest request
   )
+  throws InvalidAPIRequestException
   {
     return count(State.class, request);
   }
@@ -100,6 +102,7 @@ public class StateCollectionController
   public @NonNull ResponseEntity<@NonNull List<@NonNull State>> index (
     @NonNull final HttpServletRequest request
   )
+  throws InvalidAPIRequestException
   {
     return index(State.class, request);
   }
@@ -117,7 +120,7 @@ public class StateCollectionController
     @PathVariable final Long identifier
   )
   {
-    return get(State.class, identifier).getSensorIdentifier().resolve(_entityManager);
+    return _entityManager.find(Sensor.class, get(State.class, identifier).getSensorIdentifier());
   }
 
   @PostMapping("/states")

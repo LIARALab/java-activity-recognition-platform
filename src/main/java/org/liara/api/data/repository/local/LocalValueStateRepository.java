@@ -4,29 +4,34 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.data.repository.ValueStateRepository;
 import org.liara.collection.operator.cursoring.Cursor;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class LocalValueStateRepository<Value>
-  extends LocalStateRepository<ValueState<Value>>
-  implements ValueStateRepository<Value>
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
+public class LocalValueStateRepository<Value, Wrapper extends ValueState>
+  extends LocalStateRepository<Wrapper>
+  implements ValueStateRepository<Value, Wrapper>
 {
   public LocalValueStateRepository (
-    @NonNull final Class<ValueState<Value>> type
+    @NonNull final Class<Wrapper> type
   )
   { super(type); }
 
   @Override
-  public @NonNull List<@NonNull ValueState<Value>> findPreviousWithValue (
+  public @NonNull List<@NonNull Wrapper> findPreviousWithValue (
     @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final List<@NonNull ValueState<Value>> result = new ArrayList<>(cursor.getLimit());
-    @NonNull final List<@NonNull ValueState<Value>> previous = findPrevious(
+    @NonNull final List<@NonNull Wrapper> result = new ArrayList<>(cursor.getLimit());
+    @NonNull final List<@NonNull Wrapper> previous = findPrevious(
       date,
       inputSensorIdentifiers,
       Cursor.ALL
@@ -42,13 +47,13 @@ public class LocalValueStateRepository<Value>
   }
 
   @Override
-  public @NonNull List<@NonNull ValueState<Value>> findNextWithValue (
+  public @NonNull List<@NonNull Wrapper> findNextWithValue (
     @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final List<@NonNull ValueState<Value>> result = new ArrayList<>(cursor.getLimit());
-    @NonNull final List<@NonNull ValueState<Value>> nexts  = findNext(
+    @NonNull final List<@NonNull Wrapper> result = new ArrayList<>(cursor.getLimit());
+    @NonNull final List<@NonNull Wrapper> nexts = findNext(
       date,
       inputSensorIdentifiers,
       Cursor.ALL
@@ -64,13 +69,13 @@ public class LocalValueStateRepository<Value>
   }
 
   @Override
-  public @NonNull List<@NonNull ValueState<Value>> findAllWithValue (
+  public @NonNull List<@NonNull Wrapper> findAllWithValue (
     @NonNull final List<Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final List<@NonNull ValueState<Value>> result = new ArrayList<>(cursor.getLimit());
-    @NonNull final List<@NonNull ValueState<Value>> all    = find(
+    @NonNull final List<@NonNull Wrapper> result = new ArrayList<>(cursor.getLimit());
+    @NonNull final List<@NonNull Wrapper> all = find(
       inputSensorIdentifiers,
       Cursor.ALL
     );

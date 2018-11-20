@@ -9,7 +9,7 @@ import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.data.repository.CorrelationRepository;
-import org.liara.api.data.repository.ValueStateRepository;
+import org.liara.api.data.repository.SapaRepositories;
 import org.liara.api.event.ApplicationEntityEvent;
 import org.liara.api.event.StateEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
@@ -36,12 +36,10 @@ public class CeilToUpDownConvertionSensor
 {
   @NonNull
   private final ApplicationEventPublisher _eventPublisher;
-  
-  @NonNull
-  private final ValueStateRepository<Number> _input;
 
-  @NonNull
-  private final ValueStateRepository<Boolean> _output;
+  private final SapaRepositories.@NonNull Numeric _input;
+
+  private final SapaRepositories.@NonNull Boolean _output;
 
   @NonNull
   private final CorrelationRepository _correlations;
@@ -49,8 +47,8 @@ public class CeilToUpDownConvertionSensor
   @Autowired
   public CeilToUpDownConvertionSensor (
     @NonNull final ApplicationEventPublisher eventPublisher,
-    @NonNull final ValueStateRepository<Number> input,
-    @NonNull final ValueStateRepository<Boolean> output,
+    final SapaRepositories.@NonNull Numeric input,
+    final SapaRepositories.@NonNull Boolean output,
     @NonNull final CorrelationRepository correlations
   ) {
     super();
@@ -88,7 +86,7 @@ public class CeilToUpDownConvertionSensor
   ) {
     super.initialize(runner);
 
-    @NonNull final List<@NonNull ValueState<Number>> states = _input.find(getInputSensor(), Cursor.ALL);
+    @NonNull final List<ValueState.@NonNull Numeric> states = _input.find(getInputSensor(), Cursor.ALL);
     
     if (states.size() > 0) {
       discover(null, states.get(0));
@@ -106,15 +104,15 @@ public class CeilToUpDownConvertionSensor
     super.stateWasCreated(event);
 
     if (Objects.equals(event.getState().getSensorIdentifier(), getInputSensor())) {
-      inputStateWasCreated((ValueState<Number>) event.getState());
+      inputStateWasCreated((ValueState.Numeric) event.getState());
     }
   }
 
   private void inputStateWasCreated (
-    @NonNull final ValueState<Number> current
+    final ValueState.@NonNull Numeric current
   ) {
-    @Nullable final ValueState<Number> previous = _input.findPrevious(current).orElse(null);
-    @Nullable final ValueState<Number> next     = _input.findNext(current).orElse(null);
+    final ValueState.@Nullable Numeric previous = _input.findPrevious(current).orElse(null);
+    final ValueState.@Nullable Numeric next     = _input.findNext(current).orElse(null);
     
     discover(previous, current);
     correct(current, next);
@@ -127,13 +125,13 @@ public class CeilToUpDownConvertionSensor
    super.stateWasMutated(event);
 
     if (Objects.equals(event.getNewValue().getSensorIdentifier(), getInputSensor())) {
-      inputStateWasMutated((ValueState<Number>) event.getOldValue(), (ValueState<Number>) event.getNewValue()
+      inputStateWasMutated((ValueState.Numeric) event.getOldValue(), (ValueState.Numeric) event.getNewValue()
      );
    }
   }
 
   private void inputStateWasMutated (
-    @NonNull final ValueState<Number> old, @NonNull final ValueState<Number> current
+    final ValueState.@NonNull Numeric old, final ValueState.@NonNull Numeric current
   ) {
     if (!Objects.equals(current.getValue(), old.getValue())) {
       correct(_input.findPrevious(current).orElse(null), current);
@@ -148,15 +146,15 @@ public class CeilToUpDownConvertionSensor
     super.stateWillBeDeleted(event);
 
     if (Objects.equals(event.getState().getSensorIdentifier(), getInputSensor())) {
-      inputStateWillBeDeleted((ValueState<Number>) event.getState());
+      inputStateWillBeDeleted((ValueState.Numeric) event.getState());
     }
   }
   
   private void inputStateWillBeDeleted (
-    @NonNull final ValueState<Number> toDelete
+    final ValueState.@NonNull Numeric toDelete
   ) {
-    @Nullable final ValueState<Number> previous = _input.findPrevious(toDelete).orElse(null);
-    @Nullable final ValueState<Number> next     = _input.findNext(toDelete).orElse(null);
+    final ValueState.@Nullable Numeric previous = _input.findPrevious(toDelete).orElse(null);
+    final ValueState.@Nullable Numeric next     = _input.findNext(toDelete).orElse(null);
 
     @Nullable final ValueState<Boolean> related = findResultCorrelatedWith(toDelete);
     
@@ -164,7 +162,7 @@ public class CeilToUpDownConvertionSensor
     if (next != null) correct(previous, next);
   }
 
-  private @Nullable ValueState<Boolean> findResultCorrelatedWith (@NonNull final ValueState<Number> toDelete) {
+  private @Nullable ValueState<Boolean> findResultCorrelatedWith (final ValueState.@NonNull Numeric toDelete) {
     @NonNull final Optional<Correlation> correlation =
       _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
       getSensor().getIdentifier(),
@@ -180,7 +178,7 @@ public class CeilToUpDownConvertionSensor
   }
 
   private void correct (
-    @NonNull final ValueState<Number> current, @Nullable final ValueState<Number> next
+    final ValueState.@NonNull Numeric current, final ValueState.@Nullable Numeric next
   ) {
     if (next == null) return;
 
@@ -211,7 +209,7 @@ public class CeilToUpDownConvertionSensor
   }
 
   private void correctDown (
-    @NonNull final ValueState<Number> current, @NonNull final ValueState<Number> next,
+    final ValueState.@NonNull Numeric current, final ValueState.@NonNull Numeric next,
     @NonNull final ValueState<Boolean> correlated
   ) {
     @NonNull final ValueState<Boolean> mutation = Duplicator.duplicate(correlated);
@@ -225,7 +223,7 @@ public class CeilToUpDownConvertionSensor
   }
 
   private void correctUp (
-    @NonNull final ValueState<Number> current, @NonNull final ValueState<Number> next,
+    final ValueState.@NonNull Numeric current, final ValueState.@NonNull Numeric next,
     @NonNull final ValueState<Boolean> correlated
   ) {
     @NonNull final ValueState<Boolean> mutation = Duplicator.duplicate(correlated);
@@ -239,17 +237,17 @@ public class CeilToUpDownConvertionSensor
   }
 
   private void discover (
-    @Nullable final ValueState<Number> previous, @NonNull final ValueState<Number> current
+    final ValueState.@Nullable Numeric previous, final ValueState.@NonNull Numeric current
   ) {
     if (previous == null) {
-      if (current.getValue().doubleValue() > getCeil()) {
+      if (((Number) current.getValue()).doubleValue() > getCeil()) {
         emitUp(previous, current);
       } else {
         emitDown(previous, current);
       }
     } else {
-      double previousValue = previous.getValue().doubleValue();
-      double currentValue  = current.getValue().doubleValue();
+      double previousValue = ((Number) previous.getValue()).doubleValue();
+      double currentValue  = ((Number) current.getValue()).doubleValue();
       
       if (isUp(previousValue, currentValue)) {
         emitUp(previous, current);
@@ -260,9 +258,9 @@ public class CeilToUpDownConvertionSensor
   }
   
   private boolean isDown (
-    @NonNull final ValueState<Number> previous, @NonNull final ValueState<Number> current
+    final ValueState.@NonNull Numeric previous, final ValueState.@NonNull Numeric current
   ) {
-    return isDown(previous.getValue().doubleValue(), current.getValue().doubleValue());
+    return isDown(((Number) previous.getValue()).doubleValue(), ((Number) current.getValue()).doubleValue());
   }
   
   private boolean isDown (final double previous, final double current) {
@@ -270,9 +268,9 @@ public class CeilToUpDownConvertionSensor
   }
   
   private boolean isUp (
-    @NonNull final ValueState<Number> previous, @NonNull final ValueState<Number> current
+    final ValueState.@NonNull Numeric previous, final ValueState.@NonNull Numeric current
   ) {
-    return isUp(previous.getValue().doubleValue(), current.getValue().doubleValue()
+    return isUp(((Number) previous.getValue()).doubleValue(), ((Number) current.getValue()).doubleValue()
     );  
   }
   
@@ -281,17 +279,17 @@ public class CeilToUpDownConvertionSensor
   }
 
   private void emitDown (
-    @Nullable final ValueState<Number> previous, @NonNull final ValueState<Number> current
+    final ValueState.@Nullable Numeric previous, final ValueState.@NonNull Numeric current
   )
   { emit(previous, current, false); }
 
   private void emitUp (
-    @Nullable final ValueState<Number> previous, @NonNull final ValueState<Number> current
+    final ValueState.@Nullable Numeric previous, final ValueState.@NonNull Numeric current
   )
   { emit(previous, current, true);}
 
   private void emit (
-    @Nullable final ValueState<Number> previous, @NonNull final ValueState<Number> current, final boolean up
+    final ValueState.@Nullable Numeric previous, final ValueState.@NonNull Numeric current, final boolean up
   ) {
     @NonNull final ValueState<Boolean> result = new ValueState.Boolean();
     result.setSensorIdentifier(getSensor().getIdentifier());
@@ -318,7 +316,7 @@ public class CeilToUpDownConvertionSensor
   }
 
   private @NonNull ZonedDateTime interpolate (
-    @Nullable final ValueState<Number> previous, @NonNull final ValueState<Number> current
+    final ValueState.@Nullable Numeric previous, final ValueState.@NonNull Numeric current
   ) {
     switch (getInterpolationType()) {
       case NONE:

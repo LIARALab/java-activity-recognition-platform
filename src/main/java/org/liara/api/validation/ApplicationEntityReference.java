@@ -19,29 +19,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.validator;
+package org.liara.api.validation;
 
-import org.liara.api.data.entity.reference.ApplicationEntityReference;
-import org.liara.api.validation.Required;
-import org.springframework.lang.NonNull;
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.validator.ApplicationEntityReferenceValidator;
+import org.liara.api.validator.IterableApplicationEntityReferenceValidator;
 
-import javax.annotation.Nullable;
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-public class RequiredApplicationEntityReferenceValidator 
-       implements ConstraintValidator<Required, ApplicationEntityReference<?>>
+import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+@Retention(RUNTIME)
+@Target({ TYPE, FIELD, METHOD, PARAMETER })
+@Documented
+@Constraint(validatedBy = { 
+  ApplicationEntityReferenceValidator.class,
+  IterableApplicationEntityReferenceValidator.class
+})
+public @interface ApplicationEntityReference
 {
-  @Override
-  public void initialize (@NonNull final Required constraintAnnotation) { 
-    
-  }
+  String message () default "Invalid entity identifier : the given identifier is not attached to any entity of the " +
+                            "expected type.";
 
-  @Override
-  public boolean isValid (
-    @Nullable final ApplicationEntityReference<?> value, 
-    @NonNull final ConstraintValidatorContext context
-  ) {
-    return !(value == null || value.isNull());
-  }
+  Class<?>[] groups () default {};
+
+  Class<? extends ApplicationEntity> value ();
+
+  Class<? extends Payload>[] payload () default {};
 }

@@ -2,7 +2,12 @@ package org.liara.api.data.repository.local;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public abstract class LocalRepository
   implements ApplicationEntityManagerListener
 {
@@ -29,9 +34,9 @@ public abstract class LocalRepository
         _parent = null;
         oldParent.removeListener(this);
       }
-      
+
       _parent = parent;
-      
+
       if (_parent != null) {
         _parent.addListener(this);
       }

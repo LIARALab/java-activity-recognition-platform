@@ -3,6 +3,8 @@ package org.liara.api.data.entity.state;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.validation.ApplicationEntityReference;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -13,9 +15,11 @@ public class Correlation
   extends ApplicationEntity
 {
   @Nullable
+  @ApplicationEntityReference(Sensor.class)
   private Long _startStateIdentifier;
 
   @Nullable
+  @ApplicationEntityReference(Sensor.class)
   private Long _endStateIdentifier;
 
   @Nullable

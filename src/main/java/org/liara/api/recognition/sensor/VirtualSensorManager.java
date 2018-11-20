@@ -77,15 +77,14 @@ public class VirtualSensorManager
     _logger.info("Finding virtual sensors in application database...");
 
     @NonNull final List<@NonNull Sensor> sensors = _entityManager.createQuery(String.join(
-      "",
-      "SELECT ",
-      Sensor.class.getName(),
-      " sensor ",
-      "WHERE sensor._virtual = true"
+      "", "SELECT sensor FROM ",
+      Sensor.class.getName(), " sensor"
     ), Sensor.class).getResultList();
 
     for (@NonNull final Sensor sensor : sensors) {
-      VirtualSensorRunner.restart(this, sensor);
+      if (!sensor.getType().isNative()) {
+        VirtualSensorRunner.restart(this, sensor);
+      }
     }
   }
   

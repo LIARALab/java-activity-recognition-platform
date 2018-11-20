@@ -22,6 +22,7 @@
 package org.liara.api.controller.web;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
@@ -53,13 +55,13 @@ public final class APIExceptionHandler
   {
     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
   }
-  
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public @NonNull ResponseEntity<@NonNull List<@NonNull Map<String, Object>>> handleException (
     @NonNull final MethodArgumentNotValidException exception
   )
   {
-    final List<Map<String, Object>> errors = new ArrayList<>();
+    @NonNull final List<Map<String, Object>> errors = new ArrayList<>();
     
     exception.getBindingResult()
              .getFieldErrors()
@@ -80,31 +82,32 @@ public final class APIExceptionHandler
   }
 
   @ExceptionHandler(Exception.class)
-  public ResponseEntity<Map<String, Object>> handleException (@NonNull final Exception exception) {
+  public @NonNull ResponseEntity<Map<@NonNull String, @Nullable Object>> handleException (
+    @NonNull final Exception exception
+  )
+  {
     return new ResponseEntity<>(exceptionToMap(exception), HttpStatus.INTERNAL_SERVER_ERROR);
   }
-  
-  public Map<String, Object> exceptionToMap(@NonNull final Throwable exception) {
-    if (exception == null) return null;
-    
-    final Map<String, Object> result = new HashMap<>();
+
+  private @NonNull Map<@NonNull String, @Nullable Object> exceptionToMap (@NonNull final Throwable exception) {
+    @NonNull final Map<@NonNull String, @Nullable Object> result = new HashMap<>();
     result.put("exception", exception.getClass());
-    // result.put("localizedMessage", exception.getLocalizedMessage());
     result.put("message", exception.getMessage());
-    
-    final List<String> stackTrace = new ArrayList<String>();
-    Arrays.asList(exception.getStackTrace()).forEach((StackTraceElement element) -> {
-      stackTrace.add(String.join(
-        "", 
-        "in ", element.getFileName(), 
+    result.put(
+      "stackTrace",
+      Arrays.stream(exception.getStackTrace()).map((@NonNull final StackTraceElement element) -> String.join("",
+        "in ",
+        element.getFileName(),
         " at line ", String.valueOf(element.getLineNumber()),
-        " into ", element.getClassName(), "#", element.getMethodName(), 
+        " into ",
+        element.getClassName(),
+        "#",
+        element.getMethodName(),
         element.isNativeMethod() ? " (native method)" : ""
-      ));
-    });
-    
-    result.put("stackTrace", stackTrace);
-    result.put("cause", exceptionToMap(exception.getCause()));
+      )).collect(Collectors.toList())
+    );
+
+    if (exception.getCause() != null) result.put("cause", exceptionToMap(exception.getCause()));
     
     return result;
   }

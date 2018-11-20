@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM library/fedora:27
 
 WORKDIR /
 
@@ -10,16 +10,20 @@ ENV DATABASE_URL ${DATABASE_URL}
 ENV DATABASE_USERNAME ${DATABASE_USERNAME}
 ENV DATABASE_PASSWORD ${DATABASE_PASSWORD}
 
-COPY ./build/libs/server.jar /home/application/server.jar
+RUN yum install wget pwgen findutils -y && \
+    wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/11.0.1+13/90cf5d8f270a4347a95050320eef3fb7/jdk-11.0.1_linux-x64_bin.rpm && \
+    rpm -ivh jdk-11.0.1_linux-x64_bin.rpm && \
+    rm -f jdk-11.0.1_linux-x64_bin.rpm
 
-RUN apk add --no-cache openjdk8-jre pwgen && \
-    addgroup application && \
-	adduser -h /home/application -G application application << pwgen -S 20 && \
+RUN groupadd application && \
+	useradd -d /home/application -m -g application -p `pwgen -s 20` application && \
 	chown -R application:application /home/application && \
 	chmod -R a-rwx /home/application && \
 	chmod -R g+r /home/application && \
 	chmod -R u+rx /home/application
-	
+
+COPY ./build/libs/server.jar /home/application/server.jar
+
 USER application
 
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/home/application/server.jar"]

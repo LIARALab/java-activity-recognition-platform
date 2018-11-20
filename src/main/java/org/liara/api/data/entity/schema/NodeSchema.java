@@ -2,6 +2,8 @@ package org.liara.api.data.entity.schema;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.Node;
+import org.liara.api.validation.ApplicationEntityReference;
 
 public class NodeSchema
 {
@@ -54,6 +56,7 @@ public class NodeSchema
     _name = name;
   }
 
+  @ApplicationEntityReference(Node.class)
   public @Nullable Long getParent () {
     return _parent;
   }

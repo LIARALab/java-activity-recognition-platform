@@ -11,8 +11,7 @@ public enum ValueSensorType
   STRING("liara:string", ValueState.String.class),
   BYTE("liara:byte", ValueState.Byte.class),
   SHORT("liara:short", ValueState.Short.class),
-  INTEGER("liara:integer", ValueState.Integer.class),
-  LONG("liara:boolean", ValueState.Long.class),
+  INTEGER("liara:integer", ValueState.Integer.class), LONG("liara:long", ValueState.Long.class),
   FLOAT("liara:float", ValueState.Float.class),
   DOUBLE(
     "liara:double",
