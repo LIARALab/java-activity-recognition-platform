@@ -1,9 +1,11 @@
 package org.liara.api.recognition.sensor.common.virtual.maxduration;
 
 import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.state.*;
-import org.liara.api.data.repository.ActivationsRepository;
-import org.liara.api.data.repository.ActivityRepository;
+import org.liara.api.data.entity.state.LabelState;
+import org.liara.api.data.entity.state.LabelStateCreationSchema;
+import org.liara.api.data.entity.state.LabelStateSnapshot;
+import org.liara.api.data.entity.state.StateDeletionSchema;
+import org.liara.api.data.repository.LabelRepository;
 import org.liara.api.data.repository.SensorRepository;
 import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.event.StateWasCreatedEvent;
@@ -23,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 @UseSensorConfigurationOfType(MaxDurationSensorConfiguration.class)
-@EmitStateOfType(ActivityState.class)
+@EmitStateOfType(LabelState.class)
 @Component
 @Scope("prototype")
 public class MaxDurationSensor
@@ -33,19 +35,19 @@ public class MaxDurationSensor
   private final SchemaManager _schemaManager;
 
   @NonNull
-  private final ActivationsRepository _activations;
+  private final LabelRepository _activations;
 
   @NonNull
   private final SensorRepository _sensors;
 
   @NonNull
-  private final ActivityRepository _activities;
+  private final LabelRepository _activities;
 
   @Autowired
   public MaxDurationSensor (
     @NonNull final SchemaManager schemaManager,
-    @NonNull final ActivationsRepository activations,
-    @NonNull final ActivityRepository activities,
+    @NonNull final LabelRepository activations,
+    @NonNull final LabelRepository activities,
     @NonNull final SensorRepository sensors
   )
   {
@@ -71,13 +73,14 @@ public class MaxDurationSensor
   public void initialize (@NonNull final VirtualSensorRunner runner) {
     super.initialize(runner);
 
-    final List<ActivationState> states = _activations.findWithDurationGreatherThan(getConfiguration().getInputSensor(),
+    final List<LabelState> states = _activations.findWithDurationGreatherThan(
+      getConfiguration().getInputSensor(),
                                                                                    getConfiguration().getMaxDuration()
     );
 
-    final ActivityStateCreationSchema schema = new ActivityStateCreationSchema();
+    final LabelStateCreationSchema schema = new LabelStateCreationSchema();
 
-    for (final ActivationState state : states) {
+    for (final LabelState state : states) {
       schema.clear();
       schema.setStart(state.getStart());
       schema.setEnd(state.getEnd());
@@ -95,7 +98,7 @@ public class MaxDurationSensor
     super.stateWasCreated(event);
 
     if (event.getState().getSensor().equals(getConfiguration().getInputSensor())) {
-      final ActivationStateSnapshot stateSnapshot = (ActivationStateSnapshot) event.getState();
+      final LabelStateSnapshot stateSnapshot = (LabelStateSnapshot) event.getState();
 
       if (Duration.between(stateSnapshot.getStart(), stateSnapshot.getEnd())
                   .compareTo(getConfiguration().getMaxDuration()) > 0) {
@@ -109,8 +112,8 @@ public class MaxDurationSensor
     super.stateWasMutated(event);
 
     if (event.getNewValue().getSensor().equals(getConfiguration().getInputSensor())) {
-      final ActivationStateSnapshot oldSnapshot = (ActivationStateSnapshot) event.getOldValue();
-      final ActivationStateSnapshot newSnapshot = (ActivationStateSnapshot) event.getNewValue();
+      final LabelStateSnapshot oldSnapshot = (LabelStateSnapshot) event.getOldValue();
+      final LabelStateSnapshot newSnapshot = (LabelStateSnapshot) event.getNewValue();
 
       final Duration oldDuration = Duration.between(oldSnapshot.getStart(), oldSnapshot.getEnd());
       final Duration newDuration = Duration.between(newSnapshot.getStart(), newSnapshot.getEnd());
@@ -128,9 +131,8 @@ public class MaxDurationSensor
 
   @Override
   public void stateWillBeDeleted (@NonNull final StateWillBeDeletedEvent event) {
-    final Optional<ActivationState> activation = _activations.find(event.getState()
-                                                                        .getState()
-                                                                        .as(ActivationState.class));
+    final Optional<LabelState> activation = _activations.find(event.getState()
+                                                                        .getState().as(LabelState.class));
 
     if (activation.isPresent() &&
         activation.get().getSensor().getReference().equals(getConfiguration().getInputSensor())) {
@@ -142,8 +144,8 @@ public class MaxDurationSensor
     }
   }
 
-  private void emit (@NonNull final ActivationState state) {
-    final ActivityStateCreationSchema schema = new ActivityStateCreationSchema();
+  private void emit (@NonNull final LabelState state) {
+    final LabelStateCreationSchema schema = new LabelStateCreationSchema();
 
     schema.setStart(state.getStart());
     schema.setEnd(state.getEnd());
@@ -155,7 +157,7 @@ public class MaxDurationSensor
     _schemaManager.execute(schema);
   }
 
-  private void delete (@NonNull final ActivationState state) {
+  private void delete (@NonNull final LabelState state) {
     final StateDeletionSchema schema = new StateDeletionSchema();
 
     schema.setState(_activities.findFirstWithCorrelation("base", state.getReference(), getSensor().getReference())

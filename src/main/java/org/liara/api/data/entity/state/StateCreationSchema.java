@@ -1,24 +1,19 @@
 package org.liara.api.data.entity.state;
 
-import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.ApplicationSchema;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.schema.Schema;
-import org.liara.api.validation.ValidApplicationEntityReference;
 import org.liara.api.validation.Required;
+import org.liara.api.validation.ValidApplicationEntityReference;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 @Schema(State.class)
 @JsonDeserialize(using = StateCreationSchemaDeserializer.class)
@@ -56,6 +51,7 @@ public class StateCreationSchema implements ApplicationSchema
   }
   
   @Required
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
   public ZonedDateTime getEmittionDate () {
     return _emittionDate;
   }

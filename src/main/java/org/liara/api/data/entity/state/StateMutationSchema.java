@@ -1,5 +1,6 @@
 package org.liara.api.data.entity.state;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -58,7 +59,8 @@ public class StateMutationSchema implements ApplicationSchema
   public void setState (@Nullable final Long identifier) {
     _state = ApplicationEntityReference.of(State.class, identifier);
   }
-  
+
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
   public ZonedDateTime getEmittionDate () {
     return _emittionDate;
   }
@@ -73,9 +75,7 @@ public class StateMutationSchema implements ApplicationSchema
   }
   
   public void decorrelate (@NonNull final String label) {
-    if (_correlations.containsKey(label)) {
-      _correlations.remove(label);
-    }
+    _correlations.remove(label);
     
     _decorrelations.add(label);
   }
@@ -84,9 +84,7 @@ public class StateMutationSchema implements ApplicationSchema
     @NonNull final String label, 
     @NonNull final Long state
   ) {
-    if (_decorrelations.contains(label)) {
-      _decorrelations.remove(label);
-    }
+    _decorrelations.remove(label);
     
     _correlations.put(label, ApplicationEntityReference.of(State.class, state));
   }

@@ -26,7 +26,9 @@ import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.LongType;
 
-public class DatabaseDialect extends MySQL5Dialect {
+public class DatabaseDialect
+  extends MySQL5Dialect
+{
   public DatabaseDialect() {
       super();
       registerKeyword("microsecond");

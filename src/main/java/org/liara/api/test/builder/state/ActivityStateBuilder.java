@@ -1,16 +1,15 @@
 package org.liara.api.test.builder.state;
 
-import java.time.ZonedDateTime;
-
-import org.liara.api.data.entity.state.ActivityState;
+import groovy.lang.Closure;
+import org.liara.api.data.entity.state.LabelState;
 import org.liara.api.utils.Closures;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
-import groovy.lang.Closure;
+import java.time.ZonedDateTime;
 
-public class ActivityStateBuilder 
-      extends BaseStateBuilder<ActivityStateBuilder, ActivityState>
+public class ActivityStateBuilder
+  extends BaseStateBuilder<ActivityStateBuilder, LabelState>
 {
   public static ActivityStateBuilder create (@NonNull final Closure<?> closure) {
     final ActivityStateBuilder result = new ActivityStateBuilder();
@@ -44,7 +43,7 @@ public class ActivityStateBuilder
   }
   
   protected void apply (
-    @NonNull final ActivityState state
+    @NonNull final LabelState state
   ) {
     super.apply(state);
     state.setStart(_start);
@@ -53,8 +52,8 @@ public class ActivityStateBuilder
   }
   
   @Override
-  public ActivityState build () {
-    final ActivityState state = new ActivityState();
+  public LabelState build () {
+    final LabelState state = new LabelState();
     
     apply(state);
     

@@ -21,17 +21,13 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-
+import io.swagger.annotations.Api;
 import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
-import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
-import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
+import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.node.NodeCreationSchema;
 import org.liara.api.data.entity.sensor.Sensor;
@@ -42,15 +38,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.*;
 
-import io.swagger.annotations.Api;
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @Api(
@@ -134,7 +127,8 @@ public final class NodeCollectionController extends BaseRestController
   public ResponseEntity<Void> create (
     @NonNull final HttpServletRequest request,
     @NonNull @Valid @RequestBody final NodeCreationSchema schema
-  ) throws EntityNotFoundException {
+  )
+  {
     final Node node = _schemaManager.execute(schema);
     
     final HttpHeaders headers = new HttpHeaders();
@@ -180,7 +174,9 @@ public final class NodeCollectionController extends BaseRestController
     @NonNull final HttpServletRequest request,
     @PathVariable final long nodeIdentifier,
     @PathVariable final long sensorIdentifier
-  ) throws EntityNotFoundException, InvalidAPIRequestException {
+  )
+  throws EntityNotFoundException
+  {
     final Node node = _collection.findByIdentifierOrFail(nodeIdentifier);
 
     return _sensors.in(node).findByIdentifierOrFail(sensorIdentifier);
@@ -218,7 +214,9 @@ public final class NodeCollectionController extends BaseRestController
     @NonNull final HttpServletRequest request,
     @PathVariable final long nodeIdentifier,
     @PathVariable final long sensorIdentifier
-  ) throws EntityNotFoundException, InvalidAPIRequestException {
+  )
+  throws EntityNotFoundException
+  {
     final Node node = _collection.findByIdentifierOrFail(nodeIdentifier);
 
     return _sensors.deepIn(node).findByIdentifierOrFail(sensorIdentifier);
@@ -235,6 +233,28 @@ public final class NodeCollectionController extends BaseRestController
   ) throws EntityNotFoundException, InvalidAPIRequestException {
     final Node node = _collection.findByIdentifierOrFail(identifier);
     return indexCollection(_collection.directChildrenOf(node), request);
+  }
+
+  @GetMapping("/nodes/{identifier}/parents")
+  @ParametersFromConfiguration(value = NodeCollectionRequestConfiguration.class, groupable = false)
+  public ResponseEntity<List<Node>> getParents (
+    @NonNull final HttpServletRequest request, @PathVariable final long identifier
+  )
+  throws EntityNotFoundException, InvalidAPIRequestException
+  {
+    final Node node = _collection.findByIdentifierOrFail(identifier);
+    return indexCollection(_collection.parentsOf(node), request);
+  }
+
+  @GetMapping("/nodes/{identifier}/parents/count")
+  @ParametersFromConfiguration(value = NodeCollectionRequestConfiguration.class, groupable = false)
+  public ResponseEntity<Object> countParents (
+    @NonNull final HttpServletRequest request, @PathVariable final long identifier
+  )
+  throws EntityNotFoundException, InvalidAPIRequestException
+  {
+    final Node node = _collection.findByIdentifierOrFail(identifier);
+    return aggregate(_collection.parentsOf(node), request, new EntityCountAggregationTransformation<>());
   }
   
   @GetMapping("/nodes/{identifier}/children/count")
@@ -255,7 +275,9 @@ public final class NodeCollectionController extends BaseRestController
     @NonNull final HttpServletRequest request,
     @PathVariable final long nodeIdentifier,
     @PathVariable final long childrenIdentifer
-  ) throws EntityNotFoundException, InvalidAPIRequestException {
+  )
+  throws EntityNotFoundException
+  {
     final Node node = _collection.findByIdentifierOrFail(nodeIdentifier);
     return _collection.directChildrenOf(node).findByIdentifierOrFail(childrenIdentifer);
   }
@@ -291,7 +313,9 @@ public final class NodeCollectionController extends BaseRestController
     @NonNull final HttpServletRequest request,
     @PathVariable final long nodeIdentifier,
     @PathVariable final long childrenIdentifer
-  ) throws EntityNotFoundException, InvalidAPIRequestException {
+  )
+  throws EntityNotFoundException
+  {
     final Node node = _collection.findByIdentifierOrFail(nodeIdentifier);
     return _collection.deepChildrenOf(node).findByIdentifierOrFail(childrenIdentifer);
   }

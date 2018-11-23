@@ -1,9 +1,12 @@
 package org.liara.api.data.entity.state;
 
-import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.util.Optional;
-
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
 import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.schema.UseCreationSchema;
@@ -12,14 +15,10 @@ import org.springframework.boot.jackson.JsonComponent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ValueNode;
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 @JsonComponent
 public class StateCreationSchemaDeserializer extends JsonDeserializer<StateCreationSchema>
@@ -31,7 +30,9 @@ public class StateCreationSchemaDeserializer extends JsonDeserializer<StateCreat
   public StateCreationSchema deserialize (
     @NonNull final JsonParser parser, 
     @NonNull final DeserializationContext context
-  ) throws IOException, JsonProcessingException {
+  )
+  throws IOException
+  {
     final ObjectMapper mapper = (ObjectMapper) parser.getCodec();
     final TreeNode treeNode = mapper.readTree(parser);
     
@@ -132,9 +133,9 @@ public class StateCreationSchemaDeserializer extends JsonDeserializer<StateCreat
   ) {
     final StateCreationSchema schema = _context.getBean(StateCreationSchema.class);
     schema.setSensor(node.hasNonNull("sensor") ? node.get("sensor").asLong() : null);
-    schema.setEmittionDate(
-      node.hasNonNull("emittionDate") ? ZonedDateTime.parse(node.get("sensor").asText()) 
-                                      : null
+    schema.setEmittionDate(node.hasNonNull("emittionDate") ? ZonedDateTime.parse(node.get("sensor").asText(),
+      DateTimeFormatter.ofPattern("YYYY-MM-dd'T'HH:mm:ss.SSSXXX")
+      ) : null
     );
     
     return schema;

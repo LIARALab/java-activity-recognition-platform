@@ -21,17 +21,11 @@
  ******************************************************************************/
 package org.liara.api.data.collection.configuration;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import javax.persistence.criteria.Join;
-
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.state.ActivationState;
+import org.liara.api.data.entity.state.DoubleState;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
@@ -43,13 +37,20 @@ import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 import org.springframework.lang.NonNull;
 
-public final class DoubleStateCollectionRequestConfiguration implements CollectionRequestConfiguration<ActivationState>
+import javax.persistence.criteria.Join;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+public final class DoubleStateCollectionRequestConfiguration
+  implements CollectionRequestConfiguration<DoubleState>
 {
   @NonNull
-  private final SimpleEntityFieldSelector<ActivationState, Join<ActivationState, Sensor>> _sensorJoin = root -> root.join("_sensor");
+  private final SimpleEntityFieldSelector<DoubleState, Join<DoubleState, Sensor>> _sensorJoin = root -> root.join(
+    "_sensor");
   
   @Override
-  public APIRequestEntityCollectionOperatorParser<ActivationState> createFilterParser () {
+  public APIRequestEntityCollectionOperatorParser<DoubleState> createFilterParser () {
     return new APIRequestEntityCollectionConjunctionOperatorParser<>(Arrays.asList(
       APIRequestEntityFilterParserFactory.integer("identifier", (root) -> root.get("_identifier")),
       APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
@@ -75,7 +76,7 @@ public final class DoubleStateCollectionRequestConfiguration implements Collecti
   }
 
   @Override
-  public List<APIRequestOrderingProcessor<ActivationState>> createOrderingProcessors () {
+  public List<APIRequestOrderingProcessor<DoubleState>> createOrderingProcessors () {
     return Arrays.asList(
       APIRequestOrderingProcessorFactory.field("identifier", (root) -> root.get("_identifier")),
       APIRequestOrderingProcessorFactory.field("creationDate", (root) -> root.get("_creationDate")),
@@ -88,7 +89,7 @@ public final class DoubleStateCollectionRequestConfiguration implements Collecti
   }
 
   @Override
-  public List<APIRequestGroupingProcessor<ActivationState>> createGroupingProcessors () {
+  public List<APIRequestGroupingProcessor<DoubleState>> createGroupingProcessors () {
     return Arrays.asList(
       APIRequestGroupingProcessorFactory.expression("identifier", (root) -> root.get("_identifier")),
       APIRequestGroupingProcessorFactory.expression("creationDate", (root) -> root.get("_creationDate")),

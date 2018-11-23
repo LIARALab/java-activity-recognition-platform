@@ -1,26 +1,23 @@
 package org.liara.api.data.repository.local
 
-import java.time.Duration
-import java.time.ZoneId
-import java.time.ZonedDateTime
-
-import org.junit.After
 import org.liara.api.data.entity.ApplicationEntityReference
-import org.liara.api.data.entity.sensor.Sensor
-import org.liara.api.data.entity.state.ActivityState
 import org.liara.api.data.entity.state.BooleanState
+import org.liara.api.data.entity.state.LabelState
 import org.liara.api.data.entity.state.State
-import org.liara.api.test.builder.IdentityBuilder
 import org.liara.api.test.builder.sensor.SensorBuilder
 import org.liara.api.test.builder.state.ActivityStateBuilder
 import org.liara.api.test.builder.state.BooleanStateBuilder
 import org.springframework.lang.NonNull
 import spock.lang.Specification
 
-public class LocalTimeSeriesRepositorySpecification
+import java.time.Duration
+import java.time.ZoneId
+import java.time.ZonedDateTime
+
+class LocalTimeSeriesRepositorySpecification
        extends Specification
 {
-  def List<BooleanState> generateUpDownStates (
+  List<BooleanState> generateUpDownStates (
     final int count, 
     @NonNull final ZonedDateTime start,
     @NonNull final Duration duration
@@ -42,12 +39,12 @@ public class LocalTimeSeriesRepositorySpecification
     
     return result
   }
-  
-  def List<ActivityState> generateActivities (
+
+  List<LabelState> generateActivities (
     @NonNull final List<BooleanState> flags,
     @NonNull final String tag
   ) {
-    final List<ActivityState> result = new ArrayList<>();
+    final List<LabelState> result = new ArrayList<>()
     final SensorBuilder builder = new SensorBuilder()
         
     for (int index = 0; index < flags.size(); index += 2) {
@@ -68,8 +65,8 @@ public class LocalTimeSeriesRepositorySpecification
     
     return result
   }
-  
-  def List<List<BooleanState>> generateUpDownSensors (
+
+  List<List<BooleanState>> generateUpDownSensors (
     final int sensors, 
     final int states
   ) {
@@ -87,11 +84,11 @@ public class LocalTimeSeriesRepositorySpecification
     
     return results
   }
-  
-  def List<List<ActivityState>> generateActivitySensors (
+
+  List<List<LabelState>> generateActivitySensors (
     final String[] tags 
   ) {
-    final List<List<ActivityState>> results = []
+    final List<List<LabelState>> results = []
     final List<BooleanState> flags = generateUpDownStates(
       20, 
       ZonedDateTime.of(2012, 8, 12, 5, 00, 00, 00, ZoneId.systemDefault()), 
@@ -219,10 +216,10 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find a state of a given sensor with a particular correlation" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
-        new LocalEntityManager(), ActivityState.class
+    final LocalTimeSeriesRepository<LabelState> repository = LocalTimeSeriesRepository.create(
+      new LocalEntityManager(), LabelState.class
       )
-      final List<List<ActivityState>> sensorsStates = generateActivitySensors(
+    final List<List<LabelState>> sensorsStates = generateActivitySensors(
         (String[]) ['first', 'second', 'third']
       )
       sensorsStates.forEach({ x ->
@@ -234,7 +231,7 @@ public class LocalTimeSeriesRepositorySpecification
       
     expect: "to be able to get a state of a given sensor with a particular correlation"
       for (int index = 0; index < 3; ++index) {
-        for (final ActivityState state : sensorsStates.get(index)) {
+        for (final LabelState state : sensorsStates.get(index)) {
           repository.findWithCorrelation(
             "start", 
             ApplicationEntityReference.of(state.getCorrelation("start")),
@@ -252,10 +249,10 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find all states of with a correlation" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
-        new LocalEntityManager(), ActivityState.class
+    final LocalTimeSeriesRepository<LabelState> repository = LocalTimeSeriesRepository.create(
+      new LocalEntityManager(), LabelState.class
       )
-      final List<List<ActivityState>> sensorsStates = generateActivitySensors(
+    final List<List<LabelState>> sensorsStates = generateActivitySensors(
         (String[]) ['first', 'second', 'third']
       )
       sensorsStates.forEach({ x ->
@@ -266,14 +263,14 @@ public class LocalTimeSeriesRepositorySpecification
       })
       
     expect: "to be able to find all states of with a correlation"
-      final Set<ActivityState> starts = repository.findWithCorrelation("start");
-      final Set<ActivityState> ends = repository.findWithCorrelation("end");
-      
-      starts.size() == sensorsStates.stream().reduce(0, { a, b -> a + b.size() })
+    final Set<LabelState> starts = repository.findWithCorrelation("start")
+    final Set<LabelState> ends = repository.findWithCorrelation("end")
+
+    starts.size() == sensorsStates.stream().reduce(0, { a, b -> a + b.size() })
       ends.size() == sensorsStates.stream().reduce(0, { a, b -> a + b.size() })
-      
-      for (final List<ActivityState> states : sensorsStates) {
-        for (final ActivityState state : states) {
+
+    for (final List<LabelState> states : sensorsStates) {
+      for (final LabelState state : states) {
           starts.contains(state) == true
         }
       }
@@ -281,10 +278,10 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find a state of a given sensor with a bunch of correlations" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
-        new LocalEntityManager(), ActivityState.class
+    final LocalTimeSeriesRepository<LabelState> repository = LocalTimeSeriesRepository.create(
+      new LocalEntityManager(), LabelState.class
       )
-      final List<List<ActivityState>> sensorsStates = generateActivitySensors(
+    final List<List<LabelState>> sensorsStates = generateActivitySensors(
         (String[]) ['first', 'second', 'third']
       )
       sensorsStates.forEach({ x ->
@@ -296,7 +293,7 @@ public class LocalTimeSeriesRepositorySpecification
       
     expect: "to be able to get a state of a given sensor with a bunch of correlation"
       for (int index = 0; index < 3; ++index) {
-        for (final ActivityState state : sensorsStates.get(index)) {
+        for (final LabelState state : sensorsStates.get(index)) {
           final Map<String, ApplicationEntityReference<State>> correlations = [
             "start": ApplicationEntityReference.of(state.getCorrelation("start")),
             "end": ApplicationEntityReference.of(state.getCorrelation("end"))
@@ -312,10 +309,10 @@ public class LocalTimeSeriesRepositorySpecification
   
   def "it allows you to find a state of a given sensor with a correlation with a particular value" () {
     given: "a local time series repository with some states registered in"
-      final LocalTimeSeriesRepository<ActivityState> repository = LocalTimeSeriesRepository.create(
-        new LocalEntityManager(), ActivityState.class
+    final LocalTimeSeriesRepository<LabelState> repository = LocalTimeSeriesRepository.create(
+      new LocalEntityManager(), LabelState.class
       )
-      final List<List<ActivityState>> sensorsStates = generateActivitySensors(
+    final List<List<LabelState>> sensorsStates = generateActivitySensors(
         (String[]) ['first', 'second', 'third']
       )
       sensorsStates.forEach({ x ->
@@ -327,7 +324,7 @@ public class LocalTimeSeriesRepositorySpecification
       
     expect: "to be able to get a state of a given sensor with a correlation with a particular value"
       for (int index = 0; index < 3; ++index) {
-        for (final ActivityState state : sensorsStates.get(index)) {          
+        for (final LabelState state : sensorsStates.get(index)) {
           repository.findWithAnyCorrelation(
             ["start", "end"],
             ApplicationEntityReference.of(state.getCorrelation("start")),

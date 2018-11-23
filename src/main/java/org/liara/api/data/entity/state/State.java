@@ -21,6 +21,7 @@
  ******************************************************************************/
 package org.liara.api.data.entity.state;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
@@ -55,8 +56,8 @@ public class State extends ApplicationEntity
   private Sensor _sensor;
 
   @ManyToMany(cascade = CascadeType.ALL)
-  @JoinTable(
-    name = "correlations_of_states", joinColumns = @JoinColumn(name = "master_identifier"), inverseJoinColumns = @JoinColumn(name = "slave_identifier")
+  @JoinTable(name = "correlations_of_states", joinColumns = @JoinColumn(name = "master_identifier"),
+    inverseJoinColumns = @JoinColumn(name = "slave_identifier")
   )
   @MapKeyColumn(name = "label")
   private Map<String, State> _correlations;
@@ -67,6 +68,7 @@ public class State extends ApplicationEntity
     _correlations = new HashMap<>();
   }
 
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
   public ZonedDateTime getEmittionDate () {
     return _emittionDate;
   }

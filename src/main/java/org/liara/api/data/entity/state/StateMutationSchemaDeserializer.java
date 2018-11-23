@@ -1,9 +1,12 @@
 package org.liara.api.data.entity.state;
 
-import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.util.Optional;
-
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
 import org.liara.api.data.collection.EntityCollections;
 import org.liara.api.data.schema.UseMutationSchema;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,14 +14,10 @@ import org.springframework.boot.jackson.JsonComponent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ValueNode;
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 @JsonComponent
 public class StateMutationSchemaDeserializer extends JsonDeserializer<StateMutationSchema>
@@ -30,7 +29,9 @@ public class StateMutationSchemaDeserializer extends JsonDeserializer<StateMutat
   public StateMutationSchema deserialize (
     @NonNull final JsonParser parser, 
     @NonNull final DeserializationContext context
-  ) throws IOException, JsonProcessingException {
+  )
+  throws IOException
+  {
     final ObjectMapper mapper = (ObjectMapper) parser.getCodec();
     final TreeNode treeNode = mapper.readTree(parser);
     
@@ -130,9 +131,9 @@ public class StateMutationSchemaDeserializer extends JsonDeserializer<StateMutat
     final StateMutationSchema schema = (StateMutationSchema) _context.getBean("stateMutationSchema");
     
     schema.setState(node.hasNonNull("identifier") ? node.get("identifier").asLong() : null);
-    schema.setEmittionDate(
-      node.hasNonNull("emittionDate") ? ZonedDateTime.parse(node.get("emittionDate").asText()) 
-                                      : null
+    schema.setEmittionDate(node.hasNonNull("emittionDate") ? ZonedDateTime.parse(node.get("emittionDate").asText(),
+      DateTimeFormatter.ofPattern("YYYY-MM-dd'T'HH:mm:ss.SSSXXX")
+      ) : null
     );
     
     return schema;

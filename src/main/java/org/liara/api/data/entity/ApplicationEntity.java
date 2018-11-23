@@ -94,6 +94,7 @@ public class ApplicationEntity
    *
    * @return The date of the first insertion of this entity into the application database.
    */
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
   public ZonedDateTime getCreationDate () {
     return _creationDate;
   }
@@ -116,7 +117,7 @@ public class ApplicationEntity
    *
    * @return The date of deletion of this entity from the application database.
    */
-  @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS OOOO '['VV']'")
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
   public ZonedDateTime getDeletionDate () {
     return _deletionDate;
   }
@@ -138,6 +139,7 @@ public class ApplicationEntity
    * 
    * @return The date of the last mutation of this entity into the database.
    */
+  @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
   public ZonedDateTime getUpdateDate () {
     return _updateDate;
   }

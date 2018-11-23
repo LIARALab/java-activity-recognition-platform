@@ -21,11 +21,14 @@
  ******************************************************************************/
 package org.liara.api.data.collection.configuration;
 
+import org.liara.api.collection.Operators;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
+import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.entity.node.Node;
 import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.state.State;
+import org.liara.api.data.entity.state.LabelState;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
@@ -41,16 +44,18 @@ import javax.persistence.criteria.Join;
 import java.util.Arrays;
 import java.util.List;
 
-public final class StateCollectionRequestConfiguration implements CollectionRequestConfiguration<State>
+public final class LabelStateCollectionRequestConfiguration
+  implements CollectionRequestConfiguration<LabelState>
 {
   @NonNull
-  private final SimpleEntityFieldSelector<State, Join<State, Sensor>> _sensorJoin = root -> root.join("_sensor");
+  private final SimpleEntityFieldSelector<LabelState, Join<LabelState, Node>> _nodeJoin = root -> root.join("_node");
   
   @NonNull
-  private final ApplicationEntityCollectionRequestConfiguration _applicationEntityConfiguration = new ApplicationEntityCollectionRequestConfiguration();
+  private final SimpleEntityFieldSelector<LabelState, Join<LabelState, Sensor>> _sensorJoin = root -> root.join(
+    "_sensor");
   
   @Override
-  public APIRequestEntityCollectionOperatorParser<State> createFilterParser () {
+  public APIRequestEntityCollectionOperatorParser<LabelState> createFilterParser () {
     return new APIRequestEntityCollectionConjunctionOperatorParser<>(
       Arrays.asList(
         APIRequestEntityFilterParserFactory.integer(
@@ -60,18 +65,40 @@ public final class StateCollectionRequestConfiguration implements CollectionRequ
           "creationDate", (root) -> root.get("_creationDate")
         ),
         APIRequestEntityFilterParserFactory.datetime(
+          "updateDate", (root) -> root.get("_updateDate")
+        ),
+        APIRequestEntityFilterParserFactory.datetime(
           "deletionDate", (root) -> root.get("_deletionDate")
         ),
         APIRequestEntityFilterParserFactory.datetime(
-          "updateDate", (root) -> root.get("_updateDate")
+          "start", (root) -> root.get("_start")
+        ),
+        APIRequestEntityFilterParserFactory.datetime(
+          "end", (root) -> root.get("_start")
         ),
         APIRequestEntityFilterParserFactory.datetime(
           "emittionDate", (root) -> root.get("_emittionDate")
         ),
+        APIRequestEntityFilterParserFactory.duration("duration", LabelState.DURATION_SELECTOR
+        ),
+        APIRequestEntityFilterParserFactory.text(
+          "tag", root -> root.get("_tag")
+        ),
+        APIRequestEntityFilterParserFactory.callback(
+          "duration", request -> Operators.notNull("_end")
+        ),
+        APIRequestEntityFilterParserFactory.datetimeInRange(
+          "date", 
+          (root) -> root.get("_start"), 
+          (root) -> root.get("_end")
+        ),
+        APIRequestEntityFilterParserFactory.joinCollection(
+          "node", _nodeJoin, NodeCollection.class
+        ),
         APIRequestEntityFilterParserFactory.joinCollection(
           "sensor", _sensorJoin, SensorCollection.class
-        )   
-      )
+        )
+     )
     );
   }
 
@@ -80,16 +107,21 @@ public final class StateCollectionRequestConfiguration implements CollectionRequ
     return Arrays.asList(
       APIRequestFilterValidatorFactory.integer("identifier"),
       APIRequestFilterValidatorFactory.datetime("creationDate"),
-      APIRequestFilterValidatorFactory.datetime("deletionDate"),
       APIRequestFilterValidatorFactory.datetime("updateDate"),
-      APIRequestFilterValidatorFactory.datetime("date"),
+      APIRequestFilterValidatorFactory.datetime("deletionDate"),
+      APIRequestFilterValidatorFactory.datetime("start"),
+      APIRequestFilterValidatorFactory.datetime("end"),
       APIRequestFilterValidatorFactory.datetime("emittionDate"),
+      APIRequestFilterValidatorFactory.duration("duration"),
+      APIRequestFilterValidatorFactory.text("tag"),
+      APIRequestFilterValidatorFactory.datetimeInRange("date"),
+      APIRequestFilterValidatorFactory.includeCollection("node", NodeCollection.class),
       APIRequestFilterValidatorFactory.includeCollection("sensor", SensorCollection.class)
     );
   }
 
   @Override
-  public List<APIRequestOrderingProcessor<State>> createOrderingProcessors () {
+  public List<APIRequestOrderingProcessor<LabelState>> createOrderingProcessors () {
     return Arrays.asList(
       APIRequestOrderingProcessorFactory.field(
         "identifier", (root) -> root.get("_identifier")
@@ -98,40 +130,55 @@ public final class StateCollectionRequestConfiguration implements CollectionRequ
         "creationDate", (root) -> root.get("_creationDate")
       ),
       APIRequestOrderingProcessorFactory.field(
+        "updateDate", (root) -> root.get("_updateDate")
+      ),
+      APIRequestOrderingProcessorFactory.field(
         "deletionDate", (root) -> root.get("_deletionDate")
       ),
       APIRequestOrderingProcessorFactory.field(
-        "updateDate", (root) -> root.get("_updateDate")
+        "start", (root) -> root.get("_start")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "end", (root) -> root.get("_end")
       ),
       APIRequestOrderingProcessorFactory.field(
         "emittionDate", (root) -> root.get("_emittionDate")
       ),
+      APIRequestOrderingProcessorFactory.field(
+        "emittionDate", (root) -> root.get("_tag")
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "duration",
+        (query, queried) -> LabelState.DURATION_SELECTOR.select(query, queried)
+      ),
+      APIRequestOrderingProcessorFactory.field(
+        "date", (root) -> root.get("_start")
+      ),
+      APIRequestOrderingProcessorFactory.joinCollection(
+        "node", _nodeJoin, NodeCollection.class
+      ),
       APIRequestOrderingProcessorFactory.joinCollection(
         "sensor", _sensorJoin, SensorCollection.class
-      )   
+      )
     );
   }
-  
+
   @Override
-  public List<APIRequestGroupingProcessor<State>> createGroupingProcessors () {
+  public List<APIRequestGroupingProcessor<LabelState>> createGroupingProcessors () {
     return Arrays.asList(
       APIRequestGroupingProcessorFactory.expression("identifier", (root) -> root.get("_identifier")),
       APIRequestGroupingProcessorFactory.expression("creationDate", (root) -> root.get("_creationDate")),
       APIRequestGroupingProcessorFactory.expression("updateDate", (root) -> root.get("_updateDate")),
       APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
+      APIRequestGroupingProcessorFactory.expression("start", (root) -> root.get("_start")),
+      APIRequestGroupingProcessorFactory.expression("end", (root) -> root.get("_end")),
       APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
-      APIRequestGroupingProcessorFactory.expression("emittionDate:day",
-        (query, root) -> query.getManager()
-                           .getCriteriaBuilder()
-                           .function("DAYOFYEAR", Long.class, root.get("_emittionDate"))
+      APIRequestGroupingProcessorFactory.expression("tag", (root) -> root.get("_tag")),
+      APIRequestGroupingProcessorFactory.expression(
+        "duration",
+        (query, queried) -> LabelState.DURATION_SELECTOR.select(query, queried)
       ),
-      APIRequestGroupingProcessorFactory.expression("emittionDate:date",
-        (query, root) -> query.getManager().getCriteriaBuilder().function("DATE_FORMAT",
-          String.class,
-          root.get("_emittionDate"),
-          query.getManager().getCriteriaBuilder().literal("%Y-%m-%d")
-        )
-      ),
+      APIRequestGroupingProcessorFactory.joinCollection("node", _nodeJoin, NodeCollection.class),
       APIRequestGroupingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
     );
   }

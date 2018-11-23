@@ -1,9 +1,5 @@
 package org.liara.api.data.collection.configuration;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
@@ -16,9 +12,12 @@ import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingPr
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
 public class ApplicationEntityCollectionRequestConfiguration implements CollectionRequestConfiguration<ApplicationEntity>
 {
-
   @Override
   public APIRequestEntityCollectionOperatorParser<ApplicationEntity> createFilterParser () {
     return new APIRequestEntityCollectionConjunctionOperatorParser<>(Arrays.asList(

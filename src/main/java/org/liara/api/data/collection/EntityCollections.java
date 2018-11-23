@@ -8,10 +8,7 @@ import org.springframework.stereotype.Service;
 public class EntityCollections
 {
   @NonNull
-  public static ActivityStateCollection ACTIVITIES;
-  
-  @NonNull
-  public static ActivationStateCollection ACTIVATION_STATES;
+  public static LabelStateCollection LABEL_STATES;
   
   @NonNull
   public static BooleanStateCollection BOOLEAN_STATES;
@@ -33,9 +30,9 @@ public class EntityCollections
   
   @Autowired
   public void registerActivationStateCollection (
-    @NonNull final ActivationStateCollection collection
+    @NonNull final LabelStateCollection collection
   ) {
-    ACTIVATION_STATES = collection;
+    LABEL_STATES = collection;
   }
 
   @Autowired
@@ -71,12 +68,5 @@ public class EntityCollections
     @NonNull final StateCollection collection
   ) {
     STATES = collection;
-  }
-  
-  @Autowired
-  public void registerActivitiesCollection (
-    @NonNull final ActivityStateCollection collection
-  ) {
-    ACTIVITIES = collection;
   }
 }

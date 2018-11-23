@@ -21,9 +21,6 @@
  ******************************************************************************/
 package org.liara.api.data.collection;
 
-import javax.persistence.EntityManager;
-import javax.persistence.criteria.CriteriaBuilder;
-
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
 import org.liara.api.collection.query.queried.QueriedEntity;
@@ -31,11 +28,12 @@ import org.liara.api.collection.transformation.operator.EntityCollectionConjunct
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
 import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.node.Node_;
-import org.liara.api.data.entity.tree.NestedSetCoordinates_;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
 
 @Component
 @DefaultCollectionRequestConfiguration(NodeCollectionRequestConfiguration.class)
@@ -61,15 +59,13 @@ public class NodeCollection extends EntityCollection<Node>
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
       query.andWhere(
         builder.greaterThan(
-          queried.get(Node_._coordinates)
-                 .get(NestedSetCoordinates_._start),
+          queried.get("_coordinates").get("_start"),
           node.getCoordinates().getStart()
         )
       );
       query.andWhere(
         builder.lessThan(
-          queried.get(Node_._coordinates)
-                 .get(NestedSetCoordinates_._end),
+          queried.get("_coordinates").get("_end"),
           node.getCoordinates().getEnd()
         )
       );
@@ -84,8 +80,7 @@ public class NodeCollection extends EntityCollection<Node>
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
       query.andWhere(
         builder.equal(
-          queried.get(Node_._coordinates)
-                 .get(NestedSetCoordinates_._depth),
+          queried.get("_coordinates").get("_depth"),
           node.getCoordinates().getDepth() + 1
         )
       );
@@ -106,13 +101,11 @@ public class NodeCollection extends EntityCollection<Node>
       
       query.andWhere(builder.and(
         builder.lessThan(
-          queried.get(Node_._coordinates)
-                 .get(NestedSetCoordinates_._start), 
+          queried.get("_coordinates").get("_start"),
           node.getCoordinates().getStart()
         ),
         builder.greaterThan(
-          queried.get(Node_._coordinates)
-                 .get(NestedSetCoordinates_._end),  
+          queried.get("_coordinates").get("_end"),
           node.getCoordinates().getEnd()
         )
       ));

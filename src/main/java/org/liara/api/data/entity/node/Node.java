@@ -27,7 +27,6 @@ import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.sensor.Sensor;
-import org.liara.api.data.entity.state.ActivationState;
 import org.liara.api.data.entity.tree.NestedSetCoordinates;
 import org.liara.api.data.entity.tree.NestedSetTree;
 import org.liara.api.data.entity.tree.NestedSetTreeNode;
@@ -58,10 +57,6 @@ public class      Node
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "_node")
   private Set<Sensor>          _sensors = new HashSet<>();
 
-  @NonNull
-  @OneToMany(mappedBy = "_node", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
-  private Set<ActivationState> _presences = new HashSet<>();
-  
   @NonNull
   @Transient
   private NestedSetTree<Node> _tree;

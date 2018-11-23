@@ -1,42 +1,21 @@
 package org.liara.api.recognition.sensor.common.virtual.updown.activation
 
-import java.rmi.activation.ActivationMonitor
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.util.stream.Collectors
-
 import org.liara.api.data.entity.ApplicationEntityReference
 import org.liara.api.data.entity.node.Node
 import org.liara.api.data.entity.sensor.Sensor
-import org.liara.api.data.entity.state.ActivationState
-import org.liara.api.data.entity.state.ActivationStateCreationSchema
-import org.liara.api.data.entity.state.ActivationStateMutationSchema
-import org.liara.api.data.entity.state.BooleanState
-import org.liara.api.data.entity.state.BooleanStateMutationSchema
-import org.liara.api.data.entity.state.BooleanStateSnapshot
-import org.liara.api.data.entity.state.State
-import org.liara.api.data.entity.state.StateDeletionSchema
-import org.liara.api.data.entity.state.StateMutationSchema
-import org.liara.api.data.entity.state.handler.LocalActivationStateMutationSchemaHandler
-import org.liara.api.data.entity.state.handler.LocalActivationStateSchemaHandler
-import org.liara.api.data.entity.state.handler.LocalStateMutationSchemaHandler
-import org.liara.api.data.entity.tree.LocalNestedSetTree
-import org.liara.api.data.repository.local.ApplicationEntityIdentifiers
-import org.liara.api.data.repository.local.LocalActivationsRepository
-import org.liara.api.data.repository.local.LocalApplicationEntityRepository
+import org.liara.api.data.entity.state.*
+import org.liara.api.data.entity.state.handler.LocalLabelStateMutationSchemaHandler
+import org.liara.api.data.entity.state.handler.LocalLabelStateSchemaHandler
 import org.liara.api.data.repository.local.LocalBooleanStateRepository
 import org.liara.api.data.repository.local.LocalEntityManager
+import org.liara.api.data.repository.local.LocalLabelRepository
 import org.liara.api.data.repository.local.LocalNodeRepository
-import org.liara.api.data.repository.local.LocalTimeSeriesRepository
 import org.liara.api.data.schema.SchemaManager
 import org.liara.api.data.schema.TestSchemaManager
 import org.liara.api.event.StateWasCreatedEvent
-import org.liara.api.event.StateWasDeletedEvent
 import org.liara.api.event.StateWasMutatedEvent
 import org.liara.api.event.StateWillBeDeletedEvent
-import org.liara.api.recognition.sensor.VirtualSensorHandler
 import org.liara.api.recognition.sensor.VirtualSensorRunner
-import org.liara.api.recognition.sensor.common.NativeBooleanSensor
 import org.liara.api.test.builder.node.NodeBuilder
 import org.liara.api.test.builder.sensor.SensorBuilder
 import org.liara.api.test.builder.state.BooleanStateBuilder
@@ -45,7 +24,11 @@ import org.mockito.Mockito
 import org.springframework.lang.NonNull
 import spock.lang.Specification
 
-public class UpDownToActivationSensorSpecification 
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.stream.Collectors
+
+class UpDownToActivationSensorSpecification
        extends Specification
 {
   /**
@@ -53,7 +36,7 @@ public class UpDownToActivationSensorSpecification
    * @param entityManager
    * @return
    */
-  def Node buildingTestHouseWithSourceSequence (
+  Node buildingTestHouseWithSourceSequence (
     @NonNull final Closure<?> sequenceConfigurator,
     @NonNull final LocalEntityManager entityManager
   ) {
@@ -82,7 +65,7 @@ public class UpDownToActivationSensorSpecification
    * @param schemaManager
    * @return
    */
-  def VirtualSensorRunner buildRunnerForHouse (
+  VirtualSensorRunner buildRunnerForHouse (
     @NonNull final Node house,
     @NonNull final LocalEntityManager entityManager,
     @NonNull final SchemaManager schemaManager
@@ -91,10 +74,11 @@ public class UpDownToActivationSensorSpecification
     final Sensor inputSensor = house.getFirstSensorWithName(["living-room", "input"]).get()
     
     final Sensor outputSensor = SensorBuilder.ofType(
-      UpDownToActivationSensor.class, {
+      UpDownToLabelSensor.class, {
         withName "output"
-        withConfiguration new UpDownToActivationSensorConfiguration(
-          inputSensor, livingRoom
+      withConfiguration new UpDownToLabelSensorConfiguration(
+        inputSensor.reference,
+        "presence:living-room"
         )
       }
     ).buildFor(entityManager)
@@ -102,22 +86,23 @@ public class UpDownToActivationSensorSpecification
     livingRoom.addSensor(outputSensor)
     
     schemaManager.registerHandler(
-      ActivationStateCreationSchema.class,
-      new LocalActivationStateSchemaHandler(entityManager)
+      LabelStateCreationSchema.class,
+      new LocalLabelStateSchemaHandler(entityManager)
     )
     
     schemaManager.registerHandler(
-      ActivationStateMutationSchema.class,
-      new LocalActivationStateMutationSchemaHandler(entityManager)
+      LabelStateMutationSchema.class,
+      new LocalLabelStateMutationSchemaHandler(entityManager)
     )
     
     final VirtualSensorRunner runner = VirtualSensorRunner.unbound(
       outputSensor,
-      Mockito.spy(new UpDownToActivationSensor(
-        schemaManager,
-        LocalBooleanStateRepository.from(entityManager),
-        LocalActivationsRepository.from(entityManager),
-        LocalNodeRepository.of(house)
+      Mockito.spy(
+        new UpDownToLabelSensor(
+          schemaManager,
+          LocalBooleanStateRepository.from(entityManager),
+          LocalLabelRepository.from(entityManager),
+          LocalNodeRepository.of(house)
       ))
     )
     
@@ -132,7 +117,7 @@ public class UpDownToActivationSensorSpecification
    * @param states
    * @return
    */
-  def List<State> emit (
+  List<State> emit (
     @NonNull final ApplicationEntityReference<Sensor> emitter,
     @NonNull final LocalEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
@@ -156,7 +141,7 @@ public class UpDownToActivationSensorSpecification
    * @param mutations
    * @return
    */
-  def List<State> mutate (
+  List<State> mutate (
     @NonNull final ApplicationEntityReference<Sensor> emitter,
     @NonNull final LocalEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
@@ -174,8 +159,8 @@ public class UpDownToActivationSensorSpecification
         new StateWasMutatedEvent(this, oldValue, flag)
       )
     }
-    
-    return mutations.stream().map({ x -> entityManager[x.state] }).collect(Collectors.toList());
+
+    return mutations.stream().map({ x -> entityManager[x.state] }).collect(Collectors.toList())
   }
   
   /**
@@ -216,44 +201,44 @@ public class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 5
       schemaManager.hasHandled([
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": flags[inputSensor, 0].emittionDate,
-          "end": null,
+          "class"              : LabelStateCreationSchema.class,
+          "start"              : flags[inputSensor, 0].emittionDate,
+          "end"                : null,
           "correlations[start]": flags[inputSensor, 0].reference,
-          "correlations[end]": null,
-          "emittionDate": flags[inputSensor, 0].emittionDate,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : null,
+          "emittionDate"       : flags[inputSensor, 0].emittionDate,
+          "tag"                : "presence:living-room",
+          "sensor"             : outputSensor
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 4].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : flags[inputSensor, 4].emittionDate,
           "correlations[end]": flags[inputSensor, 4].reference
         ],
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": flags[inputSensor, 6].emittionDate,
-          "end": null,
+          "class"              : LabelStateCreationSchema.class,
+          "start"              : flags[inputSensor, 6].emittionDate,
+          "end"                : null,
           "correlations[start]": flags[inputSensor, 6].reference,
-          "correlations[end]": null,
-          "emittionDate": flags[inputSensor, 6].emittionDate,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : null,
+          "emittionDate"       : flags[inputSensor, 6].emittionDate,
+          "tag"                : "presence:living-room",
+          "sensor"             : outputSensor
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 7].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : flags[inputSensor, 7].emittionDate,
           "correlations[end]": flags[inputSensor, 7].reference
         ],
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": flags[inputSensor, 8].emittionDate,
-          "end": null,
+          "class"              : LabelStateCreationSchema.class,
+          "start"              : flags[inputSensor, 8].emittionDate,
+          "end"                : null,
           "correlations[start]": flags[inputSensor, 8].reference,
-          "correlations[end]": null,
-          "emittionDate": flags[inputSensor, 8].emittionDate,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : null,
+          "emittionDate"       : flags[inputSensor, 8].emittionDate,
+          "tag"                : "presence:living-room",
+          "sensor"             : outputSensor
         ]
       ]) == true
   }
@@ -331,7 +316,7 @@ public class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
 
       runner.initialize()
       schemaManager.reset()
@@ -350,10 +335,10 @@ public class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": emitted[0].emittionDate,
+          "class"              : LabelStateMutationSchema.class,
+          "start"              : emitted[0].emittionDate,
           "correlations[start]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"              : outputs[outputSensor, 0].reference
         ]
       ]) == true
   }
@@ -380,7 +365,7 @@ public class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -399,10 +384,10 @@ public class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": emitted[0].emittionDate,
+          "class"              : LabelStateMutationSchema.class,
+          "start"              : emitted[0].emittionDate,
           "correlations[start]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"              : outputs[outputSensor, 0].reference
         ]
       ]) == true
   }
@@ -430,7 +415,7 @@ public class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -449,10 +434,10 @@ public class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": emitted[0].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : emitted[0].emittionDate,
           "correlations[end]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"            : outputs[outputSensor, 0].reference
         ]
       ]) == true
   }
@@ -482,7 +467,7 @@ public class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -501,13 +486,13 @@ public class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": emitted[0].emittionDate,
-          "end": flags[inputSensor, 4].emittionDate,
+          "class"              : LabelStateCreationSchema.class,
+          "start"              : emitted[0].emittionDate,
+          "end"                : flags[inputSensor, 4].emittionDate,
           "correlations[start]": emitted[0].reference,
-          "correlations[end]": flags[inputSensor, 4].reference,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : flags[inputSensor, 4].reference,
+          "tag"                : "presence:living-room",
+          "sensor"             : outputSensor
         ]
       ]) == true
   }
@@ -537,7 +522,7 @@ public class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -556,13 +541,13 @@ public class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": emitted[0].emittionDate,
-          "end": null,
+          "class"              : LabelStateCreationSchema.class,
+          "start"              : emitted[0].emittionDate,
+          "end"                : null,
           "correlations[start]": emitted[0].reference,
-          "correlations[end]": null,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : null,
+          "tag"                : "presence:living-room",
+          "sensor"             : outputSensor
         ]
       ]) == true
   }
@@ -589,7 +574,7 @@ public class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -608,10 +593,10 @@ public class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 1
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": emitted[0].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : emitted[0].emittionDate,
           "correlations[end]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"            : outputs[outputSensor, 0].reference
         ]
       ]) == true
   }
@@ -639,7 +624,7 @@ public class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -658,19 +643,19 @@ public class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 2
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": emitted[0].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : emitted[0].emittionDate,
           "correlations[end]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"            : outputs[outputSensor, 0].reference
         ],
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": flags[inputSensor, 2].emittionDate,
-          "end": null,
+          "class"              : LabelStateCreationSchema.class,
+          "start"              : flags[inputSensor, 2].emittionDate,
+          "end"                : null,
           "correlations[start]": flags[inputSensor, 2].reference,
-          "correlations[end]": null,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : null,
+          "tag"                : "presence:living-room",
+          "sensor"             : outputSensor
         ]
       ])
   }
@@ -699,7 +684,7 @@ public class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -718,19 +703,19 @@ public class UpDownToActivationSensorSpecification
       schemaManager.getHandledSchemaCount() == 2
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": emitted[0].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : emitted[0].emittionDate,
           "correlations[end]": emitted[0].reference,
-          "state": outputs[outputSensor, 0].reference
+          "state"            : outputs[outputSensor, 0].reference
         ],
         [
-          "class": ActivationStateCreationSchema.class,
-          "start": flags[inputSensor, 2].emittionDate,
-          "end": flags[inputSensor, 3].emittionDate,
+          "class"              : LabelStateCreationSchema.class,
+          "start"              : flags[inputSensor, 2].emittionDate,
+          "end"                : flags[inputSensor, 3].emittionDate,
           "correlations[start]": flags[inputSensor, 2].reference,
-          "correlations[end]": flags[inputSensor, 3].reference,
-          "node": livingRoom,
-          "sensor": outputSensor
+          "correlations[end]"  : flags[inputSensor, 3].reference,
+          "tag"                : "presence:living-room",
+          "sensor"             : outputSensor
         ]
       ])
   }
@@ -763,7 +748,7 @@ public class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -797,28 +782,28 @@ public class UpDownToActivationSensorSpecification
       
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": mutations[0].emittionDate,
+          "class"              : LabelStateMutationSchema.class,
+          "start"              : mutations[0].emittionDate,
           "correlations[start]": mutations[0].state,
-          "state": outputs[outputSensor, 1].reference
+          "state"              : outputs[outputSensor, 1].reference
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": mutations[1].emittionDate,
+          "class"              : LabelStateMutationSchema.class,
+          "start"              : mutations[1].emittionDate,
           "correlations[start]": mutations[1].state,
-          "state": outputs[outputSensor, 1].reference
+          "state"              : outputs[outputSensor, 1].reference
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": mutations[2].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : mutations[2].emittionDate,
           "correlations[end]": mutations[2].state,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": mutations[3].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : mutations[3].emittionDate,
           "correlations[end]": mutations[3].state,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ]
       ]) == true
   }
@@ -851,7 +836,7 @@ public class UpDownToActivationSensorSpecification
       final VirtualSensorRunner runner = buildRunnerForHouse(house, entityManager, schemaManager)
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -870,8 +855,8 @@ public class UpDownToActivationSensorSpecification
       )
       
     then: "we expect that the underlying handler will act accordingly"
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -903,7 +888,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -924,14 +909,14 @@ public class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": flags[inputSensor, 3].emittionDate,
+          "class"              : LabelStateMutationSchema.class,
+          "start"              : flags[inputSensor, 3].emittionDate,
           "correlations[start]": flags[inputSensor, 3].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"              : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -962,7 +947,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -987,8 +972,8 @@ public class UpDownToActivationSensorSpecification
           "state": outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1020,7 +1005,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1041,14 +1026,14 @@ public class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 3].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : flags[inputSensor, 3].emittionDate,
           "correlations[end]": flags[inputSensor, 3].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1079,7 +1064,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1104,14 +1089,14 @@ public class UpDownToActivationSensorSpecification
           "state": outputs[outputSensor, 2].reference
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 4].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : flags[inputSensor, 4].emittionDate,
           "correlations[end]": flags[inputSensor, 4].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1142,7 +1127,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1166,14 +1151,14 @@ public class UpDownToActivationSensorSpecification
           "state": outputs[outputSensor, 2].reference
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 5].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : flags[inputSensor, 5].emittionDate,
           "correlations[end]": flags[inputSensor, 5].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1205,7 +1190,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1225,14 +1210,14 @@ public class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 4].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : flags[inputSensor, 4].emittionDate,
           "correlations[end]": flags[inputSensor, 4].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1264,7 +1249,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1284,14 +1269,14 @@ public class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": flags[inputSensor, 3].emittionDate,
+          "class"              : LabelStateMutationSchema.class,
+          "start"              : flags[inputSensor, 3].emittionDate,
           "correlations[start]": flags[inputSensor, 3].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"              : outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1322,7 +1307,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1346,8 +1331,8 @@ public class UpDownToActivationSensorSpecification
           "state": outputs[outputSensor, 1].reference
         ]
       ])
-      Mockito.verify(runner.getHandler() as UpDownToActivationSensor)
-             .inputStateWasCreated(entityManager[mutations[0].state])
+    Mockito.verify(runner.getHandler() as UpDownToLabelSensor)
+           .inputStateWasCreated(entityManager[mutations[0].state])
   }
   
   /**
@@ -1380,7 +1365,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1425,7 +1410,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1444,10 +1429,10 @@ public class UpDownToActivationSensorSpecification
           "state": outputs[outputSensor, 2].reference
         ],
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": null,
+          "class"                 : LabelStateMutationSchema.class,
+          "end"                   : null,
           "decorrelationsMap[end]": true,
-          "state": outputs[outputSensor, 1].reference
+          "state"                 : outputs[outputSensor, 1].reference
         ]
       ])
   }
@@ -1480,7 +1465,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1495,10 +1480,10 @@ public class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": flags[inputSensor, 3].emittionDate,
+          "class"            : LabelStateMutationSchema.class,
+          "end"              : flags[inputSensor, 3].emittionDate,
           "correlations[end]": flags[inputSensor, 3].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"            : outputs[outputSensor, 1].reference
         ]
       ]) == true
   }
@@ -1529,7 +1514,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1544,10 +1529,10 @@ public class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "end": null,
+          "class"                 : LabelStateMutationSchema.class,
+          "end"                   : null,
           "decorrelationsMap[end]": true,
-          "state": outputs[outputSensor, 1].reference
+          "state"                 : outputs[outputSensor, 1].reference
         ]
       ]) == true
   }
@@ -1580,7 +1565,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()
@@ -1595,10 +1580,10 @@ public class UpDownToActivationSensorSpecification
     then: "we expect that the underlying handler will act accordingly"
       schemaManager.hasHandled([
         [
-          "class": ActivationStateMutationSchema.class,
-          "start": flags[inputSensor, 2].emittionDate,
+          "class"              : LabelStateMutationSchema.class,
+          "start"              : flags[inputSensor, 2].emittionDate,
           "correlations[start]": flags[inputSensor, 2].reference,
-          "state": outputs[outputSensor, 1].reference
+          "state"              : outputs[outputSensor, 1].reference
         ]
       ]) == true
   }
@@ -1630,7 +1615,7 @@ public class UpDownToActivationSensorSpecification
      
       final ApplicationEntityReference<Sensor> outputSensor = house.getFirstSensorWithName(["living-room", "output"]).get().getReference()
       final LocalBooleanStateRepository flags = LocalBooleanStateRepository.from(entityManager)
-      final LocalActivationsRepository outputs = LocalActivationsRepository.from(entityManager)
+    final LocalLabelRepository outputs = LocalLabelRepository.from(entityManager)
   
       runner.initialize()
       schemaManager.reset()

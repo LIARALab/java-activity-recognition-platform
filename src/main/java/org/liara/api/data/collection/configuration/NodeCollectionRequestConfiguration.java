@@ -26,8 +26,6 @@ import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.EntityCollectionSubquery;
 import org.liara.api.data.collection.NodeCollection;
 import org.liara.api.data.entity.node.Node;
-import org.liara.api.data.entity.node.Node_;
-import org.liara.api.data.entity.tree.NestedSetCoordinates_;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
@@ -55,13 +53,9 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
     final CriteriaBuilder builder = children.getManager().getCriteriaBuilder();
     
     children.andWhere(builder.and(
-      builder.lessThan(
-        children.getEntity().get(Node_._coordinates).get(NestedSetCoordinates_._start), 
-        related.get(Node_._coordinates).get(NestedSetCoordinates_._start)
+      builder.lessThan(children.getEntity().get("_coordinates").get("_start"), related.get("_coordinates").get("_start")
       ),
-      builder.greaterThan(
-        children.getEntity().get(Node_._coordinates).get(NestedSetCoordinates_._end), 
-        related.get(Node_._coordinates).get(NestedSetCoordinates_._end)
+      builder.greaterThan(children.getEntity().get("_coordinates").get("_end"), related.get("_coordinates").get("_end")
       )
     ));
   }
@@ -74,13 +68,10 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
     final CriteriaBuilder builder = children.getManager().getCriteriaBuilder();
     
     children.where(builder.and(
-      builder.greaterThan(
-        children.getEntity().get(Node_._coordinates).get(NestedSetCoordinates_._start), 
-        related.get(Node_._coordinates).get(NestedSetCoordinates_._start)
+      builder.greaterThan(children.getEntity().get("_coordinates").get("_start"),
+        related.get("_coordinates").get("_start")
       ),
-      builder.lessThan(
-        children.getEntity().get(Node_._coordinates).get(NestedSetCoordinates_._end), 
-        related.get(Node_._coordinates).get(NestedSetCoordinates_._end)
+      builder.lessThan(children.getEntity().get("_coordinates").get("_end"), related.get("_coordinates").get("_end")
       )
     ));
   }
@@ -135,7 +126,8 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestFilterValidatorFactory.integer("depth"),
       APIRequestFilterValidatorFactory.text("name"),
       APIRequestFilterValidatorFactory.text("type"),
-      APIRequestFilterValidatorFactory.includeCollection("parents", NodeCollection.class)
+      APIRequestFilterValidatorFactory.includeCollection("parents", NodeCollection.class),
+      APIRequestFilterValidatorFactory.includeCollection("children", NodeCollection.class)
     );
   }
 
