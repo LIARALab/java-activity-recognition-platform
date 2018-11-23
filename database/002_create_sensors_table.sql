@@ -10,9 +10,9 @@ SET time_zone = "+00:00";
 
 CREATE TABLE IF NOT EXISTS `sensors` (
   `identifier` int(11) NOT NULL AUTO_INCREMENT,
-  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP,
-  `deleted_at` datetime DEFAULT NULL,
+  `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  `updated_at` datetime(6) DEFAULT CURRENT_TIMESTAMP(6),
+  `deleted_at` datetime(6) DEFAULT NULL,
   `name` varchar(200) NOT NULL,
   `type` varchar(200) NOT NULL,
   `is_virtual_sensor` tinyint(1) NOT NULL,

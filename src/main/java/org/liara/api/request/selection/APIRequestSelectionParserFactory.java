@@ -22,114 +22,120 @@
 package org.liara.api.request.selection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.collection.CollectionRequestConfiguration;
 import org.liara.collection.operator.Operator;
 import org.liara.request.parser.APIRequestDefaultValueParser;
 import org.liara.request.parser.APIRequestParser;
 import org.liara.selection.JPQLSelection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public final class APIRequestSelectionParserFactory
 {
   @NonNull
-  private static EntityManager ENTITY_MANAGER;
+  private EntityManager _entityManager;
 
   @Autowired
-  public void registerEntityManager (@NonNull final EntityManager entityManager) {
-    ENTITY_MANAGER = entityManager;
+  public APIRequestSelectionParserFactory (@NonNull final EntityManager entityManager) {
+    _entityManager = entityManager;
   }
 
-  public static APIRequestParser<Operator> withDefault (
+  public APIRequestParser<Operator> withDefault (
     @NonNull final APIRequestParser<Operator> parser, @NonNull final Operator result
   ) {
     return new APIRequestDefaultValueParser<Operator>(result, parser);
   }
 
-  public static @NonNull APIRequestSelectionParser asBoolean (@NonNull final String parameter) {
-    return APIRequestSelectionParserFactory.asBoolean(parameter, parameter);
+  public @NonNull APIRequestSelectionParser asBoolean (@NonNull final String parameter) {
+    return asBoolean(parameter, parameter);
   }
 
-  public static @NonNull APIRequestSelectionParser asBoolean (
+  public @NonNull APIRequestSelectionParser asBoolean (
     @NonNull final String parameter, @NonNull final String field
   )
   {
     return null;
   }
 
-  public static @NonNull APIRequestSelectionParser asLong (@NonNull final String parameter) {
-    return APIRequestSelectionParserFactory.asLong(parameter, parameter);
+  public @NonNull APIRequestSelectionParser asLong (@NonNull final String parameter) {
+    return asLong(parameter, parameter);
   }
 
-  public static @NonNull APIRequestSelectionParser asLong (
+  public @NonNull APIRequestSelectionParser asLong (
     @NonNull final String parameter, @NonNull final String field
   ) {
     return new APIRequestSelectionParser(parameter, field, JPQLSelection.longTranspiler());
   }
 
-  public static @NonNull APIRequestSelectionParser asShort (@NonNull final String parameter) {
-    return APIRequestSelectionParserFactory.asShort(parameter, parameter);
+  public @NonNull APIRequestSelectionParser asShort (@NonNull final String parameter) {
+    return asShort(parameter, parameter);
   }
 
-  public static @NonNull APIRequestSelectionParser asShort (
+  public @NonNull APIRequestSelectionParser asShort (
     @NonNull final String parameter, @NonNull final String field
   ) {
     return new APIRequestSelectionParser(parameter, field, JPQLSelection.shortTranspiler());
   }
 
-  public static @NonNull APIRequestSelectionParser asByte (@NonNull final String parameter) {
-    return APIRequestSelectionParserFactory.asByte(parameter, parameter);
+  public @NonNull APIRequestSelectionParser asByte (@NonNull final String parameter) {
+    return asByte(parameter, parameter);
   }
 
-  public static @NonNull APIRequestSelectionParser asByte (
+  public @NonNull APIRequestSelectionParser asByte (
     @NonNull final String parameter, @NonNull final String field
   ) {
     return new APIRequestSelectionParser(parameter, field, JPQLSelection.byteTranspiler());
   }
 
-  public static @NonNull APIRequestSelectionParser asInteger (@NonNull final String parameter) {
-    return APIRequestSelectionParserFactory.asInteger(parameter, parameter);
+  public @NonNull APIRequestSelectionParser asInteger (@NonNull final String parameter) {
+    return asInteger(parameter, parameter);
   }
 
-  public static @NonNull APIRequestSelectionParser asInteger (
+  public @NonNull APIRequestSelectionParser asInteger (
     @NonNull final String parameter, @NonNull final String field
   ) {
     return new APIRequestSelectionParser(parameter, field, JPQLSelection.integerTranspiler());
   }
 
-  public static @NonNull APIRequestSelectionParser asDouble (@NonNull final String parameter) {
-    return APIRequestSelectionParserFactory.asDouble(parameter, parameter);
+  public @NonNull APIRequestSelectionParser asDouble (@NonNull final String parameter) {
+    return asDouble(parameter, parameter);
   }
 
-  public static @NonNull APIRequestSelectionParser asDouble (
+  public @NonNull APIRequestSelectionParser asDouble (
     @NonNull final String parameter, @NonNull final String field
   ) {
     return new APIRequestSelectionParser(parameter, field, JPQLSelection.doubleTranspiler());
   }
 
-  public static @NonNull APIRequestSelectionParser asFloat (@NonNull final String parameter) {
-    return APIRequestSelectionParserFactory.asFloat(parameter, parameter);
+  public @NonNull APIRequestSelectionParser asFloat (@NonNull final String parameter) {
+    return asFloat(parameter, parameter);
   }
 
-  public static @NonNull APIRequestSelectionParser asFloat (
+  public @NonNull APIRequestSelectionParser asFloat (
     @NonNull final String parameter, @NonNull final String field
   ) {
     return new APIRequestSelectionParser(parameter, field, JPQLSelection.floatTranspiler());
   }
 
-  public static @NonNull APIRequestSelectionParser asDateTime (@NonNull final String parameter) {
-    return APIRequestSelectionParserFactory.asDateTime(parameter, parameter);
+  public @NonNull APIRequestSelectionParser asDateTime (@NonNull final String parameter) {
+    return asDateTime(parameter, parameter);
   }
 
-  public static @NonNull APIRequestSelectionParser asDateTime (
+  public @NonNull APIRequestSelectionParser asDateTime (
     @NonNull final String parameter, @NonNull final String field
   ) {
     return new APIRequestSelectionParser(parameter, field, JPQLSelection.datetimeTranspiler());
   }
 
-  public static APIRequestSelectionParser datetimeInRange (
+  public APIRequestSelectionParser datetimeInRange (
     @NonNull final String parameter, @NonNull final String start, @NonNull final String end
   ) {
     @NonNull final Map<@NonNull String, @NonNull String> fields = new HashMap<>();
@@ -139,42 +145,63 @@ public final class APIRequestSelectionParserFactory
     return new APIRequestSelectionParser(parameter, fields, JPQLSelection.datetimeTranspiler());
   }
 
-  public static @NonNull APIRequestSelectionParser asDuration (@NonNull final String parameter) {
-    return APIRequestSelectionParserFactory.asDuration(parameter, parameter);
+  public @NonNull APIRequestSelectionParser asDuration (@NonNull final String parameter) {
+    return asDuration(parameter, parameter);
   }
 
-  public static @NonNull APIRequestSelectionParser asDuration (
+  public @NonNull APIRequestSelectionParser asDuration (
     @NonNull final String parameter, @NonNull final String field
   ) {
     return new APIRequestSelectionParser(parameter, field, JPQLSelection.durationTranspiler());
   }
 
-  public static @NonNull APIRequestSelectionParser asString (@NonNull final String parameter) {
-    return APIRequestSelectionParserFactory.asString(parameter, parameter);
+  public @NonNull APIRequestSelectionParser asString (@NonNull final String parameter) {
+    return asString(parameter, parameter);
   }
 
-  public static @NonNull APIRequestSelectionParser asString (
+  public @NonNull APIRequestSelectionParser asString (
     @NonNull final String parameter, @NonNull final String field
   ) {
     return new APIRequestSelectionParser(parameter, field, JPQLSelection.stringTranspiler());
   }
 
-  public static APIRequestJoinSelectionParser asJoinWith (
-    @NonNull final String parameter, @NonNull final Class<?> entity
-  ) {
-    return asJoinWith(parameter, parameter, entity);
+  public APIRequestJoinSelectionParser asEmbedded (
+    @NonNull final String parameter, @NonNull final CollectionRequestConfiguration configuration
+  )
+  {
+    return asEmbedded(parameter, parameter, configuration);
   }
 
-  public static APIRequestJoinSelectionParser asJoinWith (
-    @NonNull final String parameter, @NonNull final String field, @NonNull final Class<?> entity
-  ) {
-    return new APIRequestJoinSelectionParser(ENTITY_MANAGER, parameter, field, entity);
+  public APIRequestJoinSelectionParser asEmbedded (
+    @NonNull final String parameter,
+    @NonNull final String join,
+    @NonNull final CollectionRequestConfiguration configuration
+  )
+  {
+    return new APIRequestJoinSelectionParser(parameter, join, configuration);
   }
 
-  public static APIRequestExistsSelectionParser asCollectionOf (
-    @NonNull final String parameter, @NonNull final Class<?> joined, @NonNull final Operator definition
+  public APIRequestJoinSelectionParser asJoinWith (
+    @NonNull final String parameter, @NonNull final CollectionRequestConfiguration configuration
   ) {
-    return new APIRequestExistsSelectionParser(ENTITY_MANAGER, parameter, definition, joined
-    );
+    return asJoinWith(parameter, parameter, configuration);
+  }
+
+  public APIRequestJoinSelectionParser asJoinWith (
+    @NonNull final String parameter,
+    @NonNull final String field,
+    @NonNull final CollectionRequestConfiguration configuration
+  ) {
+    return new APIRequestJoinSelectionParser(parameter, field, configuration);
+  }
+
+  public APIRequestExistsSelectionParser asCollectionOf (
+    @NonNull final String parameter,
+    @NonNull final Operator definition,
+    @NonNull final CollectionRequestConfiguration configuration,
+    @NonNull final Class<?> type
+  )
+  {
+    return new APIRequestExistsSelectionParser(_entityManager, parameter, definition, configuration, type);
   }
 }

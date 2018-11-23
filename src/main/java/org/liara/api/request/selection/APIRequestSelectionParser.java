@@ -33,6 +33,7 @@ import org.liara.request.parser.APIRequestParser;
 import org.liara.request.validator.APIRequestValidation;
 import org.liara.request.validator.APIRequestValidator;
 import org.liara.request.validator.error.APIRequestParameterValueError;
+import org.liara.selection.TranspilationException;
 import org.liara.selection.jpql.JPQLQuery;
 import org.liara.selection.jpql.JPQLSelectionTranspiler;
 
@@ -116,14 +117,22 @@ public class APIRequestSelectionParser
 
       for (int index = 0; index < parameter.getSize(); ++index) {
         try {
-          @NonNull final JPQLQuery selection = _transpiler.transpile(parameter.get(index).get());
+          @NonNull final JPQLQuery selection = _transpiler.tryToTranspile(parameter.get(index).get());
           @NonNull String          clause    = selection.getClause();
 
           for (final Map.Entry<@NonNull String, @NonNull String> replacements : _fields.entrySet()) {
-            operators[index] = Filter.expression(selection.getClause()
-                                                          .replace(replacements.getKey(), replacements.getValue()))
-                                     .setParameters(selection.getParameters());
+            operators[index] = Filter.expression(selection.getClause().replace(replacements.getKey(),
+              replacements.getValue()))
+                                 .setParameters(selection.getParameters());
           }
+        } catch (@NonNull final TranspilationException exception) {
+          validation = validation.addError(APIRequestParameterValueError.create(
+            parameter,
+            index,
+            "Line : " + exception.getLine() + ", character : " + exception.getCharacter() + ", " +
+            exception.getMessage() + ", near : '" + near(parameter.get(index).get(), exception.getCharacter(), 10) +
+            "', please look at this parameter filtering documentation for more information about this error."
+          ));
         } catch (@NonNull final Throwable exception) {
           validation = validation.addError(APIRequestParameterValueError.create(
             parameter,
@@ -137,5 +146,12 @@ public class APIRequestSelectionParser
     }
 
     _validations.put(apiRequest, validation);
+  }
+
+  private @NonNull String near (@NonNull final String sequence, final int character, final int characters) {
+    final int start = Math.max(0, character - characters);
+    final int end   = Math.min(sequence.length(), character + characters);
+
+    return (start != 0 ? "..." : "") + sequence.substring(start, end) + (end != sequence.length() ? "..." : "");
   }
 }

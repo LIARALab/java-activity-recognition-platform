@@ -24,7 +24,6 @@ package org.liara.api.request.selection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionRequestConfiguration;
-import org.liara.api.collection.EntityBasedSelectionConfiguration;
 import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.collection.operator.Identity;
 import org.liara.collection.operator.Operator;
@@ -42,6 +41,7 @@ public class APIRequestExistsSelectionParser
 {
   @NonNull
   private final EntityManager _entityManager;
+
   @NonNull
   private final String        _field;
 
@@ -49,28 +49,31 @@ public class APIRequestExistsSelectionParser
   private final Operator _definition;
 
   @NonNull
+  private final CollectionRequestConfiguration _configuration;
+
+  @NonNull
   private final Class<?> _entity;
 
   public APIRequestExistsSelectionParser (
     @NonNull final EntityManager entityManager,
-    @NonNull final String field, @NonNull final Operator definition, @NonNull final Class<?> entity
+    @NonNull final String field,
+    @NonNull final Operator definition,
+    @NonNull final CollectionRequestConfiguration configuration,
+    @NonNull final Class<?> entity
   ) {
     _entityManager = entityManager;
     _field = field;
     _definition = definition;
+    _configuration = configuration;
     _entity = entity;
   }
 
   @Override
   public @NonNull Operator parse (@NonNull final APIRequest request) {
     final APIRequest subRequest = request.getRequest(_field);
-    final CollectionRequestConfiguration configuration = EntityBasedSelectionConfiguration.getConfigurationOf(
-      _entityManager,
-      _entity
-    );
 
     if (subRequest.getSize() > 0) {
-      @NonNull final JPAEntityCollection collection = (JPAEntityCollection) _definition.apply(configuration.parse(
+      @NonNull final JPAEntityCollection collection = (JPAEntityCollection) _definition.apply(_configuration.parse(
         request).apply(new JPAEntityCollection<>(_entityManager, _entity))
       );
 
@@ -83,11 +86,7 @@ public class APIRequestExistsSelectionParser
   @Override
   public @NonNull APIRequestValidation validate (@NonNull final APIRequest request) {
     final APIRequest subRequest = request.getRequest(_field);
-    final CollectionRequestConfiguration configuration = EntityBasedSelectionConfiguration.getConfigurationOf(
-      _entityManager,
-      _entity
-    );
 
-    return (subRequest.getSize() > 0) ? configuration.validate(subRequest) : new APIRequestValidation(subRequest);
+    return (subRequest.getSize() > 0) ? _configuration.validate(subRequest) : new APIRequestValidation(subRequest);
   }
 }

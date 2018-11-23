@@ -2,7 +2,7 @@ package org.liara.api.request.ordering;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.collection.operator.ordering.Order;
-import org.liara.processor.Processor;
+import org.liara.selection.processor.Processor;
 
 import java.util.List;
 

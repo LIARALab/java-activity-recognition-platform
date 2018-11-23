@@ -23,7 +23,6 @@ package org.liara.api.request.selection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionRequestConfiguration;
-import org.liara.api.collection.EntityBasedSelectionConfiguration;
 import org.liara.collection.operator.Identity;
 import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.joining.Join;
@@ -32,15 +31,10 @@ import org.liara.request.parser.APIRequestParser;
 import org.liara.request.validator.APIRequestValidation;
 import org.liara.request.validator.APIRequestValidator;
 
-import javax.persistence.EntityManager;
-
 public class APIRequestJoinSelectionParser
   implements APIRequestParser<Operator>,
              APIRequestValidator
 {
-  @NonNull
-  private final EntityManager _entityManager;
-
   @NonNull
   private final String _field;
   
@@ -48,28 +42,22 @@ public class APIRequestJoinSelectionParser
   private final String _join;
   
   @NonNull
-  private final Class<?> _entity;
+  private final CollectionRequestConfiguration _configuration;
 
   public APIRequestJoinSelectionParser (
-    @NonNull final EntityManager entityManager,
-    @NonNull final String field, @NonNull final String join, @NonNull final Class<?> entity
+    @NonNull final String field, @NonNull final String join, @NonNull final CollectionRequestConfiguration configuration
   ) {
-    _entityManager = entityManager;
     _field = field;
     _join = join;
-    _entity = entity;
+    _configuration = configuration;
   }
 
   @Override
   public @NonNull Operator parse (@NonNull final APIRequest request) {
     final APIRequest subRequest = request.getRequest(_field);
-    final CollectionRequestConfiguration configuration = EntityBasedSelectionConfiguration.getConfigurationOf(
-      _entityManager,
-      _entity
-    );
 
     if (subRequest.getSize() > 0) {
-      return new Join(_join).apply(configuration.parse(request));
+      return new Join(_join).apply(_configuration.parse(request));
     } else {
       return Identity.INSTANCE;
     }
@@ -78,11 +66,7 @@ public class APIRequestJoinSelectionParser
   @Override
   public @NonNull APIRequestValidation validate (@NonNull final APIRequest request) {
     final APIRequest subRequest = request.getRequest(_field);
-    final CollectionRequestConfiguration configuration = EntityBasedSelectionConfiguration.getConfigurationOf(
-      _entityManager,
-      _entity
-    );
 
-    return (subRequest.getSize() > 0) ? configuration.validate(subRequest) : new APIRequestValidation(subRequest);
+    return (subRequest.getSize() > 0) ? _configuration.validate(subRequest) : new APIRequestValidation(subRequest);
   }
 }

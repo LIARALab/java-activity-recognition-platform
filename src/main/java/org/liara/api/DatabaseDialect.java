@@ -19,11 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.database;
+package org.liara.api;
 
 import org.hibernate.dialect.MySQL5Dialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
-import org.hibernate.type.IntegerType;
+import org.hibernate.type.BooleanType;
 import org.hibernate.type.LongType;
 
 public class DatabaseDialect extends MySQL5Dialect {
@@ -38,9 +38,9 @@ public class DatabaseDialect extends MySQL5Dialect {
         )
       );
       registerFunction(
-        "regexp", 
+        "regexp",
         new SQLFunctionTemplate(
-          IntegerType.INSTANCE, 
+          BooleanType.INSTANCE,
           "?1 REGEXP ?2"
         )
       );

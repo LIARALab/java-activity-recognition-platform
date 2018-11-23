@@ -30,15 +30,14 @@ public class DatabaseNestedSetRepository
 
   public int getSetEnd (@NonNull final Class<? extends NestedSet> entity) {
     @NonNull final TypedQuery<Integer> query = _entityManager.createQuery(String.join(
-      "",
-      "SELECT MAX(node._coordinates._end) + 1 FROM ",
+      "", "SELECT MAX(node.coordinates.end) + 1 FROM ",
       entity.getName(),
       " node"
     ), Integer.class);
 
-    final List<Integer> result = query.getResultList();
+    @Nullable final Integer result = query.getSingleResult();
 
-    return (result.size() <= 0) ? 1 : result.get(0).intValue();
+    return result == null ? 1 : result;
   }
 
   public void attachChild (@NonNull final NestedSet node) {
@@ -216,9 +215,9 @@ public class DatabaseNestedSetRepository
                                            "UPDATE ",
                                            node.getClass().getName(),
                                            " ",
-                                           "SET _coordinates.start = _coordinates.start - :removedLength, ",
-                                           "    _coordinates.end = _coordinates.end - :removedLength, ",
-                                           "WHERE _coordinates.start > :removedSetEnd"
+      "SET coordinates.start = coordinates.start - :removedLength, ",
+      "    coordinates.end = coordinates.end - :removedLength, ",
+      "WHERE coordinates.start > :removedSetEnd"
     ))
                   .setParameter("removedLength", node.getCoordinates().getSize())
                   .setParameter("removedSetEnd", node.getCoordinates().getEnd())
@@ -228,9 +227,9 @@ public class DatabaseNestedSetRepository
                                            "UPDATE ",
                                            node.getClass().getName(),
                                            " ",
-                                           "SET _coordinates.end = _coordinates.end - :removedLength, ",
-                                           "WHERE _coordinates.end > :removedSetEnd ",
-                                           "  AND _coordinates.start < :removedSetStart"
+      "SET coordinates.end = coordinates.end - :removedLength, ",
+      "WHERE coordinates.end > :removedSetEnd ",
+      "  AND coordinates.start < :removedSetStart"
     ))
                   .setParameter("removedLength", node.getCoordinates().getSize())
                   .setParameter("removedSetEnd", node.getCoordinates().getEnd())

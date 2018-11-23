@@ -22,12 +22,12 @@
 package org.liara.api.request.ordering;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.collection.CollectionRequestConfiguration;
 import org.liara.api.collection.EntityBasedOrderingConfiguration;
 import org.liara.collection.operator.ordering.Order;
-import org.liara.processor.ProcessorCall;
-import org.liara.processor.ProcessorExecutor;
+import org.liara.selection.processor.ProcessorCall;
+import org.liara.selection.processor.ProcessorExecutor;
 
-import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,17 +38,13 @@ public class APIRequestJoinOrderingExecutor
   private final String _parameter;
 
   @NonNull
-  private final EntityManager _entityManager;
-
-  @NonNull
-  private final Class<?> _entity;
+  private final CollectionRequestConfiguration _configuration;
 
   public APIRequestJoinOrderingExecutor (
-    @NonNull final String parameter, @NonNull final EntityManager entityManager, @NonNull final Class<?> entity
+    @NonNull final String parameter, @NonNull final CollectionRequestConfiguration configuration
   ) {
     _parameter = parameter;
-    _entity = entity;
-    _entityManager = entityManager;
+    _configuration = configuration;
   }
 
   @Override
@@ -61,14 +57,8 @@ public class APIRequestJoinOrderingExecutor
       }
     }
 
-    if (subCalls.size() > 0) {
-      @NonNull final EntityBasedOrderingConfiguration configuration =
-        EntityBasedOrderingConfiguration.getConfigurationOf(
-        _entityManager,
-        _entity
-      );
-
-      return (Order[]) configuration.getExecutor().execute(subCalls);
+    if (subCalls.size() > 0 && _configuration instanceof EntityBasedOrderingConfiguration) {
+      return (Order[]) ((EntityBasedOrderingConfiguration) _configuration).getExecutor().execute(subCalls);
     }
 
     return new Order[0];

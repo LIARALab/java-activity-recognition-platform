@@ -7,7 +7,7 @@ import org.liara.request.parser.APIRequestParser;
 import org.liara.request.validator.APIRequestValidation;
 import org.liara.request.validator.APIRequestValidator;
 
-public interface CollectionRequestConfiguration<Entity>
+public interface CollectionRequestConfiguration
 {
   /**
    * Return configured request validator for this request type.

@@ -8,15 +8,14 @@ SET time_zone = "+00:00";
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
 /*!40101 SET NAMES utf8mb4 */;
 
-CREATE TABLE IF NOT EXISTS `states_presence` (
+CREATE TABLE IF NOT EXISTS `states_label` (
   `identifier` int(11) NOT NULL AUTO_INCREMENT,
   `state_identifier` int(11) NOT NULL,
   `start` datetime(6) NOT NULL,
   `end` datetime(6) DEFAULT NULL,
-  `node_identifier` int(11) NOT NULL,
+  `tag` varchar(200) NOT NULL,
   PRIMARY KEY (`identifier`),
-  KEY `state_presence_to_state` (`state_identifier`),
-  KEY `state_presence_to_node` (`node_identifier`)
+  KEY `state_label_to_state` (`state_identifier`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 COMMIT;

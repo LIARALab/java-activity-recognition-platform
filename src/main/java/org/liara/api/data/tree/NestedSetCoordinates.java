@@ -90,6 +90,7 @@ public class NestedSetCoordinates
   }
 
   @Transient
+  @JsonIgnore
   public boolean isDefined () {
     return _start != null && _end != null && _depth != null;
   }

@@ -85,8 +85,7 @@ public class BaseRestController
   }
 
   protected <Entity> @NonNull JPAEntityCollection<Entity> apply (
-    @NonNull final JPAEntityCollection<Entity> collection,
-    @NonNull final CollectionRequestConfiguration<Entity> configuration,
+    @NonNull final JPAEntityCollection<Entity> collection, @NonNull final CollectionRequestConfiguration configuration,
     @NonNull final HttpServletRequest request
   )
   throws InvalidAPIRequestException

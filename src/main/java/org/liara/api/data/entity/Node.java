@@ -79,10 +79,10 @@ public class Node
 
   @Embedded
   public @NonNull NestedSetCoordinates getCoordinates () {
-    return new NestedSetCoordinates(_coordinates);
+    return _coordinates;
   }
 
   public void setCoordinates (@Nullable final NestedSetCoordinates coordinates) {
-    _coordinates = (coordinates == null) ? new NestedSetCoordinates() : new NestedSetCoordinates(coordinates);
+    _coordinates.set(coordinates);
   }
 }

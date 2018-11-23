@@ -10,9 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
 
 @Component
 @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -39,11 +41,13 @@ public class DatabaseNodeDriver
     _entityManager = entityManager;
   }
 
+  @Transactional
+  @EventListener
   public void create (final NodeEvent.@NonNull Create creation) {
     @NonNull final Node node = new Node();
     node.setName(creation.getSchema().getName());
-
-    _eventPublisher.publishEvent(new ApplicationEntityEvent.Create(node));
+    node.getCoordinates().set(0, 1, 0);
+    _eventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, node));
 
     if (creation.getSchema().getParent() == null) {
       _repository.attachChild(node);
@@ -55,6 +59,8 @@ public class DatabaseNodeDriver
     _eventPublisher.publishEvent(new NodeEvent.WasCreated(this, node));
   }
 
+  @Transactional
+  @EventListener
   public void willCreate (final ApplicationEntityEvent.@NonNull WillCreate creation) {
     for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
       if (entity instanceof Node) {

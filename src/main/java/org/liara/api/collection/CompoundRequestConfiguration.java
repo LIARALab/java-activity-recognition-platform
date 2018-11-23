@@ -6,36 +6,42 @@ import org.liara.collection.operator.Operator;
 import org.liara.request.parser.APIRequestParser;
 import org.liara.request.validator.APIRequestValidator;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
-public class CompoundRequestConfiguration<Entity>
-  implements CollectionRequestConfiguration<Entity>
+public class CompoundRequestConfiguration
+  implements CollectionRequestConfiguration
 {
   @NonNull
-  private final CollectionRequestConfiguration<Entity>[] _configurations;
+  private final List<@NonNull CollectionRequestConfiguration> _configurations;
 
-  public CompoundRequestConfiguration (@NonNull final CollectionRequestConfiguration<Entity>... configuration) {
-    _configurations = Arrays.copyOf(configuration, configuration.length);
+  public CompoundRequestConfiguration (@NonNull final CollectionRequestConfiguration... configuration) {
+    _configurations = new ArrayList<>(Arrays.asList(configuration));
+  }
+
+  public CompoundRequestConfiguration (@NonNull final Collection<CollectionRequestConfiguration> configurations) {
+    _configurations = new ArrayList<>(configurations);
   }
 
   @Override
   public @NonNull APIRequestValidator getValidator () {
-    @NonNull final APIRequestValidator[] validators = new APIRequestValidator[_configurations.length];
+    @NonNull final APIRequestValidator[] validators = new APIRequestValidator[_configurations.size()];
 
-    for (int index = 0; index < _configurations.length; ++index) {
-      validators[index] = _configurations[index].getValidator();
+    for (int index = 0; index < _configurations.size(); ++index) {
+      validators[index] = _configurations.get(index).getValidator();
     }
 
-    return APIRequestValidator.composse(validators);
+    return APIRequestValidator.compose(validators);
   }
 
   @Override
   public @NonNull APIRequestParser<Operator> getParser () {
-    @NonNull final APIRequestParser<Operator>[] parsers =
-      (APIRequestParser<Operator>[]) new APIRequestParser[_configurations.length];
+    @NonNull final List<@NonNull APIRequestParser<Operator>> parsers = new ArrayList<>(_configurations.size());
 
-    for (int index = 0; index < _configurations.length; ++index) {
-      parsers[index] = _configurations[index].getParser();
+    for (int index = 0; index < _configurations.size(); ++index) {
+      parsers.add(_configurations.get(index).getParser());
     }
 
     return APIRequestParser.compose(parsers).map(Composition::of);
