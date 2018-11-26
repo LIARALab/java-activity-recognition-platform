@@ -1,10 +1,5 @@
 package org.liara.api.data.repository.database;
 
-import java.util.List;
-import java.util.Optional;
-
-import javax.persistence.EntityManager;
-
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.repository.ApplicationEntityRepository;
@@ -13,6 +8,10 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import java.util.List;
+import java.util.Optional;
 
 @Component
 @Scope("prototype")
@@ -31,6 +30,14 @@ public class DatabaseApplicationEntityRepository<Entity extends ApplicationEntit
   ) {
     _entityManager = entityManager;
     _type = type;
+  }
+
+  @Override
+  public Optional<Entity> find (
+    @NonNull final Long identifier
+  )
+  {
+    return Optional.ofNullable(_entityManager.find(_type, identifier));
   }
   
   @Override

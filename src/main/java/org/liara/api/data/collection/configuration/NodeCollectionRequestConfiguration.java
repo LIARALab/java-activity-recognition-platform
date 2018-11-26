@@ -51,9 +51,9 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
   ) {
     final Path<Node> related = children.correlate(parent.getEntity());
     final CriteriaBuilder builder = children.getManager().getCriteriaBuilder();
-    
-    children.andWhere(builder.and(
-      builder.lessThan(children.getEntity().get("_coordinates").get("_start"), related.get("_coordinates").get("_start")
+    children.getSubquery().select(related);
+    children.andWhere(builder.and(builder.lessThan(children.getEntity().get("_coordinates").get("_start"),
+      related.get("_coordinates").get("_start")
       ),
       builder.greaterThan(children.getEntity().get("_coordinates").get("_end"), related.get("_coordinates").get("_end")
       )
@@ -66,12 +66,11 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
   ) {
     final Path<Node> related = children.correlate(parent.getEntity());
     final CriteriaBuilder builder = children.getManager().getCriteriaBuilder();
-    
+    children.getSubquery().select(related);
     children.where(builder.and(
       builder.greaterThan(children.getEntity().get("_coordinates").get("_start"),
         related.get("_coordinates").get("_start")
-      ),
-      builder.lessThan(children.getEntity().get("_coordinates").get("_end"), related.get("_coordinates").get("_end")
+      ), builder.lessThan(children.getEntity().get("_coordinates").get("_end"), related.get("_coordinates").get("_end")
       )
     ));
   }
