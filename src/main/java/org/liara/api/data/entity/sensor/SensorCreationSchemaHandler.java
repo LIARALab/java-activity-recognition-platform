@@ -39,8 +39,7 @@ public class SensorCreationSchemaHandler
     sensor.setName(schema.getName());
     sensor.setConfiguration(schema.getConfiguration());
     sensor.setType(schema.getType());
-    sensor.setNode(schema.getParent()
-                         .resolve(manager));
+    sensor.setNode(schema.getParent().resolve(manager));
     sensor.setUnit(schema.getUnit());
     manager.persist(sensor);
     _eventPublisher.publishEvent(new SensorWasCreatedEvent(this, sensor));

@@ -25,6 +25,7 @@ import org.hibernate.dialect.MySQL5Dialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.type.IntegerType;
 import org.hibernate.type.LongType;
+import org.hibernate.type.StringType;
 
 public class DatabaseDialect
   extends MySQL5Dialect
@@ -32,6 +33,8 @@ public class DatabaseDialect
   public DatabaseDialect() {
       super();
       registerKeyword("microsecond");
+    registerFunction("date_sub_hour", new SQLFunctionTemplate(StringType.INSTANCE, "DATE_SUB(?1, INTERVAL ?2 HOUR)"));
+    registerFunction("date_add_hour", new SQLFunctionTemplate(StringType.INSTANCE, "DATE_ADD(?1, INTERVAL ?2 HOUR)"));
       registerFunction(
         "timestampdiff_microsecond", 
         new SQLFunctionTemplate(

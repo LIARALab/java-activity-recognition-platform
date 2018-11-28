@@ -96,6 +96,13 @@ public final class DoubleStateCollectionRequestConfiguration
       APIRequestGroupingProcessorFactory.expression("updateDate", (root) -> root.get("_updateDate")),
       APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
       APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
+      APIRequestGroupingProcessorFactory.expression("emittionDate:date",
+        (query, root) -> query.getManager().getCriteriaBuilder().function("DATE_FORMAT",
+          String.class,
+          root.get("_emittionDate"),
+          query.getManager().getCriteriaBuilder().literal("%Y-%m-%d")
+        )
+      ),
       APIRequestGroupingProcessorFactory.expression("value", (root) -> root.get("_value")),
       APIRequestGroupingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
     );

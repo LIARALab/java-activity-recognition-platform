@@ -50,6 +50,24 @@ public class LabelState
       )
     );
   };
+
+  public static EntityFieldSelector<LabelState, Expression<String>> NIGHTS_SELECTOR = (query, queried) -> {
+    final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
+
+    final Expression<String> lowerBound = builder.function("DATE_FORMAT",
+      String.class,
+      builder.function("DATE_SUB_HOUR", String.class, queried.get("_start"), builder.literal(12)),
+      builder.literal("%Y-%m-%d")
+    );
+
+    final Expression<String> upperBound = builder.function("DATE_FORMAT",
+      String.class,
+      builder.function("DATE_ADD_HOUR", String.class, queried.get("_start"), builder.literal(12)),
+      builder.literal("%Y-%m-%d")
+    );
+
+    return builder.concat(builder.concat(lowerBound, ":"), upperBound);
+  };
   
   @Column(name = "tag", nullable = false, updatable = true, unique = false)
   private String _tag;

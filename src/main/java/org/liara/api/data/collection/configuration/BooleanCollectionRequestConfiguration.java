@@ -21,11 +21,6 @@
  ******************************************************************************/
 package org.liara.api.data.collection.configuration;
 
-import java.util.Arrays;
-import java.util.List;
-
-import javax.persistence.criteria.Join;
-
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
 import org.liara.api.data.collection.SensorCollection;
@@ -41,6 +36,10 @@ import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingPr
 import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
 import org.liara.api.request.validator.APIRequestValidator;
 import org.springframework.lang.NonNull;
+
+import javax.persistence.criteria.Join;
+import java.util.Arrays;
+import java.util.List;
 
 public final class BooleanCollectionRequestConfiguration implements CollectionRequestConfiguration<State>
 {
@@ -125,6 +124,13 @@ public final class BooleanCollectionRequestConfiguration implements CollectionRe
       APIRequestGroupingProcessorFactory.expression("updateDate", (root) -> root.get("_updateDate")),
       APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
       APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
+      APIRequestGroupingProcessorFactory.expression("emittionDate:date",
+        (query, root) -> query.getManager().getCriteriaBuilder().function("DATE_FORMAT",
+          String.class,
+          root.get("_emittionDate"),
+          query.getManager().getCriteriaBuilder().literal("%Y-%m-%d")
+        )
+      ),
       APIRequestGroupingProcessorFactory.expression("value", (root) -> root.get("_value")),
       APIRequestGroupingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
     );

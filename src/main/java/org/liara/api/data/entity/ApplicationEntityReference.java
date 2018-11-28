@@ -1,6 +1,5 @@
 package org.liara.api.data.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -105,14 +104,7 @@ public class ApplicationEntityReference<ReferencedEntity extends ApplicationEnti
     
     return result;
   }
-  
-  @JsonIgnore
-  public ReferencedEntity resolve () {
-    if (_identifier == null) return null;
-    
-    return ApplicationEntityReference.SHARED_ENTITY_MANAGER.find(_type, _identifier);
-  }
-  
+
   public ReferencedEntity resolve (@NonNull final EntityManager entityManager) {
     if (_identifier == null) return null;
     

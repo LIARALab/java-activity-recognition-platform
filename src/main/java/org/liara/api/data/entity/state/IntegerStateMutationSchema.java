@@ -40,7 +40,7 @@ public class IntegerStateMutationSchema extends StateMutationSchema
   
   @Override
   public IntegerState apply (@NonNull final EntityManager manager) {
-    final IntegerState result = (IntegerState) getState().resolve();
+    final IntegerState result = (IntegerState) getState().resolve(manager);
 
     apply(result, manager);
     super.apply(result, manager);

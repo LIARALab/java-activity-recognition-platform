@@ -1,14 +1,14 @@
 package org.liara.api.data.entity.sensor;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.liara.api.data.entity.ApplicationEntitySnapshot;
 import org.springframework.context.annotation.Scope;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Scope("prototype")
@@ -22,7 +22,6 @@ public class SensorSnapshot extends ApplicationEntitySnapshot
 
   @Nullable
   private final String     _unit;
-
 
   @NonNull
   private final List<Long> _states;

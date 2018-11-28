@@ -8,6 +8,7 @@ import org.liara.api.data.schema.SchemaManager;
 import org.liara.api.event.StateWasCreatedEvent;
 import org.liara.api.event.StateWasMutatedEvent;
 import org.liara.api.event.StateWillBeDeletedEvent;
+import org.liara.api.event.StateWillBeMutatedEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.EmitStateOfType;
 import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
@@ -92,16 +93,32 @@ public abstract class ConditionSensor<CheckedState extends State>
   }
 
   /**
-   * ('VRAI', 'VRAI', 'VRAI') -> NOTHING ('VRAI', 'VRAI', 'NULL') -> NOTHING ('FAUX', 'FAUX', 'FAUX') -> NOTHING
-   * ('FAUX', 'FAUX', 'NULL') -> NOTHING ('FAUX', 'FAUX', 'VRAI') -> NOTHING ('VRAI', 'VRAI', 'FAUX') -> NOTHING
-   * <p>
-   * ('NULL', 'FAUX', 'VRAI') -> EMIT CURRENT ('NULL', 'FAUX', 'NULL') -> EMIT CURRENT ('NULL', 'VRAI', 'FAUX') -> EMIT
-   * CURRENT ('NULL', 'VRAI', 'NULL') -> EMIT CURRENT ('NULL', 'FAUX', 'FAUX') -> MOVE NEXT TO CURRENT ('NULL', 'VRAI',
-   * 'VRAI') -> MOVE NEXT TO CURRENT
-   * <p>
-   * ('VRAI', 'FAUX', 'VRAI') -> EMIT CURRENT, EMIT NEXT ('FAUX', 'VRAI', 'FAUX') -> EMIT CURRENT, EMIT NEXT ('VRAI',
-   * 'FAUX', 'FAUX') -> MOVE NEXT TO CURRENT ('FAUX', 'VRAI', 'VRAI') -> MOVE NEXT TO CURRENT ('VRAI', 'FAUX', 'NULL')
-   * -> EMIT CURRENT ('FAUX', 'VRAI', 'NULL') -> EMIT CURRENT
+   * <table>
+   *   <tr>
+   *     <th>Previous</th>
+   *     <th>Current</th>
+   *     <th>Next</th>
+   *     <th>Result</th>
+   *   </tr>
+   *   <tr><td>VRAI</td><td>VRAI</td><td>VRAI</td><!-- = --><td>NOTHING </td></tr>
+   *   <tr><td>VRAI</td><td>VRAI</td><td>NULL</td><!-- = --><td>NOTHING </td></tr>
+   *   <tr><td>FAUX</td><td>FAUX</td><td>FAUX</td><!-- = --><td>NOTHING</td></tr>
+   *   <tr><td>FAUX</td><td>FAUX</td><td>NULL</td><!-- = --><td>NOTHING </td></tr>
+   *   <tr><td>FAUX</td><td>FAUX</td><td>VRAI</td><!-- = --><td>NOTHING </td></tr>
+   *   <tr><td>VRAI</td><td>VRAI</td><td>FAUX</td><!-- = --><td>NOTHING</td></tr>
+   *   <tr><td>NULL</td><td>FAUX</td><td>VRAI</td><!-- = --><td>EMIT CURRENT </td></tr>
+   *   <tr><td>NULL</td><td>FAUX</td><td>NULL</td><!-- = --><td>EMIT CURRENT </td></tr>
+   *   <tr><td>NULL</td><td>VRAI</td><td>FAUX</td><!-- = --><td>EMIT CURRENT </td></tr>
+   *   <tr><td>NULL</td><td>VRAI</td><td>NULL</td><!-- = --><td>EMIT CURRENT </td></tr>
+   *   <tr><td>NULL</td><td>FAUX</td><td>FAUX</td><!-- = --><td>MOVE NEXT TO CURRENT </td></tr>
+   *   <tr><td>NULL</td><td>VRAI</td><td>VRAI</td><!-- = --><td>MOVE NEXT TO CURRENT</td></tr>
+   *   <tr><td>VRAI</td><td>FAUX</td><td>VRAI</td><!-- = --><td>EMIT CURRENT, EMIT NEXT </td></tr>
+   *   <tr><td>FAUX</td><td>VRAI</td><td>FAUX</td><!-- = --><td>EMIT CURRENT, EMIT NEXT </td></tr>
+   *   <tr><td>VRAI</td><td>FAUX</td><td>FAUX</td><!-- = --><td>MOVE NEXT TO CURRENT </td></tr>
+   *   <tr><td>FAUX</td><td>VRAI</td><td>VRAI</td><!-- = --><td>MOVE NEXT TO CURRENT </td></tr>
+   *   <tr><td>VRAI</td><td>FAUX</td><td>NULL</td><!-- = --><td>EMIT CURRENT </td></tr>
+   *   <tr><td>FAUX</td><td>VRAI</td><td>NULL</td><!-- = --><td>EMIT CURRENT</td></tr>
+   * </table>
    *
    * @param current
    */
@@ -131,18 +148,19 @@ public abstract class ConditionSensor<CheckedState extends State>
   }
 
   @Override
-  public void stateWasMutated (
-    @NonNull final StateWasMutatedEvent event
+  public void stateWillBeMutated (
+    @NonNull final StateWillBeMutatedEvent event
   )
   {
-    super.stateWasMutated(event);
+    super.stateWillBeMutated(event);
+    final Optional<CheckedState> state = _input.find(event.getState().getState().getIdentifier());
 
-    if (event.getNewValue().getSensor() == getInputSensor()) {
-      inputStateWasMutated((CheckedState) event.getNewValue().getModel());
+    if (state.isPresent() && state.get().getSensor().equals(getInputSensor())) {
+      inputStateWillBeMutated(state.get());
     }
   }
 
-  private void inputStateWasMutated (@NonNull final CheckedState current) {
+  private void inputStateWillBeMutated (@NonNull final CheckedState current) {
     final Optional<BooleanState> oldValue = _output.findFirstWithCorrelation(
       "origin",
       current.getReference(),
@@ -152,8 +170,18 @@ public abstract class ConditionSensor<CheckedState extends State>
     if (oldValue.isPresent()) {
       delete(oldValue.get());
     }
+  }
 
-    inputStateWasCreated(current);
+  @Override
+  public void stateWasMutated (
+    @NonNull final StateWasMutatedEvent event
+  )
+  {
+    super.stateWasMutated(event);
+
+    if (event.getNewValue().getSensor() == getInputSensor()) {
+      inputStateWasCreated((CheckedState) event.getNewValue().getModel());
+    }
   }
 
   @Override
@@ -171,16 +199,32 @@ public abstract class ConditionSensor<CheckedState extends State>
   }
 
   /**
-   * ('VRAI', 'VRAI', 'VRAI') -> NOTHING ('VRAI', 'VRAI', 'NULL') -> NOTHING ('FAUX', 'FAUX', 'FAUX') -> NOTHING
-   * ('FAUX', 'FAUX', 'NULL') -> NOTHING ('FAUX', 'FAUX', 'VRAI') -> NOTHING ('VRAI', 'VRAI', 'FAUX') -> NOTHING
-   * <p>
-   * ('NULL', 'FAUX', 'VRAI') -> DELETE CURRENT ('NULL', 'FAUX', 'NULL') -> DELETE CURRENT ('NULL', 'VRAI', 'FAUX') ->
-   * DELETE CURRENT ('NULL', 'VRAI', 'NULL') -> DELETE CURRENT ('NULL', 'FAUX', 'FAUX') -> MOVE CURRENT TO NEXT ('NULL',
-   * 'VRAI', 'VRAI') -> MOVE CURRENT TO NEXT
-   * <p>
-   * ('VRAI', 'FAUX', 'VRAI') -> DELETE CURRENT, DELETE NEXT ('FAUX', 'VRAI', 'FAUX') -> DELETE CURRENT, DELETE NEXT
-   * ('VRAI', 'FAUX', 'FAUX') -> MOVE CURRENT TO NEXT ('FAUX', 'VRAI', 'VRAI') -> MOVE CURRENT TO NEXT ('VRAI', 'FAUX',
-   * 'NULL') -> DELETE CURRENT ('FAUX', 'VRAI', 'NULL') -> DELETE CURRENT
+   * <table>
+   *   <tr>
+   *     <th>Previous</th>
+   *     <th>Current</th>
+   *     <th>Next</th>
+   *     <th>Result</th>
+   *   </tr>
+   *   <tr><td>VRAI</td><td>VRAI</td><td>VRAI</td><!-- = --><td>NOTHING</td></tr>
+   *   <tr><td>VRAI</td><td>VRAI</td><td>NULL</td><!-- = --><td>NOTHING</td></tr>
+   *   <tr><td>FAUX</td><td>FAUX</td><td>FAUX</td><!-- = --><td>NOTHING</td></tr>
+   *   <tr><td>FAUX</td><td>FAUX</td><td>NULL</td><!-- = --><td>NOTHING</td></tr>
+   *   <tr><td>FAUX</td><td>FAUX</td><td>VRAI</td><!-- = --><td>NOTHING</td></tr>
+   *   <tr><td>VRAI</td><td>VRAI</td><td>FAUX</td><!-- = --><td>NOTHING</td></tr>
+   *   <tr><td>NULL</td><td>FAUX</td><td>VRAI</td><!-- = --><td>DELETE CURRENT</td></tr>
+   *   <tr><td>NULL</td><td>FAUX</td><td>NULL</td><!-- = --><td>DELETE CURRENT</td></tr>
+   *   <tr><td>NULL</td><td>VRAI</td><td>FAUX</td><!-- = --><td>DELETE CURRENT</td></tr>
+   *   <tr><td>NULL</td><td>VRAI</td><td>NULL</td><!-- = --><td>DELETE CURRENT</td></tr>
+   *   <tr><td>NULL</td><td>FAUX</td><td>FAUX</td><!-- = --><td>MOVE CURRENT TO NEXT</td></tr>
+   *   <tr><td>NULL</td><td>VRAI</td><td>VRAI</td><!-- = --><td>MOVE CURRENT TO NEXT</td></tr>
+   *   <tr><td>VRAI</td><td>FAUX</td><td>VRAI</td><!-- = --><td>DELETE CURRENT, DELETE NEXT</td></tr>
+   *   <tr><td>FAUX</td><td>VRAI</td><td>FAUX</td><!-- = --><td>DELETE CURRENT, DELETE NEXT</td></tr>
+   *   <tr><td>VRAI</td><td>FAUX</td><td>FAUX</td><!-- = --><td>MOVE CURRENT TO NEXT</td></tr>
+   *   <tr><td>FAUX</td><td>VRAI</td><td>VRAI</td><!-- = --><td>MOVE CURRENT TO NEXT</td></tr>
+   *   <tr><td>VRAI</td><td>FAUX</td><td>NULL</td><!-- = --><td>DELETE CURRENT</td></tr>
+   *   <tr><td>FAUX</td><td>VRAI</td><td>NULL</td><!-- = --><td>DELETE CURRENT</td></tr>
+   * </table>
    *
    * @param current
    */

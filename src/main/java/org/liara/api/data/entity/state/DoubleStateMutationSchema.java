@@ -40,7 +40,7 @@ public class DoubleStateMutationSchema extends StateMutationSchema
   
   @Override
   public DoubleState apply (@NonNull final EntityManager manager) {
-    final DoubleState result = (DoubleState) getState().resolve();
+    final DoubleState result = (DoubleState) getState().resolve(manager);
 
     apply(result, manager);
     super.apply(result, manager);

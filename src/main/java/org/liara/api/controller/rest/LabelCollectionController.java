@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @RestController
@@ -69,7 +70,7 @@ public class LabelCollectionController
   }
 
 
-  @GetMapping("/states<label>/sum")
+  @GetMapping("/states<label>/sums/duration")
   @ParametersFromConfiguration(value = LabelStateCollectionRequestConfiguration.class,
     orderable = false
   )
@@ -87,7 +88,7 @@ public class LabelCollectionController
     );
   }
 
-  @GetMapping("/states<label>/avg")
+  @GetMapping("/states<label>/averages/duration")
   @ParametersFromConfiguration(value = LabelStateCollectionRequestConfiguration.class,
     orderable = false
   )
@@ -103,5 +104,27 @@ public class LabelCollectionController
       ), 
       new MapValueTransformation<>((x) -> Duration.ofMillis(x.longValue()))
     );
+  }
+
+  @GetMapping("/states<label>/minimums/start")
+  @ParametersFromConfiguration(value = LabelStateCollectionRequestConfiguration.class, orderable = false)
+  public ResponseEntity<Object> minimum (@NonNull final HttpServletRequest request)
+  throws InvalidAPIRequestException
+  {
+    return aggregate(_collection, request, new ExpressionAggregationTransformation<>(
+      (query, entity) -> query.getManager().getCriteriaBuilder().least(entity.get("_start").as(ZonedDateTime.class)),
+      ZonedDateTime.class
+    ));
+  }
+
+  @GetMapping("/states<label>/maximums/end")
+  @ParametersFromConfiguration(value = LabelStateCollectionRequestConfiguration.class, orderable = false)
+  public ResponseEntity<Object> maximum (@NonNull final HttpServletRequest request)
+  throws InvalidAPIRequestException
+  {
+    return aggregate(_collection, request, new ExpressionAggregationTransformation<>(
+      (query, entity) -> query.getManager().getCriteriaBuilder().greatest(entity.get("_end").as(ZonedDateTime.class)),
+      ZonedDateTime.class
+    ));
   }
 }

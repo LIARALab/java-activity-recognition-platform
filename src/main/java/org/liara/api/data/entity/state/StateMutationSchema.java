@@ -152,7 +152,7 @@ public class StateMutationSchema implements ApplicationSchema
   }
 
   public State apply (@NonNull final EntityManager manager) {
-    final State state = getState().resolve();
+    final State state = getState().resolve(manager);
     apply(state, manager);
     return state;
   }

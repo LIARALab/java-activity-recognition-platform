@@ -53,7 +53,7 @@ public class BooleanStateMutationSchema extends StateMutationSchema
   
   @Override
   public BooleanState apply (@NonNull final EntityManager manager) {
-    final BooleanState result = (BooleanState) getState().resolve();
+    final BooleanState result = (BooleanState) getState().resolve(manager);
 
     apply(result, manager);
     super.apply(result, manager);

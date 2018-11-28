@@ -1,7 +1,5 @@
 package org.liara.api.data.entity.state.handler;
 
-import javax.persistence.EntityManager;
-
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.StateDeletionSchema;
 import org.liara.api.data.entity.state.StateSnapshot;
@@ -11,6 +9,8 @@ import org.liara.api.event.StateWillBeDeletedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
+
+import javax.persistence.EntityManager;
 
 @SchemaHandler(StateDeletionSchema.class)
 public class StateDeletionSchemaHandler
@@ -30,7 +30,7 @@ public class StateDeletionSchemaHandler
     @NonNull final StateDeletionSchema schema
   ) {
     _eventPublisher.publishEvent(new StateWillBeDeletedEvent(this, schema));
-    final State toDelete = schema.getState().resolve();
+    final State         toDelete = schema.getState().resolve(manager);
     final StateSnapshot snapshot = toDelete.snapshot();
     manager.remove(toDelete);
     _eventPublisher.publishEvent(new StateWasDeletedEvent(this, snapshot));

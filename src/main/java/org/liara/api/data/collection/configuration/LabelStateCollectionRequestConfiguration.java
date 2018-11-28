@@ -174,9 +174,19 @@ public final class LabelStateCollectionRequestConfiguration
       APIRequestGroupingProcessorFactory.expression("end", (root) -> root.get("_end")),
       APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
       APIRequestGroupingProcessorFactory.expression("tag", (root) -> root.get("_tag")),
+      APIRequestGroupingProcessorFactory.expression("emittionDate:date",
+        (query, root) -> query.getManager().getCriteriaBuilder().function("DATE_FORMAT",
+          String.class,
+          root.get("_emittionDate"),
+          query.getManager().getCriteriaBuilder().literal("%Y-%m-%d")
+        )
+      ),
       APIRequestGroupingProcessorFactory.expression(
         "duration",
         (query, queried) -> LabelState.DURATION_SELECTOR.select(query, queried)
+      ),
+      APIRequestGroupingProcessorFactory.expression("nights",
+        (query, queried) -> LabelState.NIGHTS_SELECTOR.select(query, queried)
       ),
       APIRequestGroupingProcessorFactory.joinCollection("node", _nodeJoin, NodeCollection.class),
       APIRequestGroupingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
