@@ -10,16 +10,16 @@ import org.liara.request.validator.APIRequestValidator;
 public interface CollectionRequestConfiguration
 {
   /**
-   * Return configured request validator for this request type.
+   * Return a validator for this request type.
    *
-   * @return A configured request validator for this request type.
+   * @return A validator for this request type.
    */
   @NonNull APIRequestValidator getValidator ();
 
   /**
-   * Return configured request parser for this request type.
+   * Return a parser for this request type.
    *
-   * @return A configured request parser for this request type.
+   * @return A a parser for this request type.
    */
   @NonNull APIRequestParser<Operator> getParser ();
 

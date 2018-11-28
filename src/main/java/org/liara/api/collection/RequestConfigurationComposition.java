@@ -11,17 +11,36 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class CompoundRequestConfiguration
+/**
+ * A composition of request configuration.
+ */
+public class RequestConfigurationComposition
   implements CollectionRequestConfiguration
 {
   @NonNull
   private final List<@NonNull CollectionRequestConfiguration> _configurations;
 
-  public CompoundRequestConfiguration (@NonNull final CollectionRequestConfiguration... configuration) {
+  /**
+   * Create a composition of configurations.
+   *
+   * @param configuration
+   */
+  public RequestConfigurationComposition (
+    @NonNull final CollectionRequestConfiguration... configuration
+  )
+  {
     _configurations = new ArrayList<>(Arrays.asList(configuration));
   }
 
-  public CompoundRequestConfiguration (@NonNull final Collection<CollectionRequestConfiguration> configurations) {
+  /**
+   * Create a composition of configurations.
+   *
+   * @param configurations
+   */
+  public RequestConfigurationComposition (
+    @NonNull final Collection<CollectionRequestConfiguration> configurations
+  )
+  {
     _configurations = new ArrayList<>(configurations);
   }
 

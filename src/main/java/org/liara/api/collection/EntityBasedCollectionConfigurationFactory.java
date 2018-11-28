@@ -18,12 +18,12 @@ public class EntityBasedCollectionConfigurationFactory
   private final EntityBasedOrderingConfigurationFactory _orderingConfigurationFactory;
 
   @NonNull
-  private final EntityBasedSelectionConfigurationFactory _selectionConfigurationFactory;
+  private final EntitySelectionConfigurationFactory _selectionConfigurationFactory;
 
   @Autowired
   public EntityBasedCollectionConfigurationFactory (
     @NonNull final EntityBasedOrderingConfigurationFactory orderingConfigurationFactory,
-    @NonNull final EntityBasedSelectionConfigurationFactory selectionConfigurationFactory
+    @NonNull final EntitySelectionConfigurationFactory selectionConfigurationFactory
   )
   {
     _orderingConfigurationFactory = orderingConfigurationFactory;
@@ -31,16 +31,18 @@ public class EntityBasedCollectionConfigurationFactory
   }
 
   public <Entity> CollectionRequestConfiguration create (@NonNull final Class<Entity> type) {
-    return new CompoundRequestConfiguration(_orderingConfigurationFactory.getConfigurationOf(type),
+    return new RequestConfigurationComposition(
+      _orderingConfigurationFactory.getConfigurationOf(type),
       _selectionConfigurationFactory.getConfigurationOf(type),
-      new SingletonRequestConfiguration(new APIRequestFreeCursorValidator(), new APIRequestFreeCursorParser())
+      new SimpleRequestConfiguration(new APIRequestFreeCursorValidator(), new APIRequestFreeCursorParser())
     );
   }
 
   public <Entity> CollectionRequestConfiguration create (@NonNull final ManagedType<Entity> type) {
-    return new CompoundRequestConfiguration(_orderingConfigurationFactory.getConfigurationOf(type),
+    return new RequestConfigurationComposition(
+      _orderingConfigurationFactory.getConfigurationOf(type),
       _selectionConfigurationFactory.getConfigurationOf(type),
-      new SingletonRequestConfiguration(new APIRequestFreeCursorValidator(), new APIRequestFreeCursorParser())
+      new SimpleRequestConfiguration(new APIRequestFreeCursorValidator(), new APIRequestFreeCursorParser())
     );
   }
 }
