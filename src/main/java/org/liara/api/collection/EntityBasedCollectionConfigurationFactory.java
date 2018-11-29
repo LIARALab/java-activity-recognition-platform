@@ -30,7 +30,7 @@ public class EntityBasedCollectionConfigurationFactory
     _selectionConfigurationFactory = selectionConfigurationFactory;
   }
 
-  public <Entity> CollectionRequestConfiguration create (@NonNull final Class<Entity> type) {
+  public <Entity> RequestConfiguration create (@NonNull final Class<Entity> type) {
     return new RequestConfigurationComposition(
       _orderingConfigurationFactory.getConfigurationOf(type),
       _selectionConfigurationFactory.getConfigurationOf(type),
@@ -38,7 +38,7 @@ public class EntityBasedCollectionConfigurationFactory
     );
   }
 
-  public <Entity> CollectionRequestConfiguration create (@NonNull final ManagedType<Entity> type) {
+  public <Entity> RequestConfiguration create (@NonNull final ManagedType<Entity> type) {
     return new RequestConfigurationComposition(
       _orderingConfigurationFactory.getConfigurationOf(type),
       _selectionConfigurationFactory.getConfigurationOf(type),

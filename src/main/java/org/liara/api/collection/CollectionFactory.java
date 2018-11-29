@@ -31,7 +31,7 @@ public class CollectionFactory
     _entityBasedCollectionConfigurationFactory = entityBasedCollectionConfigurationFactory;
   }
 
-  public <Entity> @NonNull CollectionRequestConfiguration getConfiguration (
+  public <Entity> @NonNull RequestConfiguration getConfiguration (
     @NonNull final Class<Entity> entity
   )
   {

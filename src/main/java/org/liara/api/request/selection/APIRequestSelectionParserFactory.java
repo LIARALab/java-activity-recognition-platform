@@ -22,7 +22,7 @@
 package org.liara.api.request.selection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionRequestConfiguration;
+import org.liara.api.collection.RequestConfiguration;
 import org.liara.collection.operator.Operator;
 import org.liara.request.parser.APIRequestDefaultValueParser;
 import org.liara.request.parser.APIRequestParser;
@@ -166,7 +166,7 @@ public final class APIRequestSelectionParserFactory
   }
 
   public APIRequestJoinSelectionParser asEmbedded (
-    @NonNull final String parameter, @NonNull final CollectionRequestConfiguration configuration
+    @NonNull final String parameter, @NonNull final RequestConfiguration configuration
   )
   {
     return asEmbedded(parameter, parameter, configuration);
@@ -174,31 +174,28 @@ public final class APIRequestSelectionParserFactory
 
   public APIRequestJoinSelectionParser asEmbedded (
     @NonNull final String parameter,
-    @NonNull final String join,
-    @NonNull final CollectionRequestConfiguration configuration
+    @NonNull final String join, @NonNull final RequestConfiguration configuration
   )
   {
     return new APIRequestJoinSelectionParser(parameter, join, configuration);
   }
 
   public APIRequestJoinSelectionParser asJoinWith (
-    @NonNull final String parameter, @NonNull final CollectionRequestConfiguration configuration
+    @NonNull final String parameter, @NonNull final RequestConfiguration configuration
   ) {
     return asJoinWith(parameter, parameter, configuration);
   }
 
   public APIRequestJoinSelectionParser asJoinWith (
     @NonNull final String parameter,
-    @NonNull final String field,
-    @NonNull final CollectionRequestConfiguration configuration
+    @NonNull final String field, @NonNull final RequestConfiguration configuration
   ) {
     return new APIRequestJoinSelectionParser(parameter, field, configuration);
   }
 
   public APIRequestExistsSelectionParser asCollectionOf (
     @NonNull final String parameter,
-    @NonNull final Operator definition,
-    @NonNull final CollectionRequestConfiguration configuration,
+    @NonNull final Operator definition, @NonNull final RequestConfiguration configuration,
     @NonNull final Class<?> type
   )
   {

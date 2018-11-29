@@ -23,16 +23,12 @@ package org.liara.api.request.selection;
 
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.collection.operator.Composition;
 import org.liara.collection.operator.Identity;
 import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.filtering.Filter;
-import org.liara.request.APIRequest;
-import org.liara.request.APIRequestParameter;
-import org.liara.request.parser.APIRequestParser;
-import org.liara.request.validator.APIRequestValidation;
-import org.liara.request.validator.APIRequestValidator;
-import org.liara.request.validator.error.APIRequestParameterValueError;
+import org.liara.request.parser.APIRequestFieldParser;
+import org.liara.request.validator.APIRequestFieldValidation;
+import org.liara.request.validator.APIRequestFieldValidator;
 import org.liara.selection.TranspilationException;
 import org.liara.selection.jpql.JPQLQuery;
 import org.liara.selection.jpql.JPQLSelectionTranspiler;
@@ -42,12 +38,9 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 public class APIRequestSelectionParser
-  implements APIRequestParser<Operator>,
-             APIRequestValidator
+  implements APIRequestFieldParser<Operator>,
+             APIRequestFieldValidator
 {
-  @NonNull
-  private final String _parameter;
-
   @NonNull
   private final Map<String, String> _fields;
 
@@ -55,41 +48,27 @@ public class APIRequestSelectionParser
   private final JPQLSelectionTranspiler _transpiler;
 
   @NonNull
-  private final WeakHashMap<@NonNull APIRequest, @NonNull APIRequestValidation> _validations;
+  private final WeakHashMap<@NonNull String, @NonNull APIRequestFieldValidation> _validations;
 
   @NonNull
-  private final WeakHashMap<@NonNull APIRequest, @NonNull Operator> _results;
+  private final WeakHashMap<@NonNull String, @NonNull Operator> _results;
 
   public APIRequestSelectionParser (
-    @NonNull final String parameter, @NonNull final JPQLSelectionTranspiler transpiler
-  ) {
-    _parameter = parameter;
-    _fields = new HashMap<>();
-    _fields.put(":this", parameter);
-    _transpiler = transpiler;
-    _validations = new WeakHashMap<>();
-    _results = new WeakHashMap<>();
-  }
-
-  public APIRequestSelectionParser (
-    @NonNull final String parameter, @NonNull final String field, @NonNull final JPQLSelectionTranspiler transpiler
+    @NonNull final String field, @NonNull final JPQLSelectionTranspiler transpiler
   )
   {
-    _parameter = parameter;
     _fields = new HashMap<>();
-    _fields.put(":this", parameter);
+    _fields.put(":this", field);
     _transpiler = transpiler;
     _validations = new WeakHashMap<>();
     _results = new WeakHashMap<>();
   }
 
   public APIRequestSelectionParser (
-    @NonNull final String parameter,
     @NonNull final Map<String, String> fields,
     @NonNull final JPQLSelectionTranspiler transpiler
   )
   {
-    _parameter = parameter;
     _fields = new HashMap<>(fields);
     _transpiler = transpiler;
     _validations = new WeakHashMap<>();
@@ -97,58 +76,56 @@ public class APIRequestSelectionParser
   }
 
   @Override
-  public @NonNull Operator parse (@NonNull final APIRequest apiRequest) {
-    evaluate(apiRequest);
-    return _results.getOrDefault(apiRequest, Identity.INSTANCE);
+  public @NonNull Operator parse (@NonNull final String field) {
+    evaluate(field);
+    return _results.getOrDefault(field, Identity.INSTANCE);
   }
 
   @Override
-  public @NonNull APIRequestValidation validate (@NonNull final APIRequest apiRequest) {
-    evaluate(apiRequest);
-    return _validations.get(apiRequest);
+  public @NonNull APIRequestFieldValidation validate (@NonNull final String field) {
+    evaluate(field);
+    return _validations.get(field);
   }
 
-  private void evaluate (@NonNull final APIRequest apiRequest) {
-    @NonNull APIRequestValidation validation = new APIRequestValidation(apiRequest);
+  private void evaluate (@NonNull final String field) {
+    if (_validations.containsKey(field)) return;
 
-    if (apiRequest.contains(_parameter)) {
-      @NonNull final APIRequestParameter parameter = apiRequest.getParameter(_parameter);
-      @NonNull final Operator[]          operators = new Operator[parameter.getSize()];
+    @NonNull final APIRequestFieldValidation validation = new APIRequestFieldValidation();
 
-      for (int index = 0; index < parameter.getSize(); ++index) {
-        try {
-          @NonNull final JPQLQuery selection = _transpiler.tryToTranspile(parameter.get(index).get());
-          @NonNull String          clause    = selection.getClause();
-
-          for (final Map.Entry<@NonNull String, @NonNull String> replacements : _fields.entrySet()) {
-            operators[index] = Filter.expression(selection.getClause().replace(replacements.getKey(),
-              replacements.getValue()))
-                                 .setParameters(selection.getParameters());
-          }
-        } catch (@NonNull final TranspilationException exception) {
-          validation = validation.addError(APIRequestParameterValueError.create(
-            parameter,
-            index,
-            "Line : " + exception.getLine() + ", character : " + exception.getCharacter() + ", " +
-            exception.getMessage() + ", near : '" + near(parameter.get(index).get(), exception.getCharacter(), 10) +
-            "', please look at this parameter filtering documentation for more information about this error."
-          ));
-        } catch (@NonNull final Throwable exception) {
-          validation = validation.addError(APIRequestParameterValueError.create(
-            parameter,
-            index,
-            exception.getLocalizedMessage()
-          ));
-        }
-      }
-
-      if (validation.isValid()) _results.put(apiRequest, Composition.of(operators));
+    try {
+      @NonNull final JPQLQuery selection = _transpiler.tryToTranspile(field);
+      _results.put(field,
+        Filter.expression(replace(selection.getClause(), _fields)).setParameters(selection.getParameters())
+      );
+    } catch (@NonNull final TranspilationException exception) {
+      validation.addError(
+        "Line : " + exception.getLine() + ", character : " + exception.getCharacter() + ", " + exception.getMessage() +
+        ", near : '" + near(field, exception.getCharacter(), 10) +
+        "', please look at this parameter filtering documentation for more information about this error.");
+    } catch (@NonNull final Throwable exception) {
+      validation.addError(exception.getLocalizedMessage());
     }
 
-    _validations.put(apiRequest, validation);
+    _validations.put(field, validation);
   }
 
-  private @NonNull String near (@NonNull final String sequence, final int character, final int characters) {
+  private @NonNull String replace (
+    @NonNull final String clause, @NonNull final Map<@NonNull String, @NonNull String> fields
+  )
+  {
+    @NonNull String result = clause;
+
+    for (final Map.@NonNull Entry<@NonNull String, @NonNull String> field : fields.entrySet()) {
+      result = result.replace(field.getKey(), field.getValue());
+    }
+
+    return result;
+  }
+
+  private @NonNull String near (
+    @NonNull final String sequence, final int character, final int characters
+  )
+  {
     final int start = Math.max(0, character - characters);
     final int end   = Math.min(sequence.length(), character + characters);
 

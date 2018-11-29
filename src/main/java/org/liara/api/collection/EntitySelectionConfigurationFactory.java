@@ -22,7 +22,7 @@ import java.util.WeakHashMap;
 public class EntitySelectionConfigurationFactory
 {
   @NonNull
-  private final static WeakHashMap<@NonNull Class<?>, @NonNull SimpleEntityConfiguration<?>> CONFIGURATIONS =
+  private final static WeakHashMap<@NonNull Class<?>, @NonNull EntityRequestConfiguration<?>> CONFIGURATIONS =
     new WeakHashMap<>();
 
   @NonNull
@@ -39,14 +39,14 @@ public class EntitySelectionConfigurationFactory
     _parserFactory = parserFactory;
   }
 
-  public <Entity> @NonNull SimpleEntityConfiguration<Entity> getConfigurationOf (
+  public <Entity> @NonNull EntityRequestConfiguration<Entity> getConfigurationOf (
     @NonNull final Class<Entity> clazz
   )
   {
     return getConfigurationOf(_entityManager.getMetamodel().managedType(clazz));
   }
 
-  public <Entity> @NonNull SimpleEntityConfiguration<Entity> getConfigurationOf (
+  public <Entity> @NonNull EntityRequestConfiguration<Entity> getConfigurationOf (
     @NonNull final ManagedType<Entity> entity
   )
   {
@@ -54,21 +54,21 @@ public class EntitySelectionConfigurationFactory
       CONFIGURATIONS.put(entity.getJavaType(), generateConfigurationFor(entity));
     }
 
-    return (SimpleEntityConfiguration<Entity>) CONFIGURATIONS.get(entity.getJavaType());
+    return (EntityRequestConfiguration<Entity>) CONFIGURATIONS.get(entity.getJavaType());
   }
 
-  private <Entity> @NonNull SimpleEntityConfiguration<Entity> generateConfigurationFor (
+  private <Entity> @NonNull EntityRequestConfiguration<Entity> generateConfigurationFor (
     @NonNull final EntityManager manager, @NonNull final Class<Entity> entity
   )
   {
     return generateConfigurationFor(manager.getMetamodel().entity(entity));
   }
 
-  private <Entity> @NonNull SimpleEntityConfiguration<Entity> generateConfigurationFor (
+  private <Entity> @NonNull EntityRequestConfiguration<Entity> generateConfigurationFor (
     @NonNull final ManagedType<Entity> ManagedType
   )
   {
-    @NonNull final SimpleEntityConfiguration<Entity> configuration = new SimpleEntityConfiguration<>(ManagedType);
+    @NonNull final EntityRequestConfiguration<Entity> configuration = new EntityRequestConfiguration<>(ManagedType);
 
     for (@NonNull final Attribute<? super Entity, ?> attribute : ManagedType.getAttributes()) {
       configureAttribute(configuration, attribute);
@@ -78,7 +78,7 @@ public class EntitySelectionConfigurationFactory
   }
 
   private <Entity> void configureAttribute (
-    @NonNull final SimpleEntityConfiguration<Entity> configuration,
+    @NonNull final EntityRequestConfiguration<Entity> configuration,
     @NonNull final Attribute<? super Entity, ?> attribute
   )
   {
@@ -92,7 +92,7 @@ public class EntitySelectionConfigurationFactory
   }
 
   private <Entity> void configureCollection (
-    @NonNull final SimpleEntityConfiguration<Entity> configuration,
+    @NonNull final EntityRequestConfiguration<Entity> configuration,
     @NonNull final Attribute<? super Entity, ?> attribute
   )
   {
@@ -100,7 +100,7 @@ public class EntitySelectionConfigurationFactory
   }
 
   private <Entity> void configureAssociation (
-    @NonNull final SimpleEntityConfiguration<Entity> configuration,
+    @NonNull final EntityRequestConfiguration<Entity> configuration,
     @NonNull final Attribute<? super Entity, ?> attribute
   )
   {
@@ -113,7 +113,7 @@ public class EntitySelectionConfigurationFactory
   }
 
   private <Entity> void configureField (
-    @NonNull final SimpleEntityConfiguration<Entity> configuration,
+    @NonNull final EntityRequestConfiguration<Entity> configuration,
     @NonNull final Attribute<? super Entity, ?> attribute
   )
   {
@@ -134,7 +134,7 @@ public class EntitySelectionConfigurationFactory
   }
 
   private <Entity> void configureEmbeddableField (
-    @NonNull final SimpleEntityConfiguration<Entity> configuration,
+    @NonNull final EntityRequestConfiguration<Entity> configuration,
     @NonNull final Attribute<? super Entity, ?> attribute
   )
   {
@@ -149,7 +149,7 @@ public class EntitySelectionConfigurationFactory
 
 
   private <Entity> void configureRawField (
-    @NonNull final SimpleEntityConfiguration<Entity> configuration,
+    @NonNull final EntityRequestConfiguration<Entity> configuration,
     @NonNull final Attribute<? super Entity, ?> attribute
   )
   {

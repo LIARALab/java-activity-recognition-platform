@@ -22,7 +22,7 @@
 package org.liara.api.request.selection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionRequestConfiguration;
+import org.liara.api.collection.RequestConfiguration;
 import org.liara.collection.operator.Identity;
 import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.joining.Join;
@@ -42,10 +42,10 @@ public class APIRequestJoinSelectionParser
   private final String _join;
   
   @NonNull
-  private final CollectionRequestConfiguration _configuration;
+  private final RequestConfiguration _configuration;
 
   public APIRequestJoinSelectionParser (
-    @NonNull final String field, @NonNull final String join, @NonNull final CollectionRequestConfiguration configuration
+    @NonNull final String field, @NonNull final String join, @NonNull final RequestConfiguration configuration
   ) {
     _field = field;
     _join = join;

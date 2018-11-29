@@ -23,7 +23,7 @@ package org.liara.api.request.selection;
 
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionRequestConfiguration;
+import org.liara.api.collection.RequestConfiguration;
 import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.collection.operator.Identity;
 import org.liara.collection.operator.Operator;
@@ -49,7 +49,7 @@ public class APIRequestExistsSelectionParser
   private final Operator _definition;
 
   @NonNull
-  private final CollectionRequestConfiguration _configuration;
+  private final RequestConfiguration _configuration;
 
   @NonNull
   private final Class<?> _entity;
@@ -57,8 +57,7 @@ public class APIRequestExistsSelectionParser
   public APIRequestExistsSelectionParser (
     @NonNull final EntityManager entityManager,
     @NonNull final String field,
-    @NonNull final Operator definition,
-    @NonNull final CollectionRequestConfiguration configuration,
+    @NonNull final Operator definition, @NonNull final RequestConfiguration configuration,
     @NonNull final Class<?> entity
   ) {
     _entityManager = entityManager;

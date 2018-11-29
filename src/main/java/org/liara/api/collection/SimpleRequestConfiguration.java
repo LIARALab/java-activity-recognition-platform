@@ -9,7 +9,7 @@ import org.liara.request.validator.APIRequestValidator;
 import java.util.Objects;
 
 public class SimpleRequestConfiguration
-  implements CollectionRequestConfiguration
+  implements RequestConfiguration
 {
   @NonNull
   private final APIRequestValidator _validator;

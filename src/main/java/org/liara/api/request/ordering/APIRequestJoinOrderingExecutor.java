@@ -22,8 +22,8 @@
 package org.liara.api.request.ordering;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionRequestConfiguration;
 import org.liara.api.collection.EntityBasedOrderingConfiguration;
+import org.liara.api.collection.RequestConfiguration;
 import org.liara.collection.operator.ordering.Order;
 import org.liara.selection.processor.ProcessorCall;
 import org.liara.selection.processor.ProcessorExecutor;
@@ -38,10 +38,10 @@ public class APIRequestJoinOrderingExecutor
   private final String _parameter;
 
   @NonNull
-  private final CollectionRequestConfiguration _configuration;
+  private final RequestConfiguration _configuration;
 
   public APIRequestJoinOrderingExecutor (
-    @NonNull final String parameter, @NonNull final CollectionRequestConfiguration configuration
+    @NonNull final String parameter, @NonNull final RequestConfiguration configuration
   ) {
     _parameter = parameter;
     _configuration = configuration;

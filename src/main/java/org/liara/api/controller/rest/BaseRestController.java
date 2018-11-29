@@ -23,7 +23,7 @@ package org.liara.api.controller.rest;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionFactory;
-import org.liara.api.collection.CollectionRequestConfiguration;
+import org.liara.api.collection.RequestConfiguration;
 import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.APIRequest;
 import org.liara.request.validator.APIRequestValidation;
@@ -85,10 +85,9 @@ public class BaseRestController
   }
 
   protected <Entity> @NonNull JPAEntityCollection<Entity> apply (
-    @NonNull final JPAEntityCollection<Entity> collection, @NonNull final CollectionRequestConfiguration configuration,
+    @NonNull final JPAEntityCollection<Entity> collection, @NonNull final RequestConfiguration configuration,
     @NonNull final HttpServletRequest request
   )
-  throws InvalidAPIRequestException
   {
     final APIRequest apiRequest           = new APIRequest(request.getParameterMap());
     final APIRequestValidation validation = configuration.validate(apiRequest);

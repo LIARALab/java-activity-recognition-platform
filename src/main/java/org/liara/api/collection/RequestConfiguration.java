@@ -7,7 +7,7 @@ import org.liara.request.parser.APIRequestParser;
 import org.liara.request.validator.APIRequestValidation;
 import org.liara.request.validator.APIRequestValidator;
 
-public interface CollectionRequestConfiguration
+public interface RequestConfiguration
 {
   /**
    * Return a validator for this request type.
@@ -21,7 +21,7 @@ public interface CollectionRequestConfiguration
    *
    * @return A a parser for this request type.
    */
-  @NonNull APIRequestParser<Operator> getParser ();
+  @NonNull APIRequestParser<@NonNull Operator> getParser ();
 
   /**
    * Parse a given API request in accordance with this configuration and return a collection operator.

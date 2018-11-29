@@ -13,7 +13,7 @@ import javax.persistence.metamodel.ManagedType;
 import java.util.*;
 
 public class EntityProcessorConfiguration<Entity, Result extends Operator>
-  extends EntityConfiguration<Entity>
+  extends EntityRequestConfiguration<Entity>
 {
   @NonNull
   private final String _field;
