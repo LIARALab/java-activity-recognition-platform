@@ -12,7 +12,7 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
 import java.util.*;
 
-public class ProcessorEntityConfiguration<Entity, Result extends Operator>
+public class EntityProcessorConfiguration<Entity, Result extends Operator>
   extends EntityConfiguration<Entity>
 {
   @NonNull
@@ -24,7 +24,7 @@ public class ProcessorEntityConfiguration<Entity, Result extends Operator>
   @Nullable
   private APIRequestProcessorParser<Result> _parser;
 
-  public ProcessorEntityConfiguration (
+  public EntityProcessorConfiguration (
     @NonNull final String field, @NonNull final ManagedType<Entity> entity
   )
   {
