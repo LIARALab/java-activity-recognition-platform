@@ -23,8 +23,7 @@ package org.liara.api.request.selection;
 
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.collection.operator.Identity;
-import org.liara.collection.operator.Operator;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.collection.operator.filtering.Filter;
 import org.liara.request.parser.APIRequestFieldParser;
 import org.liara.request.validator.APIRequestFieldValidation;
@@ -38,11 +37,11 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 public class APIRequestSelectionParser
-  implements APIRequestFieldParser<Operator>,
+  implements APIRequestFieldParser<@Nullable Filter>,
              APIRequestFieldValidator
 {
   @NonNull
-  private final Map<String, String> _fields;
+  private final Map<@NonNull String, @NonNull String> _fields;
 
   @NonNull
   private final JPQLSelectionTranspiler _transpiler;
@@ -51,7 +50,7 @@ public class APIRequestSelectionParser
   private final WeakHashMap<@NonNull String, @NonNull APIRequestFieldValidation> _validations;
 
   @NonNull
-  private final WeakHashMap<@NonNull String, @NonNull Operator> _results;
+  private final WeakHashMap<@NonNull String, @NonNull Filter> _results;
 
   public APIRequestSelectionParser (
     @NonNull final String field, @NonNull final JPQLSelectionTranspiler transpiler
@@ -76,9 +75,9 @@ public class APIRequestSelectionParser
   }
 
   @Override
-  public @NonNull Operator parse (@NonNull final String field) {
+  public @Nullable Filter parse (@NonNull final String field) {
     evaluate(field);
-    return _results.getOrDefault(field, Identity.INSTANCE);
+    return _results.computeIfAbsent(field, x -> null);
   }
 
   @Override
