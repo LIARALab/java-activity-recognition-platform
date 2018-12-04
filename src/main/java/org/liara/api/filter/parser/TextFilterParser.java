@@ -36,18 +36,13 @@
  */
 package org.liara.api.filter.parser;
 
+import org.liara.api.filter.ast.*;
+import org.springframework.lang.NonNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.liara.api.filter.ast.ConjunctionFilterNode;
-import org.liara.api.filter.ast.DisjunctionFilterNode;
-import org.liara.api.filter.ast.LikeFilterNode;
-import org.liara.api.filter.ast.PredicateFilterNode;
-import org.liara.api.filter.ast.RegexpFilterNode;
-import org.liara.api.filter.ast.ValueFilterNode;
-import org.springframework.lang.NonNull;
 
 /**
  * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
@@ -62,7 +57,7 @@ public class TextFilterParser implements FilterParser
       "(?<regexp>\\/([^\\/\\\\]|(\\\\.))+\\/)",
       "(?<containsExactly>\"([^\"\\\\]|(\\\\.))+\")",
       "(?<disjunction>;)",
-      "(?<contains>[^\\s\"\\/]+)"
+      "(?<contains>[^\\s\"\\/\\,]+)"
     )
   );
 
