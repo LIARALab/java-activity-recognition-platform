@@ -51,25 +51,14 @@ public class EntityFilteringConfigurationFactory
     return CONFIGURATIONS.get(entity.getJavaType());
   }
 
-  private @NonNull RequestParameterMapConfiguration generateConfigurationFor (@NonNull final Class<?> entity) {
-    return generateConfigurationFor(new RequestPath(), _metamodel.managedType(entity));
-  }
-
-  private @NonNull RequestParameterMapConfiguration generateConfigurationFor (
-    @NonNull final RequestPath prefix, @NonNull final Class<?> entity
-  )
-  {
-    return generateConfigurationFor(prefix, _metamodel.managedType(entity));
-  }
-
   private @NonNull RequestParameterMapConfiguration generateConfigurationFor (
     @NonNull final ManagedType<?> managedType
   )
   {
-    return generateConfigurationFor(new RequestPath(), managedType);
+    return new RequestParameterMapConfiguration(generateConfigurationFor(new RequestPath(), managedType));
   }
 
-  private @NonNull RequestParameterMapConfiguration generateConfigurationFor (
+  private @NonNull SimpleMapConfiguration generateConfigurationFor (
     @NonNull final RequestPath prefix, @NonNull final ManagedType<?> managedType
   )
   {
@@ -80,7 +69,9 @@ public class EntityFilteringConfigurationFactory
         if (isEmbeddable(attribute.getJavaType())) {
           configuration.set(
             attribute.getName(),
-            generateConfigurationFor(prefix.concat(attribute.getName()), attribute.getJavaType())
+            generateConfigurationFor(prefix.concat(attribute.getName()),
+              _metamodel.managedType(attribute.getJavaType())
+            )
           );
         } else {
           configuration.set(attribute.getName(), generateFieldConfiguration(prefix, attribute));

@@ -44,11 +44,12 @@ public class APIRequestFreeCursorValidator implements APIRequestValidator
 
   @Override
   public @NonNull APIRequestValidation validate (@NonNull final APIRequest request) {
-    return APIRequestValidation.concat(isValidRequest(request),
-                                       hasValidAllParameter(request),
-                                       hasValidOffsetParameter(request),
-                                       hasValidLimitParameter(request)
-    );
+    @NonNull final APIRequestValidation result = new APIRequestValidation(request);
+    result.addErrors(isValidRequest(request));
+    result.addErrors(hasValidAllParameter(request));
+    result.addErrors(hasValidOffsetParameter(request));
+    result.addErrors(hasValidLimitParameter(request));
+    return result;
   }
 
   /**
@@ -57,20 +58,20 @@ public class APIRequestFreeCursorValidator implements APIRequestValidator
    * @param request Request to check.
    */
   private @NonNull APIRequestValidation hasValidLimitParameter (@NonNull final APIRequest request) {
-    @NonNull APIRequestValidation result = new APIRequestValidation(request);
+    @NonNull final APIRequestValidation result = new APIRequestValidation(request);
 
     if (request.contains("first")) {
       @NonNull final APIRequestParameter parameter = request.getParameter("first");
 
       if (parameter.getSize() > 1) {
-        result = result.addError(createMoreThanOneParameterError(parameter));
+        result.addError(createMoreThanOneParameterError(parameter));
       }
 
       for (int index = 0; index < parameter.getSize(); ++index) {
         final String value = parameter.get(index).get().trim();
 
         if (!POSITIVE_INTEGER_PATTERN.matcher(value).find()) {
-          result = result.addError(createNotAPositiveIntegerError(parameter, index));
+          result.addError(createNotAPositiveIntegerError(parameter, index));
         }
       }
     }
@@ -84,20 +85,20 @@ public class APIRequestFreeCursorValidator implements APIRequestValidator
    * @param request Request to check.
    */
   private @NonNull APIRequestValidation hasValidOffsetParameter (@NonNull final APIRequest request) {
-    @NonNull APIRequestValidation result = new APIRequestValidation(request);
+    @NonNull final APIRequestValidation result = new APIRequestValidation(request);
 
     if (request.contains("after")) {
       @NonNull final APIRequestParameter parameter = request.getParameter("after");
 
       if (parameter.getSize() > 1) {
-        result = result.addError(createMoreThanOneParameterError(parameter));
+        result.addError(createMoreThanOneParameterError(parameter));
       }
 
       for (int index = 0; index < parameter.getSize(); ++index) {
         final String value = parameter.get(index).get().trim();
 
         if (!POSITIVE_INTEGER_PATTERN.matcher(value).find()) {
-          result = result.addError(createNotAPositiveIntegerError(parameter, index));
+          result.addError(createNotAPositiveIntegerError(parameter, index));
         }
       }
     }
@@ -111,20 +112,20 @@ public class APIRequestFreeCursorValidator implements APIRequestValidator
    * @param request Request to check.
    */
   private @NonNull APIRequestValidation hasValidAllParameter (@NonNull final APIRequest request) {
-    @NonNull APIRequestValidation result = new APIRequestValidation(request);
+    @NonNull final APIRequestValidation result = new APIRequestValidation(request);
 
     if (request.contains("all")) {
       final APIRequestParameter parameter = request.getParameter("all");
 
       if (parameter.getSize() > 1) {
-        result = result.addError(createMoreThanOneParameterError(parameter));
+        result.addError(createMoreThanOneParameterError(parameter));
       }
 
       for (int index = 0; index < parameter.getSize(); ++index) {
         final String value = parameter.get(index).get().trim();
 
         if (!BOOLEAN_PATTERN.matcher(value).find()) {
-          result = result.addError(createNotABooleanError(parameter, index));
+          result.addError(createNotABooleanError(parameter, index));
         }
       }
     }
@@ -139,11 +140,13 @@ public class APIRequestFreeCursorValidator implements APIRequestValidator
    * @param request Request to check.
    */
   private @NonNull APIRequestValidation isValidRequest (@NonNull final APIRequest request) {
+    @NonNull final APIRequestValidation result = new APIRequestValidation(request);
+
     if (request.contains("all") && request.contains("first") && request.getParameter("all").getAsBoolean(0).get()) {
-      return new APIRequestValidation(request).addError(createAllAndFirstError(request));
-    } else {
-      return new APIRequestValidation(request);
+      result.addError(createAllAndFirstError(request));
     }
+
+    return result;
   }
 
   private @NonNull APIRequestError createAllAndFirstError (@NonNull final APIRequest request) {

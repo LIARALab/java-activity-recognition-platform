@@ -1,19 +1,17 @@
 package org.liara.api.collection.configuration;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.request.ordering.APIRequestJoinOrderingExecutor;
 import org.liara.api.request.ordering.APIRequestOrderingProcessor;
-import org.liara.collection.operator.ordering.Order;
-import org.liara.selection.processor.ProcessorExecutor;
+import org.liara.collection.operator.Operator;
+import org.liara.selection.processor.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
-import java.util.Set;
+import javax.persistence.metamodel.Metamodel;
 import java.util.WeakHashMap;
 
 @Component
@@ -21,26 +19,26 @@ import java.util.WeakHashMap;
 public class EntityOrderingConfigurationFactory
 {
   @NonNull
-  private final EntityManager _entityManager;
+  private final Metamodel _metamodel;
 
   @NonNull
-  private final WeakHashMap<@NonNull Class<?>, @NonNull ProcessorParameterConfiguration<?, Order>> CONFIGURATIONS =
+  private final WeakHashMap<@NonNull Class<?>, @NonNull ProcessorParameterConfiguration> CONFIGURATIONS =
     new WeakHashMap<>();
 
   @Autowired
-  public EntityOrderingConfigurationFactory (@NonNull final EntityManager entityManager) {
-    _entityManager = entityManager;
+  public EntityOrderingConfigurationFactory (@NonNull final Metamodel metamodel) {
+    _metamodel = metamodel;
   }
 
-  public <Entity> @NonNull ProcessorParameterConfiguration<Entity, Order> getConfigurationOf (
-    @NonNull final Class<Entity> entity
+  public @NonNull ProcessorParameterConfiguration getConfigurationOf (
+    @NonNull final Class<?> entity
   )
   {
-    return getConfigurationOf(_entityManager.getMetamodel().managedType(entity));
+    return getConfigurationOf(_metamodel.managedType(entity));
   }
 
-  public <Entity> @NonNull ProcessorParameterConfiguration<Entity, Order> getConfigurationOf (
-    @NonNull final ManagedType<Entity> entity
+  public @NonNull ProcessorParameterConfiguration getConfigurationOf (
+    @NonNull final ManagedType<?> entity
   )
   {
     if (!CONFIGURATIONS.containsKey(entity.getJavaType())) {
@@ -50,61 +48,46 @@ public class EntityOrderingConfigurationFactory
     return CONFIGURATIONS.get(entity.getJavaType());
   }
 
-  private <Entity> @NonNull ProcessorParameterConfiguration<Entity, Order> generateConfigurationFor (
-    @NonNull final ManagedType<Entity> entity
+  private @NonNull ProcessorParameterConfiguration generateConfigurationFor (
+    @NonNull final ManagedType<?> entity
   )
   {
-    @NonNull final ProcessorParameterConfiguration<Entity, Order> configuration = new ProcessorParameterConfiguration<>(
-      "orderby",
-      entity
-    );
+    return new ProcessorParameterConfiguration(generateConfigurationFor(new RequestPath(), entity));
+  }
 
-    @NonNull final Set<@NonNull Attribute<? super Entity, ?>> attributes = entity.getAttributes();
-    for (@NonNull final Attribute<? super Entity, ?> attribute : attributes) {
-      if (!attribute.isCollection()) {
-        configureAttribute(configuration, attribute);
+  private @NonNull SimpleMapConfiguration<Processor<Operator>> generateConfigurationFor (
+    @NonNull final RequestPath prefix, @NonNull final ManagedType<?> entity
+  )
+  {
+    @NonNull final SimpleMapConfiguration<Processor<Operator>> configuration = new SimpleMapConfiguration<>();
+
+    for (@NonNull final Attribute<?, ?> attribute : entity.getAttributes()) {
+      if (!attribute.isCollection() && !attribute.isAssociation()) {
+        if (isEmbeddable(attribute.getJavaType())) {
+          configuration.set(attribute.getName(),
+            generateConfigurationFor(prefix.concat(attribute.getName()),
+              _metamodel.managedType(attribute.getJavaType())
+            )
+          );
+        } else {
+          configuration.set(attribute.getName(), generateFieldOrder(prefix, attribute));
+        }
       }
     }
 
     return configuration;
   }
 
-  private <Entity> void configureAttribute (
-    @NonNull final ProcessorParameterConfiguration<Entity, Order> configuration,
-    @NonNull final Attribute<? super Entity, ?> attribute
+  private @NonNull Processor<Operator> generateFieldOrder (
+    @NonNull final RequestPath prefix, @NonNull final Attribute<?, ?> attribute
   )
   {
-    if (attribute.isAssociation() || isEmbeddable(attribute.getJavaType())) {
-      configureAssociationAttribute(configuration, attribute);
-    } else {
-      configureRawAttribute(configuration, attribute);
-    }
-  }
-
-  private <Entity> void configureRawAttribute (
-    @NonNull final ProcessorParameterConfiguration<Entity, Order> configuration,
-    @NonNull final Attribute<? super Entity, ?> attribute
-  )
-  {
-    configuration.setProcessor(attribute, ProcessorExecutor.executeIf(
-        ProcessorExecutor.execute(new APIRequestOrderingProcessor(attribute.getName())),
-        call -> call.getFullIdentifier().equals(attribute.getName())
-    ));
-  }
-
-  private <Entity> void configureAssociationAttribute (
-    @NonNull final ProcessorParameterConfiguration<Entity, Order> configuration,
-    @NonNull final Attribute<? super Entity, ?> attribute
-  )
-  {
-    configuration.setProcessor(attribute,
-      new APIRequestJoinOrderingExecutor(attribute.getName(), getConfigurationOf(attribute.getJavaType()))
-    );
+    return new APIRequestOrderingProcessor(prefix.concat(attribute.getName()).toString());
   }
 
   private boolean isEmbeddable (@NonNull final Class<?> type) {
     try {
-      _entityManager.getMetamodel().embeddable(type);
+      _metamodel.embeddable(type);
       return true;
     } catch (@NonNull final IllegalArgumentException exception) {
       return false;

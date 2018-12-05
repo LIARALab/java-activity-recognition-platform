@@ -31,18 +31,22 @@ public class EntityConfigurationFactory
   }
 
   public <Entity> RequestConfiguration create (@NonNull final Class<Entity> type) {
-    return new RequestConfigurationComposition(
-      _orderingConfigurationFactory.getConfigurationOf(type),
+    return new RequestConfigurationComposition(RequestConfiguration.field(
+      "orderby",
+      _orderingConfigurationFactory.getConfigurationOf(type)
+    ),
       _selectionConfigurationFactory.getConfigurationOf(type),
-      new SimpleRequestConfiguration(new APIRequestFreeCursorValidator(), new APIRequestFreeCursorParser())
+      new SimpleRequestConfiguration(new APIRequestFreeCursorParser(), new APIRequestFreeCursorValidator())
     );
   }
 
   public <Entity> RequestConfiguration create (@NonNull final ManagedType<Entity> type) {
-    return new RequestConfigurationComposition(
-      _orderingConfigurationFactory.getConfigurationOf(type),
+    return new RequestConfigurationComposition(RequestConfiguration.field(
+      "orderby",
+      _orderingConfigurationFactory.getConfigurationOf(type)
+    ),
       _selectionConfigurationFactory.getConfigurationOf(type),
-      new SimpleRequestConfiguration(new APIRequestFreeCursorValidator(), new APIRequestFreeCursorParser())
+      new SimpleRequestConfiguration(new APIRequestFreeCursorParser(), new APIRequestFreeCursorValidator())
     );
   }
 }
