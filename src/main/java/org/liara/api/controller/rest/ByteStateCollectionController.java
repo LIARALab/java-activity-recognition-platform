@@ -23,8 +23,10 @@ package org.liara.api.controller.rest;
 
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionFactory;
+import org.liara.api.collection.CollectionController;
+import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.api.data.entity.state.ValueState;
+import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,15 +41,20 @@ import java.util.List;
 @Api(tags = {
   "states<byte>"
 }, produces = "application/json", consumes = "application/json", protocols = "http")
+@CollectionController.Name("states<byte>")
 public final class ByteStateCollectionController
-  extends BaseRestController
+  extends BaseRestController<ValueState.Byte>
 {
+  @NonNull
+  private final RestCollectionControllerConfiguration _configuration;
+
   @Autowired
   public ByteStateCollectionController (
-    @NonNull final CollectionFactory collections
+    @NonNull final RestCollectionControllerConfiguration configuration
   )
   {
-    super(collections);
+    super(configuration);
+    _configuration = configuration;
   }
 
   @GetMapping("/states<byte>/count")
@@ -56,7 +63,7 @@ public final class ByteStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return count(ValueState.Byte.class, request);
+    return super.count(request);
   }
 
   @GetMapping("/states<byte>")
@@ -65,14 +72,24 @@ public final class ByteStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return index(ValueState.Byte.class, request);
+    return super.index(request);
   }
 
   @GetMapping("/states<byte>/{identifier}")
   public ValueState.@NonNull Byte get (
-    @PathVariable final Long identifier
+    @NonNull @PathVariable final Long identifier
   )
   {
-    return get(ValueState.Byte.class, identifier);
+    return super.get(identifier);
+  }
+
+  @Override
+  public @NonNull RequestConfiguration getRequestConfiguration () {
+    return _configuration.getEntityConfigurationFactory().create(ValueState.Byte.class);
+  }
+
+  @Override
+  public @NonNull JPAEntityCollection<ValueState.Byte> getCollection () {
+    return new JPAEntityCollection<>(_configuration.getEntityManager(), ValueState.Byte.class);
   }
 }

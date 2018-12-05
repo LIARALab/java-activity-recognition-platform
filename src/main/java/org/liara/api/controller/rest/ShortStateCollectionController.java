@@ -23,8 +23,10 @@ package org.liara.api.controller.rest;
 
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionFactory;
+import org.liara.api.collection.CollectionController;
+import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.api.data.entity.state.ValueState;
+import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,15 +41,20 @@ import java.util.List;
 @Api(tags = {
   "states<short>"
 }, produces = "application/json", consumes = "application/json", protocols = "http")
+@CollectionController.Name("states<short>")
 public final class ShortStateCollectionController
-  extends BaseRestController
+  extends BaseRestController<ValueState.Short>
 {
+  @NonNull
+  private final RestCollectionControllerConfiguration _configuration;
+
   @Autowired
   public ShortStateCollectionController (
-    @NonNull final CollectionFactory collections
+    @NonNull final RestCollectionControllerConfiguration configuration
   )
   {
-    super(collections);
+    super(configuration);
+    _configuration = configuration;
   }
 
   @GetMapping("/states<short>/count")
@@ -56,7 +63,7 @@ public final class ShortStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return count(ValueState.Short.class, request);
+    return super.count(request);
   }
 
   @GetMapping("/states<short>")
@@ -65,14 +72,24 @@ public final class ShortStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return index(ValueState.Short.class, request);
+    return super.index(request);
   }
 
   @GetMapping("/states<short>/{identifier}")
   public ValueState.@NonNull Short get (
-    @PathVariable final Long identifier
+    @NonNull @PathVariable final Long identifier
   )
   {
-    return get(ValueState.Short.class, identifier);
+    return super.get(identifier);
+  }
+
+  @Override
+  public @NonNull RequestConfiguration getRequestConfiguration () {
+    return _configuration.getEntityConfigurationFactory().create(ValueState.Short.class);
+  }
+
+  @Override
+  public @NonNull JPAEntityCollection<ValueState.Short> getCollection () {
+    return new JPAEntityCollection<>(_configuration.getEntityManager(), ValueState.Short.class);
   }
 }

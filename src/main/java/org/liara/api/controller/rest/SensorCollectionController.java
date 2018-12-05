@@ -23,20 +23,19 @@ package org.liara.api.controller.rest;
 
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionFactory;
+import org.liara.api.collection.CollectionController;
+import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.event.ApplicationEntityEvent;
+import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
@@ -52,30 +51,20 @@ import java.util.List;
     consumes = "application/json",
     protocols = "http"
 )
+@CollectionController.Name("sensors")
 public class SensorCollectionController
-  extends BaseRestController
+  extends BaseRestController<Sensor>
 {
   @NonNull
-  private final EntityManager _entityManager;
-
-  @NonNull
-  private final NodeRepository _nodeRepository;
-
-  @NonNull
-  private final ApplicationEventPublisher _applicationEventPublisher;
+  private final RestCollectionControllerConfiguration _configuration;
 
   @Autowired
   public SensorCollectionController (
-    @NonNull final EntityManager entityManager,
-    @NonNull final NodeRepository nodeRepository,
-    @NonNull final ApplicationEventPublisher applicationEventPublisher,
-    @NonNull final CollectionFactory collections
+    @NonNull final RestCollectionControllerConfiguration configuration
   )
   {
-    super(collections);
-    _applicationEventPublisher = applicationEventPublisher;
-    _nodeRepository = nodeRepository;
-    _entityManager = entityManager;
+    super(configuration);
+    _configuration = configuration;
   }
 
   @GetMapping("/sensors/count")
@@ -84,7 +73,7 @@ public class SensorCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return count(Sensor.class, request);
+    return super.count(request);
   }
 
   @GetMapping("/sensors")
@@ -93,7 +82,7 @@ public class SensorCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return index(Sensor.class, request);
+    return super.index(request);
   }
 
   @GetMapping("/sensors/{identifier}")
@@ -101,7 +90,7 @@ public class SensorCollectionController
     @PathVariable final Long identifier
   )
   {
-    return get(Sensor.class, identifier);
+    return super.get(identifier);
   }
 
   @PostMapping("/sensors")
@@ -110,7 +99,7 @@ public class SensorCollectionController
     @NonNull final HttpServletRequest request, @NonNull @Valid @RequestBody final Sensor sensor
   )
   {
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, sensor));
+    _configuration.getApplicationEventPublisher().publishEvent(new ApplicationEntityEvent.Create(this, sensor));
 
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Location", request.getRequestURI() + "/" + sensor.getIdentifier());
@@ -123,7 +112,17 @@ public class SensorCollectionController
     @NonNull final HttpServletRequest request, @PathVariable @NonNull final Long identifier
   )
   {
-    return _nodeRepository.find(_entityManager.find(Sensor.class, identifier).getNodeIdentifier()).get();
+    return _configuration.getEntityManager().find(Node.class, get(identifier).getNodeIdentifier());
+  }
+
+  @Override
+  public @NonNull RequestConfiguration getRequestConfiguration () {
+    return _configuration.getEntityConfigurationFactory().create(Sensor.class);
+  }
+
+  @Override
+  public @NonNull JPAEntityCollection<Sensor> getCollection () {
+    return new JPAEntityCollection<>(_configuration.getEntityManager(), Sensor.class);
   }
 
   /*

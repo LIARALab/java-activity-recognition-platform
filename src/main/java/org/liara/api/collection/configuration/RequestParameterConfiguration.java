@@ -1,4 +1,4 @@
-package org.liara.api.collection;
+package org.liara.api.collection.configuration;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.collection.operator.Composition;

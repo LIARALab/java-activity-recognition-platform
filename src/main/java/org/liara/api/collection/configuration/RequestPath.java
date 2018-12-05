@@ -1,4 +1,4 @@
-package org.liara.api.collection;
+package org.liara.api.collection.configuration;
 
 import org.checkerframework.checker.index.qual.LessThan;
 import org.checkerframework.checker.index.qual.NonNegative;

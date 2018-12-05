@@ -23,8 +23,10 @@ package org.liara.api.controller.rest;
 
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionFactory;
+import org.liara.api.collection.CollectionController;
+import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.api.data.entity.state.ValueState;
+import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -44,15 +46,20 @@ import java.util.List;
     consumes = "application/json",
     protocols = "http"
 )
+@CollectionController.Name("states<double>")
 public final class DoubleStateCollectionController
-  extends BaseRestController
+  extends BaseRestController<ValueState.Double>
 {
+  @NonNull
+  private final RestCollectionControllerConfiguration _configuration;
+
   @Autowired
   public DoubleStateCollectionController (
-    @NonNull final CollectionFactory collections
+    @NonNull final RestCollectionControllerConfiguration configuration
   )
   {
-    super(collections);
+    super(configuration);
+    _configuration = configuration;
   }
 
   @GetMapping("/states<double>/count")
@@ -61,7 +68,7 @@ public final class DoubleStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return count(ValueState.Double.class, request);
+    return super.count(request);
   }
 
   @GetMapping("/states<double>")
@@ -70,14 +77,24 @@ public final class DoubleStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return index(ValueState.Double.class, request);
+    return super.index(request);
   }
 
   @GetMapping("/states<double>/{identifier}")
   public ValueState.@NonNull Double get (
-    @PathVariable final Long identifier
+    @NonNull @PathVariable final Long identifier
   )
   {
-    return get(ValueState.Double.class, identifier);
+    return super.get(identifier);
+  }
+
+  @Override
+  public @NonNull RequestConfiguration getRequestConfiguration () {
+    return _configuration.getEntityConfigurationFactory().create(ValueState.Double.class);
+  }
+
+  @Override
+  public @NonNull JPAEntityCollection<ValueState.Double> getCollection () {
+    return new JPAEntityCollection<>(_configuration.getEntityManager(), ValueState.Double.class);
   }
 }

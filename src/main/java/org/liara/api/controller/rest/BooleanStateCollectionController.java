@@ -23,8 +23,10 @@ package org.liara.api.controller.rest;
 
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionFactory;
+import org.liara.api.collection.CollectionController;
+import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.api.data.entity.state.ValueState;
+import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -44,15 +46,18 @@ import java.util.List;
     consumes = "application/json",
     protocols = "http"
 )
+@CollectionController.Name("states<boolean>")
 public class BooleanStateCollectionController
-  extends BaseRestController
+  extends BaseRestController<ValueState.Boolean>
 {
+  @NonNull
+  private final RestCollectionControllerConfiguration _configuration;
+
   @Autowired
-  public BooleanStateCollectionController (
-    @NonNull final CollectionFactory collections
-  )
+  public BooleanStateCollectionController (@NonNull final RestCollectionControllerConfiguration configuration)
   {
-    super(collections);
+    super(configuration);
+    _configuration = configuration;
   }
 
   @GetMapping("/states<boolean>/count")
@@ -61,7 +66,7 @@ public class BooleanStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return count(ValueState.Boolean.class, request);
+    return super.count(request);
   }
 
   @GetMapping("/states<boolean>")
@@ -70,14 +75,24 @@ public class BooleanStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return index(ValueState.Boolean.class, request);
+    return super.index(request);
   }
 
   @GetMapping("/states<boolean>/{identifier}")
   public ValueState.@NonNull Boolean get (
-    @PathVariable final Long identifier
+    @PathVariable @NonNull final Long identifier
   )
   {
-    return get(ValueState.Boolean.class, identifier);
+    return super.get(identifier);
+  }
+
+  @Override
+  public @NonNull RequestConfiguration getRequestConfiguration () {
+    return _configuration.getEntityConfigurationFactory().create(ValueState.Boolean.class);
+  }
+
+  @Override
+  public @NonNull JPAEntityCollection<ValueState.Boolean> getCollection () {
+    return new JPAEntityCollection<>(_configuration.getEntityManager(), ValueState.Boolean.class);
   }
 }

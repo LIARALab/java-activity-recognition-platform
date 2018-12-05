@@ -22,56 +22,62 @@
 package org.liara.api.controller.rest;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionFactory;
-import org.liara.api.collection.RequestConfiguration;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.collection.CollectionController;
+import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.APIRequest;
 import org.liara.request.validator.APIRequestValidation;
 import org.liara.request.validator.error.InvalidAPIRequestException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Objects;
 
-public class BaseRestController
+public abstract class BaseRestController<Entity>
+  implements CollectionController<Entity>
 {
   @NonNull
-  private final CollectionFactory _collections;
+  private final RestCollectionControllerConfiguration _configuration;
 
-  public BaseRestController (@NonNull final CollectionFactory collections) {
-    _collections = collections;
+  @Autowired
+  public BaseRestController (@NonNull final RestCollectionControllerConfiguration configuration) {
+    _configuration = configuration;
   }
 
-  protected <Entity> @NonNull Long count (
-    @NonNull final Class<Entity> entity, @NonNull final HttpServletRequest request
-  )
-  throws InvalidAPIRequestException
-  {
-    return apply(_collections.getCollection(entity), _collections.getConfiguration(entity), request).select(
-      "COUNT(:this)",
-      Long.class
-    ).getSingleResult();
-  }
-
-  protected <Entity> @NonNull ResponseEntity<@NonNull List<@NonNull Entity>> index (
-    @NonNull final Class<Entity> entity,
+  protected @NonNull Long count (
     @NonNull final HttpServletRequest request
   )
   throws InvalidAPIRequestException
   {
-    return toResponse(apply(_collections.getCollection(entity), _collections.getConfiguration(entity), request));
+    return select(request).select("COUNT(:this)", Long.class).getSingleResult();
   }
 
-  protected <Entity> @NonNull Entity get (
-    @NonNull final Class<Entity> entity, @PathVariable final Long identifier
+  protected @NonNull ResponseEntity<@NonNull List<@NonNull Entity>> index (
+    @NonNull final HttpServletRequest request
+  )
+  throws InvalidAPIRequestException
+  {
+    return toResponse(select(request));
+  }
+
+  protected @NonNull Entity get (
+    @NonNull final Long identifier
   )
   {
-    return _collections.getEntity(entity, identifier);
+    @Nullable final Entity result = Objects.requireNonNull(_configuration.getEntityManager())
+                                      .find(getCollection().getEntityType(), identifier);
+
+    if (result == null) throw new EntityNotFoundException();
+
+    return result;
   }
 
-  protected <Entity> @NonNull ResponseEntity<@NonNull List<@NonNull Entity>> toResponse (
+  protected @NonNull ResponseEntity<@NonNull List<@NonNull Entity>> toResponse (
     @NonNull final JPAEntityCollection<Entity> collection
   )
   {
@@ -84,20 +90,19 @@ public class BaseRestController
     }
   }
 
-  protected <Entity> @NonNull JPAEntityCollection<Entity> apply (
-    @NonNull final JPAEntityCollection<Entity> collection, @NonNull final RequestConfiguration configuration,
+  protected @NonNull JPAEntityCollection<Entity> select (
     @NonNull final HttpServletRequest request
   )
+  throws InvalidAPIRequestException
   {
-    final APIRequest apiRequest           = new APIRequest(request.getParameterMap());
-    final APIRequestValidation validation = configuration.validate(apiRequest);
+    @NonNull final RequestConfiguration        configuration = getRequestConfiguration();
+    @NonNull final JPAEntityCollection<Entity> collection    = getCollection();
 
-    validation.throwIfInvalid();
+    @NonNull final APIRequest           apiRequest = new APIRequest(request.getParameterMap());
+    @NonNull final APIRequestValidation validation = configuration.validate(apiRequest);
+
+    validation.assertRequestIsValid();
 
     return (JPAEntityCollection<Entity>) configuration.parse(apiRequest).apply(collection);
-  }
-
-  protected @NonNull CollectionFactory getCollections () {
-    return _collections;
   }
 }

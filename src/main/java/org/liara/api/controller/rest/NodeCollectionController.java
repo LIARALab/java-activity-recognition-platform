@@ -23,13 +23,14 @@ package org.liara.api.controller.rest;
 
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionFactory;
+import org.liara.api.collection.CollectionController;
+import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.event.NodeEvent;
+import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,19 +54,21 @@ import java.util.List;
  * A controller for all API endpoints that read, write or update information about nodes.
  * 
  * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
- */ public final class NodeCollectionController
-  extends BaseRestController
+ */
+@CollectionController.Name("nodes")
+public final class NodeCollectionController
+  extends BaseRestController<Node>
 {
   @NonNull
-  private final ApplicationEventPublisher _applicationEventPublisher;
+  private final RestCollectionControllerConfiguration _configuration;
 
   @Autowired
   public NodeCollectionController (
-    @NonNull final ApplicationEventPublisher applicationEventPublisher, @NonNull final CollectionFactory collections
+    @NonNull final RestCollectionControllerConfiguration configuration
   )
   {
-    super(collections);
-    _applicationEventPublisher = applicationEventPublisher;
+    super(configuration);
+    _configuration = configuration;
   }
 
   /**
@@ -86,7 +89,7 @@ import java.util.List;
   )
   throws InvalidAPIRequestException
   {
-    return count(Node.class, request);
+    return super.count(request);
   }
 
   /**
@@ -106,7 +109,7 @@ import java.util.List;
   )
   throws InvalidAPIRequestException
   {
-    return index(Node.class, request);
+    return super.index(request);
   }
   
   @PostMapping("/nodes")
@@ -114,7 +117,7 @@ import java.util.List;
     @NonNull final HttpServletRequest request, @NonNull @Valid @RequestBody final NodeSchema node
   )
   {
-    _applicationEventPublisher.publishEvent(new NodeEvent.Create(this, node));
+    _configuration.getApplicationEventPublisher().publishEvent(new NodeEvent.Create(this, node));
 
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Location", request.getRequestURI() + "/" + node.getIdentifier());
@@ -123,10 +126,20 @@ import java.util.List;
   }
 
   @GetMapping("/nodes/{identifier}")
-  public @NonNull Node get (@PathVariable final long identifier) {
-    return get(Node.class, identifier);
+  @Override
+  public @NonNull Node get (@PathVariable @NonNull final Long identifier) {
+    return super.get(identifier);
   }
 
+  @Override
+  public @NonNull RequestConfiguration getRequestConfiguration () {
+    return _configuration.getEntityConfigurationFactory().create(Node.class);
+  }
+
+  @Override
+  public @NonNull JPAEntityCollection<Node> getCollection () {
+    return new JPAEntityCollection<>(_configuration.getEntityManager(), Node.class);
+  }
 
   /*
   @GetMapping("/nodes/{identifier}/sensors")

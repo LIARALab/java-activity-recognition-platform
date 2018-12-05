@@ -23,8 +23,10 @@ package org.liara.api.controller.rest;
 
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionFactory;
+import org.liara.api.collection.CollectionController;
+import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.api.data.entity.state.ValueState;
+import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,15 +41,20 @@ import java.util.List;
 @Api(tags = {
   "states<string>"
 }, produces = "application/json", consumes = "application/json", protocols = "http")
+@CollectionController.Name("states<string>")
 public class StringStateCollectionController
-  extends BaseRestController
+  extends BaseRestController<ValueState.String>
 {
+  @NonNull
+  private final RestCollectionControllerConfiguration _configuration;
+
   @Autowired
   public StringStateCollectionController (
-    @NonNull final CollectionFactory collections
+    @NonNull final RestCollectionControllerConfiguration configuration
   )
   {
-    super(collections);
+    super(configuration);
+    _configuration = configuration;
   }
 
   @GetMapping("/states<string>/count")
@@ -56,7 +63,7 @@ public class StringStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return count(ValueState.String.class, request);
+    return super.count(request);
   }
 
   @GetMapping("/states<string>")
@@ -65,7 +72,7 @@ public class StringStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return index(ValueState.String.class, request);
+    return super.index(request);
   }
 
   @GetMapping("/states<string>/{identifier}")
@@ -73,6 +80,16 @@ public class StringStateCollectionController
     @PathVariable final Long identifier
   )
   {
-    return get(ValueState.String.class, identifier);
+    return super.get(identifier);
+  }
+
+  @Override
+  public @NonNull RequestConfiguration getRequestConfiguration () {
+    return _configuration.getEntityConfigurationFactory().create(ValueState.String.class);
+  }
+
+  @Override
+  public @NonNull JPAEntityCollection<ValueState.String> getCollection () {
+    return new JPAEntityCollection<>(_configuration.getEntityManager(), ValueState.String.class);
   }
 }

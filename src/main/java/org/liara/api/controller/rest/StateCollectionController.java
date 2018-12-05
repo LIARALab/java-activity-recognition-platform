@@ -21,24 +21,21 @@
  ******************************************************************************/
 package org.liara.api.controller.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionFactory;
+import org.liara.api.collection.CollectionController;
+import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.event.ApplicationEntityEvent;
+import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityManager;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
@@ -54,39 +51,20 @@ import java.util.List;
     consumes = "application/json",
     protocols = "http"
 )
+@CollectionController.Name("states")
 public class StateCollectionController
-  extends BaseRestController
+  extends BaseRestController<State>
 {
   @NonNull
-  private final ObjectMapper _mapper;
-
-  @NonNull
-  private final ApplicationContext _context;
-
-  @NonNull
-  private final Validator _validator;
-
-  @NonNull
-  private final ApplicationEventPublisher _applicationEventPublisher;
-
-  @NonNull
-  private final EntityManager _entityManager;
+  private final RestCollectionControllerConfiguration _configuration;
 
   @Autowired
   public StateCollectionController (
-    @NonNull final ObjectMapper mapper,
-    @NonNull final ApplicationContext context,
-    @NonNull final Validator validator, @NonNull final ApplicationEventPublisher applicationEventPublisher,
-    @NonNull final EntityManager entityManager,
-    @NonNull final CollectionFactory collections
+    @NonNull final RestCollectionControllerConfiguration configuration
   )
   {
-    super(collections);
-    _mapper = mapper;
-    _context = context;
-    _validator = validator;
-    _applicationEventPublisher = applicationEventPublisher;
-    _entityManager = entityManager;
+    super(configuration);
+    _configuration = configuration;
   }
 
   @GetMapping("/states/count")
@@ -95,7 +73,7 @@ public class StateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return count(State.class, request);
+    return super.count(request);
   }
 
   @GetMapping("/states")
@@ -104,15 +82,15 @@ public class StateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return index(State.class, request);
+    return super.index(request);
   }
 
   @GetMapping("/states/{identifier}")
   public @NonNull State get (
-    @PathVariable final Long identifier
+    @NonNull @PathVariable final Long identifier
   )
   {
-    return get(State.class, identifier);
+    return super.get(identifier);
   }
 
   @GetMapping("/states/{identifier}/sensor")
@@ -120,7 +98,7 @@ public class StateCollectionController
     @PathVariable final Long identifier
   )
   {
-    return _entityManager.find(Sensor.class, get(State.class, identifier).getSensorIdentifier());
+    return _configuration.getEntityManager().find(Sensor.class, get(identifier).getSensorIdentifier());
   }
 
   @PostMapping("/states")
@@ -128,7 +106,7 @@ public class StateCollectionController
   public @NonNull ResponseEntity<Void> create (
     @NonNull final HttpServletRequest request, @NonNull @Valid @RequestBody final State state
   ) {
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, state));
+    _configuration.getApplicationEventPublisher().publishEvent(new ApplicationEntityEvent.Create(this, state));
     
     final HttpHeaders headers = new HttpHeaders();
     headers.add("Location", request.getRequestURI() + "/" + state.getIdentifier());
@@ -145,10 +123,19 @@ public class StateCollectionController
   {
     update.setIdentifier(identifier);
 
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, update));
+    _configuration.getApplicationEventPublisher().publishEvent(new ApplicationEntityEvent.Update(this, update));
     
     return new ResponseEntity<Void>(HttpStatus.OK);
   }
 
 
+  @Override
+  public @NonNull RequestConfiguration getRequestConfiguration () {
+    return _configuration.getEntityConfigurationFactory().create(State.class);
+  }
+
+  @Override
+  public @NonNull JPAEntityCollection<State> getCollection () {
+    return new JPAEntityCollection<>(_configuration.getEntityManager(), State.class);
+  }
 }

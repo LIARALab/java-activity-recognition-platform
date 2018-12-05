@@ -23,8 +23,10 @@ package org.liara.api.controller.rest;
 
 import io.swagger.annotations.Api;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionFactory;
+import org.liara.api.collection.CollectionController;
+import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.api.data.entity.state.LabelState;
+import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,17 +39,22 @@ import java.util.List;
 
 @RestController
 @Api(tags = {
-  "states<activation>"
+  "states<label>"
 }, description = "", produces = "application/json", consumes = "application/json", protocols = "http")
+@CollectionController.Name("states<label>")
 public class LabelStateCollectionController
-  extends BaseRestController
+  extends BaseRestController<LabelState>
 {
+  @NonNull
+  private final RestCollectionControllerConfiguration _configuration;
+
   @Autowired
   public LabelStateCollectionController (
-    @NonNull final CollectionFactory collections
+    @NonNull final RestCollectionControllerConfiguration configuration
   )
   {
-    super(collections);
+    super(configuration);
+    _configuration = configuration;
   }
 
   @GetMapping("/states<label>/count")
@@ -56,7 +63,7 @@ public class LabelStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return count(LabelState.class, request);
+    return super.count(request);
   }
 
   @GetMapping("/states<label>")
@@ -65,7 +72,7 @@ public class LabelStateCollectionController
   )
   throws InvalidAPIRequestException
   {
-    return index(LabelState.class, request);
+    return super.index(request);
   }
 
   @GetMapping("/states<label>/{identifier}")
@@ -73,6 +80,16 @@ public class LabelStateCollectionController
     @PathVariable final Long identifier
   )
   {
-    return get(LabelState.class, identifier);
+    return super.get(identifier);
+  }
+
+  @Override
+  public @NonNull RequestConfiguration getRequestConfiguration () {
+    return _configuration.getEntityConfigurationFactory().create(LabelState.class);
+  }
+
+  @Override
+  public @NonNull JPAEntityCollection<LabelState> getCollection () {
+    return new JPAEntityCollection<>(_configuration.getEntityManager(), LabelState.class);
   }
 }
