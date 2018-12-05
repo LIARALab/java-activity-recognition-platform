@@ -18,28 +18,28 @@ import java.util.WeakHashMap;
 
 @Component
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class EntityBasedOrderingConfigurationFactory
+public class EntityOrderingConfigurationFactory
 {
   @NonNull
   private final EntityManager _entityManager;
 
   @NonNull
-  private final WeakHashMap<@NonNull Class<?>, @NonNull EntityProcessorConfiguration<?, Order>> CONFIGURATIONS =
+  private final WeakHashMap<@NonNull Class<?>, @NonNull ProcessorParameterConfiguration<?, Order>> CONFIGURATIONS =
     new WeakHashMap<>();
 
   @Autowired
-  public EntityBasedOrderingConfigurationFactory (@NonNull final EntityManager entityManager) {
+  public EntityOrderingConfigurationFactory (@NonNull final EntityManager entityManager) {
     _entityManager = entityManager;
   }
 
-  public <Entity> @NonNull EntityProcessorConfiguration<Entity, Order> getConfigurationOf (
+  public <Entity> @NonNull ProcessorParameterConfiguration<Entity, Order> getConfigurationOf (
     @NonNull final Class<Entity> entity
   )
   {
     return getConfigurationOf(_entityManager.getMetamodel().managedType(entity));
   }
 
-  public <Entity> @NonNull EntityProcessorConfiguration<Entity, Order> getConfigurationOf (
+  public <Entity> @NonNull ProcessorParameterConfiguration<Entity, Order> getConfigurationOf (
     @NonNull final ManagedType<Entity> entity
   )
   {
@@ -47,14 +47,14 @@ public class EntityBasedOrderingConfigurationFactory
       CONFIGURATIONS.put(entity.getJavaType(), generateConfigurationFor(entity));
     }
 
-    return (EntityProcessorConfiguration<Entity, Order>) CONFIGURATIONS.get(entity.getJavaType());
+    return CONFIGURATIONS.get(entity.getJavaType());
   }
 
-  private <Entity> @NonNull EntityProcessorConfiguration<Entity, Order> generateConfigurationFor (
+  private <Entity> @NonNull ProcessorParameterConfiguration<Entity, Order> generateConfigurationFor (
     @NonNull final ManagedType<Entity> entity
   )
   {
-    @NonNull final EntityProcessorConfiguration<Entity, Order> configuration = new EntityProcessorConfiguration<>(
+    @NonNull final ProcessorParameterConfiguration<Entity, Order> configuration = new ProcessorParameterConfiguration<>(
       "orderby",
       entity
     );
@@ -70,7 +70,7 @@ public class EntityBasedOrderingConfigurationFactory
   }
 
   private <Entity> void configureAttribute (
-    @NonNull final EntityProcessorConfiguration<Entity, Order> configuration,
+    @NonNull final ProcessorParameterConfiguration<Entity, Order> configuration,
     @NonNull final Attribute<? super Entity, ?> attribute
   )
   {
@@ -82,7 +82,7 @@ public class EntityBasedOrderingConfigurationFactory
   }
 
   private <Entity> void configureRawAttribute (
-    @NonNull final EntityProcessorConfiguration<Entity, Order> configuration,
+    @NonNull final ProcessorParameterConfiguration<Entity, Order> configuration,
     @NonNull final Attribute<? super Entity, ?> attribute
   )
   {
@@ -93,7 +93,7 @@ public class EntityBasedOrderingConfigurationFactory
   }
 
   private <Entity> void configureAssociationAttribute (
-    @NonNull final EntityProcessorConfiguration<Entity, Order> configuration,
+    @NonNull final ProcessorParameterConfiguration<Entity, Order> configuration,
     @NonNull final Attribute<? super Entity, ?> attribute
   )
   {

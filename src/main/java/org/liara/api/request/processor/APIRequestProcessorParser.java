@@ -23,26 +23,20 @@ package org.liara.api.request.processor;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.collection.operator.Composition;
-import org.liara.collection.operator.Identity;
 import org.liara.collection.operator.Operator;
-import org.liara.request.APIRequest;
-import org.liara.request.APIRequestParameter;
-import org.liara.request.parser.APIRequestParser;
-import org.liara.request.validator.APIRequestValidation;
-import org.liara.request.validator.APIRequestValidator;
-import org.liara.request.validator.error.APIRequestParameterValueError;
+import org.liara.request.parser.APIRequestFieldParser;
+import org.liara.request.validator.APIRequestFieldValidation;
+import org.liara.request.validator.APIRequestFieldValidator;
 import org.liara.selection.processor.ProcessorCall;
 import org.liara.selection.processor.ProcessorExecutor;
 import org.liara.selection.processor.ProcessorParser;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.WeakHashMap;
 
 public class APIRequestProcessorParser<Result extends Operator>
-  implements APIRequestParser<Operator>,
-             APIRequestValidator
+  implements APIRequestFieldParser<Operator>,
+             APIRequestFieldValidator
 {
   @NonNull
   private final ProcessorExecutor<Result> _executor;
@@ -51,68 +45,46 @@ public class APIRequestProcessorParser<Result extends Operator>
   private final ProcessorParser _parser;
 
   @NonNull
-  private final WeakHashMap<@NonNull APIRequest, @NonNull APIRequestValidation> _validations;
+  private final WeakHashMap<@NonNull String, @NonNull APIRequestFieldValidation> _validations;
 
   @NonNull
-  private final WeakHashMap<@NonNull APIRequest, @NonNull Operator> _results;
+  private final WeakHashMap<@NonNull String, @NonNull Operator> _results;
 
-  @NonNull
-  private final String _field;
-
-  public APIRequestProcessorParser (
-    @NonNull final String field, @NonNull final ProcessorExecutor<Result> executor
-  )
-  {
-    _field = field;
+  public APIRequestProcessorParser (@NonNull final ProcessorExecutor<Result> executor) {
     _executor = executor;
     _parser = new ProcessorParser();
     _validations = new WeakHashMap<>();
     _results = new WeakHashMap<>();
   }
 
-  @NonNull
   @Override
-  public Operator parse (@NonNull final APIRequest request) {
-    evaluate(request);
+  public Operator parse (@NonNull final String content) {
+    evaluate(content);
 
-    return _results.getOrDefault(request, Identity.INSTANCE);
+    return _results.computeIfAbsent(content, x -> null);
   }
 
   @Override
-  public @NonNull APIRequestValidation validate (@NonNull final APIRequest request) {
-    evaluate(request);
-    return _validations.get(request);
+  public @NonNull APIRequestFieldValidation validate (@NonNull final String content) {
+    evaluate(content);
+
+    return _validations.get(content);
   }
 
-  private void evaluate (@NonNull final APIRequest apiRequest) {
-    @NonNull APIRequestValidation validation = new APIRequestValidation(apiRequest);
+  private void evaluate (@NonNull final String content) {
+    @NonNull APIRequestFieldValidation validation = new APIRequestFieldValidation();
 
-    if (apiRequest.contains(_field)) {
-      @NonNull final APIRequestParameter parameter = apiRequest.getParameter(_field);
-      @NonNull final List<Operator>      operators = new ArrayList<>();
+    try {
+      @NonNull final ProcessorCall[] calls   = _parser.transpile(content);
+      @NonNull final Result[]        results = _executor.execute(Arrays.asList(calls));
 
-      for (int index = 0; index < parameter.getSize(); ++index) {
-        try {
-          @NonNull final ProcessorCall[] calls   = _parser.transpile(parameter.get(index).get());
-          @NonNull final Result[]        results = _executor.execute(Arrays.asList(calls));
-
-          if (results.length > 0) {
-            operators.add(Composition.of(results));
-          }
-        } catch (@NonNull final Throwable exception) {
-          validation = validation.addError(APIRequestParameterValueError.create(
-            parameter,
-            index,
-            exception.getLocalizedMessage()
-          ));
-        }
+      if (results.length > 0) {
+        _results.put(content, Composition.of(results));
       }
-
-      if (validation.isValid()) {
-        _results.put(apiRequest, Composition.of(operators));
-      }
+    } catch (@NonNull final Throwable exception) {
+      validation.addError(exception.getLocalizedMessage());
     }
 
-    _validations.put(apiRequest, validation);
+    _validations.put(content, validation);
   }
 }

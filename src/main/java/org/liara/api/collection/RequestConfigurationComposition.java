@@ -1,16 +1,14 @@
 package org.liara.api.collection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.collection.operator.Composition;
-import org.liara.collection.operator.Identity;
 import org.liara.collection.operator.Operator;
 import org.liara.request.parser.APIRequestParser;
 import org.liara.request.validator.APIRequestValidator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A composition of request configuration.
@@ -45,25 +43,46 @@ public class RequestConfigurationComposition
     _configurations = new ArrayList<>(configurations);
   }
 
-  @Override
-  public @NonNull APIRequestValidator getValidator () {
-    @NonNull final APIRequestValidator[] validators = new APIRequestValidator[_configurations.size()];
-
-    for (int index = 0; index < _configurations.size(); ++index) {
-      validators[index] = _configurations.get(index).getValidator();
-    }
-
-    return APIRequestValidator.all(validators);
+  public RequestConfigurationComposition (
+    @NonNull final RequestConfigurationComposition toCopy
+  )
+  {
+    _configurations = new ArrayList<>(toCopy.getConfigurations());
   }
 
   @Override
-  public @NonNull APIRequestParser<@NonNull Operator> getParser () {
-    @NonNull final List<@NonNull APIRequestParser<Operator>> parsers = new ArrayList<>(_configurations.size());
+  public @NonNull APIRequestValidator getValidator () {
+    return APIRequestValidator.all(_configurations.stream()
+                                     .map(RequestConfiguration::getValidator)
+                                     .collect(Collectors.toList()));
+  }
 
-    for (int index = 0; index < _configurations.size(); ++index) {
-      parsers.add(_configurations.get(index).getParser());
+  @Override
+  public @NonNull APIRequestParser<Operator> getParser () {
+    return APIRequestParser.all(_configurations.stream()
+                                  .map(RequestConfiguration::getParser)
+                                  .collect(Collectors.toList())).mapNonNull(Composition::of);
+  }
+
+  public @NonNull List<@NonNull RequestConfiguration> getConfigurations () {
+    return Collections.unmodifiableList(_configurations);
+  }
+
+  @Override
+  public int hashCode () {
+    return Objects.hash(_configurations);
+  }
+
+  @Override
+  public boolean equals (@Nullable final Object other) {
+    if (other == null) return false;
+    if (other == this) return true;
+
+    if (other instanceof RequestConfigurationComposition) {
+      @NonNull final RequestConfigurationComposition otherComposition = (RequestConfigurationComposition) other;
+      return Objects.equals(_configurations, otherComposition.getConfigurations());
     }
 
-    return APIRequestParser.all(parsers).mapNonNull(Composition::of).orElse(Identity.INSTANCE);
+    return false;
   }
 }

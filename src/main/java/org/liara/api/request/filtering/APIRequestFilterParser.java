@@ -19,11 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.request.selection;
+package org.liara.api.request.filtering;
 
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.filtering.Filter;
 import org.liara.request.parser.APIRequestFieldParser;
 import org.liara.request.validator.APIRequestFieldValidation;
@@ -36,8 +37,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-public class APIRequestSelectionParser
-  implements APIRequestFieldParser<@Nullable Filter>,
+public class APIRequestFilterParser
+  implements APIRequestFieldParser<@Nullable Operator>,
              APIRequestFieldValidator
 {
   @NonNull
@@ -52,7 +53,7 @@ public class APIRequestSelectionParser
   @NonNull
   private final WeakHashMap<@NonNull String, @NonNull Filter> _results;
 
-  public APIRequestSelectionParser (
+  public APIRequestFilterParser (
     @NonNull final String field, @NonNull final JPQLSelectionTranspiler transpiler
   )
   {
@@ -63,7 +64,7 @@ public class APIRequestSelectionParser
     _results = new WeakHashMap<>();
   }
 
-  public APIRequestSelectionParser (
+  public APIRequestFilterParser (
     @NonNull final Map<String, String> fields,
     @NonNull final JPQLSelectionTranspiler transpiler
   )

@@ -33,6 +33,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import javax.persistence.EntityManager;
+import javax.persistence.metamodel.Metamodel;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -67,7 +69,7 @@ public class Application
   }
 
   @Bean
-  public static @NonNull PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer () {
+  public static @NonNull PropertySourcesPlaceholderConfigurer getPropertyPlaceholderConfigurer () {
     @NonNull final PropertySourcesPlaceholderConfigurer result = new PropertySourcesPlaceholderConfigurer();
 
     if (isFlagPassed("development")) {
@@ -80,9 +82,14 @@ public class Application
 
     return result;
   }
-  
+
   @Bean
-  public @NonNull WebMvcConfigurer corsConfigurer () {
+  public @NonNull Metamodel getMetamodel (@NonNull final EntityManager entityManager) {
+    return entityManager.getMetamodel();
+  }
+
+  @Bean
+  public @NonNull WebMvcConfigurer getCorsConfigurer () {
       return new WebMvcConfigurer () {
           @Override
           public void addCorsMappings (@NonNull final CorsRegistry registry) {

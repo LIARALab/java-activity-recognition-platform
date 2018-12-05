@@ -166,7 +166,7 @@ class ApplicationEntityManagerSpecification
     entities.values().stream().flatMap({ x -> x.stream() })
             .forEach({ x -> manager.merge(x) })
 
-    then: "we expect to get an empty optional if we search for an _entityManager that does not exists"
+    then: "we expect to get an empty optional if we search for an _metamodel that does not exists"
     !manager.find(ValueState.Byte.class, 5).present
     !manager.find(ValueState.Double.class, 256).present
   }
@@ -185,7 +185,7 @@ class ApplicationEntityManagerSpecification
     entities.values().stream().flatMap({ x -> x.stream() })
             .forEach({ x -> manager.merge(x) })
 
-    then: "we expect to be able to check if an _entityManager is registered by using its reference"
+    then: "we expect to be able to check if an _metamodel is registered by using its reference"
     final Iterator<? extends ApplicationEntity> entitiesToTest = entities.values()
                                                                          .stream()
                                                                          .flatMap({ x -> x.stream() })

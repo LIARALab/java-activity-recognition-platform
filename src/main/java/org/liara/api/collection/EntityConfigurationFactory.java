@@ -12,18 +12,18 @@ import javax.persistence.metamodel.ManagedType;
 
 @Component
 @Scope(BeanDefinition.SCOPE_SINGLETON)
-public class EntityBasedCollectionConfigurationFactory
+public class EntityConfigurationFactory
 {
   @NonNull
-  private final EntityBasedOrderingConfigurationFactory _orderingConfigurationFactory;
+  private final EntityOrderingConfigurationFactory _orderingConfigurationFactory;
 
   @NonNull
-  private final EntitySelectionConfigurationFactory _selectionConfigurationFactory;
+  private final EntityFilteringConfigurationFactory _selectionConfigurationFactory;
 
   @Autowired
-  public EntityBasedCollectionConfigurationFactory (
-    @NonNull final EntityBasedOrderingConfigurationFactory orderingConfigurationFactory,
-    @NonNull final EntitySelectionConfigurationFactory selectionConfigurationFactory
+  public EntityConfigurationFactory (
+    @NonNull final EntityOrderingConfigurationFactory orderingConfigurationFactory,
+    @NonNull final EntityFilteringConfigurationFactory selectionConfigurationFactory
   )
   {
     _orderingConfigurationFactory = orderingConfigurationFactory;

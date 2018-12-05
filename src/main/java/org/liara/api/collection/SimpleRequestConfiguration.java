@@ -18,7 +18,7 @@ public class SimpleRequestConfiguration
   private final APIRequestParser<Operator> _parser;
 
   public SimpleRequestConfiguration (
-    @NonNull final APIRequestValidator validator, @NonNull final APIRequestParser<Operator> parser
+    @NonNull final APIRequestParser<Operator> parser, @NonNull final APIRequestValidator validator
   )
   {
     _validator = validator;
