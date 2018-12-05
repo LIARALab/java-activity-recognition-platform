@@ -9,7 +9,6 @@ import org.liara.request.validator.APIRequestFieldValidator;
 import org.liara.request.validator.APIRequestValidator;
 
 public interface RequestParameterConfiguration
-  extends BindableConfiguration
 {
   @NonNull APIRequestFieldParser<Operator> getParser ();
 

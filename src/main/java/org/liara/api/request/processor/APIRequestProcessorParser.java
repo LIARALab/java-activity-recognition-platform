@@ -31,7 +31,7 @@ import org.liara.selection.processor.ProcessorCall;
 import org.liara.selection.processor.ProcessorExecutor;
 import org.liara.selection.processor.ProcessorParser;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.WeakHashMap;
 
 public class APIRequestProcessorParser<Result extends Operator>
@@ -75,10 +75,10 @@ public class APIRequestProcessorParser<Result extends Operator>
     @NonNull APIRequestFieldValidation validation = new APIRequestFieldValidation();
 
     try {
-      @NonNull final ProcessorCall[] calls   = _parser.transpile(content);
-      @NonNull final Result[]        results = _executor.execute(Arrays.asList(calls));
+      @NonNull final ProcessorCall[]       calls   = _parser.transpile(content);
+      @NonNull final List<@NonNull Result> results = _executor.execute(calls);
 
-      if (results.length > 0) {
+      if (results.size() > 0) {
         _results.put(content, Composition.of(results));
       }
     } catch (@NonNull final Throwable exception) {

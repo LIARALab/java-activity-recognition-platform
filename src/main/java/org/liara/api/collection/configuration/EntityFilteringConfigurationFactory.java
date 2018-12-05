@@ -1,7 +1,6 @@
 package org.liara.api.collection.configuration;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.request.filtering.APIRequestFilterParser;
 import org.liara.api.request.filtering.APIRequestFilterParserFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +12,7 @@ import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
 import javax.persistence.metamodel.Metamodel;
 import java.time.ZonedDateTime;
-import java.util.Optional;
+import java.util.UUID;
 import java.util.WeakHashMap;
 
 @Component
@@ -86,7 +85,7 @@ public class EntityFilteringConfigurationFactory
     @NonNull final RequestPath prefix, @NonNull final Attribute<?, ?> attribute
   )
   {
-    @NonNull final APIRequestFilterParser filter = getRawFieldSelection(prefix, attribute).orElseThrow();
+    @NonNull final APIRequestFilterParser filter = getRawFieldSelection(prefix, attribute);
     return new SimpleRequestParameterConfiguration(filter, filter);
   }
 
@@ -99,36 +98,35 @@ public class EntityFilteringConfigurationFactory
     }
   }
 
-  private @NonNull Optional<APIRequestFilterParser> getRawFieldSelection (
+  private @NonNull APIRequestFilterParser getRawFieldSelection (
     @NonNull final RequestPath prefix, @NonNull final Attribute<?, ?> attribute
   )
   {
     @NonNull final Class<?> attributeType = attribute.getJavaType();
     @NonNull final String fieldName       = prefix.concat(attribute.getName()).toString();
-    @Nullable final APIRequestFilterParser result;
 
     if (Double.class.isAssignableFrom(attributeType)) {
-      result = _parserFactory.createDouble(fieldName);
+      return _parserFactory.createDouble(fieldName);
     } else if (Float.class.isAssignableFrom(attributeType)) {
-      result = _parserFactory.createFloat(fieldName);
+      return _parserFactory.createFloat(fieldName);
     } else if (Long.class.isAssignableFrom(attributeType)) {
-      result = _parserFactory.createLong(fieldName);
+      return _parserFactory.createLong(fieldName);
     } else if (Integer.class.isAssignableFrom(attributeType)) {
-      result = _parserFactory.createInteger(fieldName);
+      return _parserFactory.createInteger(fieldName);
     } else if (Short.class.isAssignableFrom(attributeType)) {
-      result = _parserFactory.createShort(fieldName);
+      return _parserFactory.createShort(fieldName);
     } else if (Byte.class.isAssignableFrom(attributeType)) {
-      result = _parserFactory.createByte(fieldName);
+      return _parserFactory.createByte(fieldName);
     } else if (Boolean.class.isAssignableFrom(attributeType)) {
-      result = _parserFactory.createBoolean(fieldName);
+      return _parserFactory.createBoolean(fieldName);
     } else if (ZonedDateTime.class.isAssignableFrom(attributeType)) {
-      result = _parserFactory.createDateTime(fieldName);
+      return _parserFactory.createDateTime(fieldName);
     } else if (CharSequence.class.isAssignableFrom(attributeType)) {
-      result = _parserFactory.createString(fieldName);
+      return _parserFactory.createString(fieldName);
+    } else if (UUID.class.isAssignableFrom(attributeType)) {
+      return _parserFactory.createString(fieldName);
     } else {
-      result = null;
+      throw new Error("Unhandled raw type " + attributeType.toString());
     }
-
-    return Optional.ofNullable(result);
   }
 }
