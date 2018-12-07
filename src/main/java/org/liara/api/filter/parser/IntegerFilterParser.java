@@ -36,24 +36,14 @@
  */
 package org.liara.api.filter.parser;
 
+import org.liara.api.filter.ast.*;
+import org.springframework.lang.NonNull;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import org.liara.api.filter.ast.BetweenFilterNode;
-import org.liara.api.filter.ast.ConjunctionFilterNode;
-import org.liara.api.filter.ast.DisjunctionFilterNode;
-import org.liara.api.filter.ast.EqualToFilterNode;
-import org.liara.api.filter.ast.GreaterThanFilterNode;
-import org.liara.api.filter.ast.GreaterThanOrEqualToFilterNode;
-import org.liara.api.filter.ast.LessThanFilterNode;
-import org.liara.api.filter.ast.LessThanOrEqualToFilterNode;
-import org.liara.api.filter.ast.NotFilterNode;
-import org.liara.api.filter.ast.PredicateFilterNode;
-import org.liara.api.filter.ast.ValueFilterNode;
-import org.springframework.lang.NonNull;
 
 /**
  * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
@@ -73,9 +63,9 @@ public class IntegerFilterParser implements FilterParser
       "(?<lessThan>lt:" + NUMBER_PATTERN.pattern() + ")",
       "(?<lessThanOrEqualTo>lte:" + NUMBER_PATTERN.pattern() + ")",
       "(?<between>" + NUMBER_PATTERN.pattern() + "\\:" + NUMBER_PATTERN.pattern() + ")",
-      "(?<notBetween>\\!" + NUMBER_PATTERN.pattern() + "\\:" + NUMBER_PATTERN.pattern() + ")",
+      "(?<notBetween>not:" + NUMBER_PATTERN.pattern() + "\\:" + NUMBER_PATTERN.pattern() + ")",
       "(?<equalTo>" + NUMBER_PATTERN.pattern() + ")",
-      "(?<notEqualTo>\\!" + NUMBER_PATTERN.pattern() + ")"
+      "(?<notEqualTo>not:" + NUMBER_PATTERN.pattern() + ")"
     )
   );
 
