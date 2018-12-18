@@ -30,8 +30,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.persistence.EntityManager;
 import javax.persistence.metamodel.Metamodel;
@@ -41,7 +39,7 @@ import java.util.logging.Logger;
 @SpringBootApplication
 @Import(
   {
-    SwaggerConfiguration.class
+    CollectionRoutingConfiguration.class
   }
 )
 public class Application
@@ -86,19 +84,5 @@ public class Application
   @Bean
   public @NonNull Metamodel getMetamodel (@NonNull final EntityManager entityManager) {
     return entityManager.getMetamodel();
-  }
-
-  @Bean
-  public @NonNull WebMvcConfigurer getCorsConfigurer () {
-      return new WebMvcConfigurer () {
-          @Override
-          public void addCorsMappings (@NonNull final CorsRegistry registry) {
-              registry.addMapping("/**")
-                      .allowedOrigins("*")
-                      .allowedHeaders("*")
-                      .allowCredentials(true)
-                      .allowedMethods("*");
-          }
-      };
   }
 }

@@ -30,30 +30,17 @@ dependencies {
 
   implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
 
-  implementation group: 'org.codehaus.groovy', name:'groovy-all', version: '2.4.13'
-
-  implementation group: 'org.hibernate', name:'hibernate-entitymanager', version: '5.2.17.Final'
-
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-hateoas'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
-
-  implementation group: 'io.springfox', name: 'springfox-swagger2', version: '2.8.0'
-  implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.8.0'
-
-  implementation group: 'com.google.guava', name: 'guava', version: '24.1-jre'
-
   implementation group: 'mysql', name: 'mysql-connector-java'
 
-  implementation group: 'javax.interceptor', name: 'javax.interceptor-api', version: '3.1'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-webflux'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
 
   implementation group: 'org.liara', name: 'collection', version: '0.1-SNAPSHOT'
   implementation group: 'org.liara', name: 'selection', version: '0.1-SNAPSHOT'
   implementation group: 'org.liara', name: 'api-request', version: '0.1-SNAPSHOT'
 
-  implementation group: 'org.hibernate.javax.persistence', name: 'hibernate-jpa-2.1-api', version: '1.0.2.Final'
-
+  testImplementation group: 'org.codehaus.groovy', name:'groovy-all', version: '2.4.13'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
   testImplementation group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
   testImplementation group: 'org.spockframework', name: 'spock-spring', version: '1.1-groovy-2.4'

@@ -122,7 +122,7 @@ public class APIRequestFreeCursorValidator implements APIRequestValidator
       }
 
       for (int index = 0; index < parameter.getSize(); ++index) {
-        final String value = parameter.get(index).get().trim();
+        @NonNull final String value = parameter.get(index).orElseThrow().trim();
 
         if (!BOOLEAN_PATTERN.matcher(value).find()) {
           result.addError(createNotABooleanError(parameter, index));

@@ -1,6 +1,5 @@
 package org.liara.api.data.repository;
 
-import groovy.lang.Range;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.state.State;
@@ -122,19 +121,6 @@ public interface StateRepository<TimeState extends State>
   @NonNull List<@NonNull TimeState> find (
     @NonNull final Collection<Long> sensorIdentifiers, @NonNull final Cursor cursor
   );
-
-  default @NonNull List<@NonNull TimeState> getAt (
-    @NonNull final Long sensorIdentifier,
-    @NonNull final Range<Integer> range
-  ) {
-    return find(
-      sensorIdentifier,
-      new Cursor(
-        range.getFrom(),
-        range.getTo() - range.getFrom()
-      )
-    );
-  }
 
   default @NonNull Optional<TimeState> findAt (
     @NonNull final Long sensorIdentifier, @NonNegative final int index

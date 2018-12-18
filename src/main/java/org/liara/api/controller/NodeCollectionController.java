@@ -19,126 +19,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.controller.rest;
+package org.liara.api.controller;
 
-import io.swagger.annotations.Api;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionController;
-import org.liara.api.collection.configuration.RequestConfiguration;
+import org.liara.api.collection.CollectionOperation;
+import org.liara.api.collection.InvalidRequestBodyException;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.event.NodeEvent;
-import org.liara.collection.jpa.JPAEntityCollection;
-import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.List;
 
-@RestController
-@Api(
-    tags = {
-      "node"
-    },
-    description = "",
-    produces = "application/json",
-    consumes = "application/json",
-    protocols = "http"
-)
 /**
  * A controller for all API endpoints that read, write or update information about nodes.
  * 
  * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  */
-@CollectionController.Name("nodes")
+@CollectionController(name = "nodes", managedType = Node.class)
 public final class NodeCollectionController
-  extends BaseRestController<Node>
+  extends ApplicationEntityCollectionController<Node>
+  implements CollectionOperation.Create
 {
-  @NonNull
-  private final RestCollectionControllerConfiguration _configuration;
-
   @Autowired
   public NodeCollectionController (
     @NonNull final RestCollectionControllerConfiguration configuration
   )
   {
-    super(configuration);
-    _configuration = configuration;
-  }
-
-  /**
-   * Count all nodes in the application.
-   * 
-   * This method also allow the user to filter and group counted nodes by categories.
-   * 
-   * For more information about all allowed options, take a look to the NodeCollection request configuration
-   * class.
-   * 
-   * @param request The related HTTP request.
-   * 
-   * @return An HTTP response with the user requested data.
-   */
-  @GetMapping("/nodes/count")
-  public @NonNull Long count (
-    @NonNull final HttpServletRequest request
-  )
-  throws InvalidAPIRequestException
-  {
-    return super.count(request);
-  }
-
-  /**
-   * Fetch nodes from the application.
-   * 
-   * Allow the user to filter, paginate and sort returned nodes.
-   * 
-   * For more information about all allowed options, take a look to the NodeCollection request configuration
-   * class.
-   * 
-   * @param request
-   * @return
-   */
-  @GetMapping("/nodes")
-  public @NonNull ResponseEntity<@NonNull List<@NonNull Node>> index (
-    @NonNull final HttpServletRequest request
-  )
-  throws InvalidAPIRequestException
-  {
-    return super.index(request);
-  }
-  
-  @PostMapping("/nodes")
-  public @NonNull ResponseEntity<Void> create (
-    @NonNull final HttpServletRequest request, @NonNull @Valid @RequestBody final NodeSchema node
-  )
-  {
-    _configuration.getApplicationEventPublisher().publishEvent(new NodeEvent.Create(this, node));
-
-    final HttpHeaders headers = new HttpHeaders();
-    headers.add("Location", request.getRequestURI() + "/" + node.getIdentifier());
-    
-    return new ResponseEntity<>(headers, HttpStatus.CREATED);
-  }
-
-  @GetMapping("/nodes/{identifier}")
-  @Override
-  public @NonNull Node get (@PathVariable @NonNull final Long identifier) {
-    return super.get(identifier);
+    super(configuration, Node.class);
   }
 
   @Override
-  public @NonNull RequestConfiguration getRequestConfiguration () {
-    return _configuration.getEntityConfigurationFactory().create(Node.class);
-  }
+  public @NonNull Long create (
+    @NonNull @Valid final JsonNode json
+  )
+  throws JsonProcessingException, InvalidRequestBodyException
+  {
+    @NonNull final NodeSchema schema = getConfiguration().getObjectMapper().treeToValue(json, NodeSchema.class);
 
-  @Override
-  public @NonNull JPAEntityCollection<Node> getCollection () {
-    return new JPAEntityCollection<>(_configuration.getEntityManager(), Node.class);
+    getConfiguration().assertIsValid(schema);
+    getConfiguration().getApplicationEventPublisher().publishEvent(new NodeEvent.Create(this, schema));
+    return schema.getIdentifier();
   }
 
   /*
