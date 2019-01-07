@@ -1,4 +1,4 @@
-package org.liara.api.utils;
+package org.liara.api.logging;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 

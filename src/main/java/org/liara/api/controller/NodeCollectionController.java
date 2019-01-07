@@ -26,10 +26,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionController;
 import org.liara.api.collection.CollectionOperation;
-import org.liara.api.collection.InvalidRequestBodyException;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.event.NodeEvent;
+import org.liara.api.validation.InvalidModelException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -56,14 +56,24 @@ public final class NodeCollectionController
   public @NonNull Long create (
     @NonNull @Valid final JsonNode json
   )
-  throws JsonProcessingException, InvalidRequestBodyException
+  throws JsonProcessingException, InvalidModelException
   {
     @NonNull final NodeSchema schema = getConfiguration().getObjectMapper().treeToValue(json, NodeSchema.class);
 
     getConfiguration().assertIsValid(schema);
     getConfiguration().getApplicationEventPublisher().publishEvent(new NodeEvent.Create(this, schema));
+
     return schema.getIdentifier();
   }
+
+  /*
+  @ChildCollection(
+    name = "sensors",
+    controller = "sensors"
+  )
+  public @NonNull Operator getSensors (@NonNull final Long identifier) {
+    return new ExpressionFilter(":this.nodeIdentifier = :identifier").setParameter("identifier", identifier);
+  }*/
 
   /*
   @GetMapping("/nodes/{identifier}/sensors")

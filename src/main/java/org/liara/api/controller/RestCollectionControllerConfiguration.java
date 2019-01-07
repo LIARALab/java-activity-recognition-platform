@@ -3,8 +3,8 @@ package org.liara.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.collection.InvalidRequestBodyException;
 import org.liara.api.collection.configuration.EntityConfigurationFactory;
+import org.liara.api.validation.InvalidModelException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
@@ -53,12 +53,12 @@ public class RestCollectionControllerConfiguration
   }
 
   public void assertIsValid (@NonNull final Object object)
-  throws InvalidRequestBodyException
+  throws InvalidModelException
   {
     @NonNull final Set<@NonNull ConstraintViolation<@NonNull Object>> errors = _validator.validate(object);
 
     if (errors.size() > 0) {
-      throw new InvalidRequestBodyException(errors);
+      throw new InvalidModelException(errors);
     }
   }
 

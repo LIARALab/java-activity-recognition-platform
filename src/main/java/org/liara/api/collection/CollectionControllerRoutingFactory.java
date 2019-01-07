@@ -43,7 +43,7 @@ public class CollectionControllerRoutingFactory
 
   public @NonNull RouterFunction<ServerResponse> get (@NonNull final Object controller) {
     @NonNull final String                      name    = CollectionControllers.getName(controller);
-    @NonNull final CollectionControllerHandler handler = CollectionControllerHandler.instanciate(controller);
+    @NonNull final CollectionControllerHandler handler = CollectionControllerHandler.instantiate(controller);
 
     return RouterFunctions.nest(RequestPredicates.path("/" + name), handler.createRouterFunction());
   }

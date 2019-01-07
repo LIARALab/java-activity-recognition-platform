@@ -2,7 +2,7 @@ package org.liara.api.collection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.utils.Loggable;
+import org.liara.api.logging.Loggable;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -35,10 +35,11 @@ public class CollectionControllerManager
 
     if (_controllersByName.containsKey(name)) {
       if (!Objects.equals(_controllersByName.get(name), controller)) {
-        throw new Error("Unable to register the controller " + controller.getClass().toString() + " with name " + name +
-                        " because another controller was already registered with the same name (" +
-                        _controllersByName.get(name).getClass().toString() +
-                        ") please use unique collection names for your " + "controllers.");
+        throw new Error(
+          "Unable to register the controller " + controller.getClass().toString() + " with name \"" + name +
+          "\" because another controller was already registered with the same name (" +
+          _controllersByName.get(name).getClass().toString() + ") please use unique collection names " +
+          "for your controllers.");
       }
     } else {
       info("collectionController.registered " + name + " " + CollectionControllers.getManagedType(controller) + " " +

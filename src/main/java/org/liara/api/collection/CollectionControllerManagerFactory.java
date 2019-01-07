@@ -2,7 +2,8 @@ package org.liara.api.collection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.utils.Loggable;
+import org.liara.api.logging.InstantiationMessageFactory;
+import org.liara.api.logging.Loggable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
@@ -36,7 +37,8 @@ public class CollectionControllerManagerFactory
   }
 
   private void instantiate () {
-    info("instanciating " + CollectionControllerManager.class);
+    info(InstantiationMessageFactory.instantiating("collectionControllerManager"));
+
     @NonNull final CollectionControllerManager manager = new CollectionControllerManager();
     @NonNull final Map<@NonNull String, @NonNull Object> controllers = _context.getBeansWithAnnotation(
       CollectionController.class);
@@ -46,6 +48,7 @@ public class CollectionControllerManagerFactory
     }
 
     _instance = manager;
-    info("instanciated " + CollectionControllerManager.class);
+
+    info(InstantiationMessageFactory.instantiated("collectionControllerManager", manager));
   }
 }

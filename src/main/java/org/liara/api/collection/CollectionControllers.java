@@ -17,6 +17,24 @@ public interface CollectionControllers
   }
 
   /**
+   * Assert that the given object is a valid collection controller instance.
+   * <p>
+   * If the given object is not a valid collection controller instance, an error will be thrown with the given message
+   * followed by a description of it's cause.
+   *
+   * @param object An object to validate.
+   * @param error  An error message to throw if the given object is not a valid collection controller instance.
+   */
+  static void assertThatIsACollectionController (@NonNull final Object object, @NonNull final String error) {
+    if (!CollectionControllers.isCollectionController(object)) {
+      throw new Error(error + " because the given object " + object.toString() + " of type " +
+                      AopUtils.getTargetClass(object).toString() + " is not annotated as a " +
+                      CollectionController.class.toString() +
+                      " and consequently, is not a collection controller instance.");
+    }
+  }
+
+  /**
    * Return the controller annotation if present, or throw an error.
    *
    * @param object An object to check.
@@ -24,14 +42,11 @@ public interface CollectionControllers
    * @return The given object's controller annotation if present.
    */
   static @NonNull CollectionController getControllerAnnotation (@NonNull final Object object) {
+    assertThatIsACollectionController(object, "Unable to get the collection controller configuration");
+
     @NonNull final Class<?> objectClass = AopUtils.getTargetClass(object);
 
-    if (objectClass.isAnnotationPresent(CollectionController.class)) {
-      return objectClass.getAnnotation(CollectionController.class);
-    } else {
-      throw new Error("Unable to get the collection controller configuration of the object " + objectClass.toString() +
-                      " because the given object is not annotated as a " + CollectionController.class);
-    }
+    return objectClass.getAnnotation(CollectionController.class);
   }
 
   /**

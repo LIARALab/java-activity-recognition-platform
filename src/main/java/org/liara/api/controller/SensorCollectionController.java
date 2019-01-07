@@ -26,9 +26,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.collection.CollectionController;
 import org.liara.api.collection.CollectionOperation;
-import org.liara.api.collection.InvalidRequestBodyException;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.event.ApplicationEntityEvent;
+import org.liara.api.validation.InvalidModelException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.transaction.Transactional;
@@ -51,7 +51,7 @@ public class SensorCollectionController
   public @NonNull Long create (
     @NonNull final JsonNode json
   )
-  throws JsonProcessingException, InvalidRequestBodyException
+  throws JsonProcessingException, InvalidModelException
   {
     @NonNull final Sensor sensor = getConfiguration().getObjectMapper().treeToValue(json, Sensor.class);
 

@@ -33,7 +33,7 @@ public class VirtualSensorRunner
     @NonNull final Sensor sensor
   ) {
     if (!VirtualSensorHandler.isVirtual(sensor)) {
-      throw new Error("Unnable to instanciate a runner for a non-virtual sensor.");
+      throw new Error("Unnable to instantiate a runner for a non-virtual sensor.");
     }
     
     @SuppressWarnings("unchecked") /* Checked virtual sensor */ final Class<? extends VirtualSensorHandler> handlerType = sensor
@@ -66,7 +66,7 @@ public class VirtualSensorRunner
     @NonNull final VirtualSensorHandler handler
   ) {
     if (!VirtualSensorHandler.isVirtual(sensor)) {
-      throw new Error("Unnable to instanciate a runner for a non-virtual sensor.");
+      throw new Error("Unnable to instantiate a runner for a non-virtual sensor.");
     }
     
     return new VirtualSensorRunner(null, sensor, handler);

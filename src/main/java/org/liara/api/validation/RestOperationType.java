@@ -1,6 +1,6 @@
 package org.liara.api.validation;
 
-public final class RestGroup
+public final class RestOperationType
 {
   public interface Any {}
 
