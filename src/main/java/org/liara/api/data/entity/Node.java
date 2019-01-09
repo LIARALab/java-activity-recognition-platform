@@ -34,7 +34,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "nodes")
-@JsonPropertyOrder({"identifier", "type", "name", "coordinates"})
+@JsonPropertyOrder({"identifier", "uuid", "type", "name", "coordinates"})
 public class Node
   extends ApplicationEntity
   implements NestedSet

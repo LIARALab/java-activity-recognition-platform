@@ -52,7 +52,7 @@ public interface VirtualSensorHandler
   void resume (@NonNull final VirtualSensorRunner runner);
   
   /**
-   * A method called when the given virtual sensor is deleted from the application database (soft delete).
+   * A method called when the given virtual sensor is deleted from the application database (soft doDelete).
    */
   void stop ();
 }

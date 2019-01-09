@@ -21,41 +21,30 @@
  ******************************************************************************/
 package org.liara.api.controller;
 
-import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.collection.controller.*;
 import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.metamodel.collection.CollectionController;
-import org.liara.api.metamodel.collection.CountableCollectionController;
-import org.liara.api.metamodel.collection.GetableCollectionController;
-import org.liara.api.metamodel.collection.IndexableCollectionController;
+import org.liara.api.metamodel.collection.GetCollectionOperation;
+import org.liara.api.metamodel.model.ModelController;
 import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.APIRequest;
 import org.liara.request.validator.error.InvalidAPIRequestException;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.persistence.EntityNotFoundException;
-import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 public class ApplicationEntityCollectionController<Entity extends ApplicationEntity>
   implements CollectionController<Entity>,
-             IndexableCollectionController<Entity>,
-             CountableCollectionController<Entity>,
-             GetableCollectionController<Entity>
+             GetCollectionOperation<Entity>
 {
-  @NonNull
-  private final RestCollectionControllerConfiguration _configuration;
-
   @NonNull
   private final Class<Entity> _modelClass;
 
-  @Autowired
+  @NonNull
+  private final ReadableControllerConfiguration _configuration;
+
   public ApplicationEntityCollectionController (
-    @NonNull final RestCollectionControllerConfiguration configuration, @NonNull final Class<Entity> modelClass
+    @NonNull final Class<Entity> modelClass, @NonNull final ReadableControllerConfiguration configuration
   )
   {
     _configuration = configuration;
@@ -63,61 +52,9 @@ public class ApplicationEntityCollectionController<Entity extends ApplicationEnt
   }
 
   @Override
-  public @NonNull JPAEntityCollection<Entity> index (
+  public @NonNull JPAEntityCollection<Entity> get (
     @NonNull final APIRequest request
   )
-  throws InvalidAPIRequestException
-  {
-    return select(request);
-  }
-
-  @Override
-  public @NonNegative @NonNull Long count (
-    @NonNull final APIRequest request
-  )
-  throws InvalidAPIRequestException
-  {
-    return select(request).select("COUNT(:this)", Long.class).getSingleResult();
-  }
-
-  @Override
-  public @NonNull Entity get (@NonNull final Long identifier)
-  throws EntityNotFoundException
-  {
-    @Nullable final Entity entity = _configuration.getEntityManager().find(getModelClass(), identifier);
-
-    if (entity == null) {
-      throw new EntityNotFoundException();
-    } else {
-      return entity;
-    }
-  }
-
-  @Override
-  public @NonNull Entity get (@NonNull final UUID identifier)
-  throws EntityNotFoundException
-  {
-    @NonNull final List<Entity> result = _configuration.getEntityManager()
-                                           .createQuery("SELECT entity FROM " + getModelClass().getName() +
-                                                        " entity WHERE entity.UUID = :uuid",
-                                             getModelClass()
-                                           )
-                                           .setParameter("uuid", identifier)
-                                           .getResultList();
-
-    if (result.size() > 0) {
-      return result.get(0);
-    } else {
-      throw new EntityNotFoundException();
-    }
-  }
-
-  @Override
-  public @NonNull ModelController<Entity> getModelController () {
-    return new ApplicationModelController<>(_modelClass);
-  }
-
-  private @NonNull JPAEntityCollection<Entity> select (@NonNull final APIRequest request)
   throws InvalidAPIRequestException
   {
     @NonNull final RequestConfiguration configuration = getRequestConfiguration();
@@ -128,16 +65,16 @@ public class ApplicationEntityCollectionController<Entity extends ApplicationEnt
   }
 
   public @NonNull RequestConfiguration getRequestConfiguration () {
-    return Objects.requireNonNull(_configuration.getEntityConfigurationFactory())
-             .create(getModelClass());
+    return _configuration.getEntityConfigurationFactory().create(getModelClass());
   }
 
   public @NonNull JPAEntityCollection<Entity> getCollection () {
     return new JPAEntityCollection<>(Objects.requireNonNull(_configuration.getEntityManager()), getModelClass());
   }
 
-  public @NonNull RestCollectionControllerConfiguration getConfiguration () {
-    return _configuration;
+  @Override
+  public @NonNull ModelController<Entity> getModelController () {
+    return new ApplicationModelController<>(_modelClass, _configuration);
   }
 
   @Override

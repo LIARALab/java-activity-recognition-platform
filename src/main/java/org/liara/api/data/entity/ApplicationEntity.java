@@ -1,6 +1,7 @@
 package org.liara.api.data.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -10,7 +11,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.time.ZonedDateTime;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * Base class for all application entities.
@@ -26,7 +26,7 @@ public class ApplicationEntity
   private Long _identifier;
 
   @Nullable
-  private UUID _uuid;
+  private String _uuid;
 
   @Nullable
   private ZonedDateTime _creationDate;
@@ -100,12 +100,13 @@ public class ApplicationEntity
     _identifier = identifier;
   }
 
-  @Column(name = "uuid", nullable = false, unique = true)
-  public @Nullable UUID getUUID () {
+  @Column(name = "uuid", nullable = false, unique = true, scale = 40)
+  @JsonProperty("uuid")
+  public @Nullable String getUniversalUniqueIdentifier () {
     return _uuid;
   }
 
-  public void setUUID (@Nullable final UUID uuid) {
+  public void setUniversalUniqueIdentifier (@Nullable final String uuid) {
     _uuid = uuid;
   }
 
@@ -132,11 +133,11 @@ public class ApplicationEntity
   /**
    * Return the date of deletion of this entity from the application database.
    *
-   * This date allow the application to support soft-delete functionality : in order to not erase entities from the
+   * This date allow the application to support soft-doDelete functionality : in order to not erase entities from the
    * database, the application ignore entries with a non-null deletion date by default.
    *
-   * The deletion date is automatically initialized after a call of delete method, and automatically removed after a
-   * call of the restore method. Do not forget to update the current entity and all entities impacted by a deletion or a
+   * The deletion date is automatically initialized after a call of doDelete method, and automatically removed after a
+   * call of the restore method. Do not forget to patch the current entity and all entities impacted by a deletion or a
    * restoration operation.
    * 
    * This date use by default the time zone of the server that run the application.
@@ -153,10 +154,10 @@ public class ApplicationEntity
   }
 
   /**
-   * Return the last update date of this entity into the database.
+   * Return the last patch date of this entity into the database.
    *
    * Return the date of the last mutation of this entity into the database. This date is a read-only field automatically
-   * set before any insertion or update operations.
+   * set before any insertion or patch operations.
    *
    * If the entity was not already inserted into the application database, this getter will return null.
    * 

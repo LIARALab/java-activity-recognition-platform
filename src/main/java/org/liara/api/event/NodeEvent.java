@@ -57,11 +57,11 @@ public abstract class NodeEvent
     public Create (@NonNull final Object source, @NonNull final NodeSchema schema) {
       super(source);
 
-      _schema = Duplicator.duplicate(schema);
+      _schema = schema;
     }
 
     public @NonNull NodeSchema getSchema () {
-      return Duplicator.duplicate(_schema);
+      return _schema;
     }
   }
 

@@ -37,11 +37,7 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 @SpringBootApplication
-@Import(
-  {
-    ApplicationRoutingConfiguration.class
-  }
-)
+@Import({})
 public class Application
 {
   private static @NonNull String[] ARGUMENTS = new String[0];

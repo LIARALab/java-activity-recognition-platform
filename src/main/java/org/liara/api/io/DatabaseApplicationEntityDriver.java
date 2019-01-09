@@ -77,7 +77,8 @@ public class DatabaseApplicationEntityDriver
       applicationEntity.setCreationDate(ZonedDateTime.now());
       applicationEntity.setUpdateDate(ZonedDateTime.now());
       applicationEntity.setDeletionDate(null);
-      if (applicationEntity.getUUID() == null) applicationEntity.setUUID(UUID.randomUUID());
+      if (applicationEntity.getUniversalUniqueIdentifier() == null)
+        applicationEntity.setUniversalUniqueIdentifier(UUID.randomUUID().toString());
     }
   }
 }
