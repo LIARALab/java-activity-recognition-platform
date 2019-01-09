@@ -24,8 +24,10 @@ package org.liara.api.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionController;
-import org.liara.api.collection.CollectionOperation;
+import org.liara.api.metamodel.collection.CollectionController;
+import org.liara.api.collection.controller.ModelController;
+import org.liara.api.metamodel.collection.PostableCollectionController;
+import org.liara.api.metamodel.collection.RootCollectionController;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.event.NodeEvent;
@@ -39,10 +41,11 @@ import javax.validation.Valid;
  * 
  * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  */
-@CollectionController(name = "nodes", managedType = Node.class)
+@CollectionController.Name("nodes")
 public final class NodeCollectionController
   extends ApplicationEntityCollectionController<Node>
-  implements CollectionOperation.Create
+  implements PostableCollectionController<Node>,
+             RootCollectionController<Node>
 {
   @Autowired
   public NodeCollectionController (
@@ -53,7 +56,7 @@ public final class NodeCollectionController
   }
 
   @Override
-  public @NonNull Long create (
+  public @NonNull Long post (
     @NonNull @Valid final JsonNode json
   )
   throws JsonProcessingException, InvalidModelException
@@ -66,14 +69,21 @@ public final class NodeCollectionController
     return schema.getIdentifier();
   }
 
+  @Override
+  public @NonNull ModelController<Node> getModelController () {
+    return new NodeModelController();
+  }
+
   /*
   @ChildCollection(
     name = "sensors",
-    controller = "sensors"
+    type = "sensors"
   )
   public @NonNull Operator getSensors (@NonNull final Long identifier) {
-    return new ExpressionFilter(":this.nodeIdentifier = :identifier").setParameter("identifier", identifier);
-  }*/
+    return Filter.expression(":this.nodeIdentifier = :identifier")
+                 .setParameter("identifier", identifier);
+  }
+*/
 
   /*
   @GetMapping("/nodes/{identifier}/sensors")

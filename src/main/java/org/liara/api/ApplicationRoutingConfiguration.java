@@ -1,7 +1,7 @@
 package org.liara.api;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionControllerRoutingFactory;
+import org.liara.api.collection.controller.CollectionControllerRoutingFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,14 +13,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 @Configuration
 @EnableWebFlux
-public class CollectionRoutingConfiguration
+public class ApplicationRoutingConfiguration
   implements WebFluxConfigurer
 {
   @NonNull
   private final CollectionControllerRoutingFactory _factory;
 
   @Autowired
-  public CollectionRoutingConfiguration (@NonNull final CollectionControllerRoutingFactory factory) {
+  public ApplicationRoutingConfiguration (@NonNull final CollectionControllerRoutingFactory factory) {
     _factory = factory;
   }
 

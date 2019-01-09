@@ -22,11 +22,11 @@
 package org.liara.api.controller;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionController;
+import org.liara.api.metamodel.collection.CollectionController;
 import org.liara.api.data.entity.state.ValueState;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@CollectionController(name = "states<float>", managedType = ValueState.Float.class)
+@CollectionController.Name("states<float>")
 public final class FloatStateCollectionController
   extends ApplicationEntityCollectionController<ValueState.Float>
 {

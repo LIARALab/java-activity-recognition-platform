@@ -1,6 +1,7 @@
 package org.liara.api.logging;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.utils.ObjectIdentifiers;
 
 public final class InstantiationMessageFactory
 {
@@ -25,6 +26,6 @@ public final class InstantiationMessageFactory
   }
 
   private static @NonNull String getIdentifier (@NonNull final Object object) {
-    return object.getClass().toString() + "@" + System.identityHashCode(object);
+    return ObjectIdentifiers.getIdentifier(object);
   }
 }

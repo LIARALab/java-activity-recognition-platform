@@ -24,8 +24,8 @@ package org.liara.api.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.CollectionController;
-import org.liara.api.collection.CollectionOperation;
+import org.liara.api.metamodel.collection.CollectionController;
+import org.liara.api.metamodel.collection.PostableCollectionController;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.event.ApplicationEntityEvent;
 import org.liara.api.validation.InvalidModelException;
@@ -33,10 +33,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.transaction.Transactional;
 
-@CollectionController(name = "sensors", managedType = Sensor.class)
+@CollectionController.Name("sensors")
 public class SensorCollectionController
   extends ApplicationEntityCollectionController<Sensor>
-  implements CollectionOperation.Create
+  implements PostableCollectionController<Sensor>
 {
   @Autowired
   public SensorCollectionController (
@@ -48,7 +48,7 @@ public class SensorCollectionController
 
   @Override
   @Transactional
-  public @NonNull Long create (
+  public @NonNull Long post (
     @NonNull final JsonNode json
   )
   throws JsonProcessingException, InvalidModelException

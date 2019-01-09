@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 @SpringBootApplication
 @Import(
   {
-    CollectionRoutingConfiguration.class
+    ApplicationRoutingConfiguration.class
   }
 )
 public class Application
