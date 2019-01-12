@@ -3,14 +3,20 @@ package org.liara.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.validation.InvalidModelException;
+import org.liara.rest.error.InvalidModelException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.util.Objects;
 import java.util.Set;
 
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class WritableControllerConfiguration
   extends ReadableControllerConfiguration
 {
@@ -23,6 +29,7 @@ public class WritableControllerConfiguration
   @NonNull
   private final Validator _validator;
 
+  @Autowired
   public WritableControllerConfiguration (
     @NonNull final WritableControllerConfigurationBuilder builder
   )
@@ -69,8 +76,7 @@ public class WritableControllerConfiguration
       @NonNull final WritableControllerConfiguration otherConfiguration = (WritableControllerConfiguration) other;
 
       return Objects.equals(_applicationEventPublisher, otherConfiguration.getApplicationEventPublisher()) &&
-             Objects.equals(_objectMapper, otherConfiguration.getObjectMapper()) && Objects.equals(
-        _validator,
+             Objects.equals(_objectMapper, otherConfiguration.getObjectMapper()) && Objects.equals(_validator,
         otherConfiguration.getValidator()
       );
     }

@@ -24,16 +24,15 @@ package org.liara.api.controller.collection;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.controller.ApplicationEntityCollectionController;
 import org.liara.api.controller.WritableControllerConfiguration;
 import org.liara.api.controller.model.NodeModelController;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.event.NodeEvent;
-import org.liara.api.metamodel.collection.PostCollectionOperation;
-import org.liara.api.metamodel.collection.RootCollectionController;
-import org.liara.api.metamodel.model.ModelController;
-import org.liara.api.validation.InvalidModelException;
+import org.liara.rest.error.InvalidModelException;
+import org.liara.rest.metamodel.collection.PostableCollection;
+import org.liara.rest.metamodel.collection.RootRestCollection;
+import org.liara.rest.metamodel.model.RestModel;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.validation.Valid;
@@ -43,10 +42,10 @@ import javax.validation.Valid;
  * 
  * @author C&eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
  */
-@RootCollectionController("nodes")
+@RootRestCollection("nodes")
 public final class NodeCollectionController
-  extends ApplicationEntityCollectionController<Node>
-  implements PostCollectionOperation<Node>
+  extends BaseNodeCollectionController
+  implements PostableCollection<Node>
 {
   @NonNull
   private final WritableControllerConfiguration _configuration;
@@ -56,7 +55,7 @@ public final class NodeCollectionController
     @NonNull final WritableControllerConfiguration configuration
   )
   {
-    super(Node.class, configuration);
+    super(configuration);
     _configuration = configuration;
   }
 
@@ -75,7 +74,7 @@ public final class NodeCollectionController
   }
 
   @Override
-  public @NonNull ModelController<Node> getModelController () {
+  public @NonNull RestModel<Node> getModelController () {
     return new NodeModelController(_configuration);
   }
 

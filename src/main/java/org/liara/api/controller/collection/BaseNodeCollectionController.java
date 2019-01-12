@@ -24,19 +24,22 @@ package org.liara.api.controller.collection;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.controller.ApplicationEntityCollectionController;
 import org.liara.api.controller.ReadableControllerConfiguration;
-import org.liara.api.data.entity.state.LabelState;
-import org.liara.rest.metamodel.collection.RootRestCollection;
+import org.liara.api.data.entity.Node;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@RootRestCollection("states<label>")
-public class LabelStateCollectionController
-  extends ApplicationEntityCollectionController<LabelState>
+public class BaseNodeCollectionController
+  extends ApplicationEntityCollectionController<Node>
 {
+  @NonNull
+  private final ReadableControllerConfiguration _configuration;
+
   @Autowired
-  public LabelStateCollectionController (
+  public BaseNodeCollectionController (
     @NonNull final ReadableControllerConfiguration configuration
   )
   {
-    super(LabelState.class, configuration);
+    super(Node.class, configuration);
+
+    _configuration = configuration;
   }
 }

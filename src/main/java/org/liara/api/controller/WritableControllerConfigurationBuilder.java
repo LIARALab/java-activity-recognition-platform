@@ -3,11 +3,10 @@ package org.liara.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.collection.configuration.EntityConfigurationFactory;
+import org.liara.rest.request.jpa.EntityHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +41,6 @@ public class WritableControllerConfigurationBuilder
     return this;
   }
 
-  @Bean
   @Override
   public @NonNull WritableControllerConfiguration build () {
     return new WritableControllerConfiguration(this);
@@ -77,7 +75,7 @@ public class WritableControllerConfigurationBuilder
   @Override
   @Autowired
   public @NonNull WritableControllerConfigurationBuilder setEntityManager (
-    @Nullable EntityManager entityManager
+    @Nullable final EntityManager entityManager
   )
   {
     super.setEntityManager(entityManager);
@@ -87,7 +85,7 @@ public class WritableControllerConfigurationBuilder
   @Override
   @Autowired
   public @NonNull WritableControllerConfigurationBuilder setEntityConfigurationFactory (
-    @Nullable EntityConfigurationFactory entityConfigurationFactory
+    @Nullable final EntityHandlerFactory entityConfigurationFactory
   )
   {
     super.setEntityConfigurationFactory(entityConfigurationFactory);

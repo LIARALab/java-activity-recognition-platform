@@ -7,7 +7,6 @@ plugins {
   id 'io.spring.dependency-management' version '1.0.6.RELEASE'
   id 'eclipse'
   id 'idea'
-  //id 'at.comm_unity.gradle.plugins.jpamodelgen' version '1.1.4'
 }
 
 defaultTasks 'clean', 'test', 'jacocoTestReport', 'build'
@@ -39,6 +38,7 @@ dependencies {
   implementation group: 'org.liara', name: 'collection', version: '0.1-SNAPSHOT'
   implementation group: 'org.liara', name: 'selection', version: '0.1-SNAPSHOT'
   implementation group: 'org.liara', name: 'api-request', version: '0.1-SNAPSHOT'
+  implementation group: 'org.liara', name: 'rest', version: '0.1-SNAPSHOT'
 
   testImplementation group: 'org.codehaus.groovy', name:'groovy-all', version: '2.4.13'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'

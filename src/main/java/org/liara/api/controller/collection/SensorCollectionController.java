@@ -28,17 +28,17 @@ import org.liara.api.controller.ApplicationEntityCollectionController;
 import org.liara.api.controller.WritableControllerConfiguration;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.event.ApplicationEntityEvent;
-import org.liara.api.metamodel.collection.PostCollectionOperation;
-import org.liara.api.metamodel.collection.RootCollectionController;
-import org.liara.api.validation.InvalidModelException;
+import org.liara.rest.error.InvalidModelException;
+import org.liara.rest.metamodel.collection.PostableCollection;
+import org.liara.rest.metamodel.collection.RootRestCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.transaction.Transactional;
 
-@RootCollectionController("sensors")
+@RootRestCollection("sensors")
 public class SensorCollectionController
   extends ApplicationEntityCollectionController<Sensor>
-  implements PostCollectionOperation<Sensor>
+  implements PostableCollection<Sensor>
 {
   @NonNull
   private final WritableControllerConfiguration _configuration;

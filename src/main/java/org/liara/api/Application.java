@@ -27,6 +27,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
@@ -37,6 +38,9 @@ import java.util.Arrays;
 import java.util.logging.Logger;
 
 @SpringBootApplication
+@ComponentScan({
+  "org.liara.api", "org.liara.rest"
+})
 @Import({})
 public class Application
 {

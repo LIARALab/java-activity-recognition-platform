@@ -22,20 +22,20 @@
 package org.liara.api.controller;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.collection.configuration.RequestConfiguration;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.metamodel.collection.CollectionController;
-import org.liara.api.metamodel.collection.GetCollectionOperation;
-import org.liara.api.metamodel.model.ModelController;
 import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.request.APIRequest;
 import org.liara.request.validator.error.InvalidAPIRequestException;
+import org.liara.rest.metamodel.collection.GetableCollection;
+import org.liara.rest.metamodel.collection.RestCollection;
+import org.liara.rest.metamodel.model.RestModel;
+import org.liara.rest.request.RestRequestHandler;
 
 import java.util.Objects;
 
 public class ApplicationEntityCollectionController<Entity extends ApplicationEntity>
-  implements CollectionController<Entity>,
-             GetCollectionOperation<Entity>
+  implements RestCollection<Entity>,
+             GetableCollection<Entity>
 {
   @NonNull
   private final Class<Entity> _modelClass;
@@ -57,14 +57,14 @@ public class ApplicationEntityCollectionController<Entity extends ApplicationEnt
   )
   throws InvalidAPIRequestException
   {
-    @NonNull final RequestConfiguration configuration = getRequestConfiguration();
+    @NonNull final RestRequestHandler configuration = getRequestConfiguration();
 
     configuration.validate(request).assertRequestIsValid();
 
     return (JPAEntityCollection<Entity>) configuration.parse(request).apply(getCollection());
   }
 
-  public @NonNull RequestConfiguration getRequestConfiguration () {
+  public @NonNull RestRequestHandler getRequestConfiguration () {
     return _configuration.getEntityConfigurationFactory().create(getModelClass());
   }
 
@@ -73,7 +73,7 @@ public class ApplicationEntityCollectionController<Entity extends ApplicationEnt
   }
 
   @Override
-  public @NonNull ModelController<Entity> getModelController () {
+  public @NonNull RestModel<Entity> getModelController () {
     return new ApplicationModelController<>(_modelClass, _configuration);
   }
 

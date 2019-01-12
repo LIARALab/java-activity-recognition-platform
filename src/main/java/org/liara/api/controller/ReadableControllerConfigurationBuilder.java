@@ -2,10 +2,10 @@ package org.liara.api.controller;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.collection.configuration.EntityConfigurationFactory;
+import org.liara.rest.request.jpa.EntityHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -13,11 +13,12 @@ import javax.persistence.EntityManager;
 import java.util.Objects;
 
 @Component
-@Scope(BeanDefinition.SCOPE_SINGLETON)
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
+@Primary
 public class ReadableControllerConfigurationBuilder
 {
   @Nullable
-  private EntityConfigurationFactory _entityConfigurationFactory;
+  private EntityHandlerFactory _entityConfigurationFactory;
 
   @Nullable
   private EntityManager _entityManager;
@@ -27,7 +28,6 @@ public class ReadableControllerConfigurationBuilder
     _entityManager = null;
   }
 
-  @Bean
   public @NonNull ReadableControllerConfiguration build () {
     return new ReadableControllerConfiguration(this);
   }
@@ -45,13 +45,13 @@ public class ReadableControllerConfigurationBuilder
     return this;
   }
 
-  public @Nullable EntityConfigurationFactory getEntityConfigurationFactory () {
+  public @Nullable EntityHandlerFactory getEntityConfigurationFactory () {
     return _entityConfigurationFactory;
   }
 
   @Autowired
   public @NonNull ReadableControllerConfigurationBuilder setEntityConfigurationFactory (
-    @Nullable final EntityConfigurationFactory entityConfigurationFactory
+    @Nullable final EntityHandlerFactory entityConfigurationFactory
   )
   {
     _entityConfigurationFactory = entityConfigurationFactory;

@@ -25,10 +25,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.controller.ApplicationEntityCollectionController;
 import org.liara.api.controller.ReadableControllerConfiguration;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.metamodel.collection.RootCollectionController;
+import org.liara.rest.metamodel.collection.RootRestCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@RootCollectionController("states")
+@RootRestCollection("states")
 public class StateCollectionController
   extends ApplicationEntityCollectionController<State>
 {
