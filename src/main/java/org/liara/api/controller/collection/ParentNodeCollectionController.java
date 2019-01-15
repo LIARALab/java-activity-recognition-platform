@@ -3,7 +3,7 @@ package org.liara.api.controller.collection;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.controller.ReadableControllerConfiguration;
 import org.liara.api.controller.WritableControllerConfiguration;
-import org.liara.api.controller.model.ChildNodeModelController;
+import org.liara.api.controller.model.ParentNodeModelController;
 import org.liara.api.data.entity.Node;
 import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.collection.operator.filtering.Filter;
@@ -15,41 +15,39 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class ChildrenNodeCollectionController
+public class ParentNodeCollectionController
   extends BaseNodeCollectionController
 {
   @NonNull
   private final ReadableControllerConfiguration _configuration;
 
   @NonNull
-  private final Node _parent;
+  private final Node _child;
 
   @Autowired
-  public ChildrenNodeCollectionController (
-    @NonNull final ReadableControllerConfiguration configuration, @NonNull final Node parent
+  public ParentNodeCollectionController (
+    @NonNull final ReadableControllerConfiguration configuration, @NonNull final Node child
   )
   {
     super(configuration);
-    _parent = parent;
+    _child = child;
     _configuration = configuration;
   }
 
   @Override
   public @NonNull JPAEntityCollection<Node> getCollection () {
-    return super.getCollection().addFilter(
-      Filter.expression(":this.coordinates.start > :parentStart")
-        .setParameter("parentStart", _parent.getCoordinates().getStart())).addFilter(
-      Filter.expression(":this.coordinates.end < :parentEnd")
-        .setParameter("parentEnd", _parent.getCoordinates().getEnd())).addFilter(Filter.expression(
-      ":this.coordinates.depth = :parentDepth + 1").setParameter("parentDepth", _parent.getCoordinates().getDepth()));
+    return super.getCollection().addFilter(Filter.expression(":this.coordinates.start < :childStart")
+                                             .setParameter("childStart", _child.getCoordinates().getStart())).addFilter(
+      Filter.expression(":this.coordinates.end > :childEnd")
+        .setParameter("childEnd", _child.getCoordinates().getEnd()));
   }
 
   @Override
   public @NonNull RestModel<Node> getModelController () {
     return _configuration.getApplicationContext().getBean(
-      ChildNodeModelController.class,
+      ParentNodeModelController.class,
       _configuration.getApplicationContext().getBean(WritableControllerConfiguration.class),
-      _parent
+      _child
     );
   }
 }

@@ -3,7 +3,7 @@ package org.liara.api.controller.collection;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.controller.ReadableControllerConfiguration;
 import org.liara.api.controller.WritableControllerConfiguration;
-import org.liara.api.controller.model.ChildNodeModelController;
+import org.liara.api.controller.model.DeepChildNodeModelController;
 import org.liara.api.data.entity.Node;
 import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.collection.operator.filtering.Filter;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class ChildrenNodeCollectionController
+public class DeepChildrenNodeCollectionController
   extends BaseNodeCollectionController
 {
   @NonNull
@@ -25,7 +25,7 @@ public class ChildrenNodeCollectionController
   private final Node _parent;
 
   @Autowired
-  public ChildrenNodeCollectionController (
+  public DeepChildrenNodeCollectionController (
     @NonNull final ReadableControllerConfiguration configuration, @NonNull final Node parent
   )
   {
@@ -36,18 +36,17 @@ public class ChildrenNodeCollectionController
 
   @Override
   public @NonNull JPAEntityCollection<Node> getCollection () {
-    return super.getCollection().addFilter(
-      Filter.expression(":this.coordinates.start > :parentStart")
-        .setParameter("parentStart", _parent.getCoordinates().getStart())).addFilter(
-      Filter.expression(":this.coordinates.end < :parentEnd")
-        .setParameter("parentEnd", _parent.getCoordinates().getEnd())).addFilter(Filter.expression(
-      ":this.coordinates.depth = :parentDepth + 1").setParameter("parentDepth", _parent.getCoordinates().getDepth()));
+    return super.getCollection()
+             .addFilter(Filter.expression(":this.coordinates.start > :parentStart")
+                          .setParameter("parentStart", _parent.getCoordinates().getStart()))
+             .addFilter(Filter.expression(":this.coordinates.end < :parentEnd")
+                          .setParameter("parentEnd", _parent.getCoordinates().getEnd()));
   }
 
   @Override
   public @NonNull RestModel<Node> getModelController () {
     return _configuration.getApplicationContext().getBean(
-      ChildNodeModelController.class,
+      DeepChildNodeModelController.class,
       _configuration.getApplicationContext().getBean(WritableControllerConfiguration.class),
       _parent
     );

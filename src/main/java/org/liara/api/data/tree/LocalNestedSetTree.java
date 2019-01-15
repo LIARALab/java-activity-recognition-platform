@@ -60,7 +60,7 @@ public class LocalNestedSetTree
   }
 
   public void attachChild (@NonNull final NestedSet node) {
-    if (!this.contains(node)) {
+    if (!contains(node)) {
       final LocalNestedSetTreeNodeReference<NestedSet> reference = new LocalNestedSetTreeNodeReference<>(node);
 
       reference.getCoordinates().set(getSetEnd(), getSetEnd() + 1, 1);

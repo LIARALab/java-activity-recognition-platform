@@ -25,7 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.controller.WritableControllerConfiguration;
-import org.liara.api.controller.model.NodeModelController;
+import org.liara.api.controller.model.BaseNodeModelController;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.event.NodeEvent;
@@ -75,7 +75,7 @@ public final class NodeCollectionController
 
   @Override
   public @NonNull RestModel<Node> getModelController () {
-    return new NodeModelController(_configuration);
+    return new BaseNodeModelController(_configuration);
   }
 
   /*

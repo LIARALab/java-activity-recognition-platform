@@ -155,6 +155,11 @@ public class NestedSetCoordinates
     return false;
   }
 
+  @Override
+  public String toString () {
+    return super.toString() + "{" + "_start=" + _start + ", _end=" + _end + ", _depth=" + _depth + '}';
+  }
+
   public NestedSetCoordinates setDefault () {
     _start = 1;
     _end = 2;

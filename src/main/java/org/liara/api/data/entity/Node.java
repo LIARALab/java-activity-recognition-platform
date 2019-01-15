@@ -83,6 +83,10 @@ public class Node
   }
 
   public void setCoordinates (@Nullable final NestedSetCoordinates coordinates) {
-    _coordinates.set(coordinates);
+    if (coordinates == null) {
+      _coordinates = new NestedSetCoordinates();
+    } else {
+      _coordinates = coordinates;
+    }
   }
 }

@@ -5,6 +5,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.rest.request.jpa.EntityHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -23,13 +24,28 @@ public class ReadableControllerConfigurationBuilder
   @Nullable
   private EntityManager _entityManager;
 
+  @Nullable
+  private ApplicationContext _applicationContext;
+
   public ReadableControllerConfigurationBuilder () {
     _entityConfigurationFactory = null;
     _entityManager = null;
+    _applicationContext = null;
   }
 
   public @NonNull ReadableControllerConfiguration build () {
     return new ReadableControllerConfiguration(this);
+  }
+
+
+  public @Nullable ApplicationContext getApplicationContext () {
+    return _applicationContext;
+  }
+
+  @Autowired
+  public @NonNull ReadableControllerConfigurationBuilder setApplicationContext (@Nullable final ApplicationContext applicationContext) {
+    _applicationContext = applicationContext;
+    return this;
   }
 
   public @Nullable EntityManager getEntityManager () {
@@ -60,7 +76,7 @@ public class ReadableControllerConfigurationBuilder
 
   @Override
   public int hashCode () {
-    return Objects.hash(_entityConfigurationFactory, _entityManager);
+    return Objects.hash(_entityConfigurationFactory, _entityManager, _applicationContext);
   }
 
   @Override
@@ -73,7 +89,10 @@ public class ReadableControllerConfigurationBuilder
         (ReadableControllerConfigurationBuilder) other;
 
       return Objects.equals(_entityConfigurationFactory, otherBuilder.getEntityConfigurationFactory()) &&
-             Objects.equals(_entityManager, otherBuilder.getEntityManager());
+             Objects.equals(_entityManager, otherBuilder.getEntityManager()) && Objects.equals(
+        _applicationContext,
+        otherBuilder.getApplicationContext()
+      );
     }
 
     return false;

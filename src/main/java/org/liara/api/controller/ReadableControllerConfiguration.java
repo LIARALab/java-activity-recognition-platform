@@ -5,6 +5,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.rest.request.jpa.EntityHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -23,6 +24,9 @@ public class ReadableControllerConfiguration
   @NonNull
   private final EntityManager _entityManager;
 
+  @NonNull
+  private final ApplicationContext _applicationContext;
+
   @Autowired
   public ReadableControllerConfiguration (
     @NonNull final ReadableControllerConfigurationBuilder builder
@@ -30,6 +34,7 @@ public class ReadableControllerConfiguration
   {
     _entityConfigurationFactory = Objects.requireNonNull(builder.getEntityConfigurationFactory());
     _entityManager = Objects.requireNonNull(builder.getEntityManager());
+    _applicationContext = Objects.requireNonNull(builder.getApplicationContext());
   }
 
   public @NonNull EntityHandlerFactory getEntityConfigurationFactory () {
@@ -40,9 +45,13 @@ public class ReadableControllerConfiguration
     return _entityManager;
   }
 
+  public @NonNull ApplicationContext getApplicationContext () {
+    return _applicationContext;
+  }
+
   @Override
   public int hashCode () {
-    return Objects.hash(_entityManager, _entityConfigurationFactory);
+    return Objects.hash(_entityManager, _entityConfigurationFactory, _applicationContext);
   }
 
   @Override
@@ -53,7 +62,9 @@ public class ReadableControllerConfiguration
     if (other instanceof ReadableControllerConfiguration) {
       @NonNull final ReadableControllerConfiguration otherConfiguration = (ReadableControllerConfiguration) other;
 
-      return Objects.equals(_entityConfigurationFactory, otherConfiguration.getEntityConfigurationFactory()) && Objects.equals(_entityManager, otherConfiguration.getEntityManager());
+      return Objects.equals(_entityConfigurationFactory, otherConfiguration.getEntityConfigurationFactory()) &&
+             Objects.equals(_entityManager, otherConfiguration.getEntityManager()) &&
+             Objects.equals(_applicationContext, otherConfiguration.getApplicationContext());
     }
 
     return false;

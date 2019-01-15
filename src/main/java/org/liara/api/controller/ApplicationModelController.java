@@ -1,6 +1,7 @@
 package org.liara.api.controller;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.rest.metamodel.model.GetableModel;
 import org.liara.rest.metamodel.model.RestModel;
 
@@ -8,7 +9,7 @@ import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.UUID;
 
-public class ApplicationModelController<Model>
+public class ApplicationModelController<Model extends ApplicationEntity>
   implements RestModel<Model>,
              GetableModel<Model>
 {
