@@ -7,7 +7,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.liara.rest.model.RestDatabaseModel;
+import org.liara.rest.model.IdentifiableModel;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
@@ -22,7 +22,7 @@ import java.util.Objects;
  */
 @MappedSuperclass
 public class ApplicationEntity
-  implements RestDatabaseModel
+  implements IdentifiableModel
 {
   @Nullable
   private Long _identifier;
@@ -47,6 +47,7 @@ public class ApplicationEntity
     _creationDate = null;
     _updateDate = null;
     _deletionDate = null;
+    _uuid = null;
   }
 
   /**
@@ -59,6 +60,7 @@ public class ApplicationEntity
     _creationDate = toCopy.getCreationDate();
     _updateDate = toCopy.getUpdateDate();
     _deletionDate = toCopy.getDeletionDate();
+    _uuid = toCopy.getUniversalUniqueIdentifier();
   }
 
   /**

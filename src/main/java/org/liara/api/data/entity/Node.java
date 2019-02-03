@@ -26,6 +26,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.tree.NestedSet;
 import org.liara.api.data.tree.NestedSetCoordinates;
+import org.liara.collection.operator.Composition;
+import org.liara.collection.operator.Operator;
+import org.liara.collection.operator.filtering.Filter;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -56,9 +59,35 @@ public class Node
     _coordinates = new NestedSetCoordinates(toCopy.getCoordinates());
   }
 
+  public @NonNull Operator parents () {
+    return Composition.of(
+      Filter.expression(":this.coordinates.start < :start")
+        .setParameter("start", _coordinates.getStart()),
+      Filter.expression(":this.coordinates.end > :end")
+        .setParameter("end", _coordinates.getEnd())
+    );
+  }
+
+  public @NonNull Operator deepChildren () {
+    return Composition.of(
+      Filter.expression(":this.coordinates.start > :start")
+        .setParameter("start", _coordinates.getStart()),
+      Filter.expression(":this.coordinates.end < :end")
+        .setParameter("end", _coordinates.getEnd())
+    );
+  }
+
+  public @NonNull Operator children () {
+    return Composition.of(
+      deepChildren(),
+      Filter.expression(":this.coordinates.depth = :depth - 1")
+        .setParameter("depth", _coordinates.getDepth())
+    );
+  }
+
   /**
    * Return the name of this node.
-   * <p>
+   *
    * It's only a label in order to easily know what this node represents.
    *
    * @return The name of this node.
@@ -83,10 +112,7 @@ public class Node
   }
 
   public void setCoordinates (@Nullable final NestedSetCoordinates coordinates) {
-    if (coordinates == null) {
-      _coordinates = new NestedSetCoordinates();
-    } else {
-      _coordinates = coordinates;
-    }
+    _coordinates = coordinates == null ? new NestedSetCoordinates()
+                                       : coordinates;
   }
 }
