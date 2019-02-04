@@ -99,7 +99,7 @@ public class Node
   public static @NonNull Operator children () {
     return Composition.of(
       Node.deepChildren(),
-      Filter.expression(":this.coordinates.depth = :super.depth + 1")
+      Filter.expression(":this.coordinates.depth = :super.coordinates.depth + 1")
     );
   }
 

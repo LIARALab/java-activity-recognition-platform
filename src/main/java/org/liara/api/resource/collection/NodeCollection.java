@@ -26,7 +26,6 @@ import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.event.NodeEvent;
 import org.liara.api.resource.CollectionResource;
-import org.liara.api.resource.model.NodeModelBuilder;
 import org.liara.api.utils.Builder;
 import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.error.InvalidModelException;
@@ -54,9 +53,6 @@ public final class NodeCollection
   extends CollectionResource<Node>
 {
   @NonNull
-  private final NodeModelBuilder _nodeModelBuilder;
-
-  @NonNull
   private final ApplicationEventPublisher _applicationEventPublisher;
 
   @NonNull
@@ -67,7 +63,6 @@ public final class NodeCollection
     @NonNull final NodeCollectionBuilder builder
   ) {
     super(Node.class, Builder.require(builder.getCollectionResourceBuilder()));
-    _nodeModelBuilder = Builder.require(builder.getNodeModelBuilder());
     _applicationEventPublisher = Builder.require(builder.getApplicationEventPublisher());
     _validator = Builder.require(builder.getValidator());
   }
@@ -98,11 +93,4 @@ public final class NodeCollection
       throw new InvalidModelException(errors);
     }
   }
-
-  /*
-  @Override
-  public @NonNull ModelResource<Node> toModelResource (@NonNull final Node node) {
-    _nodeModelBuilder.setNode(node);
-    return _nodeModelBuilder.build();
-  }*/
 }

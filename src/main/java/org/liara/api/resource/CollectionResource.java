@@ -38,7 +38,6 @@ import org.liara.rest.metamodel.RestResource;
 import org.liara.rest.processor.ProcessorHandler;
 import org.liara.rest.request.RestRequest;
 import org.liara.rest.request.handler.RestRequestHandler;
-import org.liara.rest.request.jpa.EntityFilteringHandlerFactory;
 import org.liara.rest.request.jpa.EntityOrderingHandlerFactory;
 import org.liara.rest.response.RestResponse;
 import org.liara.selection.processor.ProcessorExecutor;
@@ -68,7 +67,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
   private final Class<Entity> _modelClass;
 
   @NonNull
-  private final EntityFilteringHandlerFactory _entityFilteringHandlerFactory;
+  private final RelationBasedFilteringHandlerFactory _entityFilteringHandlerFactory;
 
   @NonNull
   private final EntityOrderingHandlerFactory _entityOrderingHandlerFactory;
@@ -204,6 +203,10 @@ public class CollectionResource<Entity extends ApplicationEntity>
 
       configuration.validate(request.getParameters()).assertRequestIsValid();
 
+      System.out.println((
+        (JPAEntityCollection) configuration.parse(request.getParameters())
+                                .apply(getCollection())
+      ).getQuery(":this"));
       return RestResponse.ofCollection(configuration.parse(request.getParameters())
                                          .apply(getCollection()));
     } catch (@NonNull final InvalidAPIRequestException exception) {
@@ -229,7 +232,9 @@ public class CollectionResource<Entity extends ApplicationEntity>
 
   @Override
   public @NonNull RestRequestHandler getResourceFilteringHandler () {
-    return RestRequestHandler.all(_entityFilteringHandlerFactory.getHandlerFor(_modelClass));
+    return RestRequestHandler.all(
+      _entityFilteringHandlerFactory.getHandlerFor(_modelClass)
+    );
   }
 
   @Override
@@ -237,7 +242,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
     return _entityOrderingHandlerFactory.getExecutorFor(_modelClass);
   }
 
-  public @NonNull EntityFilteringHandlerFactory getEntityFilteringHandlerFactory () {
+  public @NonNull RelationBasedFilteringHandlerFactory getEntityFilteringHandlerFactory () {
     return _entityFilteringHandlerFactory;
   }
 

@@ -3,7 +3,6 @@ package org.liara.api.resource.collection;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.resource.CollectionResourceBuilder;
-import org.liara.api.resource.model.NodeModelBuilder;
 import org.liara.api.utils.Builder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -23,9 +22,6 @@ public class NodeCollectionBuilder
   private CollectionResourceBuilder _collectionResourceBuilder;
 
   @Nullable
-  private NodeModelBuilder _nodeModelBuilder;
-
-  @Nullable
   private ApplicationEventPublisher _applicationEventPublisher;
 
   @Nullable
@@ -33,13 +29,11 @@ public class NodeCollectionBuilder
 
   public NodeCollectionBuilder () {
     _collectionResourceBuilder = null;
-    _nodeModelBuilder = null;
     _applicationEventPublisher = null;
     _validator = null;
   }
 
   public NodeCollectionBuilder (@NonNull final NodeCollectionBuilder toCopy) {
-    _nodeModelBuilder = toCopy.getNodeModelBuilder();
     _collectionResourceBuilder = toCopy.getCollectionResourceBuilder();
     _applicationEventPublisher = toCopy.getApplicationEventPublisher();
     _validator = toCopy.getValidator();
@@ -89,18 +83,6 @@ public class NodeCollectionBuilder
     return this;
   }
 
-  public @Nullable NodeModelBuilder getNodeModelBuilder () {
-    return _nodeModelBuilder;
-  }
-
-  @Autowired
-  public @NonNull NodeCollectionBuilder setNodeModelBuilder (
-    @Nullable final NodeModelBuilder nodeModelBuilder
-  ) {
-    _nodeModelBuilder = nodeModelBuilder;
-    return this;
-  }
-
   @Override
   public boolean equals (@Nullable final Object other) {
     if (other == null) return false;
@@ -115,10 +97,6 @@ public class NodeCollectionBuilder
         otherNodeCollectionBuilder.getCollectionResourceBuilder()
       ) &&
              Objects.equals(
-               _nodeModelBuilder,
-               otherNodeCollectionBuilder.getNodeModelBuilder()
-             ) &&
-             Objects.equals(
                _applicationEventPublisher,
                otherNodeCollectionBuilder.getApplicationEventPublisher()
              ) &&
@@ -132,7 +110,6 @@ public class NodeCollectionBuilder
   public int hashCode () {
     return Objects.hash(
       _collectionResourceBuilder,
-      _nodeModelBuilder,
       _applicationEventPublisher,
       _validator
     );

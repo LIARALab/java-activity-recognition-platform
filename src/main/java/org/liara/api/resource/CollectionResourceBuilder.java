@@ -4,7 +4,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.relation.RelationManager;
-import org.liara.rest.request.jpa.EntityFilteringHandlerFactory;
 import org.liara.rest.request.jpa.EntityOrderingHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -21,7 +20,7 @@ import java.util.Objects;
 public class CollectionResourceBuilder
 {
   @Nullable
-  private EntityFilteringHandlerFactory _entityFilteringHandlerFactory;
+  private RelationBasedFilteringHandlerFactory _entityFilteringHandlerFactory;
 
   @Nullable
   private EntityOrderingHandlerFactory _entityOrderingHandlerFactory;
@@ -61,13 +60,13 @@ public class CollectionResourceBuilder
     _relationManager = relationManager;
   }
 
-  public @Nullable EntityFilteringHandlerFactory getEntityFilteringHandlerFactory () {
+  public @Nullable RelationBasedFilteringHandlerFactory getEntityFilteringHandlerFactory () {
     return _entityFilteringHandlerFactory;
   }
 
   @Autowired
   public @NonNull CollectionResourceBuilder setEntityFilteringHandlerFactory (
-    @Nullable final EntityFilteringHandlerFactory entityFilteringHandlerFactory
+    @Nullable final RelationBasedFilteringHandlerFactory entityFilteringHandlerFactory
   ) {
     _entityFilteringHandlerFactory = entityFilteringHandlerFactory;
     return this;
