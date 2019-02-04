@@ -26,7 +26,6 @@ import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.event.NodeEvent;
 import org.liara.api.resource.CollectionResource;
-import org.liara.api.resource.ModelResource;
 import org.liara.api.resource.model.NodeModelBuilder;
 import org.liara.api.utils.Builder;
 import org.liara.rest.error.IllegalRestRequestException;
@@ -100,9 +99,10 @@ public final class NodeCollection
     }
   }
 
+  /*
   @Override
   public @NonNull ModelResource<Node> toModelResource (@NonNull final Node node) {
     _nodeModelBuilder.setNode(node);
     return _nodeModelBuilder.build();
-  }
+  }*/
 }

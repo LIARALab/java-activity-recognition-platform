@@ -71,7 +71,7 @@ public abstract class ComputedCollectionResource<Model extends ApplicationEntity
     @NonNull final Collection<Model> collection = Composition.of(
       Filter.expression(
         ":this.universalUniqueIdentifier = :identifier"
-      ).setParameter("identifier", identifier),
+      ).setParameter("identifier", identifier.toString()),
       Cursor.FIRST
     ).apply(getCollection()).expectedToBeCollectionOf(getModelClass());
 

@@ -9,14 +9,9 @@ import org.liara.api.resource.model.NodeModelBuilder;
 import org.liara.api.utils.Builder;
 import org.liara.api.utils.Duplicator;
 import org.liara.collection.operator.Operator;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-@Component
-@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class ChildrenNodeCollection
   extends ComputedCollectionResource<Node>
 {
@@ -36,7 +31,7 @@ public class ChildrenNodeCollection
 
   @Override
   public @NonNull Operator getOperator () {
-    return _target.children();
+    return Node.children();
   }
 
   public @NonNull Node getTarget () {

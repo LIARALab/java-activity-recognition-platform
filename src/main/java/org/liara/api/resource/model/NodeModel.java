@@ -81,8 +81,8 @@ public class NodeModel
   public @NonNull NodeModel getParentResource ()
   throws NoSuchElementException {
     @NonNull final List<@NonNull Node> nodes = _entityManager.createQuery(
-      "SELECT parent " +
-      "FROM " + Node.class + " node " +
+      "SELECT node " +
+      "FROM " + Node.class.getName() + " node " +
       "WHERE node.coordinates.start < :start " +
       "  AND node.coordinates.end > :end " +
       "  AND node.coordinates.depth = :depth - 1",

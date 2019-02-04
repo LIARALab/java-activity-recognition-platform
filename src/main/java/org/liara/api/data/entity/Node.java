@@ -26,9 +26,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.tree.NestedSet;
 import org.liara.api.data.tree.NestedSetCoordinates;
+import org.liara.api.relation.RelationFactory;
 import org.liara.collection.operator.Composition;
 import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.filtering.Filter;
+import org.liara.collection.operator.joining.Join;
 
 import javax.persistence.Column;
 import javax.persistence.Embedded;
@@ -42,6 +44,73 @@ public class Node
   extends ApplicationEntity
   implements NestedSet
 {
+  @RelationFactory(Node.class)
+  public static @NonNull Operator parent () {
+    return Join.inner(
+      Node.class, "parent"
+    ).filter(Filter.expression(":this.coordinates.start < :super.coordinates.start "))
+             .filter(Filter.expression(":this.coordinates.end > :super.coordinates.end"))
+             .filter(Filter.expression(":this.coordinates.depth = :super.coordinates.depth - 1"));
+  }
+
+  public static @NonNull Operator parent (@NonNull final Node node) {
+    return Composition.of(
+      Node.parents(node),
+      Filter.expression(":this.coordinates.depth = :depth - 1")
+        .setParameter("depth", node.getCoordinates().getDepth())
+    );
+  }
+
+  @RelationFactory(Node.class)
+  public static @NonNull Operator parents () {
+    return Composition.of(
+      Filter.expression(":this.coordinates.start < :super.coordinates.start"),
+      Filter.expression(":this.coordinates.end > :super.coordinates.end")
+    );
+  }
+
+  public static @NonNull Operator parents (@NonNull final Node node) {
+    return Composition.of(
+      Filter.expression(":this.coordinates.start < :start")
+        .setParameter("start", node.getCoordinates().getStart()),
+      Filter.expression(":this.coordinates.end > :end")
+        .setParameter("end", node.getCoordinates().getEnd())
+    );
+  }
+
+  @RelationFactory(Node.class)
+  public static @NonNull Operator deepChildren () {
+    return Composition.of(
+      Filter.expression(":this.coordinates.start > :super.coordinates.start"),
+      Filter.expression(":this.coordinates.end < :super.coordinates.end")
+    );
+  }
+
+  public static @NonNull Operator deepChildren (@NonNull final Node node) {
+    return Composition.of(
+      Filter.expression(":this.coordinates.start > :start")
+        .setParameter("start", node.getCoordinates().getStart()),
+      Filter.expression(":this.coordinates.end < :end")
+        .setParameter("end", node.getCoordinates().getEnd())
+    );
+  }
+
+  @RelationFactory(Node.class)
+  public static @NonNull Operator children () {
+    return Composition.of(
+      Node.deepChildren(),
+      Filter.expression(":this.coordinates.depth = :super.depth + 1")
+    );
+  }
+
+  public static @NonNull Operator children (@NonNull final Node node) {
+    return Composition.of(
+      Node.deepChildren(node),
+      Filter.expression(":this.coordinates.depth = :depth + 1")
+        .setParameter("depth", node.getCoordinates().getDepth())
+    );
+  }
+
   @Nullable
   private String _name;
 
@@ -57,32 +126,6 @@ public class Node
     super(toCopy);
     _name = toCopy.getName();
     _coordinates = new NestedSetCoordinates(toCopy.getCoordinates());
-  }
-
-  public @NonNull Operator parents () {
-    return Composition.of(
-      Filter.expression(":this.coordinates.start < :start")
-        .setParameter("start", _coordinates.getStart()),
-      Filter.expression(":this.coordinates.end > :end")
-        .setParameter("end", _coordinates.getEnd())
-    );
-  }
-
-  public @NonNull Operator deepChildren () {
-    return Composition.of(
-      Filter.expression(":this.coordinates.start > :start")
-        .setParameter("start", _coordinates.getStart()),
-      Filter.expression(":this.coordinates.end < :end")
-        .setParameter("end", _coordinates.getEnd())
-    );
-  }
-
-  public @NonNull Operator children () {
-    return Composition.of(
-      deepChildren(),
-      Filter.expression(":this.coordinates.depth = :depth - 1")
-        .setParameter("depth", _coordinates.getDepth())
-    );
   }
 
   /**

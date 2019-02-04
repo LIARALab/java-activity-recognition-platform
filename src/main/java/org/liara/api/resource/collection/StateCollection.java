@@ -26,15 +26,19 @@ import org.liara.api.data.entity.state.State;
 import org.liara.api.resource.CollectionResource;
 import org.liara.api.resource.CollectionResourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
+@Component
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class StateCollection
   extends CollectionResource<State>
 {
   @Autowired
   public StateCollection (
     @NonNull final CollectionResourceBuilder configuration
-  )
-  {
+  ) {
     super(State.class, configuration);
   }
 }

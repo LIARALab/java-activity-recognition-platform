@@ -25,6 +25,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.utils.Builder;
+import org.liara.api.utils.Duplicator;
 import org.liara.collection.Collection;
 import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.collection.operator.Operator;
@@ -75,6 +76,9 @@ public class CollectionResource<Entity extends ApplicationEntity>
   @NonNull
   private final EntityManager _entityManager;
 
+  @NonNull
+  private final CollectionResourceBuilder _builder;
+
   protected CollectionResource (
     @NonNull final Class<Entity> modelClass,
     @NonNull final CollectionResourceBuilder builder
@@ -83,6 +87,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
     _entityOrderingHandlerFactory = Builder.require(builder.getEntityOrderingHandlerFactory());
     _entityFilteringHandlerFactory = Builder.require(builder.getEntityFilteringHandlerFactory());
     _entityManager = Builder.require(builder.getEntityManager());
+    _builder = Duplicator.duplicate(builder);
   }
 
   @Override
@@ -118,52 +123,53 @@ public class CollectionResource<Entity extends ApplicationEntity>
 
   public @NonNull ModelResource<Entity> getFirstModelResource ()
   throws NoSuchElementException {
-    @NonNull final List<@NonNull Long> identifiers = _entityManager.createQuery(
-      "SELECT model.identifier " +
-      "FROM " + _modelClass.toString() + " model " +
+    @NonNull final List<@NonNull Entity> identifiers = _entityManager.createQuery(
+      "SELECT model " +
+      "FROM " + _modelClass.getName() + " model " +
       "ORDER BY model.identifier ASC",
-      Long.class
+      getModelClass()
     ).setMaxResults(1).getResultList();
 
     if (identifiers.isEmpty()) {
       throw new NoSuchElementException("No first model found for this collection.");
     } else {
-      return getModelResource(identifiers.get(0));
+      return toModelResource(identifiers.get(0));
     }
   }
 
   public @NonNull ModelResource<Entity> getLastModelResource ()
   throws NoSuchElementException {
-    @NonNull final List<@NonNull Long> identifiers = _entityManager.createQuery(
-      "SELECT model.identifier " +
-      "FROM " + _modelClass.toString() + " model " +
+    @NonNull final List<@NonNull Entity> identifiers = _entityManager.createQuery(
+      "SELECT model " +
+      "FROM " + _modelClass.getName() + " model " +
       "ORDER BY model.identifier DESC",
-      Long.class
+      getModelClass()
     ).setMaxResults(1).getResultList();
 
     if (identifiers.isEmpty()) {
       throw new NoSuchElementException("No last model found for this collection.");
     } else {
-      return getModelResource(identifiers.get(0));
+      return toModelResource(identifiers.get(0));
     }
   }
 
   public @NonNull ModelResource<Entity> getModelResource (@NonNull final UUID identifier)
   throws NoSuchElementException {
-    @NonNull final List<@NonNull Long> identifiers = _entityManager.createQuery(
-      "SELECT model.identifier " +
-      "FROM " + _modelClass.toString() + " model " +
-      "WHERE model.universalUniqueIdentifier = :identifier" +
+    @NonNull final List<@NonNull Entity> identifiers = _entityManager.createQuery(
+      "SELECT model " +
+      "FROM " + _modelClass.getName() + " model " +
+      "WHERE model.universalUniqueIdentifier = :identifier " +
       "ORDER BY model.identifier DESC",
-      Long.class
-    ).setMaxResults(1).getResultList();
+      getModelClass()
+    ).setParameter("identifier", identifier.toString())
+                                                         .setMaxResults(1).getResultList();
 
     if (identifiers.isEmpty()) {
       throw new NoSuchElementException(
         "No model with uuid " + identifier.toString() + " found into this collection."
       );
     } else {
-      return getModelResource(identifiers.get(0));
+      return toModelResource(identifiers.get(0));
     }
   }
 
@@ -181,7 +187,13 @@ public class CollectionResource<Entity extends ApplicationEntity>
   }
 
   protected @NonNull ModelResource<Entity> toModelResource (@NonNull final Entity entity) {
-    return new ModelResource<>(_modelClass, entity);
+    @NonNull final BaseModelResourceBuilder<Entity> builder = new BaseModelResourceBuilder<>();
+    builder.setModelClass(getModelClass());
+    builder.setModel(entity);
+    builder.setRelationManager(_builder.getRelationManager());
+    builder.setCollectionResourceBuilder(_builder);
+
+    return builder.build();
   }
 
   @Override

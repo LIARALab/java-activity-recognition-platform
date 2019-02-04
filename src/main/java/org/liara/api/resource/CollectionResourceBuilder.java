@@ -3,6 +3,7 @@ package org.liara.api.resource;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.relation.RelationManager;
 import org.liara.rest.request.jpa.EntityFilteringHandlerFactory;
 import org.liara.rest.request.jpa.EntityOrderingHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,16 +29,36 @@ public class CollectionResourceBuilder
   @Nullable
   private EntityManager _entityManager;
 
+  @Nullable
+  private RelationManager _relationManager;
+
   public CollectionResourceBuilder () {
     _entityFilteringHandlerFactory = null;
     _entityOrderingHandlerFactory = null;
     _entityManager = null;
+    _relationManager = null;
+  }
+
+  public CollectionResourceBuilder (@NonNull final CollectionResourceBuilder toCopy) {
+    _entityFilteringHandlerFactory = toCopy.getEntityFilteringHandlerFactory();
+    _entityOrderingHandlerFactory = toCopy.getEntityOrderingHandlerFactory();
+    _entityManager = toCopy.getEntityManager();
+    _relationManager = toCopy.getRelationManager();
   }
 
   public <Model extends ApplicationEntity> @NonNull CollectionResource<Model> build (
     @NonNull final Class<Model> modelClass
   ) {
     return new CollectionResource<>(modelClass, this);
+  }
+
+  public @NonNull RelationManager getRelationManager () {
+    return _relationManager;
+  }
+
+  @Autowired
+  public void setRelationManager (@NonNull final RelationManager relationManager) {
+    _relationManager = relationManager;
   }
 
   public @Nullable EntityFilteringHandlerFactory getEntityFilteringHandlerFactory () {
@@ -100,6 +121,10 @@ public class CollectionResourceBuilder
              Objects.equals(
                _entityManager,
                otherCollectionResourceBuilder.getEntityManager()
+             ) &&
+             Objects.equals(
+               _relationManager,
+               otherCollectionResourceBuilder.getRelationManager()
              );
     }
 
@@ -111,7 +136,8 @@ public class CollectionResourceBuilder
     return Objects.hash(
       _entityFilteringHandlerFactory,
       _entityOrderingHandlerFactory,
-      _entityManager
+      _entityManager,
+      _relationManager
     );
   }
 }
