@@ -2,7 +2,11 @@ package org.liara.api.data.entity;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.relation.RelationFactory;
 import org.liara.api.validation.ApplicationEntityReference;
+import org.liara.collection.operator.Operator;
+import org.liara.collection.operator.filtering.Filter;
+import org.liara.collection.operator.joining.Join;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,6 +17,35 @@ import javax.persistence.Table;
 public class TagRelation
   extends ApplicationEntity
 {
+  @RelationFactory(Tag.class)
+  public static @NonNull Operator tags () {
+    return ApplicationEntity.tags(TagRelation.class);
+  }
+
+  public static @NonNull Operator tags (@NonNull final TagRelation relation) {
+    return ApplicationEntity.tags(TagRelation.class, relation);
+  }
+
+  @RelationFactory(TagRelation.class)
+  public static @NonNull Operator tagRelations () {
+    return ApplicationEntity.tagRelations(TagRelation.class);
+  }
+
+  public static @NonNull Operator tagRelations (@NonNull final TagRelation relation) {
+    return ApplicationEntity.tagRelations(TagRelation.class, relation);
+  }
+
+  @RelationFactory(Tag.class)
+  public static @NonNull Operator tag () {
+    return Join.inner(Tag.class)
+             .filter(Filter.expression(":this.identifier = :super.tagIdentifier"));
+  }
+
+  public static @NonNull Operator tag (@NonNull final TagRelation relation) {
+    return Filter.expression(":this.identifier = :tagIdentifier")
+             .setParameter("tagIdentifier", relation.getTagIdentifier());
+  }
+
   @Nullable
   private Long _entityIdentifier;
 

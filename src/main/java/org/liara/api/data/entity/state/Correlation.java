@@ -4,7 +4,13 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.Tag;
+import org.liara.api.data.entity.TagRelation;
+import org.liara.api.relation.RelationFactory;
 import org.liara.api.validation.ApplicationEntityReference;
+import org.liara.collection.operator.Operator;
+import org.liara.collection.operator.filtering.Filter;
+import org.liara.collection.operator.joining.Join;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -14,6 +20,46 @@ import javax.persistence.Table;
 public class Correlation
   extends ApplicationEntity
 {
+  @RelationFactory(Tag.class)
+  public static @NonNull Operator tags () {
+    return ApplicationEntity.tags(Correlation.class);
+  }
+
+  public static @NonNull Operator tags (@NonNull final Correlation correlation) {
+    return ApplicationEntity.tags(Correlation.class, correlation);
+  }
+
+  @RelationFactory(TagRelation.class)
+  public static @NonNull Operator tagRelations () {
+    return ApplicationEntity.tagRelations(Correlation.class);
+  }
+
+  public static @NonNull Operator tagRelations (@NonNull final Correlation correlation) {
+    return ApplicationEntity.tagRelations(Correlation.class, correlation);
+  }
+
+  @RelationFactory(State.class)
+  public static @NonNull Operator start () {
+    return Join.inner(State.class)
+             .filter(Filter.expression(":this.identifier = :super.startStateIdentifier"));
+  }
+
+  public static @NonNull Operator start (@NonNull final Correlation correlation) {
+    return Filter.expression(":this.identifier = :stateIdentifier")
+             .setParameter("stateIdentifier", correlation.getStartStateIdentifier());
+  }
+
+  @RelationFactory(State.class)
+  public static @NonNull Operator end () {
+    return Join.inner(State.class)
+             .filter(Filter.expression(":this.identifier = :super.endStateIdentifier"));
+  }
+
+  public static @NonNull Operator end (@NonNull final Correlation correlation) {
+    return Filter.expression(":this.identifier = :stateIdentifier")
+             .setParameter("stateIdentifier", correlation.getEndStateIdentifier());
+  }
+
   @Nullable
   @ApplicationEntityReference(Sensor.class)
   private Long _startStateIdentifier;

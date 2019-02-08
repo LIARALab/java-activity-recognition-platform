@@ -3,7 +3,12 @@ package org.liara.api.data.entity;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.relation.RelationFactory;
 import org.liara.api.validation.ApplicationEntityReference;
+import org.liara.collection.operator.Operator;
+import org.liara.collection.operator.filtering.Filter;
+import org.liara.collection.operator.joining.Join;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -16,6 +21,46 @@ import javax.persistence.Transient;
 public class Sensor
   extends ApplicationEntity
 {
+  @RelationFactory(Tag.class)
+  public static @NonNull Operator tags () {
+    return ApplicationEntity.tags(Sensor.class);
+  }
+
+  public static @NonNull Operator tags (@NonNull final Sensor sensor) {
+    return ApplicationEntity.tags(Sensor.class, sensor);
+  }
+
+  @RelationFactory(TagRelation.class)
+  public static @NonNull Operator tagRelations () {
+    return ApplicationEntity.tagRelations(Sensor.class);
+  }
+
+  public static @NonNull Operator tagRelations (@NonNull final Sensor sensor) {
+    return ApplicationEntity.tagRelations(Sensor.class, sensor);
+  }
+
+  @RelationFactory(Node.class)
+  public static @NonNull Operator node () {
+    return Join.inner(Node.class).filter(
+      Filter.expression(":this.identifier = :super.nodeIdentifier")
+    );
+  }
+
+  public static @NonNull Operator node (@NonNull final Sensor sensor) {
+    return Filter.expression(":this.identifier = :nodeIdentifier")
+             .setParameter("nodeIdentifier", sensor.getNodeIdentifier());
+  }
+
+  @RelationFactory(State.class)
+  public static @NonNull Operator states () {
+    return Filter.expression(":this.sensorIdentifier = :super.identifier");
+  }
+
+  public static @NonNull Operator states (@NonNull final Sensor sensor) {
+    return Filter.expression(":this.sensorIdentifier = :sensorIdentifier")
+             .setParameter("sensorIdentifier", sensor.getIdentifier());
+  }
+
   @Nullable
   private String _name;
 

@@ -44,6 +44,24 @@ public class Node
   extends ApplicationEntity
   implements NestedSet
 {
+  @RelationFactory(Tag.class)
+  public static @NonNull Operator tags () {
+    return ApplicationEntity.tags(Node.class);
+  }
+
+  public static @NonNull Operator tags (@NonNull final Node node) {
+    return ApplicationEntity.tags(Node.class, node);
+  }
+
+  @RelationFactory(TagRelation.class)
+  public static @NonNull Operator tagRelations () {
+    return ApplicationEntity.tagRelations(Node.class);
+  }
+
+  public static @NonNull Operator tagRelations (@NonNull final Node node) {
+    return ApplicationEntity.tagRelations(Node.class, node);
+  }
+
   @RelationFactory(Node.class)
   public static @NonNull Operator parent () {
     return Join.inner(

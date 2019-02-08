@@ -11,16 +11,11 @@ public enum ValueSensorType
   STRING("liara:string", ValueState.String.class),
   BYTE("liara:byte", ValueState.Byte.class),
   SHORT("liara:short", ValueState.Short.class),
-  INTEGER("liara:integer", ValueState.Integer.class), LONG("liara:long", ValueState.Long.class),
+  INTEGER("liara:integer", ValueState.Integer.class),
+  LONG("liara:long", ValueState.Long.class),
   FLOAT("liara:float", ValueState.Float.class),
-  DOUBLE(
-    "liara:double",
-    ValueState.Double.class
-  ),
-  MOTION(
-    "liara:motion",
-    ValueState.Boolean.class
-  );
+  DOUBLE("liara:double", ValueState.Double.class),
+  MOTION("liara:motion", ValueState.Boolean.class);
 
   @NonNull
   private final String _name;

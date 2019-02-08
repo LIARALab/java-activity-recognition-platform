@@ -277,7 +277,8 @@ public class OneVsAllToUpDownMotionSensor
 
     if (event.getState() instanceof ValueState.Boolean) {
       final ValueState.@NonNull Boolean state  = (ValueState.Boolean) event.getState();
-      @NonNull final Sensor             sensor = _sensors.find(state.getSensorIdentifier()).get();
+      @NonNull final Sensor             sensor = _sensors.find(state.getSensorIdentifier())
+                                                   .orElseThrow();
 
       if (sensor.getType() == ValueSensorType.MOTION && state.getValue()) {
         onMotionStateWillBeDeleted(state);

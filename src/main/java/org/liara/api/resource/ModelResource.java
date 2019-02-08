@@ -5,6 +5,7 @@ import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.rest.metamodel.RestResource;
 import org.liara.rest.request.RestRequest;
 import org.liara.rest.response.RestResponse;
+import reactor.core.publisher.Mono;
 
 public class ModelResource<Model extends ApplicationEntity>
   implements RestResource
@@ -32,7 +33,7 @@ public class ModelResource<Model extends ApplicationEntity>
   }
 
   @Override
-  public @NonNull RestResponse get (@NonNull final RestRequest request) {
-    return RestResponse.ofType(_modelClass).ofModel(_model);
+  public @NonNull Mono<RestResponse> get (@NonNull final RestRequest request) {
+    return Mono.just(RestResponse.ofType(_modelClass).ofModel(_model));
   }
 }

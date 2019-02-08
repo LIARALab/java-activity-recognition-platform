@@ -36,9 +36,11 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -68,19 +70,22 @@ public final class NodeCollection
   }
 
   @Override
-  public @NonNull RestResponse post (@NonNull final RestRequest request)
-  throws IllegalRestRequestException {
-    try {
-      @NonNull final NodeSchema schema = request.getBody(NodeSchema.class);
+  public @NonNull Mono<RestResponse> post (@NonNull final RestRequest request) {
+    return request.getBody(NodeSchema.class).flatMap(this::post);
+  }
 
+  public @NonNull Mono<RestResponse> post (@NonNull final NodeSchema schema) {
+    try {
       assertIsValid(schema);
       _applicationEventPublisher.publishEvent(new NodeEvent.Create(this, schema));
 
-      return RestResponse.ofType(Node.class).ofModel(
-        getEntityManager().find(Node.class, schema.getIdentifier())
+      return Mono.just(
+        RestResponse.ofType(Long.class).ofModel(
+          Objects.requireNonNull(schema.getIdentifier())
+        )
       );
     } catch (@NonNull final InvalidModelException exception) {
-      throw new IllegalRestRequestException(exception);
+      return Mono.error(new IllegalRestRequestException(exception));
     }
   }
 

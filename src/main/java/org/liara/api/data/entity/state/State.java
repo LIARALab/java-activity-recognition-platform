@@ -25,7 +25,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.Tag;
+import org.liara.api.data.entity.TagRelation;
+import org.liara.api.relation.RelationFactory;
 import org.liara.api.validation.ApplicationEntityReference;
+import org.liara.collection.operator.Operator;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
@@ -35,6 +39,24 @@ import java.time.ZonedDateTime;
 @Inheritance(strategy = InheritanceType.JOINED)
 public class State extends ApplicationEntity
 {
+  @RelationFactory(Tag.class)
+  public static @NonNull Operator tags () {
+    return ApplicationEntity.tags(State.class);
+  }
+
+  public static @NonNull Operator tags (@NonNull final State state) {
+    return ApplicationEntity.tags(State.class, state);
+  }
+
+  @RelationFactory(TagRelation.class)
+  public static @NonNull Operator tagRelations () {
+    return ApplicationEntity.tagRelations(State.class);
+  }
+
+  public static @NonNull Operator tagRelations (@NonNull final State state) {
+    return ApplicationEntity.tagRelations(State.class, state);
+  }
+
   @Nullable
   private ZonedDateTime _emissionDate;
 

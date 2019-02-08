@@ -7,6 +7,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.liara.collection.operator.Composition;
+import org.liara.collection.operator.Operator;
+import org.liara.collection.operator.filtering.Filter;
 import org.liara.rest.model.IdentifiableModel;
 
 import javax.persistence.*;
@@ -24,6 +27,37 @@ import java.util.Objects;
 public class ApplicationEntity
   implements IdentifiableModel
 {
+  public static @NonNull Operator tags (@NonNull final Class<?> type) {
+    return TagRelation.tag().apply(ApplicationEntity.tagRelations(type));
+  }
+
+  public static @NonNull Operator tags (
+    @NonNull final Class<?> type,
+    @NonNull final ApplicationEntity entity
+  ) {
+    return Tag.relations().apply(ApplicationEntity.tagRelations(type, entity));
+  }
+
+  public static @NonNull Operator tagRelations (@NonNull final Class<?> type) {
+    return Composition.of(
+      Filter.expression(":this.entityIdentifier = :super.identifier"),
+      Filter.expression(":this.entityType = :type")
+        .setParameter("type", type.getName())
+    );
+  }
+
+  public static @NonNull Operator tagRelations (
+    @NonNull final Class<?> type,
+    @NonNull final ApplicationEntity entity
+  ) {
+    return Composition.of(
+      Filter.expression(":this.entityIdentifier = :identifier")
+        .setParameter("identifier", entity.getIdentifier()),
+      Filter.expression(":this.entityType = :type")
+        .setParameter("type", type.getName())
+    );
+  }
+
   @Nullable
   private Long _identifier;
 

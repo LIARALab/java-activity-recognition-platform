@@ -35,9 +35,11 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
+import java.util.Objects;
 import java.util.Set;
 
 @Component
@@ -60,17 +62,20 @@ public class SensorCollection
   }
 
   @Override
-  public @NonNull RestResponse post (@NonNull final RestRequest request)
-  throws IllegalRestRequestException {
-    try {
-      @NonNull final Sensor sensor = request.getBody(Sensor.class);
+  public @NonNull Mono<RestResponse> post (@NonNull final RestRequest request) {
+    return request.getBody(Sensor.class).flatMap(this::post);
+  }
 
+  public @NonNull Mono<RestResponse> post (@NonNull final Sensor sensor) {
+    try {
       assertIsValid(sensor);
       _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, sensor));
 
-      return RestResponse.ofType(Sensor.class).ofModel(sensor);
+      return Mono.just(RestResponse.ofType(Long.class).ofModel(
+        Objects.requireNonNull(sensor.getIdentifier()))
+      );
     } catch (@NonNull final InvalidModelException exception) {
-      throw new IllegalRestRequestException(exception);
+      return Mono.error(new IllegalRestRequestException(exception));
     }
   }
 

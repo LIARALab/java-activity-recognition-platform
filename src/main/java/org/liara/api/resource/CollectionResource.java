@@ -38,9 +38,9 @@ import org.liara.rest.metamodel.RestResource;
 import org.liara.rest.processor.ProcessorHandler;
 import org.liara.rest.request.RestRequest;
 import org.liara.rest.request.handler.RestRequestHandler;
-import org.liara.rest.request.jpa.EntityOrderingHandlerFactory;
 import org.liara.rest.response.RestResponse;
 import org.liara.selection.processor.ProcessorExecutor;
+import reactor.core.publisher.Mono;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
@@ -70,7 +70,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
   private final RelationBasedFilteringHandlerFactory _entityFilteringHandlerFactory;
 
   @NonNull
-  private final EntityOrderingHandlerFactory _entityOrderingHandlerFactory;
+  private final RelationBasedOrderingProcessorFactory _entityOrderingHandlerFactory;
 
   @NonNull
   private final EntityManager _entityManager;
@@ -196,7 +196,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
   }
 
   @Override
-  public @NonNull RestResponse get (@NonNull final RestRequest request)
+  public @NonNull Mono<RestResponse> get (@NonNull final RestRequest request)
   throws IllegalRestRequestException {
     try {
       @NonNull final RestRequestHandler configuration = getRequestConfiguration();
@@ -207,8 +207,12 @@ public class CollectionResource<Entity extends ApplicationEntity>
         (JPAEntityCollection) configuration.parse(request.getParameters())
                                 .apply(getCollection())
       ).getQuery(":this"));
-      return RestResponse.ofCollection(configuration.parse(request.getParameters())
-                                         .apply(getCollection()));
+
+      return Mono.just(
+        RestResponse.ofCollection(
+          configuration.parse(request.getParameters()).apply(getCollection())
+        )
+      );
     } catch (@NonNull final InvalidAPIRequestException exception) {
       throw new IllegalRestRequestException(exception);
     }
@@ -246,7 +250,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
     return _entityFilteringHandlerFactory;
   }
 
-  public @NonNull EntityOrderingHandlerFactory getEntityOrderingHandlerFactory () {
+  public @NonNull RelationBasedOrderingProcessorFactory getEntityOrderingHandlerFactory () {
     return _entityOrderingHandlerFactory;
   }
 
