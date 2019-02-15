@@ -30,6 +30,8 @@ import org.liara.api.data.entity.TagRelation;
 import org.liara.api.relation.RelationFactory;
 import org.liara.api.validation.ApplicationEntityReference;
 import org.liara.collection.operator.Operator;
+import org.liara.collection.operator.filtering.Filter;
+import org.liara.collection.operator.joining.Join;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
@@ -55,6 +57,18 @@ public class State extends ApplicationEntity
 
   public static @NonNull Operator tagRelations (@NonNull final State state) {
     return ApplicationEntity.tagRelations(State.class, state);
+  }
+
+  @RelationFactory(Sensor.class)
+  public static @NonNull Operator sensor () {
+    return Join.inner(Sensor.class).filter(
+      Filter.expression(":this.identifier = :super.sensorIdentifier")
+    );
+  }
+
+  public static @NonNull Operator sensor (@NonNull final State state) {
+    return Filter.expression(":this.identifier = :identifier")
+             .setParameter(":identifier", state.getSensorIdentifier());
   }
 
   @Nullable

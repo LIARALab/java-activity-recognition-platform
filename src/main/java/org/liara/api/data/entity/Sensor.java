@@ -1,19 +1,23 @@
 package org.liara.api.data.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.recognition.sensor.type.SensorTypeManagerFactory;
 import org.liara.api.relation.RelationFactory;
 import org.liara.api.validation.ApplicationEntityReference;
 import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.filtering.Filter;
+import org.liara.collection.operator.joining.InnerJoin;
 import org.liara.collection.operator.joining.Join;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import java.util.Objects;
 
 @Entity
 @Table(name = "sensors")
@@ -39,12 +43,8 @@ public class Sensor
     return ApplicationEntity.tagRelations(Sensor.class, sensor);
   }
 
-  @RelationFactory(Node.class)
-  public static @NonNull Operator node () {
-    return Join.inner(Node.class).filter(
-      Filter.expression(":this.identifier = :super.nodeIdentifier")
-    );
-  }
+  @Nullable
+  private String _type;
 
   public static @NonNull Operator node (@NonNull final Sensor sensor) {
     return Filter.expression(":this.identifier = :nodeIdentifier")
@@ -64,8 +64,12 @@ public class Sensor
   @Nullable
   private String _name;
 
-  @Nullable
-  private SensorType _type;
+  @RelationFactory(Node.class)
+  public static @NonNull InnerJoin<Node> node () {
+    return Join.inner(Node.class).filter(
+      Filter.expression(":this.identifier = :super.nodeIdentifier")
+    );
+  }
 
   @Nullable
   private String _unit;
@@ -114,12 +118,22 @@ public class Sensor
   }
 
   @Column(name = "type", nullable = false, updatable = true, unique = false)
-  public @Nullable SensorType getType () {
+  public @Nullable String getType () {
     return _type;
   }
 
-  public void setType (@Nullable final SensorType type) {
+  public void setType (@Nullable final String type) {
     _type = type;
+  }
+
+  @Transient
+  @JsonIgnore
+  public @Nullable SensorType getTypeInstance () {
+    if (_type == null) {
+      return null;
+    } else {
+      return Objects.requireNonNull(SensorTypeManagerFactory.INSTANCE).getObject().get(_type);
+    }
   }
 
   @Column(name = "unit", nullable = true, updatable = true, unique = false)

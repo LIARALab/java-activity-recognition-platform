@@ -24,7 +24,6 @@ package org.liara.api.resource;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.utils.Builder;
 import org.liara.api.utils.Duplicator;
 import org.liara.collection.Collection;
 import org.liara.collection.jpa.JPAEntityCollection;
@@ -43,11 +42,7 @@ import org.liara.selection.processor.ProcessorExecutor;
 import reactor.core.publisher.Mono;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
@@ -83,9 +78,11 @@ public class CollectionResource<Entity extends ApplicationEntity>
     @NonNull final CollectionResourceBuilder builder
   ) {
     _modelClass = modelClass;
-    _entityOrderingHandlerFactory = Builder.require(builder.getEntityOrderingHandlerFactory());
-    _entityFilteringHandlerFactory = Builder.require(builder.getEntityFilteringHandlerFactory());
-    _entityManager = Builder.require(builder.getEntityManager());
+    _entityOrderingHandlerFactory =
+      Objects.requireNonNull(builder.getEntityOrderingHandlerFactory());
+    _entityFilteringHandlerFactory =
+      Objects.requireNonNull(builder.getEntityFilteringHandlerFactory());
+    _entityManager = Objects.requireNonNull(builder.getEntityManager());
     _builder = Duplicator.duplicate(builder);
   }
 
@@ -176,13 +173,14 @@ public class CollectionResource<Entity extends ApplicationEntity>
     @NonNull final Long identifier
   )
   throws NoSuchElementException {
-    try {
-      return toModelResource(_entityManager.find(_modelClass, identifier));
-    } catch (@NonNull final EntityNotFoundException exception) {
-      throw new NoSuchElementException(
-        "No model with identifier " + identifier.toString() + " found into this collection."
-      );
-    }
+    return toModelResource(
+      Optional.ofNullable(_entityManager.find(_modelClass, identifier)).orElseThrow(
+        () -> new NoSuchElementException(
+          "No model of type " + _modelClass.getName() + " with identifier " +
+          identifier.toString() + " found into this collection."
+        )
+      )
+    );
   }
 
   protected @NonNull ModelResource<Entity> toModelResource (@NonNull final Entity entity) {

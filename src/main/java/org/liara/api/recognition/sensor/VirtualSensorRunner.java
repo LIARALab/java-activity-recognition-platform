@@ -35,12 +35,12 @@ public class VirtualSensorRunner
     if (!VirtualSensorHandler.isVirtual(sensor)) {
       throw new Error("Unnable to instantiate a runner for a non-virtual sensor.");
     }
-    
-    @SuppressWarnings("unchecked") /* Checked virtual sensor */ final Class<? extends VirtualSensorHandler> handlerType = sensor
-                                                                                                                            .getType()
-                                                                                                                            .getClass()
-                                                                                                                            .asSubclass(
-                                                                                                                              VirtualSensorHandler.class);
+
+    @SuppressWarnings("unchecked") /* Checked virtual sensor */
+    final Class<? extends VirtualSensorHandler> handlerType = sensor.getTypeInstance()
+                                                                .getClass()
+                                                                .asSubclass(VirtualSensorHandler.class);
+
     final ApplicationContext applicationContext = manager.getApplicationContext();
     /* @TODO check handler unicity */
     final VirtualSensorHandler handler = applicationContext.getBean(

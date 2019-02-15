@@ -78,12 +78,12 @@ public class LocalSensorRepository
       @NonNull final Sensor  newSensor = (Sensor) newEntity;
 
       if (oldSensor != null) {
-        _sensorsByType.get(oldSensor.getType()).remove(oldSensor);
-      } else if (!_sensorsByType.containsKey(newSensor.getType())) {
-        _sensorsByType.put(newSensor.getType().getName(), new HashSet<>());
+        _sensorsByType.get(oldSensor.getTypeInstance()).remove(oldSensor);
+      } else if (!_sensorsByType.containsKey(newSensor.getTypeInstance())) {
+        _sensorsByType.put(newSensor.getTypeInstance().getName(), new HashSet<>());
       }
 
-      _sensorsByType.get(newSensor.getType()).add(newSensor);
+      _sensorsByType.get(newSensor.getTypeInstance()).add(newSensor);
     }
   }
 
@@ -94,10 +94,10 @@ public class LocalSensorRepository
     if (entity instanceof Sensor) {
       @NonNull final Sensor sensor = (Sensor) entity;
 
-      _sensorsByType.get(sensor.getType()).remove(sensor);
+      _sensorsByType.get(sensor.getTypeInstance()).remove(sensor);
 
-      if (_sensorsByType.get(sensor.getType()).isEmpty()) {
-        _sensorsByType.remove(sensor.getType());
+      if (_sensorsByType.get(sensor.getTypeInstance()).isEmpty()) {
+        _sensorsByType.remove(sensor.getTypeInstance());
       }
     }
   }

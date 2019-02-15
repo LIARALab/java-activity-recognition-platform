@@ -119,7 +119,8 @@ public class OneVsAllToUpDownMotionSensor
 
     @NonNull final Sensor sensor = _sensors.find(event.getState().getSensorIdentifier()).get();
 
-    if (sensor.getType() == ValueSensorType.MOTION && ((ValueState.Boolean) event.getState()).getValue() &&
+    if (sensor.getTypeInstance() == ValueSensorType.MOTION &&
+        ((ValueState.Boolean) event.getState()).getValue() &&
         getConfiguration().isIgnoredInput(event.getState()) == false) {
       onMotionStateWasCreated((ValueState.Boolean) event.getState());
     }
@@ -190,7 +191,8 @@ public class OneVsAllToUpDownMotionSensor
 
     @NonNull final Sensor sensor = _sensors.find(event.getNewValue().getSensorIdentifier()).get();
 
-    if (sensor.getType() == ValueSensorType.MOTION && !getConfiguration().isIgnoredInput(event.getNewValue())) {
+    if (sensor.getTypeInstance() == ValueSensorType.MOTION &&
+        !getConfiguration().isIgnoredInput(event.getNewValue())) {
       onMotionStateWasMutated((ValueState.Boolean) event.getOldValue(), (ValueState.Boolean) event.getNewValue());
     }
   }
@@ -280,7 +282,7 @@ public class OneVsAllToUpDownMotionSensor
       @NonNull final Sensor             sensor = _sensors.find(state.getSensorIdentifier())
                                                    .orElseThrow();
 
-      if (sensor.getType() == ValueSensorType.MOTION && state.getValue()) {
+      if (sensor.getTypeInstance() == ValueSensorType.MOTION && state.getValue()) {
         onMotionStateWillBeDeleted(state);
       }
     }

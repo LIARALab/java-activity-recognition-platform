@@ -4,7 +4,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.relation.Relation;
 import org.liara.api.relation.RelationManager;
-import org.liara.api.utils.Builder;
 import org.liara.collection.Collection;
 import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.collection.operator.Composition;
@@ -14,6 +13,7 @@ import org.liara.rest.metamodel.RestResource;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 public class BaseModelResource<Model extends ApplicationEntity>
   extends ModelResource<Model>
@@ -26,12 +26,12 @@ public class BaseModelResource<Model extends ApplicationEntity>
 
   public BaseModelResource (@NonNull final BaseModelResourceBuilder<Model> builder) {
     super(
-      Builder.require(builder.getModelClass()),
-      Builder.require(builder.getModel())
+      Objects.requireNonNull(builder.getModelClass()),
+      Objects.requireNonNull(builder.getModel())
     );
 
-    _relationManager = Builder.require(builder.getRelationManager());
-    _collectionResourceBuilder = Builder.require(builder.getCollectionResourceBuilder());
+    _relationManager = Objects.requireNonNull(builder.getRelationManager());
+    _collectionResourceBuilder = Objects.requireNonNull(builder.getCollectionResourceBuilder());
   }
 
   @Override

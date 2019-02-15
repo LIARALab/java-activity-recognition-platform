@@ -3,14 +3,9 @@ package org.liara.api.recognition.sensor.type;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.SensorType;
-import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-@Component
-@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class SensorTypeManager
 {
   @NonNull

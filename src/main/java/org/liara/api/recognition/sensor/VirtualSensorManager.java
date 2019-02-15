@@ -82,7 +82,7 @@ public class VirtualSensorManager
     ), Sensor.class).getResultList();
 
     for (@NonNull final Sensor sensor : sensors) {
-      if (!sensor.getType().isNative()) {
+      if (!sensor.getTypeInstance().isNative()) {
         VirtualSensorRunner.restart(this, sensor);
       }
     }

@@ -25,7 +25,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.event.ApplicationEntityEvent;
 import org.liara.api.resource.CollectionResource;
-import org.liara.api.utils.Builder;
 import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.error.InvalidModelException;
 import org.liara.rest.request.RestRequest;
@@ -55,10 +54,10 @@ public class SensorCollection
 
   @Autowired
   public SensorCollection (@NonNull final SensorCollectionBuilder builder) {
-    super(Sensor.class, Builder.require(builder.getCollectionResourceBuilder()));
+    super(Sensor.class, Objects.requireNonNull(builder.getCollectionResourceBuilder()));
 
-    _applicationEventPublisher = Builder.require(builder.getApplicationEventPublisher());
-    _validator = Builder.require(builder.getValidator());
+    _applicationEventPublisher = Objects.requireNonNull(builder.getApplicationEventPublisher());
+    _validator = Objects.requireNonNull(builder.getValidator());
   }
 
   @Override

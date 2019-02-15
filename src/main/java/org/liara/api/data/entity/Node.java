@@ -129,6 +129,27 @@ public class Node
     );
   }
 
+  @RelationFactory(Sensor.class)
+  public static @NonNull Operator sensors () {
+    return Composition.of(Filter.expression(":this.nodeIdentifier = :super.identifier"));
+  }
+
+  public static @NonNull Operator sensors (@NonNull final Node node) {
+    return Composition.of(
+      Filter.expression(":this.nodeIdentifier = :nodeIdentifier")
+        .setParameter("nodeIdentifier", node.getIdentifier())
+    );
+  }
+
+  @RelationFactory(Sensor.class)
+  public static @NonNull Operator deepSensors () {
+    return deepChildren().apply(Sensor.node());
+  }
+
+  public static @NonNull Operator deepSensors (@NonNull final Node node) {
+    return Sensor.node().apply(deepChildren(node));
+  }
+
   @Nullable
   private String _name;
 

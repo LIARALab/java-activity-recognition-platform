@@ -9,7 +9,7 @@ import org.liara.api.event.StateEvent;
 public interface VirtualSensorHandler
 {
   static boolean isVirtual (@NonNull final Sensor sensor) {
-    return !sensor.getType().isNative();
+    return !sensor.getTypeInstance().isNative();
   }
 
   /**

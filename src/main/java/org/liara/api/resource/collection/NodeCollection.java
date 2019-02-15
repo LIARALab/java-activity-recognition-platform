@@ -26,7 +26,6 @@ import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.event.NodeEvent;
 import org.liara.api.resource.CollectionResource;
-import org.liara.api.utils.Builder;
 import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.error.InvalidModelException;
 import org.liara.rest.request.RestRequest;
@@ -64,9 +63,9 @@ public final class NodeCollection
   public NodeCollection (
     @NonNull final NodeCollectionBuilder builder
   ) {
-    super(Node.class, Builder.require(builder.getCollectionResourceBuilder()));
-    _applicationEventPublisher = Builder.require(builder.getApplicationEventPublisher());
-    _validator = Builder.require(builder.getValidator());
+    super(Node.class, Objects.requireNonNull(builder.getCollectionResourceBuilder()));
+    _applicationEventPublisher = Objects.requireNonNull(builder.getApplicationEventPublisher());
+    _validator = Objects.requireNonNull(builder.getValidator());
   }
 
   @Override
