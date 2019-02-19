@@ -64,11 +64,7 @@ public class UpDownToLabelSensor
   }
 
   public @NonNull UpDownToLabelSensorConfiguration getConfiguration () {
-    return getRunner().getSensor().getConfiguration().as(UpDownToLabelSensorConfiguration.class);
-  }
-
-  public @NonNull Sensor getSensor () {
-    return getRunner().getSensor();
+    return getConfiguration(UpDownToLabelSensorConfiguration.class).orElseThrow();
   }
 
   public @NonNull Long getInputSensor () {
@@ -119,7 +115,7 @@ public class UpDownToLabelSensor
   public void inputStateWasCreated (final ValueState.@NonNull Boolean current) {
     @NonNull final Optional<LabelState> previous = _outputs.findAt(
       current.getEmissionDate(),
-      getSensor().getIdentifier()
+      getSensor().map(Sensor::getIdentifier).orElseThrow()
     );
 
     if (previous.isPresent() && previous.get().contains(current.getEmissionDate())) {
@@ -395,7 +391,7 @@ public class UpDownToLabelSensor
     @NonNull final LabelState state = new LabelState();
 
     state.setEmissionDate(start.getEmissionDate());
-    state.setSensorIdentifier(getSensor().getIdentifier());
+    state.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElseThrow());
     state.setStart(start.getEmissionDate());
     state.setEnd(end == null ? null : end.getEmissionDate());
 
@@ -438,7 +434,7 @@ public class UpDownToLabelSensor
 
   private @NonNull Correlation getStartCorrelation (@NonNull final LabelState label) {
     return _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
-      getSensor().getIdentifier(),
+      getSensor().map(Sensor::getIdentifier).orElseThrow(),
       "start",
       label.getIdentifier()
     ).get();
@@ -450,7 +446,7 @@ public class UpDownToLabelSensor
 
   private @NonNull Optional<Correlation> getEndCorrelation (@NonNull final LabelState label) {
     return _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
-      getSensor().getIdentifier(),
+      getSensor().map(Sensor::getIdentifier).orElseThrow(),
       "end",
       label.getIdentifier()
     );
@@ -467,7 +463,7 @@ public class UpDownToLabelSensor
     @NonNull final Long state
   ) {
     @NonNull final Optional<Correlation> start = _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
-      getSensor().getIdentifier(),
+      getSensor().map(Sensor::getIdentifier).orElseThrow(),
       "start",
       state
     );
@@ -477,7 +473,7 @@ public class UpDownToLabelSensor
     }
 
     @NonNull final Optional<Correlation> end = _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
-      getSensor().getIdentifier(),
+      getSensor().map(Sensor::getIdentifier).orElseThrow(),
       "end",
       state
     );

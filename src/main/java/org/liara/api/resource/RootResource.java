@@ -31,15 +31,15 @@ public class RootResource
     _resources.put("nodes", applicationContext.getBean(NodeCollection.class));
     _resources.put("sensors", applicationContext.getBean(SensorCollection.class));
     _resources.put("states", applicationContext.getBean(StateCollection.class));
-    _resources.put("states<boolean>", applicationContext.getBean(BooleanStateCollection.class));
-    _resources.put("states<byte>", applicationContext.getBean(ByteStateCollection.class));
-    _resources.put("states<double>", applicationContext.getBean(DoubleStateCollection.class));
-    _resources.put("states<float>", applicationContext.getBean(FloatStateCollection.class));
-    _resources.put("states<integer>", applicationContext.getBean(IntegerStateCollection.class));
-    _resources.put("states<label>", applicationContext.getBean(LabelStateCollection.class));
-    _resources.put("states<long>", applicationContext.getBean(LongStateCollection.class));
-    _resources.put("states<short>", applicationContext.getBean(ShortStateCollection.class));
-    _resources.put("states<string>", applicationContext.getBean(StringStateCollection.class));
+    _resources.put("states:boolean", applicationContext.getBean(BooleanStateCollection.class));
+    _resources.put("states:byte", applicationContext.getBean(ByteStateCollection.class));
+    _resources.put("states:double", applicationContext.getBean(DoubleStateCollection.class));
+    _resources.put("states:float", applicationContext.getBean(FloatStateCollection.class));
+    _resources.put("states:integer", applicationContext.getBean(IntegerStateCollection.class));
+    _resources.put("states:label", applicationContext.getBean(LabelStateCollection.class));
+    _resources.put("states:long", applicationContext.getBean(LongStateCollection.class));
+    _resources.put("states:short", applicationContext.getBean(ShortStateCollection.class));
+    _resources.put("states:string", applicationContext.getBean(StringStateCollection.class));
   }
 
   @Override

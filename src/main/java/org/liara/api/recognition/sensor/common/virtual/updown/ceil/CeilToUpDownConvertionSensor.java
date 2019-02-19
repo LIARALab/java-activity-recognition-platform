@@ -59,9 +59,7 @@ public class CeilToUpDownConvertionSensor
   }
 
   public @NonNull CeilToUpDownConvertionSensorConfiguration getConfiguration () {
-    return getRunner().getSensor().getConfiguration().as(
-      CeilToUpDownConvertionSensorConfiguration.class
-    );
+    return getConfiguration(CeilToUpDownConvertionSensorConfiguration.class).orElseThrow();
   }
 
   public @NonNull Long getInputSensor () {
@@ -74,10 +72,6 @@ public class CeilToUpDownConvertionSensor
   
   public double getCeil () {
     return getConfiguration().getCeil();
-  }
-
-  public @NonNull Sensor getSensor () {
-    return getRunner().getSensor();
   }
   
   @Override
@@ -165,7 +159,7 @@ public class CeilToUpDownConvertionSensor
   private @Nullable ValueState<Boolean> findResultCorrelatedWith (final ValueState.@NonNull Numeric toDelete) {
     @NonNull final Optional<Correlation> correlation =
       _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
-      getSensor().getIdentifier(),
+        getSensor().map(Sensor::getIdentifier).orElseThrow(),
       "current",
       toDelete.getIdentifier()
     );
@@ -292,7 +286,7 @@ public class CeilToUpDownConvertionSensor
     final ValueState.@Nullable Numeric previous, final ValueState.@NonNull Numeric current, final boolean up
   ) {
     @NonNull final ValueState<Boolean> result = new ValueState.Boolean();
-    result.setSensorIdentifier(getSensor().getIdentifier());
+    result.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElseThrow());
     result.setEmissionDate(interpolate(previous, current));
     result.setValue(up);
 

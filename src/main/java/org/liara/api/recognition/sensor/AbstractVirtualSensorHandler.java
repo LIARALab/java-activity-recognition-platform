@@ -2,9 +2,13 @@ package org.liara.api.recognition.sensor;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.event.NodeEvent;
 import org.liara.api.event.SensorEvent;
 import org.liara.api.event.StateEvent;
+
+import java.util.Optional;
 
 public abstract class AbstractVirtualSensorHandler implements VirtualSensorHandler
 {
@@ -55,7 +59,17 @@ public abstract class AbstractVirtualSensorHandler implements VirtualSensorHandl
   @Override
   public void stateWasMutated (final StateEvent.@NonNull WasMutated event) { }
 
-  public @NonNull VirtualSensorRunner getRunner () {
-    return _runner;
+  public @NonNull Optional<VirtualSensorRunner> getRunner () {
+    return Optional.ofNullable(_runner);
+  }
+
+  public @NonNull Optional<Sensor> getSensor () {
+    return getRunner().map(VirtualSensorRunner::getSensor);
+  }
+
+  public <T extends SensorConfiguration> @NonNull Optional<T> getConfiguration (
+    @NonNull final Class<T> clazz
+  ) {
+    return getSensor().map(Sensor::getConfiguration).map(x -> x.as(clazz));
   }
 }

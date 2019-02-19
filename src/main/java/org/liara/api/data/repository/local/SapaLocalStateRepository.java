@@ -96,4 +96,15 @@ public class SapaLocalStateRepository
 
     public Numeric () { super(ValueState.Numeric.class); }
   }
+
+  @Component
+  @Scope("prototype")
+  public static class State
+    extends LocalStateRepository<org.liara.api.data.entity.state.State>
+    implements SapaRepositories.State
+  {
+    public State () {
+      super(org.liara.api.data.entity.state.State.class);
+    }
+  }
 }

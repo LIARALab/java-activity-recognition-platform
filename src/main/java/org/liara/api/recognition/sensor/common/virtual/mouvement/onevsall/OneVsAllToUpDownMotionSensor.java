@@ -65,11 +65,7 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   public @NonNull OneVsAllToUpDownMotionSensorConfiguration getConfiguration () {
-    return getRunner().getSensor().getConfiguration().as(OneVsAllToUpDownMotionSensorConfiguration.class);
-  }
-
-  public @NonNull Sensor getSensor () {
-    return getRunner().getSensor();
+    return getConfiguration(OneVsAllToUpDownMotionSensorConfiguration.class).orElseThrow();
   }
 
   public @NonNull List<@NonNull Long> getInputSensors () {
@@ -77,7 +73,9 @@ public class OneVsAllToUpDownMotionSensor
 
     _sensors.getSensorsOfTypeIntoNode(
       ValueSensorType.MOTION.getName(),
-      _nodes.getRoot(_nodes.find(getSensor().getNodeIdentifier()).get()).getIdentifier()
+      _nodes.getRoot(
+        _nodes.find(getSensor().map(Sensor::getNodeIdentifier).orElseThrow()).orElseThrow()
+      ).getIdentifier()
     )
             .stream()
             .filter((@NonNull final Sensor sensor) -> !getConfiguration().isIgnoredInput(sensor))
@@ -216,7 +214,7 @@ public class OneVsAllToUpDownMotionSensor
   {
     @NonNull final Optional<Correlation> correlation =
       _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
-        getSensor().getIdentifier(),
+        getSensor().map(Sensor::getIdentifier).orElseThrow(),
         "origin",
         reference
     );
@@ -349,12 +347,13 @@ public class OneVsAllToUpDownMotionSensor
     toMove.setEmissionDate(to.getEmissionDate());
 
     if (!Objects.equals(from, to)) {
-      @NonNull final Correlation correlation = Duplicator.duplicate(_correlations
-                                                                      .findFirstCorrelationFromSeriesWithNameAndThatStartBy(
-                                                                        getSensor().getIdentifier(),
-                                                                        "origin",
-                                                                        toMove.getIdentifier()
-      ).get());
+      @NonNull final Correlation correlation = Duplicator.duplicate(
+        _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
+          getSensor().map(Sensor::getIdentifier).orElseThrow(),
+          "origin",
+          toMove.getIdentifier()
+        ).orElseThrow()
+      );
       correlation.setEndStateIdentifier(to.getIdentifier());
 
       _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, toMove, correlation));
@@ -371,7 +370,7 @@ public class OneVsAllToUpDownMotionSensor
     final ValueState.@NonNull Boolean flag = new ValueState.Boolean();
 
     flag.setEmissionDate(state.getEmissionDate());
-    flag.setSensorIdentifier(getSensor().getIdentifier());
+    flag.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElseThrow());
     flag.setValue(up);
 
     _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, flag));

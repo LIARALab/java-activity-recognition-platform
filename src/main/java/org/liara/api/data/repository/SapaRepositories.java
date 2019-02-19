@@ -30,4 +30,7 @@ public interface SapaRepositories
 
   interface Numeric
     extends ValueStateRepository<java.lang.Number, ValueState.Numeric> {}
+
+  interface State
+    extends StateRepository<org.liara.api.data.entity.state.State> {}
 }
