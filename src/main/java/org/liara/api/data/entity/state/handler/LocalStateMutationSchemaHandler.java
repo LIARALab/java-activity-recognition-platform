@@ -1,7 +1,6 @@
 package org.liara.api.data.entity.state.handler;
 
-import java.util.Map;
-
+import com.google.common.base.Function;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.StateMutationSchema;
@@ -9,7 +8,7 @@ import org.liara.api.data.entity.state.StateSnapshot;
 import org.liara.api.data.repository.local.LocalEntityManager;
 import org.springframework.lang.NonNull;
 
-import com.google.common.base.Function;
+import java.util.Map;
 
 public class LocalStateMutationSchemaHandler<Schema extends StateMutationSchema>
        implements Function<Schema, State>
@@ -24,7 +23,7 @@ public class LocalStateMutationSchemaHandler<Schema extends StateMutationSchema>
   }
 
   public void apply (@NonNull final StateMutationSchema schema, @NonNull final State state) {
-    if (schema.getEmittionDate() != null) state.setEmittionDate(schema.getEmittionDate());
+    if (schema.getEmissionDate() != null) state.setEmissionDate(schema.getEmissionDate());
     
     for (final String decorrelation : schema.getDecorrelations()) {
       state.decorrelate(decorrelation);

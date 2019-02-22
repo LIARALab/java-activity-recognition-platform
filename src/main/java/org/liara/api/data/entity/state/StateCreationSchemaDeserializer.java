@@ -131,9 +131,13 @@ public class StateCreationSchemaDeserializer extends JsonDeserializer<StateCreat
     @NonNull final ObjectNode node, 
     @NonNull final ObjectMapper mapper
   ) {
-    final StateCreationSchema schema = _context.getBean(StateCreationSchema.class);
+    final StateCreationSchema schema = _context.getBean(
+      "stateCreationSchema",
+      StateCreationSchema.class
+    );
     schema.setSensor(node.hasNonNull("sensor") ? node.get("sensor").asLong() : null);
-    schema.setEmittionDate(node.hasNonNull("emittionDate") ? ZonedDateTime.parse(node.get("sensor").asText(),
+    schema.setEmissionDate(node.hasNonNull("emittionDate") ? ZonedDateTime.parse(
+      node.get("sensor").asText(),
       DateTimeFormatter.ofPattern("YYYY-MM-dd'T'HH:mm:ss.SSSXXX")
       ) : null
     );

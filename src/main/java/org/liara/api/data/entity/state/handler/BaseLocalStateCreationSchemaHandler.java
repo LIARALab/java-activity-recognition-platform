@@ -1,15 +1,14 @@
 package org.liara.api.data.entity.state.handler;
 
-import java.time.ZonedDateTime;
-import java.util.Map;
-
+import com.google.common.base.Function;
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.StateCreationSchema;
 import org.liara.api.data.repository.local.LocalEntityManager;
 import org.springframework.lang.NonNull;
 
-import com.google.common.base.Function;
+import java.time.ZonedDateTime;
+import java.util.Map;
 
 public abstract class BaseLocalStateCreationSchemaHandler<Schema extends StateCreationSchema, Output extends State>
        implements Function<Schema, State>
@@ -30,7 +29,7 @@ public abstract class BaseLocalStateCreationSchemaHandler<Schema extends StateCr
     state.setCreationDate(ZonedDateTime.now());
     state.setDeletionDate(null);
     state.setUpdateDate(null);
-    state.setEmittionDate(schema.getEmittionDate());
+    state.setEmissionDate(schema.getEmissionDate());
     state.setIdentifier(null);
     state.setSensor(_manager.find(schema.getSensor()).get());
     

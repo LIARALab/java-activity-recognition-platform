@@ -118,7 +118,7 @@ public class UpDownToLabelSensor
 
   public void inputStateWasCreated (@NonNull final BooleanState current) {
     final Optional<LabelState> previous = _outputs.findAt(
-      current.getEmittionDate(), 
+      current.getEmissionDate(),
       getSensor().getReference()
     );
     
@@ -132,11 +132,11 @@ public class UpDownToLabelSensor
   private void onAloneInput (
     @NonNull final BooleanState current
   ) {
-    if (current.getValue() == false) return;
+    if (!current.getValue()) return;
     
     final Optional<BooleanState> next = _inputs.findNext(current);
-    
-    if (next.isPresent() == false) {
+
+    if (!next.isPresent()) {
       begin(current);
     } else if (next.get().getValue()) {
       begin(
@@ -191,11 +191,11 @@ public class UpDownToLabelSensor
       Arrays.asList("start", "end"), 
       next.getReference(), getSensor().getReference()
     );
-    
-    if (correlated.isPresent() == false) {
+
+    if (!correlated.isPresent()) {
       inputStateWasCreated(next);
     } else if (
-      Objects.equals(next.getEmittionDate(), previous.getEmittionDate()) == false &&
+             !Objects.equals(next.getEmissionDate(), previous.getEmittionDate()) &&
       next.getValue() == previous.getValue()
     ) {
       onBoundaryLocationChange(correlated.get(), next);
@@ -397,7 +397,7 @@ public class UpDownToLabelSensor
       mutation.setEnd(null);
       mutation.decorrelate("end");
     } else {
-      mutation.setEnd(next.getEmittionDate());
+      mutation.setEnd(next.getEmissionDate());
       mutation.correlate("end", next);
     }
     
@@ -415,14 +415,14 @@ public class UpDownToLabelSensor
     @Nullable final State end
   ) {
     final LabelStateCreationSchema creation = new LabelStateCreationSchema();
-    creation.setEmittionDate(start.getEmittionDate());
+    creation.setEmissionDate(start.getEmissionDate());
     creation.setTag(getConfiguration().getLabel());
     creation.setSensor(getSensor());
-    creation.setStart(start.getEmittionDate());
+    creation.setStart(start.getEmissionDate());
     creation.correlate("start", start);
     
     if (end != null) {
-      creation.setEnd(end.getEmittionDate());
+      creation.setEnd(end.getEmissionDate());
       creation.correlate("end", end);
     }
     
@@ -434,8 +434,8 @@ public class UpDownToLabelSensor
   ) {
     final LabelStateMutationSchema schema = new LabelStateMutationSchema();
     schema.setState(state.getIdentifier());
-    schema.setStart(current.getEmittionDate());
-    schema.setEmittionDate(current.getEmittionDate());
+    schema.setStart(current.getEmissionDate());
+    schema.setEmissionDate(current.getEmissionDate());
     schema.correlate("start", current);
     
     _manager.execute(schema);

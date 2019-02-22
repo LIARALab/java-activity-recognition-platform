@@ -99,7 +99,7 @@ public class LabelState
     if (duration == null) {
       return null;
     } else {
-      return getDuration().getSeconds() * 1_000_000L + getDuration().getNano() / 1_000_000L;
+      return getDuration().getSeconds() * 1_000L + getDuration().getNano() / 1_000_000L;
     }
   }
   
@@ -130,7 +130,7 @@ public class LabelState
   }
 
   public boolean contains (@NonNull final State state) {
-    return contains(state.getEmittionDate());
+    return contains(state.getEmissionDate());
   }
 
   public boolean contains (@NonNull final ZonedDateTime date) {

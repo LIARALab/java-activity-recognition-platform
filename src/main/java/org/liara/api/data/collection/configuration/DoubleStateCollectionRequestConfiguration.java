@@ -56,7 +56,10 @@ public final class DoubleStateCollectionRequestConfiguration
       APIRequestEntityFilterParserFactory.datetime("creationDate", (root) -> root.get("_creationDate")),
       APIRequestEntityFilterParserFactory.datetime("updateDate", (root) -> root.get("_updateDate")),
       APIRequestEntityFilterParserFactory.datetime("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestEntityFilterParserFactory.datetime("emittionDate", (root) -> root.get("_emittionDate")),
+      APIRequestEntityFilterParserFactory.datetime(
+        "emissionDate",
+        (root) -> root.get("_emissionDate")
+      ),
       APIRequestEntityFilterParserFactory.doubleValue("value", (root) -> root.get("_value")),
       APIRequestEntityFilterParserFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
     ));
@@ -69,7 +72,7 @@ public final class DoubleStateCollectionRequestConfiguration
       APIRequestFilterValidatorFactory.datetime("creationDate"),
       APIRequestFilterValidatorFactory.datetime("updateDate"),
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
-      APIRequestFilterValidatorFactory.datetime("emittionDate"),
+      APIRequestFilterValidatorFactory.datetime("emissionDate"),
       APIRequestFilterValidatorFactory.realDouble("value"),
       APIRequestFilterValidatorFactory.includeCollection("sensor", SensorCollection.class)
     );
@@ -82,7 +85,7 @@ public final class DoubleStateCollectionRequestConfiguration
       APIRequestOrderingProcessorFactory.field("creationDate", (root) -> root.get("_creationDate")),
       APIRequestOrderingProcessorFactory.field("updateDate", (root) -> root.get("_updateDate")),
       APIRequestOrderingProcessorFactory.field("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestOrderingProcessorFactory.field("emittionDate", (root) -> root.get("_emittionDate")),
+      APIRequestOrderingProcessorFactory.field("emissionDate", (root) -> root.get("_emissionDate")),
       APIRequestOrderingProcessorFactory.field("value", (root) -> root.get("_value")),
       APIRequestOrderingProcessorFactory.joinCollection("sensor", _sensorJoin, SensorCollection.class)
     );
@@ -94,12 +97,17 @@ public final class DoubleStateCollectionRequestConfiguration
       APIRequestGroupingProcessorFactory.expression("identifier", (root) -> root.get("_identifier")),
       APIRequestGroupingProcessorFactory.expression("creationDate", (root) -> root.get("_creationDate")),
       APIRequestGroupingProcessorFactory.expression("updateDate", (root) -> root.get("_updateDate")),
-      APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
-      APIRequestGroupingProcessorFactory.expression("emittionDate:date",
+      APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get(
+        "_deletionDate")),
+      APIRequestGroupingProcessorFactory.expression(
+        "emissionDate",
+        (root) -> root.get("_emissionDate")
+      ),
+      APIRequestGroupingProcessorFactory.expression(
+        "emissionDate:date",
         (query, root) -> query.getManager().getCriteriaBuilder().function("DATE_FORMAT",
           String.class,
-          root.get("_emittionDate"),
+          root.get("_emissionDate"),
           query.getManager().getCriteriaBuilder().literal("%Y-%m-%d")
         )
       ),

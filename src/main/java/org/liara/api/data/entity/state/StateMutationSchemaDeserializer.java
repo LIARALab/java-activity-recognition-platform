@@ -131,7 +131,8 @@ public class StateMutationSchemaDeserializer extends JsonDeserializer<StateMutat
     final StateMutationSchema schema = (StateMutationSchema) _context.getBean("stateMutationSchema");
     
     schema.setState(node.hasNonNull("identifier") ? node.get("identifier").asLong() : null);
-    schema.setEmittionDate(node.hasNonNull("emittionDate") ? ZonedDateTime.parse(node.get("emittionDate").asText(),
+    schema.setEmissionDate(node.hasNonNull("emittionDate") ? ZonedDateTime.parse(
+      node.get("emittionDate").asText(),
       DateTimeFormatter.ofPattern("YYYY-MM-dd'T'HH:mm:ss.SSSXXX")
       ) : null
     );

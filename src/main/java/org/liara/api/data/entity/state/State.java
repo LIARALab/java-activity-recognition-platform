@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 public class State extends ApplicationEntity
 {
   @Column(name = "emitted_at", nullable = false, updatable = true, unique = false, precision = 6)
-  private ZonedDateTime _emittionDate;
+  private ZonedDateTime _emissionDate;
   
   @ManyToOne(optional = false)
   @JoinColumn(name = "sensor_identifier", nullable = false, unique = false, updatable = true)
@@ -61,21 +61,41 @@ public class State extends ApplicationEntity
   )
   @MapKeyColumn(name = "label")
   private Map<String, State> _correlations;
-  
-  public State () { 
-    _emittionDate = null;
+
+  public State () {
+    _emissionDate = null;
     _sensor = null;
     _correlations = new HashMap<>();
   }
 
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-  public ZonedDateTime getEmittionDate () {
-    return _emittionDate;
+  public ZonedDateTime getEmissionDate () {
+    return _emissionDate;
   }
-  
+
+  public void setEmissionDate (@NonNull final ZonedDateTime emissionDate) {
+    _emissionDate = emissionDate;
+  }
+
   @JsonIgnore
   public Sensor getSensor () {
     return _sensor;
+  }
+
+  public void setSensor (@Nullable final Sensor sensor) {
+    if (_sensor != sensor) {
+      if (_sensor != null) {
+        final Sensor oldSensor = _sensor;
+        _sensor = null;
+        oldSensor.removeState(this);
+      }
+
+      _sensor = sensor;
+
+      if (_sensor != null) {
+        _sensor.addState(this);
+      }
+    }
   }
   
   public void correlate (
@@ -130,32 +150,14 @@ public class State extends ApplicationEntity
     final String unifiedLabel = label.toLowerCase().trim();
     return Objects.equal(_correlations.get(unifiedLabel), state);
   }
-  
-  public void setSensor (@Nullable final Sensor sensor) {
-    if (_sensor != sensor) {
-      if (_sensor != null) {
-        final Sensor oldSensor = _sensor;
-        _sensor = null;
-        oldSensor.removeState(this);
-      }
-      
-      _sensor = sensor;
-      
-      if (_sensor != null) {
-        _sensor.addState(this);
-      }
-    }
-  }
 
+  @Transient
   public Long getSensorIdentifier () {
     return _sensor == null ? null : _sensor.getIdentifier();
   }
 
-  public void setEmittionDate (@NonNull final ZonedDateTime emittionDate) {
-    _emittionDate = emittionDate;
-  }
-
   @JsonIgnore
+  @Transient
   public Long getNodeIdentifier () {
     return _sensor.getNodeIdentifier();
   }
@@ -176,7 +178,7 @@ public class State extends ApplicationEntity
       "", 
       super.toString(), "[",
       "sensor : ", _sensor == null ? null : _sensor.toString(), ", ",
-      "emittionDate : ", _emittionDate == null ? null : _emittionDate.toString(), "]"
+      "emittionDate : ", _emissionDate == null ? null : _emissionDate.toString(), "]"
     );
   }
 }

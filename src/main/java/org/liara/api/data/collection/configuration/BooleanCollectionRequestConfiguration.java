@@ -63,7 +63,7 @@ public final class BooleanCollectionRequestConfiguration implements CollectionRe
           "updateDate", (root) -> root.get("_updateDate")
         ),
         APIRequestEntityFilterParserFactory.datetime(
-          "emittionDate", (root) -> root.get("_emittionDate")
+          "emissionDate", (root) -> root.get("_emissionDate")
         ),
         APIRequestEntityFilterParserFactory.booleanValue(
           "value", (root) -> root.get("_value")
@@ -83,7 +83,7 @@ public final class BooleanCollectionRequestConfiguration implements CollectionRe
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
       APIRequestFilterValidatorFactory.datetime("updateDate"),
       APIRequestFilterValidatorFactory.datetime("date"),
-      APIRequestFilterValidatorFactory.datetime("emittionDate"),
+      APIRequestFilterValidatorFactory.datetime("emissionDate"),
       APIRequestFilterValidatorFactory.booleanValue("value"),
       APIRequestFilterValidatorFactory.includeCollection("sensor", SensorCollection.class)
     );
@@ -105,7 +105,7 @@ public final class BooleanCollectionRequestConfiguration implements CollectionRe
         "updateDate", (root) -> root.get("_updateDate")
       ),
       APIRequestOrderingProcessorFactory.field(
-        "emittionDate", (root) -> root.get("_emittionDate")
+        "emissionDate", (root) -> root.get("_emissionDate")
       ),
       APIRequestOrderingProcessorFactory.field(
         "value", (root) -> root.get("_value")
@@ -123,11 +123,15 @@ public final class BooleanCollectionRequestConfiguration implements CollectionRe
       APIRequestGroupingProcessorFactory.expression("creationDate", (root) -> root.get("_creationDate")),
       APIRequestGroupingProcessorFactory.expression("updateDate", (root) -> root.get("_updateDate")),
       APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
-      APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
-      APIRequestGroupingProcessorFactory.expression("emittionDate:date",
+      APIRequestGroupingProcessorFactory.expression(
+        "emissionDate",
+        (root) -> root.get("_emissionDate")
+      ),
+      APIRequestGroupingProcessorFactory.expression(
+        "emissionDate:date",
         (query, root) -> query.getManager().getCriteriaBuilder().function("DATE_FORMAT",
           String.class,
-          root.get("_emittionDate"),
+          root.get("_emissionDate"),
           query.getManager().getCriteriaBuilder().literal("%Y-%m-%d")
         )
       ),

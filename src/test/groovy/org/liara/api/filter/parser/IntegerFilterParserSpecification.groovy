@@ -1,17 +1,11 @@
 package org.liara.api.filter.parser
 
-import org.hibernate.criterion.Conjunction
-import org.liara.api.filter.ast.ConjunctionFilterNode
-import org.liara.api.filter.ast.DisjunctionFilterNode
-import org.liara.api.filter.ast.FilterNodes
-import org.liara.api.filter.ast.GreaterThanFilterNode
-import org.liara.api.filter.ast.LessThanFilterNode
-import org.liara.api.filter.ast.PredicateFilterNode
-import org.liara.api.filter.ast.ValueFilterNode
 
+import org.liara.api.filter.ast.FilterNodes
 import spock.lang.Specification
 
-public class IntegerFilterParserSpecification extends Specification
+class IntegerFilterParserSpecification
+  extends Specification
 {
   def "it can parse a greater than predicate and return a valid filtering AST" () {
     given: "an integer filter parser"
@@ -144,23 +138,23 @@ public class IntegerFilterParserSpecification extends Specification
       final IntegerFilterParser parser = new IntegerFilterParser()
      
     expect: "it to transform valid predicates into valid filtering AST"
-      parser.parse("!55").equals(
+    parser.parse("not:55").equals(
         FilterNodes.not(FilterNodes.equalTo(55))
       ) == true
-      
-      parser.parse("!-25066").equals(
+
+    parser.parse("not:-25066").equals(
         FilterNodes.not(FilterNodes.equalTo(-25066))
       ) == true
-      
-      parser.parse("!-33489").equals(
+
+    parser.parse("not:-33489").equals(
         FilterNodes.not(FilterNodes.equalTo(-33489))
       ) == true
-      
-      parser.parse("!+3000").equals(
+
+    parser.parse("not:+3000").equals(
         FilterNodes.not(FilterNodes.equalTo(3000))
       ) == true
-      
-      parser.parse("!+0000").equals(
+
+    parser.parse("not:+0000").equals(
         FilterNodes.not(FilterNodes.equalTo(0))
       ) == true
   }
@@ -196,23 +190,23 @@ public class IntegerFilterParserSpecification extends Specification
       final IntegerFilterParser parser = new IntegerFilterParser()
      
     expect: "it to transform valid predicates into valid filtering AST"
-      parser.parse("!5:456").equals(
+    parser.parse("not:5:456").equals(
         FilterNodes.not(FilterNodes.between(5, 456))
       ) == true
-      
-      parser.parse("!456:5").equals(
+
+    parser.parse("not:456:5").equals(
         FilterNodes.not(FilterNodes.between(5, 456))
       ) == true
-      
-      parser.parse("!+50:-250").equals(
+
+    parser.parse("not:+50:-250").equals(
         FilterNodes.not(FilterNodes.between(-250, 50))
       ) == true
-      
-      parser.parse("!+0000:-0000").equals(
+
+    parser.parse("not:+0000:-0000").equals(
         FilterNodes.not(FilterNodes.between(0, 0))
       ) == true
-      
-      parser.parse("!-369745:+59").equals(
+
+    parser.parse("not:-369745:+59").equals(
         FilterNodes.not(FilterNodes.between(-369745, 59))
       ) == true
   }
@@ -228,8 +222,8 @@ public class IntegerFilterParserSpecification extends Specification
           FilterNodes.lessThanOrEqualTo(69)
         )
       ) == true
-      
-      parser.parse("!2,!6,!9,!10,!-11,!-56").equals(
+
+    parser.parse("not:2,not:6,not:9,not:10,not:-11,not:-56").equals(
         FilterNodes.and(
           FilterNodes.not(FilterNodes.equalTo(2)),
           FilterNodes.not(FilterNodes.equalTo(6)),
@@ -246,8 +240,8 @@ public class IntegerFilterParserSpecification extends Specification
           FilterNodes.greaterThanOrEqualTo(-30)
         )
       ) == true
-      
-      parser.parse("!50:-100,gte:-30").equals(
+
+    parser.parse("not:50:-100,gte:-30").equals(
         FilterNodes.and(
           FilterNodes.not(FilterNodes.between(-100, 50)),
           FilterNodes.greaterThanOrEqualTo(-30)
@@ -266,8 +260,8 @@ public class IntegerFilterParserSpecification extends Specification
           FilterNodes.lessThanOrEqualTo(69)
         )
       ) == true
-      
-      parser.parse("!2,!6;!9,!10;!-11,!-56").equals(
+
+    parser.parse("not:2,not:6;not:9,not:10;not:-11,not:-56").equals(
         FilterNodes.or(
           FilterNodes.and(
             FilterNodes.not(FilterNodes.equalTo(2)),
@@ -290,8 +284,8 @@ public class IntegerFilterParserSpecification extends Specification
           FilterNodes.greaterThanOrEqualTo(-30)
         )
       ) == true
-      
-      parser.parse("!50:-100;gte:-30,lte:10").equals(
+
+    parser.parse("not:50:-100;gte:-30,lte:10").equals(
         FilterNodes.or(
           FilterNodes.not(FilterNodes.between(-100, 50)),
           FilterNodes.and(

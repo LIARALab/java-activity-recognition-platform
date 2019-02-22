@@ -20,7 +20,7 @@ import java.util.*;
 public class StateCreationSchema implements ApplicationSchema
 {
   @Nullable
-  private ZonedDateTime _emittionDate = null;
+  private ZonedDateTime _emissionDate = null;
   
   @NonNull
   private ApplicationEntityReference<Sensor> _sensor = ApplicationEntityReference.empty(Sensor.class);
@@ -29,7 +29,7 @@ public class StateCreationSchema implements ApplicationSchema
   private final Map<String, ApplicationEntityReference<State>> _correlations = new HashMap<>();
   
   public void clear () {
-    _emittionDate = null;
+    _emissionDate = null;
     _sensor = ApplicationEntityReference.empty(Sensor.class);
     _correlations.clear();
   }
@@ -52,17 +52,17 @@ public class StateCreationSchema implements ApplicationSchema
   
   @Required
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-  public ZonedDateTime getEmittionDate () {
-    return _emittionDate;
+  public ZonedDateTime getEmissionDate () {
+    return _emissionDate;
   }
   
   @JsonSetter
-  public void setEmittionDate (@Nullable final ZonedDateTime emittionDate) {
-    _emittionDate = emittionDate;
+  public void setEmissionDate (@Nullable final ZonedDateTime emissionDate) {
+    _emissionDate = emissionDate;
   }
   
   public void setEmittionDate (@NonNull final Optional<ZonedDateTime> emittionDate) {
-    _emittionDate = emittionDate.orElse(null);
+    _emissionDate = emittionDate.orElse(null);
   }
   
   public void correlate (

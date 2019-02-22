@@ -36,7 +36,7 @@ public class LocalBooleanStateRepository
   )
   {
     final List<BooleanState> previous = findAllPrevious(
-      created.getEmittionDate().plusSeconds(1),
+      created.getEmissionDate().plusSeconds(1),
       inputSensors
     );
     return previous
@@ -45,15 +45,16 @@ public class LocalBooleanStateRepository
                state.getValue(),
                value
              ) && (
-                                state.getEmittionDate().compareTo(created.getEmittionDate()) < 0 || (
+                                state.getEmissionDate().compareTo(created.getEmissionDate()) < 0 ||
+                                (
                                   Objects.equals(
-                                    state.getEmittionDate(),
-                                    created.getEmittionDate()
+                                    state.getEmissionDate(),
+                                    created.getEmissionDate()
                                   ) && state.getIdentifier() < created.getIdentifier()
                                 )
                               ))
              .sorted(Comparator
-                       .comparing(BooleanState::getEmittionDate)
+                       .comparing(BooleanState::getEmissionDate)
                        .thenComparing(BooleanState::getIdentifier)
                        .reversed())
              .limit(count)
@@ -88,7 +89,7 @@ public class LocalBooleanStateRepository
   )
   {
     return findAllNext(
-      created.getEmittionDate().minusSeconds(1),
+      created.getEmissionDate().minusSeconds(1),
       inputSensors
     )
              .stream()
@@ -96,14 +97,16 @@ public class LocalBooleanStateRepository
                state.getValue(),
                value
              ) && (
-                                state.getEmittionDate().compareTo(created.getEmittionDate()) > 0 || (
+                                state.getEmissionDate().compareTo(created.getEmissionDate()) > 0 ||
+                                (
                                   Objects.equals(
-                                    state.getEmittionDate(),
-                                    created.getEmittionDate()
+                                    state.getEmissionDate(),
+                                    created.getEmissionDate()
                                   ) && state.getIdentifier() > created.getIdentifier()
                                 )
                               ))
-             .sorted(Comparator.comparing(BooleanState::getEmittionDate).thenComparing(BooleanState::getIdentifier))
+             .sorted(Comparator.comparing(BooleanState::getEmissionDate)
+                       .thenComparing(BooleanState::getIdentifier))
              .limit(count)
              .collect(Collectors.toList());
   }

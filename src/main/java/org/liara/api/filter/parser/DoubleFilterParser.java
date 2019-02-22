@@ -105,7 +105,7 @@ public class DoubleFilterParser implements FilterParser
   }
 
   private PredicateFilterNode parseNotEqualTo (@NonNull final String result) {
-    return new NotFilterNode(this.parseEqualTo(result.substring(1)));
+    return new NotFilterNode(this.parseEqualTo(result.substring(4)));
   }
 
   private PredicateFilterNode parseEqualTo (@NonNull final String result) {
@@ -113,7 +113,7 @@ public class DoubleFilterParser implements FilterParser
   }
 
   private PredicateFilterNode parseNotBetweenThan (@NonNull final String result) {
-    return new NotFilterNode(this.parseBetweenThan(result.substring(1)));
+    return new NotFilterNode(this.parseBetweenThan(result.substring(4)));
   }
 
   private PredicateFilterNode parseBetweenThan (@NonNull final String result) {

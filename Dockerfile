@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM library/fedora:27
 
 WORKDIR /
 
@@ -10,9 +10,14 @@ ENV DATABASE_URL ${DATABASE_URL}
 ENV DATABASE_USERNAME ${DATABASE_USERNAME}
 ENV DATABASE_PASSWORD ${DATABASE_PASSWORD}
 
-RUN apk add --no-cache openjdk8-jre pwgen && \
-    addgroup application && \
-	adduser -h /home/application -G application application << pwgen -S 20 && \
+RUN yum install wget pwgen findutils -y
+
+RUN wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/11.0.2+9/f51449fcd52f4d52b93a989c5c56ed3c/jdk-11.0.2_linux-x64_bin.rpm && \
+    rpm -ivh jdk-11.0.2_linux-x64_bin.rpm && \
+    rm -f jdk-11.0.2_linux-x64_bin.rpm
+
+RUN groupadd application && \
+	useradd -d /home/application -m -g application -p `pwgen -s 20` application && \
 	chown -R application:application /home/application && \
 	chmod -R a-rwx /home/application && \
 	chmod -R g+r /home/application && \

@@ -21,25 +21,18 @@
  ******************************************************************************/
 package org.liara.api.controller.web;
 
-import org.springframework.lang.NonNull;
-
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.core.annotation.Order;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.liara.api.collection.EntityNotFoundException;
 import org.liara.api.request.validator.error.InvalidAPIRequestException;
 import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.*;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
@@ -50,6 +43,7 @@ public final class APIExceptionHandler
     @NonNull final InvalidAPIRequestException exception
   )
   {
+    exception.printStackTrace();
     return new ResponseEntity<>(exception, HttpStatus.BAD_REQUEST);
   }
 
@@ -58,11 +52,14 @@ public final class APIExceptionHandler
     @NonNull final EntityNotFoundException exception
   )
   {
+    exception.printStackTrace();
     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
   }
   
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<List<Map<String, Object>>> handleException(@NonNull final MethodArgumentNotValidException exception) {
+    exception.printStackTrace();
+
     final List<Map<String, Object>> errors = new ArrayList<>();
     
     exception.getBindingResult()
@@ -85,6 +82,7 @@ public final class APIExceptionHandler
 
   @ExceptionHandler(Exception.class)
   public ResponseEntity<Map<String, Object>> handleException (@NonNull final Exception exception) {
+    exception.printStackTrace();
     return new ResponseEntity<>(exceptionToMap(exception), HttpStatus.INTERNAL_SERVER_ERROR);
   }
   

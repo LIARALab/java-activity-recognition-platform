@@ -1,19 +1,17 @@
 package org.liara.api.data.operators;
 
-import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-
-import javax.persistence.criteria.CriteriaBuilder;
-
+import com.google.common.collect.Iterators;
 import org.liara.api.collection.EntityCollection;
 import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.data.entity.state.State;
 import org.springframework.lang.NonNull;
 
-import com.google.common.collect.Iterators;
+import javax.persistence.criteria.CriteriaBuilder;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 
 public final class StateOperators
 {
@@ -23,7 +21,7 @@ public final class StateOperators
     return query -> {
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
       query.andWhere(
-        builder.greaterThan(query.getEntity().get("_emittionDate"), date)
+        builder.greaterThan(query.getEntity().get("_emissionDate"), date)
       );
     };
   }
@@ -34,7 +32,7 @@ public final class StateOperators
     return query -> {
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
       query.andWhere(
-        builder.greaterThanOrEqualTo(query.getEntity().get("_emittionDate"), date)
+        builder.greaterThanOrEqualTo(query.getEntity().get("_emissionDate"), date)
       );
     };
   }
@@ -45,7 +43,7 @@ public final class StateOperators
     return query -> {
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
       query.andWhere(
-        builder.lessThan(query.getEntity().get("_emittionDate"), date)
+        builder.lessThan(query.getEntity().get("_emissionDate"), date)
       );
     };
   }
@@ -56,7 +54,7 @@ public final class StateOperators
     return query -> {
       final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();
       query.andWhere(
-        builder.lessThanOrEqualTo(query.getEntity().get("_emittionDate"), date)
+        builder.lessThanOrEqualTo(query.getEntity().get("_emissionDate"), date)
       );
     };
   }

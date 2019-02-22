@@ -1,12 +1,7 @@
 package org.liara.api.data.schema;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Primary;
@@ -17,8 +12,11 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Primary
@@ -136,9 +134,9 @@ public class AnnotationBasedSchemaManager implements SchemaManager
       );
     } catch (final Exception exception) {
       throw new Error(String.join(
-        "", 
-        "Unnable to execute the given schema ", schema.getClass().toString(),
-        " with the handler ", handler.getClass().toString(), " because the call to ",
+        "",
+        "Unable to execute the given schema ", schema.getClass().toString(),
+        " with the handler ", handler.getClass().toString(), " because the call to",
         " the handler method as failed."
       ), exception);
     }

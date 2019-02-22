@@ -1,14 +1,14 @@
 package org.liara.api.data.entity.state;
 
-import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.liara.api.data.entity.ApplicationEntityReference;
 import org.liara.api.data.entity.ApplicationEntitySnapshot;
 import org.liara.api.data.entity.sensor.Sensor;
 import org.springframework.lang.NonNull;
+
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class StateSnapshot extends ApplicationEntitySnapshot
 {
@@ -16,7 +16,7 @@ public class StateSnapshot extends ApplicationEntitySnapshot
   private final ApplicationEntityReference<Sensor> _sensor;
   
   @NonNull
-  private final ZonedDateTime _emittionDate;
+  private final ZonedDateTime _emissionDate;
   
   @NonNull
   private final Map<String, ApplicationEntityReference<State>> _correlations = new HashMap<>();
@@ -25,7 +25,7 @@ public class StateSnapshot extends ApplicationEntitySnapshot
     super(toCopy);
     
     _sensor = toCopy.getSensor();
-    _emittionDate = toCopy.getEmittionDate();
+    _emissionDate = toCopy.getEmittionDate();
     for (final Map.Entry<String, ApplicationEntityReference<State>> correlation : toCopy.getCorrelations().entrySet()) {
       _correlations.put(correlation.getKey(), correlation.getValue());
     }
@@ -35,7 +35,7 @@ public class StateSnapshot extends ApplicationEntitySnapshot
     super(model);
     
     _sensor = ApplicationEntityReference.of(Sensor.class, model.getSensorIdentifier());
-    _emittionDate = model.getEmittionDate();
+    _emissionDate = model.getEmissionDate();
     for (final Map.Entry<String, State> correlation : model.getCorrelations()) {
       _correlations.put(correlation.getKey(), correlation.getValue().getReference().as(State.class));
     }
@@ -46,7 +46,7 @@ public class StateSnapshot extends ApplicationEntitySnapshot
   }
   
   public ZonedDateTime getEmittionDate () {
-    return _emittionDate;
+    return _emissionDate;
   }
   
   public Map<String, ApplicationEntityReference<State>> getCorrelations () {

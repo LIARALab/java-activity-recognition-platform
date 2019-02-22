@@ -85,7 +85,7 @@ public class MaxDurationSensor
       schema.setStart(state.getStart());
       schema.setEnd(state.getEnd());
       schema.setTag(getConfiguration().getTag());
-      schema.setEmittionDate(state.getEmittionDate());
+      schema.setEmissionDate(state.getEmissionDate());
       schema.setSensor(getSensor());
       schema.correlate("base", state);
 
@@ -150,7 +150,7 @@ public class MaxDurationSensor
     schema.setStart(state.getStart());
     schema.setEnd(state.getEnd());
     schema.setTag(getConfiguration().getTag());
-    schema.setEmittionDate(state.getEmittionDate());
+    schema.setEmissionDate(state.getEmissionDate());
     schema.setSensor(getSensor());
     schema.correlate("base", state);
 

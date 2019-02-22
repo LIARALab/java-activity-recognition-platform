@@ -77,7 +77,7 @@ public final class LabelStateCollectionRequestConfiguration
           "end", (root) -> root.get("_start")
         ),
         APIRequestEntityFilterParserFactory.datetime(
-          "emittionDate", (root) -> root.get("_emittionDate")
+          "emissionDate", (root) -> root.get("_emissionDate")
         ),
         APIRequestEntityFilterParserFactory.duration("duration", LabelState.DURATION_SELECTOR
         ),
@@ -111,7 +111,7 @@ public final class LabelStateCollectionRequestConfiguration
       APIRequestFilterValidatorFactory.datetime("deletionDate"),
       APIRequestFilterValidatorFactory.datetime("start"),
       APIRequestFilterValidatorFactory.datetime("end"),
-      APIRequestFilterValidatorFactory.datetime("emittionDate"),
+      APIRequestFilterValidatorFactory.datetime("emissionDate"),
       APIRequestFilterValidatorFactory.duration("duration"),
       APIRequestFilterValidatorFactory.text("tag"),
       APIRequestFilterValidatorFactory.datetimeInRange("date"),
@@ -142,10 +142,10 @@ public final class LabelStateCollectionRequestConfiguration
         "end", (root) -> root.get("_end")
       ),
       APIRequestOrderingProcessorFactory.field(
-        "emittionDate", (root) -> root.get("_emittionDate")
+        "emissionDate", (root) -> root.get("_emissionDate")
       ),
       APIRequestOrderingProcessorFactory.field(
-        "emittionDate", (root) -> root.get("_tag")
+        "emissionDate", (root) -> root.get("_tag")
       ),
       APIRequestOrderingProcessorFactory.field(
         "duration",
@@ -172,12 +172,16 @@ public final class LabelStateCollectionRequestConfiguration
       APIRequestGroupingProcessorFactory.expression("deletionDate", (root) -> root.get("_deletionDate")),
       APIRequestGroupingProcessorFactory.expression("start", (root) -> root.get("_start")),
       APIRequestGroupingProcessorFactory.expression("end", (root) -> root.get("_end")),
-      APIRequestGroupingProcessorFactory.expression("emittionDate", (root) -> root.get("_emittionDate")),
+      APIRequestGroupingProcessorFactory.expression(
+        "emissionDate",
+        (root) -> root.get("_emissionDate")
+      ),
       APIRequestGroupingProcessorFactory.expression("tag", (root) -> root.get("_tag")),
-      APIRequestGroupingProcessorFactory.expression("emittionDate:date",
+      APIRequestGroupingProcessorFactory.expression(
+        "emissionDate:date",
         (query, root) -> query.getManager().getCriteriaBuilder().function("DATE_FORMAT",
           String.class,
-          root.get("_emittionDate"),
+          root.get("_emissionDate"),
           query.getManager().getCriteriaBuilder().literal("%Y-%m-%d")
         )
       ),

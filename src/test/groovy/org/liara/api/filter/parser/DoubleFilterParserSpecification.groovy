@@ -1,18 +1,11 @@
 package org.liara.api.filter.parser
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import org.hibernate.criterion.Conjunction
-import org.liara.api.filter.ast.ConjunctionFilterNode
-import org.liara.api.filter.ast.DisjunctionFilterNode
-import org.liara.api.filter.ast.FilterNodes
-import org.liara.api.filter.ast.GreaterThanFilterNode
-import org.liara.api.filter.ast.LessThanFilterNode
-import org.liara.api.filter.ast.PredicateFilterNode
-import org.liara.api.filter.ast.ValueFilterNode
 
+import org.liara.api.filter.ast.FilterNodes
 import spock.lang.Specification
 
-public class DoubleFilterParserSpecification extends Specification
+class DoubleFilterParserSpecification
+  extends Specification
 {
   def "it can parse a greater than predicate and return a valid filtering AST" () {
     given: "an double filter parser"
@@ -145,23 +138,23 @@ public class DoubleFilterParserSpecification extends Specification
       final DoubleFilterParser parser = new DoubleFilterParser()
      
     expect: "it to transform valid predicates into valid filtering AST"
-      parser.parse("!55.365").equals(
+    parser.parse("not:55.365").equals(
         FilterNodes.not(FilterNodes.equalTo(55.365d))
       ) == true
-      
-      parser.parse("!-25066.6").equals(
+
+    parser.parse("not:-25066.6").equals(
         FilterNodes.not(FilterNodes.equalTo(-25066.6d))
       ) == true
-      
-      parser.parse("!-33489.29").equals(
+
+    parser.parse("not:-33489.29").equals(
         FilterNodes.not(FilterNodes.equalTo(-33489.29d))
       ) == true
-      
-      parser.parse("!+3000").equals(
+
+    parser.parse("not:+3000").equals(
         FilterNodes.not(FilterNodes.equalTo(3000.0d))
       ) == true
-      
-      parser.parse("!+0000.000").equals(
+
+    parser.parse("not:+0000.000").equals(
         FilterNodes.not(FilterNodes.equalTo(0.0d))
       ) == true
   }
@@ -197,23 +190,23 @@ public class DoubleFilterParserSpecification extends Specification
       final DoubleFilterParser parser = new DoubleFilterParser()
      
     expect: "it to transform valid predicates into valid filtering AST"
-      parser.parse("!5:456").equals(
+    parser.parse("not:5:456").equals(
         FilterNodes.not(FilterNodes.between(5.0d, 456.0d))
       ) == true
-      
-      parser.parse("!456.22:5.33").equals(
+
+    parser.parse("not:456.22:5.33").equals(
         FilterNodes.not(FilterNodes.between(5.33d, 456.22d))
       ) == true
-      
-      parser.parse("!+50.16:-250").equals(
+
+    parser.parse("not:+50.16:-250").equals(
         FilterNodes.not(FilterNodes.between(-250d, 50.16d))
       ) == true
-      
-      parser.parse("!+0000.98:-0000.1589").equals(
+
+    parser.parse("not:+0000.98:-0000.1589").equals(
         FilterNodes.not(FilterNodes.between(-0.1589d, 0.98d))
       ) == true
-      
-      parser.parse("!-369745.22:+59").equals(
+
+    parser.parse("not:-369745.22:+59").equals(
         FilterNodes.not(FilterNodes.between(-369745.22d, 59.0d))
       ) == true
   }
@@ -229,8 +222,8 @@ public class DoubleFilterParserSpecification extends Specification
           FilterNodes.lessThanOrEqualTo(69.0d)
         )
       ) == true
-      
-      parser.parse("!2,!6.3,!9,!10.8,!-11,!-56.4").equals(
+
+    parser.parse("not:2,not:6.3,not:9,not:10.8,not:-11,not:-56.4").equals(
         FilterNodes.and(
           FilterNodes.not(FilterNodes.equalTo(2.0d)),
           FilterNodes.not(FilterNodes.equalTo(6.3d)),
@@ -247,8 +240,8 @@ public class DoubleFilterParserSpecification extends Specification
           FilterNodes.greaterThanOrEqualTo(-30.78d)
         )
       ) == true
-      
-      parser.parse("!50.2:-100,gte:-30.33").equals(
+
+    parser.parse("not:50.2:-100,gte:-30.33").equals(
         FilterNodes.and(
           FilterNodes.not(FilterNodes.between(-100.0d, 50.2d)),
           FilterNodes.greaterThanOrEqualTo(-30.33d)
@@ -267,8 +260,8 @@ public class DoubleFilterParserSpecification extends Specification
           FilterNodes.lessThanOrEqualTo(69.0d)
         )
       ) == true
-      
-      parser.parse("!2,!6.4;!9,!10.2;!-11.5,!-56").equals(
+
+    parser.parse("not:2,not:6.4;not:9,not:10.2;not:-11.5,not:-56").equals(
         FilterNodes.or(
           FilterNodes.and(
             FilterNodes.not(FilterNodes.equalTo(2.0d)),
@@ -291,8 +284,8 @@ public class DoubleFilterParserSpecification extends Specification
           FilterNodes.greaterThanOrEqualTo(-30.0d)
         )
       ) == true
-      
-      parser.parse("!50.25:-100;gte:-30.3,lte:10.2").equals(
+
+    parser.parse("not:50.25:-100;gte:-30.3,lte:10.2").equals(
         FilterNodes.or(
           FilterNodes.not(FilterNodes.between(-100.0d, 50.25d)),
           FilterNodes.and(

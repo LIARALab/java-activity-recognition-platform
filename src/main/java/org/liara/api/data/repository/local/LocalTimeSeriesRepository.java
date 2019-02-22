@@ -56,7 +56,7 @@ public class LocalTimeSeriesRepository<TimeState extends State>
   }
   
   private int sortByDateAscending (@NonNull final TimeState left, @NonNull final TimeState right) {
-    return left.getEmittionDate().compareTo(right.getEmittionDate());
+    return left.getEmissionDate().compareTo(right.getEmissionDate());
   }
   
   private int sortByDateDescending (@NonNull final TimeState left, @NonNull final TimeState right) {
@@ -94,7 +94,7 @@ public class LocalTimeSeriesRepository<TimeState extends State>
 
     public Entry (@NonNull final TimeState state) {
       _state = state;
-      _emittion = state.getEmittionDate();
+      _emittion = state.getEmissionDate();
     }
 
     public Entry (@NonNull final ZonedDateTime emittion) {

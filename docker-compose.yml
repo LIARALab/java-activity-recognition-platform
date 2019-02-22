@@ -6,13 +6,15 @@ services:
     depends_on:
       - sapa-api-database
     environment:
-      DATABASE_URL: mysql://sapa-api-database:3306/api
+      DATABASE_URL: mysql://sapa-api-database:3306/api?sslMode=DISABLED&allowPublicKeyRetrieval=true
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: sapa
     ports:
       - "80:8080"
+    expose:
+    - 8080
     networks:
-      - sapa-api
+    - sapa-api-network
   sapa-api-database:
     image: mysql:latest
     container_name: "sapa-api-database"
@@ -22,9 +24,9 @@ services:
       MYSQL_DATABASE: api
       MYSQL_ROOT_PASSWORD: sapa
     networks:
-      - sapa-api
+    - sapa-api-network
 networks:
-  sapa-api:
-    name: "sapa-api"
+  sapa-api-network:
+    name: "sapa-api-network"
     driver: bridge
 

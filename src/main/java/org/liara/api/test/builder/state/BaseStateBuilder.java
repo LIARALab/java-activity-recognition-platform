@@ -1,5 +1,12 @@
 package org.liara.api.test.builder.state;
 
+import org.liara.api.data.entity.state.State;
+import org.liara.api.test.builder.Builder;
+import org.liara.api.test.builder.IdentityBuilder;
+import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
@@ -7,13 +14,6 @@ import java.time.temporal.ChronoField;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.liara.api.data.entity.state.State;
-import org.liara.api.test.builder.Builder;
-import org.liara.api.test.builder.IdentityBuilder;
-import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
 public abstract class BaseStateBuilder<
                         Self extends BaseStateBuilder<Self, Entity>,
@@ -31,19 +31,19 @@ public abstract class BaseStateBuilder<
    .toFormatter();
   
   @Nullable
-  private ZonedDateTime _emittionDate = null;
+  private ZonedDateTime _emissionDate = null;
   
   @NonNull
   private final Map<String, Builder<?, ? extends State>> _correlations = new HashMap<>();
   
   public Self withEmittionDate (@Nullable final ZonedDateTime emittionDate) {
-    _emittionDate = emittionDate;
+    _emissionDate = emittionDate;
     
     return self();
   }
   
   public Self withEmittionDate (@NonNull final String string) {
-    _emittionDate = ZonedDateTime.parse(
+    _emissionDate = ZonedDateTime.parse(
       string, 
       BaseStateBuilder.DEFAULT_FORMATTER
     );
@@ -67,12 +67,12 @@ public abstract class BaseStateBuilder<
   }
   
   public ZonedDateTime getEmittionDate () {
-    return _emittionDate;
+    return _emissionDate;
   }
   
   protected void apply (@NonNull final State state) {
     super.apply(state);
-    state.setEmittionDate(_emittionDate);
+    state.setEmissionDate(_emissionDate);
     
     for (
       final Entry<

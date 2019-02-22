@@ -24,7 +24,7 @@ public class StateMutationSchema implements ApplicationSchema
   private ApplicationEntityReference<? extends State> _state = ApplicationEntityReference.empty(State.class);
   
   @Nullable
-  private ZonedDateTime _emittionDate = null;
+  private ZonedDateTime _emissionDate = null;
   
   @NonNull
   private final Map<String, ApplicationEntityReference<State>> _correlations = new HashMap<>();
@@ -34,7 +34,7 @@ public class StateMutationSchema implements ApplicationSchema
   
   public void clear () {
     _state = ApplicationEntityReference.empty(State.class);
-    _emittionDate = null;
+    _emissionDate = null;
     _correlations.clear();
     _decorrelations.clear();
   }
@@ -61,17 +61,17 @@ public class StateMutationSchema implements ApplicationSchema
   }
 
   @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-  public ZonedDateTime getEmittionDate () {
-    return _emittionDate;
+  public ZonedDateTime getEmissionDate () {
+    return _emissionDate;
   }
 
   @JsonSetter
-  public void setEmittionDate (@Nullable final ZonedDateTime emittionDate) {
-    _emittionDate = emittionDate;
+  public void setEmissionDate (@Nullable final ZonedDateTime emissionDate) {
+    _emissionDate = emissionDate;
   }
   
   public void setEmittionDate (@NonNull final Optional<ZonedDateTime> emittionDate) {
-    _emittionDate = emittionDate.orElse(null);
+    _emissionDate = emittionDate.orElse(null);
   }
   
   public void decorrelate (@NonNull final String label) {
@@ -136,7 +136,7 @@ public class StateMutationSchema implements ApplicationSchema
     @NonNull final EntityManager manager
   )
   {
-    if (_emittionDate != null) state.setEmittionDate(_emittionDate);
+    if (_emissionDate != null) state.setEmissionDate(_emissionDate);
     
     for (final String decorrelation : _decorrelations) {
       state.decorrelate(decorrelation);

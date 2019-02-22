@@ -35,7 +35,7 @@ class LocalTimeSeriesRepositorySpecification
     }
     
     result.addAll(builder.build().getStates())
-    Collections.sort(result, { a, b -> a.getEmittionDate().compareTo(b.getEmittionDate()) })
+    Collections.sort(result, { a, b -> a.getEmissionDate().compareTo(b.getEmissionDate()) })
     
     return result
   }
@@ -51,9 +51,9 @@ class LocalTimeSeriesRepositorySpecification
       builder.withState(
         ActivityStateBuilder.create {
           withTag tag
-          withEmittionDate flags.get(index).getEmittionDate()
-          withStart flags.get(index).getEmittionDate()
-          withEnd flags.get(index + 1).getEmittionDate()
+          withEmittionDate flags.get(index).getEmissionDate()
+          withStart flags.get(index).getEmissionDate()
+          withEnd flags.get(index + 1).getEmissionDate()
           withCorrelation "start", flags.get(index)
           withCorrelation "end", flags.get(index + 1)
         }
@@ -61,7 +61,7 @@ class LocalTimeSeriesRepositorySpecification
     }
     
     result.addAll(builder.build().getStates())
-    Collections.sort(result, { a, b -> a.getEmittionDate().compareTo(b.getEmittionDate()) })
+    Collections.sort(result, { a, b -> a.getEmissionDate().compareTo(b.getEmissionDate()) })
     
     return result
   }
@@ -123,8 +123,8 @@ class LocalTimeSeriesRepositorySpecification
         repository.getParent().add(x.get(0).getSensor()) 
         randomlyAdd(x, repository) 
       })
-      
-    expect: "to be able to get the n previous emittions of a given time series"
+
+    expect: "to be able to get the n previous emissions of a given time series"
       for (int index = 1; index < 30; ++index) {
         for (final List<BooleanState> states : sensorsStates) {
           states.subList(0, index).equals(
@@ -148,8 +148,8 @@ class LocalTimeSeriesRepositorySpecification
         repository.getParent().add(x.get(0).getSensor()) 
         randomlyAdd(x, repository) 
       })
-      
-    expect: "to be able to get the n next emittions of a given time series"
+
+    expect: "to be able to get the n next emissions of a given time series"
       for (int index = 0; index < 29; ++index) {
         for (final List<BooleanState> states : sensorsStates) {
           states.subList(index, states.size()).equals(

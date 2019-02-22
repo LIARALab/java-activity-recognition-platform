@@ -1,12 +1,11 @@
 package org.liara.api.collection.transformation
 
-import org.mockito.Mockito
-
-import org.liara.api.collection.view.ValueView
 import org.liara.api.collection.view.View
+import org.mockito.Mockito
 import spock.lang.Specification
 
-public class ConjunctionTransformationSpecification extends Specification
+class ConjunctionTransformationSpecification
+  extends Specification
 {
   def "applied to a view, it delegate the operation in a valid order, to its conjuged transformation" () {
     given: "a view to transform"

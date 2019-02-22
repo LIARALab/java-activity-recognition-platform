@@ -28,31 +28,71 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.Arrays;
+import java.util.logging.Logger;
 
 @SpringBootApplication
 @Import({
   SwaggerConfiguration.class
 })
 public class Application
-{  
+{
+  private static String[] ARGUMENTS = new String[0];
+
+  public static String[] getStartingArguments () {
+    return Arrays.copyOf(Application.ARGUMENTS, Application.ARGUMENTS.length);
+  }
+
+  public static boolean isFlagPassed (final String fullName) {
+    final String argumentToFind = "--" + fullName;
+
+    for (final String argument : Application.ARGUMENTS) {
+      if (argument.trim().equalsIgnoreCase(argumentToFind)) return true;
+    }
+
+    return false;
+  }
+
+  @Bean
+  public static PropertySourcesPlaceholderConfigurer getPropertyPlaceholderConfigurer () {
+    final PropertySourcesPlaceholderConfigurer result = new PropertySourcesPlaceholderConfigurer();
+
+    if (isFlagPassed("development")) {
+      Logger.getLogger(Application.class.toString()).info(
+        "Application launched in development mode, see application-development.properties file " +
+        "for more information.");
+      result.setLocation(new ClassPathResource("application-development.properties"));
+    } else {
+      result.setLocation(new ClassPathResource("application.properties"));
+    }
+
+    return result;
+  }
+
   public static void main (String[] args) {
+    Application.ARGUMENTS = args;
+
     final ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
     context.getBean(VirtualSensorManager.class).start();
   }
-  
+
   @Bean
   public WebMvcConfigurer corsConfigurer() {
-      return new WebMvcConfigurer () {
-          @Override
-          public void addCorsMappings(CorsRegistry registry) {
-              registry.addMapping("/**")
-                      .allowedOrigins("*")
-                      .allowedHeaders("*")
-                      .allowCredentials(true)
-                      .allowedMethods("*");
-          }
-      };
+    return new WebMvcConfigurer()
+    {
+      @Override
+      public void addCorsMappings (CorsRegistry registry) {
+        registry.addMapping("/**")
+          .allowedOrigins("*")
+          .allowedHeaders("*")
+          .allowCredentials(true)
+          .allowedMethods("*");
+      }
+    };
   }
 }

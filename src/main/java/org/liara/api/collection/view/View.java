@@ -38,9 +38,9 @@ public interface View<Result>
    *
    * @return The content of this view as a single result.
    */
-  public Result get ();
-  
-  public default <Output extends View<?>> Output apply (
+  Result get ();
+
+  default <Output extends View<?>> Output apply (
     @NonNull final Transformation<View<Result>, Output> transformation
   ) {
     return transformation.apply(this);

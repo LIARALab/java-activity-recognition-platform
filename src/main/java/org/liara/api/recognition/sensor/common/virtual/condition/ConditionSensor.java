@@ -276,7 +276,7 @@ public abstract class ConditionSensor<CheckedState extends State>
   {
     final BooleanStateCreationSchema creation = new BooleanStateCreationSchema();
     creation.setSensor(getSensor());
-    creation.setEmittionDate(state.getEmittionDate());
+    creation.setEmissionDate(state.getEmissionDate());
     creation.setValue(up);
     creation.correlate("origin", state);
 
@@ -295,7 +295,7 @@ public abstract class ConditionSensor<CheckedState extends State>
     final BooleanStateMutationSchema mutation = new BooleanStateMutationSchema();
 
     mutation.setState(toMove);
-    mutation.setEmittionDate(to.getEmittionDate());
+    mutation.setEmissionDate(to.getEmissionDate());
     mutation.setValue(up);
     mutation.correlate("origin", to);
 

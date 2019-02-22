@@ -1,25 +1,11 @@
 package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall
 
-import java.time.Duration
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.util.List
-import java.util.stream.Collectors
-
-import org.liara.api.data.entity.sensor.Sensor
 import org.liara.api.data.entity.ApplicationEntityReference
 import org.liara.api.data.entity.node.Node
-import org.liara.api.data.entity.state.BooleanState
-import org.liara.api.data.entity.state.BooleanStateCreationSchema
-import org.liara.api.data.entity.state.BooleanStateMutationSchema
-import org.liara.api.data.entity.state.BooleanStateSnapshot
-import org.liara.api.data.entity.state.State
-import org.liara.api.data.entity.state.StateDeletionSchema
-import org.liara.api.data.entity.state.StateMutationSchema
+import org.liara.api.data.entity.sensor.Sensor
+import org.liara.api.data.entity.state.*
 import org.liara.api.data.entity.state.handler.LocalBooleanStateCreationSchemaHandler
 import org.liara.api.data.entity.state.handler.LocalBooleanStateMutationSchemaHandler
-import org.liara.api.data.entity.tree.LocalNestedSetTree
-import org.liara.api.data.repository.local.LocalApplicationEntityRepository
 import org.liara.api.data.repository.local.LocalBooleanStateRepository
 import org.liara.api.data.repository.local.LocalEntityManager
 import org.liara.api.data.repository.local.LocalNodeRepository
@@ -38,10 +24,15 @@ import org.mockito.Mockito
 import org.springframework.lang.NonNull
 import spock.lang.Specification
 
-public class OneVsAllToUpDownMotionSensorSpecification
+import java.time.Duration
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.stream.Collectors
+
+class OneVsAllToUpDownMotionSensorSpecification
        extends Specification
 {
-  def Node buildTestHouse (
+  Node buildTestHouse (
     @NonNull final LocalEntityManager entityManager,
     @NonNull final List<String> rooms
   ) {
@@ -64,8 +55,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
     return house
   }
-  
-  static def Duration randomize (@NonNull final Duration duration, final float coef, final long max) {
+
+  static Duration randomize (@NonNull final Duration duration, final float coef, final long max) {
     final Duration result = Duration.ofSeconds((long)(duration.seconds * coef))
     
     if (result.compareTo(Duration.ofSeconds(max)) <= 0) {
@@ -74,8 +65,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
       return Duration.ofSeconds(max)
     }
   }
-  
-  def void buildTestScenario (
+
+  void buildTestScenario (
     @NonNull final LocalEntityManager entityManager,
     @NonNull final Node house,
     @NonNull final ZonedDateTime startDate,
@@ -119,8 +110,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
       totalDuration += nextRoomDuration
     }
   }
-  
-  def void delete (
+
+  void delete (
     @NonNull final VirtualSensorRunner runner,
     @NonNull final LocalEntityManager entityManager,
     @NonNull final Collection<State> states
@@ -143,7 +134,7 @@ public class OneVsAllToUpDownMotionSensorSpecification
    * @param states
    * @return
    */
-  def List<State> emit (
+  List<State> emit (
     @NonNull final ApplicationEntityReference<Sensor> emitter,
     @NonNull final LocalEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
@@ -158,8 +149,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
     return states
   }
-  
-  def VirtualSensorRunner buildRunnerForHouse (
+
+  VirtualSensorRunner buildRunnerForHouse (
     @NonNull final Node house,
     @NonNull final String room,
     @NonNull final LocalEntityManager entityManager,
@@ -201,8 +192,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
     return runner
   }
-  
-  def List<State> mutate (
+
+  List<State> mutate (
     @NonNull final LocalEntityManager entityManager,
     @NonNull final VirtualSensorRunner runner,
     @NonNull final List<BooleanStateMutationSchema> mutations
@@ -212,15 +203,17 @@ public class OneVsAllToUpDownMotionSensorSpecification
       final BooleanStateSnapshot oldValue = flag.snapshot()
       entityManager.remove(flag)
       flag.identifier = oldValue.identifier
-      if (mutation.emittionDate != null) flag.emittionDate = mutation.emittionDate
+      if (mutation.emissionDate != null) {
+        flag.emissionDate = mutation.emissionDate
+      }
       if (mutation.value != null) flag.value = mutation.value
       entityManager.merge(flag)
       runner.getHandler().stateWasMutated(
         new StateWasMutatedEvent(this, oldValue, flag)
       )
     }
-    
-    return mutations.stream().map({ x -> entityManager[x.state] }).collect(Collectors.toList());
+
+    return mutations.stream().map({ x -> entityManager[x.state] }).collect(Collectors.toList())
   }
     
   def "it emit boundaries flags from existing sensor data when the virtual sensor is initialized" () {
@@ -262,39 +255,39 @@ public class OneVsAllToUpDownMotionSensorSpecification
       schemaManager.handledSchemaCount == 5
       schemaManager.hasHandled([
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": flags[livingRoomSensor, 0].emittionDate,
-          "value": false,
+          "class"             : BooleanStateCreationSchema.class,
+          "emissionDate"      : flags[livingRoomSensor, 0].emissionDate,
+          "value"             : false,
           "correlations[base]": flags[livingRoomSensor, 4 * 0].reference,
-          "sensor": outputSensor 
+          "sensor"            : outputSensor
         ],
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": startDate + Duration.ofMinutes(20),
-          "value": true,
+          "class"             : BooleanStateCreationSchema.class,
+          "emissionDate"      : startDate + Duration.ofMinutes(20),
+          "value"             : true,
           "correlations[base]": flags[kitchenSensor, 4 * 0].reference,
-          "sensor": outputSensor 
+          "sensor"            : outputSensor
         ],
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": startDate + Duration.ofMinutes(20 + 45),
-          "value": false,
+          "class"             : BooleanStateCreationSchema.class,
+          "emissionDate"      : startDate + Duration.ofMinutes(20 + 45),
+          "value"             : false,
           "correlations[base]": flags[livingRoomSensor, 4 * 1].reference,
-          "sensor": outputSensor 
+          "sensor"            : outputSensor
         ],
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": startDate + Duration.ofMinutes(20 + 45 + 5 + 30 + 5),
-          "value": true,
+          "class"             : BooleanStateCreationSchema.class,
+          "emissionDate"      : startDate + Duration.ofMinutes(20 + 45 + 5 + 30 + 5),
+          "value"             : true,
           "correlations[base]": flags[kitchenSensor, 4 * 2].reference,
-          "sensor": outputSensor 
+          "sensor"            : outputSensor
         ],
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": startDate + Duration.ofMinutes(20 + 45 + 5 + 30 + 5 + 15),
-          "value": false,
+          "class"             : BooleanStateCreationSchema.class,
+          "emissionDate"      : startDate + Duration.ofMinutes(20 + 45 + 5 + 30 + 5 + 15),
+          "value"             : false,
           "correlations[base]": flags[livingRoomSensor, 4 * 5].reference,
-          "sensor": outputSensor 
+          "sensor"            : outputSensor
         ]
       ]) == true
   }
@@ -384,11 +377,11 @@ public class OneVsAllToUpDownMotionSensorSpecification
       schemaManager.handledSchemaCount == 1
       schemaManager.hasHandled([
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": startDate,
-          "value": true,
+          "class"             : BooleanStateCreationSchema.class,
+          "emissionDate"      : startDate,
+          "value"             : true,
           "correlations[base]": flags[kitchenSensor, 0].reference,
-          "sensor": outputSensor 
+          "sensor"            : outputSensor
         ]
       ]) == true
   }
@@ -416,19 +409,19 @@ public class OneVsAllToUpDownMotionSensorSpecification
       
       runner.initialize()
       schemaManager.reset()
-      
-    when: "we chain flags emittion"
-      final List<BooleanState> emittions = []
-    
-      emittions.addAll emit(
+
+    when: "we chain flags emission"
+    final List<BooleanState> emissions = []
+
+    emissions.addAll emit(
         kitchenSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.truthy()
           at startDate
         }).build()
       )
-      
-      emittions.addAll emit(
+
+    emissions.addAll emit(
         livingRoomSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.truthy()
@@ -437,8 +430,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
           at startDate + Duration.ofMinutes(5)
         }).build()
       )
-      
-      emittions.addAll emit(
+
+    emissions.addAll emit(
         kitchenSensor, entityManager, runner,
         StateSequenceBuilder.create({
           with BooleanStateBuilder.truthy()
@@ -450,32 +443,32 @@ public class OneVsAllToUpDownMotionSensorSpecification
       schemaManager.handledSchemaCount == 4
       schemaManager.hasHandled([
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": emittions[0].emittionDate,
-          "value": true,
-          "correlations[base]": emittions[0].reference,
-          "sensor": outputSensor
+          "class"             : BooleanStateCreationSchema.class,
+          "emissionDate"      : emissions[0].emissionDate,
+          "value"             : true,
+          "correlations[base]": emissions[0].reference,
+          "sensor"            : outputSensor
         ],
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": emittions[1].emittionDate,
-          "value": false,
-          "correlations[base]": emittions[1].reference,
-          "sensor": outputSensor
+          "class"             : BooleanStateCreationSchema.class,
+          "emissionDate"      : emissions[1].emissionDate,
+          "value"             : false,
+          "correlations[base]": emissions[1].reference,
+          "sensor"            : outputSensor
         ],
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": emittions[2].emittionDate,
-          "value": false,
-          "correlations[base]": emittions[2].reference,
-          "sensor": outputSensor
+          "class"             : BooleanStateCreationSchema.class,
+          "emissionDate"      : emissions[2].emissionDate,
+          "value"             : false,
+          "correlations[base]": emissions[2].reference,
+          "sensor"            : outputSensor
         ],
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": emittions[3].emittionDate,
-          "value": true,
-          "correlations[base]": emittions[3].reference,
-          "sensor": outputSensor
+          "class"             : BooleanStateCreationSchema.class,
+          "emissionDate"      : emissions[3].emissionDate,
+          "value"             : true,
+          "correlations[base]": emissions[3].reference,
+          "sensor"            : outputSensor
         ]
       ]) == true
   }
@@ -516,16 +509,16 @@ public class OneVsAllToUpDownMotionSensorSpecification
       schemaManager.handledSchemaCount == 1
       schemaManager.hasHandled([
         [
-          "class": BooleanStateCreationSchema.class,
-          "emittionDate": startDate,
-          "value": false,
+          "class"             : BooleanStateCreationSchema.class,
+          "emissionDate"      : startDate,
+          "value"             : false,
           "correlations[base]": flags[livingRoomSensor, 0].reference,
-          "sensor": outputSensor 
+          "sensor"            : outputSensor
         ]
       ]) == true
   }
-  
-  def "it ignore consecutive valid emittion" () {
+
+  def "it ignore consecutive valid emission" () {
     given: "an entity manager and a schema manager"
       final LocalEntityManager entityManager = new LocalEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
@@ -571,8 +564,8 @@ public class OneVsAllToUpDownMotionSensorSpecification
     then: "we expect that the underlying handler does nothing"
       schemaManager.handledSchemaCount == 0
   }
-  
-  def "it ignore consecutive invalid emittion" () {
+
+  def "it ignore consecutive invalid emission" () {
     given: "an entity manager and a schema manager"
       final LocalEntityManager entityManager = new LocalEntityManager()
       final TestSchemaManager schemaManager = new TestSchemaManager()
@@ -664,14 +657,14 @@ public class OneVsAllToUpDownMotionSensorSpecification
       
     then: "we expect that the underlying handler does moves the emitted flag"
       schemaManager.handledSchemaCount == 20
-      def List<Map<String, ?>> handled = []
+    List<Map<String, ?>> handled = []
       
       for (int index in (1..20)) {
         handled.addAll([
           [
-            "class": BooleanStateMutationSchema.class,
-            "state": flags[outputSensor, 0].reference,
-            "emittionDate": startDate - Duration.ofMinutes(5 * index),
+            "class"             : BooleanStateMutationSchema.class,
+            "state"             : flags[outputSensor, 0].reference,
+            "emissionDate"      : startDate - Duration.ofMinutes(5 * index),
             "correlations[base]": flags[kitchenSensor, 20 - index].reference
           ]
         ])
@@ -733,14 +726,14 @@ public class OneVsAllToUpDownMotionSensorSpecification
       
     then: "we expect that the underlying handler does moves the emitted flag"
       schemaManager.handledSchemaCount == 20
-      def List<Map<String, ?>> handled = []
+    List<Map<String, ?>> handled = []
       
       for (int index in (1..20)) {
         handled.addAll([
           [
-            "class": BooleanStateMutationSchema.class,
-            "state": flags[outputSensor, 3].reference,
-            "emittionDate": startDate - Duration.ofMinutes(5 * index),
+            "class"             : BooleanStateMutationSchema.class,
+            "state"             : flags[outputSensor, 3].reference,
+            "emissionDate"      : startDate - Duration.ofMinutes(5 * index),
             "correlations[base]": flags[kitchenSensor, 20 - index + 8].reference
           ]
         ])
@@ -794,14 +787,14 @@ public class OneVsAllToUpDownMotionSensorSpecification
       
     then: "we expect that the underlying handler move the emitted flag"
       schemaManager.handledSchemaCount == 20
-      def List<Map<String, ?>> handled = []
+    List<Map<String, ?>> handled = []
       
       for (int index in (1..20)) {
         handled.addAll([
           [
-            "class": BooleanStateMutationSchema.class,
-            "state": flags[outputSensor, 0].reference,
-            "emittionDate": startDate - Duration.ofMinutes(5 * index),
+            "class"             : BooleanStateMutationSchema.class,
+            "state"             : flags[outputSensor, 0].reference,
+            "emissionDate"      : startDate - Duration.ofMinutes(5 * index),
             "correlations[base]": flags[livingRoomSensor, 20 - index].reference
           ]
         ])
@@ -863,14 +856,14 @@ public class OneVsAllToUpDownMotionSensorSpecification
       
     then: "we expect that the underlying handler move the emitted flag"
       schemaManager.handledSchemaCount == 20
-      def List<Map<String, ?>> handled = []
+    List<Map<String, ?>> handled = []
       
       for (int index in (1..20)) {
         handled.addAll([
           [
-            "class": BooleanStateMutationSchema.class,
-            "state": flags[outputSensor, 2].reference,
-            "emittionDate": startDate - Duration.ofMinutes(5 * index),
+            "class"             : BooleanStateMutationSchema.class,
+            "state"             : flags[outputSensor, 2].reference,
+            "emissionDate"      : startDate - Duration.ofMinutes(5 * index),
             "correlations[base]": flags[livingRoomSensor, 20 - index].reference
           ]
         ])
@@ -937,16 +930,16 @@ public class OneVsAllToUpDownMotionSensorSpecification
       
       schemaManager.hasHandled([
         [
-          "class": BooleanStateCreationSchema.class,
+          "class"             : BooleanStateCreationSchema.class,
           "correlations[base]":  emitted.reference,
-          "emittionDate": emitted.emittionDate,
-          "value": false
+          "emissionDate"      : emitted.emissionDate,
+          "value"             : false
         ],
         [
-          "class": BooleanStateCreationSchema.class,
+          "class"             : BooleanStateCreationSchema.class,
           "correlations[base]":  kitchenEmittions[2].reference,
-          "emittionDate": kitchenEmittions[2].emittionDate,
-          "value": true
+          "emissionDate"      : kitchenEmittions[2].emissionDate,
+          "value"             : true
         ]
       ]) == true
   }
@@ -998,11 +991,12 @@ public class OneVsAllToUpDownMotionSensorSpecification
     when: "we move an uncorreled up flag"
       final List<BooleanState> mutations = mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 1].reference,
-          "emittionDate": flags[kitchenSensor, 1].emittionDate - Duration.ofMinutes(2)
+          "state"       : flags[kitchenSensor, 1].reference,
+          "emissionDate": flags[kitchenSensor, 1].emissionDate - Duration.ofMinutes(2)
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler will create two flags"
       Mockito.verify(runner.handler as OneVsAllToUpDownMotionSensor)
              .onMotionStateWasCreated(mutations[0])
@@ -1055,12 +1049,13 @@ public class OneVsAllToUpDownMotionSensorSpecification
     when: "we move an uncorreled up flag"
       final List<BooleanState> mutations = mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 1].reference,
-          "emittionDate": flags[kitchenSensor, 1].emittionDate - Duration.ofMinutes(2),
-          "value": false
+          "state"       : flags[kitchenSensor, 1].reference,
+          "emissionDate": flags[kitchenSensor, 1].emissionDate - Duration.ofMinutes(2),
+          "value"       : false
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler will create two flags"
       Mockito.verify(runner.handler as OneVsAllToUpDownMotionSensor, Mockito.never())
              .onMotionStateWasCreated(mutations[0])
@@ -1111,45 +1106,46 @@ public class OneVsAllToUpDownMotionSensorSpecification
     when: "we move correled flag near from their original location"
       final List<BooleanState> mutations = mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate - Duration.ofMinutes(5)
+          "state"       : flags[kitchenSensor, 0].reference,
+          "emissionDate": flags[kitchenSensor, 0].emissionDate - Duration.ofMinutes(5)
         ]),
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate
+          "state"       : flags[kitchenSensor, 0].reference,
+          "emissionDate": flags[kitchenSensor, 0].emissionDate
         ]),
         BooleanStateMutationSchema.create([
-          "state": flags[livingRoomSensor, 0].reference,
-          "emittionDate": flags[livingRoomSensor, 0].emittionDate + Duration.ofMinutes(5)
+          "state"       : flags[livingRoomSensor, 0].reference,
+          "emissionDate": flags[livingRoomSensor, 0].emissionDate + Duration.ofMinutes(5)
         ]),
         BooleanStateMutationSchema.create([
-          "state": flags[livingRoomSensor, 0].reference,
-          "emittionDate": flags[livingRoomSensor, 0].emittionDate
+          "state"       : flags[livingRoomSensor, 0].reference,
+          "emissionDate": flags[livingRoomSensor, 0].emissionDate
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler will react accordingly"
       schemaManager.handledSchemaCount == 4
       schemaManager.hasHandled([
         [
-          "class": BooleanStateMutationSchema.class,
-          "state": flags[outputSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate - Duration.ofMinutes(5)
+          "class"       : BooleanStateMutationSchema.class,
+          "state"       : flags[outputSensor, 0].reference,
+          "emissionDate": flags[kitchenSensor, 0].emissionDate - Duration.ofMinutes(5)
         ],
         [
-          "class": BooleanStateMutationSchema.class,
-          "state": flags[outputSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate
+          "class"       : BooleanStateMutationSchema.class,
+          "state"       : flags[outputSensor, 0].reference,
+          "emissionDate": flags[kitchenSensor, 0].emissionDate
         ],
         [
-          "class": BooleanStateMutationSchema.class,
-          "state": flags[outputSensor, 1].reference,
-          "emittionDate": flags[livingRoomSensor, 0].emittionDate + Duration.ofMinutes(5)
+          "class"       : BooleanStateMutationSchema.class,
+          "state"       : flags[outputSensor, 1].reference,
+          "emissionDate": flags[livingRoomSensor, 0].emissionDate + Duration.ofMinutes(5)
         ],
         [
-          "class": BooleanStateMutationSchema.class,
-          "state": flags[outputSensor, 1].reference,
-          "emittionDate": flags[livingRoomSensor, 0].emittionDate
+          "class"       : BooleanStateMutationSchema.class,
+          "state"       : flags[outputSensor, 1].reference,
+          "emissionDate": flags[livingRoomSensor, 0].emissionDate
         ]
       ])
   }
@@ -1199,11 +1195,12 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[livingRoomSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate - Duration.ofMinutes(5)
+          "state"       : flags[livingRoomSensor, 0].reference,
+          "emissionDate": flags[kitchenSensor, 0].emissionDate - Duration.ofMinutes(5)
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.hasHandled([
         [
@@ -1261,11 +1258,12 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate + Duration.ofMinutes(10 * 3)
+          "state"       : flags[kitchenSensor, 0].reference,
+          "emissionDate": flags[kitchenSensor, 0].emissionDate + Duration.ofMinutes(10 * 3)
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.hasHandled([
         [
@@ -1325,11 +1323,12 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[livingRoomSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 1].emittionDate + Duration.ofMinutes(5)
+          "state"       : flags[livingRoomSensor, 0].reference,
+          "emissionDate": flags[kitchenSensor, 1].emissionDate + Duration.ofMinutes(5)
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.hasHandled([
         [
@@ -1401,17 +1400,18 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 1].reference,
-          "emittionDate": flags[kitchenSensor, 3].emittionDate + Duration.ofMinutes(2)
+          "state"       : flags[kitchenSensor, 1].reference,
+          "emissionDate": flags[kitchenSensor, 3].emissionDate + Duration.ofMinutes(2)
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.hasHandled([
         [
-          "class": BooleanStateMutationSchema.class,
-          "state": outputs[2].reference,
-          "emittionDate": startDate + Duration.ofMinutes(15),
+          "class"             : BooleanStateMutationSchema.class,
+          "state"             : outputs[2].reference,
+          "emissionDate"      : startDate + Duration.ofMinutes(15),
           "correlations[base]": flags[kitchenSensor, 1].reference
         ]
       ]) == true
@@ -1457,18 +1457,19 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate + Duration.ofMinutes(5)
+          "state"       : flags[kitchenSensor, 0].reference,
+          "emissionDate": flags[kitchenSensor, 0].emissionDate + Duration.ofMinutes(5)
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.handledSchemaCount == 1
       schemaManager.hasHandled([
         [
-          "class": BooleanStateMutationSchema.class,
-          "state": outputs[0].reference,
-          "emittionDate": startDate + Duration.ofMinutes(5)
+          "class"       : BooleanStateMutationSchema.class,
+          "state"       : outputs[0].reference,
+          "emissionDate": startDate + Duration.ofMinutes(5)
         ]
       ]) == true
   }
@@ -1510,12 +1511,13 @@ public class OneVsAllToUpDownMotionSensorSpecification
     
       mutate(entityManager, runner, [
         BooleanStateMutationSchema.create([
-          "state": flags[kitchenSensor, 0].reference,
-          "emittionDate": flags[kitchenSensor, 0].emittionDate + Duration.ofMinutes(5),
-          "value": false
+          "state"       : flags[kitchenSensor, 0].reference,
+          "emissionDate": flags[kitchenSensor, 0].emissionDate + Duration.ofMinutes(5),
+          "value"       : false
         ])
-      ]);
-      
+      ]
+      )
+
     then: "we expect that the underlying handler act accordingly"
       schemaManager.handledSchemaCount == 1
       schemaManager.hasHandled([

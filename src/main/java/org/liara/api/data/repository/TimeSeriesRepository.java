@@ -17,7 +17,7 @@ public interface TimeSeriesRepository<TimeState extends State>
     @NonNull final TimeState state, @NonNull final Collection<ApplicationEntityReference<Sensor>> sensors
   )
   {
-    return findAllAt(state.getEmittionDate(), sensors);
+    return findAllAt(state.getEmissionDate(), sensors);
   }
 
   List<TimeState> findAllAt (
@@ -33,7 +33,7 @@ public interface TimeSeriesRepository<TimeState extends State>
   )
   {
     return findPrevious(
-      state.getEmittionDate(), 
+      state.getEmissionDate(),
       ApplicationEntityReference.of(state.getSensor())
     );
   }
@@ -42,7 +42,7 @@ public interface TimeSeriesRepository<TimeState extends State>
     @NonNull final TimeState state, final int count
   ) {
     return findPrevious(
-      state.getEmittionDate(),
+      state.getEmissionDate(),
       ApplicationEntityReference.of(state.getSensor()),
       count
     );
@@ -69,7 +69,7 @@ public interface TimeSeriesRepository<TimeState extends State>
     @NonNull final TimeState state
   ) {
     return findNext(
-      state.getEmittionDate(), 
+      state.getEmissionDate(),
       ApplicationEntityReference.of(state.getSensor())
     );
   }
@@ -87,7 +87,7 @@ public interface TimeSeriesRepository<TimeState extends State>
     @NonNull final TimeState state, final int count
   ) {
     return findNext(
-      state.getEmittionDate(),
+      state.getEmissionDate(),
       ApplicationEntityReference.of(state.getSensor()),
       count
     );
@@ -209,7 +209,7 @@ public interface TimeSeriesRepository<TimeState extends State>
   default Optional<TimeState> findPrevious (
     @NonNull final BooleanState created, @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
   ) {
-    return findPrevious(created.getEmittionDate(), inputSensors);
+    return findPrevious(created.getEmissionDate(), inputSensors);
   }
 
   default Optional<TimeState> findPrevious (
@@ -225,7 +225,7 @@ public interface TimeSeriesRepository<TimeState extends State>
     @NonNull final BooleanState created,
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors, final int count
   ) {
-    return findPrevious(created.getEmittionDate(), inputSensors, count);
+    return findPrevious(created.getEmissionDate(), inputSensors, count);
   }
 
   List<TimeState> findPrevious (
@@ -237,7 +237,7 @@ public interface TimeSeriesRepository<TimeState extends State>
   default Optional<TimeState> findNext (
     @NonNull final BooleanState created, @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors
   ) {
-    return findNext(created.getEmittionDate(), inputSensors);
+    return findNext(created.getEmissionDate(), inputSensors);
   }
 
   default Optional<TimeState> findNext (
@@ -253,7 +253,7 @@ public interface TimeSeriesRepository<TimeState extends State>
     @NonNull final BooleanState created,
     @NonNull final List<ApplicationEntityReference<Sensor>> inputSensors, final int count
   ) {
-    return findNext(created.getEmittionDate(), inputSensors, count);
+    return findNext(created.getEmissionDate(), inputSensors, count);
   }
 
   List<TimeState> findNext (

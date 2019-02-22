@@ -90,7 +90,8 @@ public class OneVsAllToUpDownMotionSensor
     for (int index = 0; index < states.size(); ++index) {
       final BooleanState current = states.get(index);
 
-      //if (previous == null /*|| !Objects.equals(previous.getEmittionDate(), current.getEmittionDate())*/) {
+      //if (previous == null /*|| !Objects.equals(previous.getEmissionDate(), current
+      // .getEmissionDate())*/) {
       if (previous == null || !areOfSameType(previous, current)) {
         emit(current, configuration.isValidInput(current));
       }
@@ -154,7 +155,7 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final BooleanState created, 
     @NonNull final Optional<BooleanState> next
   ) {
-    if (next.isPresent() == false) {
+    if (!next.isPresent()) {
       emit(created);
     } else if (areOfSameType(created, next.get())) {
       move(next.get(), created);
@@ -262,11 +263,11 @@ public class OneVsAllToUpDownMotionSensor
     
     final List<ApplicationEntityReference<Sensor>> inputs = getInputSensors();
     final Optional<BooleanState> previous = _flags.findPreviousWithValue(
-      state.getEmittionDate(), inputs, true
+      state.getEmissionDate(), inputs, true
     );
     
     final Optional<BooleanState> next = _flags.findNextWithValue(
-      state.getEmittionDate(), inputs, true
+      state.getEmissionDate(), inputs, true
     );
     
     if (previous.isPresent() == false) {
@@ -321,8 +322,8 @@ public class OneVsAllToUpDownMotionSensor
 
     final BooleanStateMutationSchema mutation = new BooleanStateMutationSchema();
     mutation.setState(toMove);
-    mutation.setEmittionDate(to.getEmittionDate());
-    if (Objects.equals(from, to) == false) {
+    mutation.setEmissionDate(to.getEmissionDate());
+    if (!Objects.equals(from, to)) {
       mutation.correlate("base", to);
     }
     _schemaManager.execute(mutation);
@@ -334,7 +335,7 @@ public class OneVsAllToUpDownMotionSensor
   
   private void emit (@NonNull final State state, final boolean up) {
     final BooleanStateCreationSchema creation = new BooleanStateCreationSchema();
-    creation.setEmittionDate(state.getEmittionDate());
+    creation.setEmissionDate(state.getEmissionDate());
     creation.setSensor(getSensor());
     creation.setValue(up);
     creation.correlate("base", state);

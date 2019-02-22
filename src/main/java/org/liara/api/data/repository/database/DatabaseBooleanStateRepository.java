@@ -44,21 +44,16 @@ public class DatabaseBooleanStateRepository
                            "  FROM ",
                            BooleanState.class.getName(),
                            " state ",
-                           " WHERE (state._emittionDate < :date OR ",
-                           "   (state._emittionDate = :date AND state._identifier < :identifier))",
+                 " WHERE state._emissionDate < :date",
                            "   AND state._sensor._identifier IN :sensors ",
                            "   AND state._value = :value",
-                           " ORDER BY state._emittionDate DESC, state._identifier DESC"
+                 " ORDER BY state._emissionDate DESC, state._identifier DESC"
                ),
                BooleanState.class
              )
              .setParameter(
                "date",
-               created.getEmittionDate()
-             )
-             .setParameter(
-               "identifier",
-               created.getIdentifier()
+               created.getEmissionDate()
              )
              .setParameter(
                "sensors",
@@ -84,10 +79,10 @@ public class DatabaseBooleanStateRepository
         "",
         "SELECT state ",
         "  FROM ", BooleanState.class.getName(), " state ",
-        " WHERE state._emittionDate < :date ",
+        " WHERE state._emissionDate < :date ",
         "   AND state._sensor._identifier IN :sensors ",
         "   AND state._value = :value",
-        " ORDER BY state._emittionDate DESC, state._identifier DESC"
+        " ORDER BY state._emissionDate DESC, state._identifier DESC"
       ), BooleanState.class
     ).setParameter("date", date)
      .setParameter(
@@ -116,21 +111,16 @@ public class DatabaseBooleanStateRepository
                            "  FROM ",
                            BooleanState.class.getName(),
                            " state ",
-                           " WHERE (state._emittionDate > :date OR ",
-                           "   (state._emittionDate = :date AND state._identifier > :identifier))",
+                 " WHERE state._emissionDate > :date ",
                            "   AND state._sensor._identifier IN :sensors ",
                            "   AND state._value = :value",
-                           " ORDER BY state._emittionDate ASC, state._identifier ASC"
+                 " ORDER BY state._emissionDate ASC, state._identifier ASC"
                ),
                BooleanState.class
              )
              .setParameter(
                "date",
-               created.getEmittionDate()
-             )
-             .setParameter(
-               "identifier",
-               created.getIdentifier()
+               created.getEmissionDate()
              )
              .setParameter(
                "sensors",
@@ -156,10 +146,10 @@ public class DatabaseBooleanStateRepository
         "",
         "SELECT state ",
         "  FROM ", BooleanState.class.getName(), " state ",
-        " WHERE state._emittionDate > :date ",
+        " WHERE state._emissionDate > :date ",
         "   AND state._sensor._identifier IN :sensors ",
         "   AND state._value = :value",
-        " ORDER BY state._emittionDate ASC, state._identifier ASC"
+        " ORDER BY state._emissionDate ASC, state._identifier ASC"
       ), BooleanState.class
     ).setParameter("date", date)
      .setParameter(
@@ -185,7 +175,7 @@ public class DatabaseBooleanStateRepository
         "  FROM ", BooleanState.class.getName(), " state ",
         " WHERE state._sensor._identifier IN :sensors ",
         "   AND state._value = :value",
-        " ORDER BY state._emittionDate ASC, state._identifier ASC"
+        " ORDER BY state._emissionDate ASC, state._identifier ASC"
       ), BooleanState.class
     ).setParameter(
        "sensors", 

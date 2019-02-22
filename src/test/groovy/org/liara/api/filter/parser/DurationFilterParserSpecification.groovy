@@ -1,19 +1,11 @@
 package org.liara.api.filter.parser
 
-import org.hibernate.criterion.Conjunction
-import org.liara.api.filter.ast.ConjunctionFilterNode
-import org.liara.api.filter.ast.DisjunctionFilterNode
+
 import org.liara.api.filter.ast.FilterNodes
-import org.liara.api.filter.ast.GreaterThanFilterNode
-import org.liara.api.filter.ast.LessThanFilterNode
-import org.liara.api.filter.ast.PredicateFilterNode
-import org.liara.api.filter.ast.ValueFilterNode
-
-import com.fasterxml.jackson.databind.ObjectMapper
-
 import spock.lang.Specification
 
-public class DurationFilterParserSpecification extends Specification
+class DurationFilterParserSpecification
+  extends Specification
 {
   static final long DAY = 24L * 3600L * 1000L
   static final long WEEK = 7L * 24L * 3600L * 1000L
@@ -176,31 +168,31 @@ public class DurationFilterParserSpecification extends Specification
       final DurationFilterParser parser = new DurationFilterParser()
      
     expect: "it to transform valid predicates into valid filtering AST"
-      parser.parse("!5d").equals(
+    parser.parse("not:5d").equals(
         FilterNodes.not(FilterNodes.equalTo(5 * DAY))
       ) == true
-      
-      parser.parse("!5day2h3min").equals(
+
+    parser.parse("not:5day2h3min").equals(
         FilterNodes.not(
           FilterNodes.equalTo(5 * DAY + 2 * HOUR + 3 * MINUTE)
         )
       ) == true
-      
-      parser.parse("!-5days+2hours+1hour-5m").equals(
+
+    parser.parse("not:-5days+2hours+1hour-5m").equals(
         FilterNodes.not(
           FilterNodes.equalTo(-5 * DAY + 2 * HOUR + 1 * HOUR - 5 * MINUTE)
         )
       ) == true
-      
-      parser.parse("!-59787468697").equals(
+
+    parser.parse("not:-59787468697").equals(
         FilterNodes.not(FilterNodes.equalTo(-59787468697L * SECOND))
       ) == true
-      
-      parser.parse("!4000ms").equals(
+
+    parser.parse("not:4000ms").equals(
         FilterNodes.not(FilterNodes.equalTo(4000L))
       ) == true
-      
-      parser.parse("!000000").equals(
+
+    parser.parse("not:000000").equals(
         FilterNodes.not(FilterNodes.equalTo(0L))
       ) == true
   }
@@ -236,23 +228,23 @@ public class DurationFilterParserSpecification extends Specification
       final DurationFilterParser parser = new DurationFilterParser()
      
     expect: "it to transform valid predicates into valid filtering AST"
-      parser.parse("!5d:3h").equals(
+    parser.parse("not:5d:3h").equals(
         FilterNodes.not(FilterNodes.between(3 * HOUR, 5 * DAY))
       ) == true
-      
-      parser.parse("!5weeks:14684645689674").equals(
+
+    parser.parse("not:5weeks:14684645689674").equals(
         FilterNodes.not(FilterNodes.between(14684645689674 * SECOND, 5 * WEEK))
       ) == true
-      
-      parser.parse("!1h+5h6h3m:1d2d-5hour+2min").equals(
+
+    parser.parse("not:1h+5h6h3m:1d2d-5hour+2min").equals(
         FilterNodes.not(FilterNodes.between((1 + 5 + 6) * HOUR + 3 * MINUTE, 3 * DAY - 5 * HOUR + 2 * MINUTE))
       ) == true
-      
-      parser.parse("!0day:5h").equals(
+
+    parser.parse("not:0day:5h").equals(
         FilterNodes.not(FilterNodes.between(0L, 5 * HOUR))
       ) == true
-      
-      parser.parse("!-589hour:32day").equals(
+
+    parser.parse("not:-589hour:32day").equals(
         FilterNodes.not(FilterNodes.between(-589 * HOUR, 32 * DAY))
       ) == true
   }
@@ -268,8 +260,8 @@ public class DurationFilterParserSpecification extends Specification
           FilterNodes.lessThanOrEqualTo(6 * DAY + 5 * HOUR)
         )
       ) == true
-      
-      parser.parse("!2day,!6day,!9h,!10ms,!-11min,!-56s").equals(
+
+    parser.parse("not:2day,not:6day,not:9h,not:10ms,not:-11min,not:-56s").equals(
         FilterNodes.and(
           FilterNodes.not(FilterNodes.equalTo(2 * DAY)),
           FilterNodes.not(FilterNodes.equalTo(6 * DAY)),
@@ -286,8 +278,8 @@ public class DurationFilterParserSpecification extends Specification
           FilterNodes.greaterThanOrEqualTo(-30 * HOUR)
         )
       ) == true
-      
-      parser.parse("!50day:-100day,gte:-30").equals(
+
+    parser.parse("not:50day:-100day,gte:-30").equals(
         FilterNodes.and(
           FilterNodes.not(FilterNodes.between(-100 * DAY, 50 * DAY)),
           FilterNodes.greaterThanOrEqualTo(-30 * SECOND)
@@ -306,8 +298,8 @@ public class DurationFilterParserSpecification extends Specification
           FilterNodes.lessThanOrEqualTo(69 * HOUR)
         )
       ) == true
-      
-      parser.parse("!2day,!6day;!9hours,!10h;!-11min,!-56ms").equals(
+
+    parser.parse("not:2day,not:6day;not:9hours,not:10h;not:-11min,not:-56ms").equals(
         FilterNodes.or(
           FilterNodes.and(
             FilterNodes.not(FilterNodes.equalTo(2 * DAY)),
@@ -330,8 +322,8 @@ public class DurationFilterParserSpecification extends Specification
           FilterNodes.greaterThanOrEqualTo(-30 * SECOND)
         )
       ) == true
-      
-      parser.parse("!50:-100day;gte:-30h,lte:10").equals(
+
+    parser.parse("not:50:-100day;gte:-30h,lte:10").equals(
         FilterNodes.or(
           FilterNodes.not(FilterNodes.between(-100 * DAY, 50 * SECOND)),
           FilterNodes.and(
