@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.io.SensorConfigurationConverter;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.recognition.sensor.type.SensorTypeManagerFactory;
 import org.liara.api.relation.RelationFactory;
@@ -13,10 +14,7 @@ import org.liara.collection.operator.filtering.Filter;
 import org.liara.collection.operator.joining.InnerJoin;
 import org.liara.collection.operator.joining.Join;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Transient;
+import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
@@ -145,13 +143,12 @@ public class Sensor
     _unit = unit;
   }
 
-  @Column(name = "configuration", nullable = false, updatable = false, unique = false)
-  @Transient
+  @Column(name = "configuration", nullable = true, updatable = false, unique = false)
+  @Convert(converter = SensorConfigurationConverter.class)
   public @Nullable SensorConfiguration getConfiguration () {
     return _configuration;
   }
 
-  @Transient
   public void setConfiguration (@Nullable final SensorConfiguration configuration) {
     _configuration = configuration;
   }

@@ -48,7 +48,8 @@ dependencies {
 }
 
 bootRun {
-  args = ["--development"]
+  jvmArgs("-Dspring.profiles.active=development")
+  args = ["--debug"]
 }
 
 jacoco {

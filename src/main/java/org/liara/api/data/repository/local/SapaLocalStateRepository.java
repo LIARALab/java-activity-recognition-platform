@@ -1,6 +1,6 @@
 package org.liara.api.data.repository.local;
 
-import org.liara.api.data.entity.state.ValueState;
+import org.liara.api.data.entity.state.*;
 import org.liara.api.data.repository.SapaRepositories;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -11,90 +11,90 @@ public class SapaLocalStateRepository
   @Component
   @Scope("prototype")
   public static class Boolean
-    extends LocalValueStateRepository<java.lang.Boolean, ValueState.Boolean>
+    extends LocalValueStateRepository<java.lang.Boolean, BooleanValueState>
     implements SapaRepositories.Boolean
   {
 
-    public Boolean () { super(ValueState.Boolean.class); }
+    public Boolean () { super(BooleanValueState.class); }
   }
 
   @Component
   @Scope("prototype")
   public static class String
-    extends LocalValueStateRepository<java.lang.String, ValueState.String>
+    extends LocalValueStateRepository<java.lang.String, StringValueState>
     implements SapaRepositories.String
   {
 
-    public String () { super(ValueState.String.class); }
+    public String () { super(StringValueState.class); }
   }
 
   @Component
   @Scope("prototype")
   public static class Byte
-    extends LocalValueStateRepository<java.lang.Byte, ValueState.Byte>
+    extends LocalValueStateRepository<java.lang.Byte, ByteValueState>
     implements SapaRepositories.Byte
   {
 
-    public Byte () { super(ValueState.Byte.class); }
+    public Byte () { super(ByteValueState.class); }
   }
 
   @Component
   @Scope("prototype")
   public static class Short
-    extends LocalValueStateRepository<java.lang.Short, ValueState.Short>
+    extends LocalValueStateRepository<java.lang.Short, ShortValueState>
     implements SapaRepositories.Short
   {
 
-    public Short () { super(ValueState.Short.class); }
+    public Short () { super(ShortValueState.class); }
   }
 
   @Component
   @Scope("prototype")
   public static class Integer
-    extends LocalValueStateRepository<java.lang.Integer, ValueState.Integer>
+    extends LocalValueStateRepository<java.lang.Integer, IntegerValueState>
     implements SapaRepositories.Integer
   {
 
-    public Integer () { super(ValueState.Integer.class); }
+    public Integer () { super(IntegerValueState.class); }
   }
 
   @Component
   @Scope("prototype")
   public static class Long
-    extends LocalValueStateRepository<java.lang.Long, ValueState.Long>
+    extends LocalValueStateRepository<java.lang.Long, LongValueState>
     implements SapaRepositories.Long
   {
-    public Long () { super(ValueState.Long.class); }
+    public Long () { super(LongValueState.class); }
   }
 
   @Component
   @Scope("prototype")
   public static class Float
-    extends LocalValueStateRepository<java.lang.Float, ValueState.Float>
+    extends LocalValueStateRepository<java.lang.Float, FloatValueState>
     implements SapaRepositories.Float
   {
 
-    public Float () { super(ValueState.Float.class); }
+    public Float () { super(FloatValueState.class); }
   }
 
   @Component
   @Scope("prototype")
   public static class Double
-    extends LocalValueStateRepository<java.lang.Double, ValueState.Double>
+    extends LocalValueStateRepository<java.lang.Double, DoubleValueState>
     implements SapaRepositories.Double
   {
 
-    public Double () { super(ValueState.Double.class); }
+    public Double () { super(DoubleValueState.class); }
   }
 
   @Component
   @Scope("prototype")
   public static class Numeric
-    extends LocalValueStateRepository<Number, ValueState.Numeric>
+    extends LocalValueStateRepository<Number, NumericValueState>
     implements SapaRepositories.Numeric
   {
 
-    public Numeric () { super(ValueState.Numeric.class); }
+    public Numeric () { super(NumericValueState.class); }
   }
 
   @Component

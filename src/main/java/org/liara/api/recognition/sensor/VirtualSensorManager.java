@@ -3,7 +3,6 @@ package org.liara.api.recognition.sensor;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.jboss.logging.Logger;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.event.NodeEvent;
 import org.liara.api.event.SensorEvent;
@@ -15,50 +14,49 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import javax.persistence.EntityManager;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.logging.Logger;
 
 @Service
 public class VirtualSensorManager
 {
   @NonNull
-  private final Logger _logger = Logger.getLogger(VirtualSensorManager.class);
-
-  @NonNull
   private final ApplicationContext _applicationContext;
 
   @NonNull
   private final EntityManager _entityManager;
-  
+
   @NonNull
   private final BiMap<@NonNull Long, @NonNull VirtualSensorRunner> _runners = HashBiMap.create();
-  
+
   @Autowired
   public VirtualSensorManager (
     @NonNull final ApplicationContext applicationContext, @NonNull final EntityManager entityManager
-  ) { 
+  ) {
     _applicationContext = applicationContext;
     _entityManager = entityManager;
   }
-  
+
   public void registerRunner (@NonNull final VirtualSensorRunner runner) {
     if (runner.getManager() != this) {
-      throw new Error("Unnable to register a runner created for another virtual sensor manager instance.");
+      throw new Error(
+        "Unnable to register a runner created for another virtual sensor manager instance.");
     }
-    
+
     if (!_runners.containsValue(runner)) {
-      _logger.info("Registering new virtual sensor runner : " + runner.getHandler().getClass().getName() + "#" + runner.getSensor().getIdentifier());
+      getLogger().info(
+        "Registering new virtual sensor runner : " + runner.getHandler().getClass().getName() +
+        "#" + runner.getSensor().getIdentifier());
       _runners.put(runner.getSensor().getIdentifier(), runner);
     }
   }
-  
+
   public void unregisterRunner (@NonNull final VirtualSensorRunner runner) {
     if (runner.getManager() != this) {
-      throw new Error("Unnable to unregister a runner created for another virtual sensor manager instance.");
+      throw new Error(
+        "Unnable to unregister a runner created for another virtual sensor manager instance.");
     }
-    
+
     if (_runners.containsValue(runner)) {
       switch (runner.getState()) {
         case STOPPED:
@@ -71,10 +69,10 @@ public class VirtualSensorManager
       }
     }
   }
-  
+
   public void start () {
-    _logger.info("Virtual sensor manager initialization...");
-    _logger.info("Finding virtual sensors in application database...");
+    getLogger().info("Virtual sensor manager initialization...");
+    getLogger().info("Finding virtual sensors in application database...");
 
     @NonNull final List<@NonNull Sensor> sensors = _entityManager.createQuery(String.join(
       "", "SELECT sensor FROM ",
@@ -87,7 +85,7 @@ public class VirtualSensorManager
       }
     }
   }
-  
+
   @EventListener
   public void onSensorCreation (@NonNull final SensorEvent event) {
     final Sensor sensor = event.getSensor();
@@ -95,73 +93,125 @@ public class VirtualSensorManager
       VirtualSensorRunner.create(this, sensor);
     }
   }
-  
+
   @PreDestroy
   public void beforeApplicationShutdown () {
-    _logger.info("Virtual sensor manager destruction...");
-    _logger.info("Stopping all running virtual sensors...");
+    getLogger().info("Virtual sensor manager destruction...");
+    getLogger().info("Stopping all running virtual sensors...");
 
     for (@NonNull final VirtualSensorRunner runner : _runners.values()) {
       runner.pause();
     }
-    
+
     _runners.clear();
   }
-  
+
   @EventListener
   public void sensorWillBeCreated (final SensorEvent.@NonNull WillBeCreated event) {
-    for (final VirtualSensorRunner runner : _runners.values()) {
-      runner.getHandler().sensorWillBeCreated(event);
+    try {
+      for (final VirtualSensorRunner runner : _runners.values()) {
+        runner.getHandler().sensorWillBeCreated(event);
+      }
+    } catch (@NonNull final Throwable error) {
+      getLogger().throwing(getClass().getName(), "sensorWillBeCreated", error);
+      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
+        error.printStackTrace();
     }
   }
 
   @EventListener
   public void sensorWasCreated (final SensorEvent.@NonNull WasCreated event) {
-    for (final VirtualSensorRunner runner : _runners.values()) {
-      runner.getHandler().sensorWasCreated(event);
+    try {
+      for (final VirtualSensorRunner runner : _runners.values()) {
+        runner.getHandler().sensorWasCreated(event);
+      }
+    } catch (@NonNull final Throwable error) {
+      getLogger().throwing(getClass().getName(), "sensorWasCreated", error);
+      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
+        error.printStackTrace();
     }
   }
 
   @EventListener
   public void nodeWillBeCreated (final NodeEvent.@NonNull WillBeCreated event) {
-    for (final VirtualSensorRunner runner : _runners.values()) {
-      runner.getHandler().nodeWillBeCreated(event);
+    try {
+      for (final VirtualSensorRunner runner : _runners.values()) {
+        runner.getHandler().nodeWillBeCreated(event);
+      }
+    } catch (@NonNull final Throwable error) {
+      getLogger().throwing(getClass().getName(), "nodeWillBeCreated", error);
+      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
+        error.printStackTrace();
     }
   }
 
   @EventListener
   public void nodeWasCreated (final NodeEvent.@NonNull WasCreated event) {
-    for (final VirtualSensorRunner runner : _runners.values()) {
-      runner.getHandler().nodeWasCreated(event);
+    try {
+      for (final VirtualSensorRunner runner : _runners.values()) {
+        runner.getHandler().nodeWasCreated(event);
+      }
+    } catch (@NonNull final Throwable error) {
+      getLogger().throwing(getClass().getName(), "nodeWasCreated", error);
+      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
+        error.printStackTrace();
     }
   }
 
   @EventListener
   public void stateWillBeCreated (final StateEvent.@NonNull WillBeCreated event) {
-    for (final VirtualSensorRunner runner : _runners.values()) {
-      runner.getHandler().stateWillBeCreated(event);
+    try {
+      for (final VirtualSensorRunner runner : _runners.values()) {
+        runner.getHandler().stateWillBeCreated(event);
+      }
+    } catch (@NonNull final Throwable error) {
+      getLogger().throwing(getClass().getName(), "stateWillBeCreated", error);
+      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
+        error.printStackTrace();
     }
   }
 
   @EventListener
   public void stateWasCreated (final StateEvent.@NonNull WasCreated event) {
-    for (final VirtualSensorRunner runner : _runners.values()) {
-      runner.getHandler().stateWasCreated(event);
+    try {
+      for (final VirtualSensorRunner runner : _runners.values()) {
+        runner.getHandler().stateWasCreated(event);
+      }
+    } catch (@NonNull final Throwable error) {
+      getLogger().throwing(getClass().getName(), "stateWasCreated", error);
+      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
+        error.printStackTrace();
     }
   }
 
   @EventListener
   public void stateWillBeMutated (final StateEvent.@NonNull WillBeMutated event) {
-    for (final VirtualSensorRunner runner : _runners.values()) {
-      runner.getHandler().stateWillBeMutated(event);
+    try {
+      for (final VirtualSensorRunner runner : _runners.values()) {
+        runner.getHandler().stateWillBeMutated(event);
+      }
+    } catch (@NonNull final Throwable error) {
+      getLogger().throwing(getClass().getName(), "stateWillBeMutated", error);
+      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
+        error.printStackTrace();
     }
   }
 
   @EventListener
   public void stateWasMutated (final StateEvent.@NonNull WasMutated event) {
-    for (final VirtualSensorRunner runner : _runners.values()) {
-      runner.getHandler().stateWasMutated(event);
+    try {
+      for (final VirtualSensorRunner runner : _runners.values()) {
+        runner.getHandler().stateWasMutated(event);
+      }
+    } catch (@NonNull final Throwable error) {
+      getLogger().throwing(getClass().getName(), "stateWasMutated", error);
+      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
+        error.printStackTrace();
     }
+  }
+
+  private @NonNull Logger getLogger () {
+    return Logger.getLogger(getClass().getName());
   }
 
   public @NonNull VirtualSensorRunner getRunner (@NonNull final Long identifier) {

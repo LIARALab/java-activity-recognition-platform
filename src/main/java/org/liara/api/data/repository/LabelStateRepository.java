@@ -11,6 +11,7 @@ public interface LabelStateRepository
 {
   @NonNull
   Optional<LabelState> findAt (
-    @NonNull final ZonedDateTime area, @NonNull final Long sensorIdentifier
+    @NonNull final ZonedDateTime area,
+    @NonNull final Long sensorIdentifier
   );
 }

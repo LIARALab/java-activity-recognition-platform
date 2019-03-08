@@ -3,6 +3,7 @@ package org.liara.api.io;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.event.ApplicationEntityEvent;
+import org.liara.api.logging.Loggable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Component
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class DatabaseApplicationEntityDriver
+  implements Loggable
 {
   @NonNull
   private final ApplicationEventPublisher _eventPublisher;
@@ -53,7 +55,7 @@ public class DatabaseApplicationEntityDriver
     _eventPublisher.publishEvent(new ApplicationEntityEvent.WillUpdate(this, mutation.getEntities()));
 
     for (@NonNull final ApplicationEntity entity : mutation.getEntities()) {
-      _entityManager.persist(entity);
+      _entityManager.merge(entity);
     }
 
     _eventPublisher.publishEvent(new ApplicationEntityEvent.DidUpdate(this, mutation.getEntities()));

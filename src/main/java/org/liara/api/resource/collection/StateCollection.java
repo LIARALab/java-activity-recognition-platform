@@ -21,7 +21,6 @@
  ******************************************************************************/
 package org.liara.api.resource.collection;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -72,19 +71,8 @@ public class StateCollection
 
   @Override
   public @NonNull Mono<RestResponse> post (@NonNull final RestRequest request) {
-    return request.getBody(JsonNode.class)
-             .flatMap(this::toStateInstance)
+    return request.getBody(State.class)
              .flatMap(this::post);
-  }
-
-  private @NonNull Mono<State> toStateInstance (@NonNull final JsonNode node) {
-    try {
-      return Mono.just(
-        _objectMapper.treeToValue(node, getStateTypeFromSensorIdentifier(node))
-      );
-    } catch (@NonNull final JsonProcessingException exception) {
-      return Mono.error(exception);
-    }
   }
 
   private @NonNull Class<? extends State> getStateTypeFromSensorIdentifier (
@@ -110,6 +98,7 @@ public class StateCollection
         )
       );
     } catch (@NonNull final InvalidModelException exception) {
+      exception.printStackTrace();
       return Mono.error(new IllegalRestRequestException(exception));
     }
   }

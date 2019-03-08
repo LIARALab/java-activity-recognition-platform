@@ -29,6 +29,7 @@ import org.liara.api.data.entity.Tag;
 import org.liara.api.data.entity.TagRelation;
 import org.liara.api.relation.RelationFactory;
 import org.liara.api.validation.ApplicationEntityReference;
+import org.liara.collection.operator.Composition;
 import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.filtering.Filter;
 import org.liara.collection.operator.joining.Join;
@@ -68,7 +69,52 @@ public class State extends ApplicationEntity
 
   public static @NonNull Operator sensor (@NonNull final State state) {
     return Filter.expression(":this.identifier = :identifier")
-             .setParameter(":identifier", state.getSensorIdentifier());
+             .setParameter("identifier", state.getSensorIdentifier());
+  }
+
+  @RelationFactory(Correlation.class)
+  public static @NonNull Operator correlations () {
+    return Composition.of(
+      Filter.expression(":this.startStateIdentifier = :super.identifier"),
+      Filter.expression(":this.endStateIdentifier = :super.identifier")
+    );
+  }
+
+  public static @NonNull Operator correlations (@NonNull final State state) {
+    return Composition.of(
+      Filter.expression(":this.startStateIdentifier = :identifier")
+        .setParameter("identifier", state.getIdentifier()),
+      Filter.expression(":this.endStateIdentifier = :identifier")
+        .setParameter("identifier", state.getIdentifier())
+    );
+  }
+
+  @RelationFactory(Correlation.class)
+  public static @NonNull Operator correlationsTo () {
+    return Composition.of(
+      Filter.expression(":this.endStateIdentifier = :super.identifier")
+    );
+  }
+
+  public static @NonNull Operator correlationsTo (@NonNull final State state) {
+    return Composition.of(
+      Filter.expression(":this.endStateIdentifier = :identifier")
+        .setParameter("identifier", state.getIdentifier())
+    );
+  }
+
+  @RelationFactory(Correlation.class)
+  public static @NonNull Operator correlationsFrom () {
+    return Composition.of(
+      Filter.expression(":this.startStateIdentifier = :super.identifier")
+    );
+  }
+
+  public static @NonNull Operator correlationsFrom (@NonNull final State state) {
+    return Composition.of(
+      Filter.expression(":this.startStateIdentifier = :identifier")
+        .setParameter("identifier", state.getIdentifier())
+    );
   }
 
   @Nullable
@@ -88,7 +134,10 @@ public class State extends ApplicationEntity
     _sensorIdentifier = toCopy.getSensorIdentifier();
   }
 
-  @Column(name = "sensor_identifier", nullable = false)
+  @Column(
+    name = "sensor_identifier",
+    nullable = false
+  )
   @ApplicationEntityReference(Sensor.class)
   public @Nullable Long getSensorIdentifier () {
     return _sensorIdentifier;
@@ -98,7 +147,11 @@ public class State extends ApplicationEntity
     _sensorIdentifier = sensorIdentifier;
   }
 
-  @Column(name = "emitted_at", nullable = false, precision = 6)
+  @Column(
+    name = "emitted_at",
+    nullable = false,
+    columnDefinition = "DATETIME(6)"
+  )
   public @Nullable ZonedDateTime getEmissionDate () {
     return _emissionDate;
   }

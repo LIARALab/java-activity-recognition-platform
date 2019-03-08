@@ -22,7 +22,7 @@
 package org.liara.api.resource.collection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.data.entity.state.ValueState;
+import org.liara.api.data.entity.state.ByteValueState;
 import org.liara.api.resource.CollectionResource;
 import org.liara.api.resource.CollectionResourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,12 +33,12 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public final class ByteStateCollection
-  extends CollectionResource<ValueState.Byte>
+  extends CollectionResource<ByteValueState>
 {
   @Autowired
   public ByteStateCollection (
     @NonNull final CollectionResourceBuilder configuration
   ) {
-    super(ValueState.Byte.class, configuration);
+    super(ByteValueState.class, configuration);
   }
 }

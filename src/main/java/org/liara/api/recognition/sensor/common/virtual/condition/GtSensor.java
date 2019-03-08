@@ -3,6 +3,7 @@ package org.liara.api.recognition.sensor.common.virtual.condition;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.SensorConfiguration;
+import org.liara.api.data.entity.state.BooleanValueState;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.recognition.sensor.type.ComputedSensorType;
@@ -21,10 +22,10 @@ public class GtSensor
 
   @Override
   protected boolean check (@NonNull final State state) {
-    @Nullable final Object value = getValueOf(state);
+    @Nullable final ValueState value = asValueState(state);
 
-    return value instanceof Number &&
-           ((Number) value).doubleValue() > getFloor();
+    return Number.class.isAssignableFrom(value.getType()) &&
+           ((Number) value.getValue()).doubleValue() > getFloor();
   }
 
   private double getFloor () {
@@ -32,13 +33,13 @@ public class GtSensor
              .orElseThrow();
   }
 
-  private @Nullable Object getValueOf (@NonNull final State state) {
-    return state instanceof ValueState ? ((ValueState) state).getValue() : null;
+  private @Nullable ValueState asValueState (@NonNull final State state) {
+    return state instanceof ValueState ? ((ValueState) state) : null;
   }
 
   @Override
   public @NonNull Class<? extends State> getEmittedStateClass () {
-    return ValueState.Boolean.class;
+    return BooleanValueState.class;
   }
 
   @Override

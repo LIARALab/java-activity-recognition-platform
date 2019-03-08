@@ -8,15 +8,9 @@ import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.validation.ApplicationEntityReference;
 import org.liara.api.validation.Required;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class UpDownToLabelSensorConfiguration
        implements SensorConfiguration
 {
-  @NonNull
-  private final List<@NonNull String>                        _tags;
-
   @Nullable
   private       Long                                         _inputSensor;
 
@@ -25,7 +19,6 @@ public class UpDownToLabelSensorConfiguration
 
   public UpDownToLabelSensorConfiguration () {
     _inputSensor = null;
-    _tags = new ArrayList<>();
     _label = null;
   }
 
@@ -33,7 +26,6 @@ public class UpDownToLabelSensorConfiguration
     @Nullable final Sensor inputSensor, @Nullable final String label
   ) {
     _inputSensor = inputSensor.getIdentifier();
-    _tags = new ArrayList<>();
     _label = label;
   }
 
@@ -41,18 +33,7 @@ public class UpDownToLabelSensorConfiguration
     @NonNull final UpDownToLabelSensorConfiguration toCopy
   ) {
     _inputSensor = toCopy.getInputSensor();
-    _tags = new ArrayList<>(toCopy.getTags());
     _label = toCopy.getLabel();
-  }
-
-  public @NonNull List<@NonNull String> getTags () {
-    return _tags;
-  }
-
-  public void setTags (@Nullable final List<@NonNull String> tags) {
-    _tags.clear();
-
-    if (tags != null) _tags.addAll(tags);
   }
 
   @Required

@@ -1,10 +1,11 @@
 package org.liara.api.recognition.sensor.common.virtual.condition;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.state.BooleanValueState;
 import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.SapaRepositories;
 import org.liara.api.event.ApplicationEntityEvent;
@@ -18,6 +19,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 public abstract class ConditionSensor
   extends AbstractVirtualSensorHandler
@@ -31,7 +33,6 @@ public abstract class ConditionSensor
   private final SapaRepositories.@NonNull State _inputStateRepository;
 
   private final SapaRepositories.@NonNull Boolean _outputStateRepository;
-
 
   public ConditionSensor (@NonNull final ConditionSensorBuilder builder) {
     super();
@@ -51,12 +52,12 @@ public abstract class ConditionSensor
     );
 
     if (states.size() > 0) {
-      emit(states.get(0), check(states.get(0)));
+      emit(states.get(0));
     }
 
     for (int index = 1; index < states.size(); ++index) {
       if (check(states.get(index - 1)) != check(states.get(index))) {
-        emit(states.get(index), check(states.get(index)));
+        emit(states.get(index));
       }
     }
   }
@@ -117,21 +118,21 @@ public abstract class ConditionSensor
       _inputStateRepository.findPrevious(stateThatWasCreated);
     @NonNull final Optional<State> next     = _inputStateRepository.findNext(stateThatWasCreated);
 
-    if (previous.isPresent()) {
-      if (check(previous.get()) != check(stateThatWasCreated)) {
-        if (!next.isPresent()) {
-          emit(stateThatWasCreated, check(stateThatWasCreated));
-        } else if (check(stateThatWasCreated) != check(next.get())) {
-          emit(stateThatWasCreated, check(stateThatWasCreated));
-          emit(next.get(), check(next.get()));
-        } else {
-          moveImageOf(next.get(), stateThatWasCreated, check(stateThatWasCreated));
-        }
+    if (!previous.isPresent()) {
+      if (!next.isPresent() || check(stateThatWasCreated) != check(next.get())) {
+        emit(stateThatWasCreated);
+      } else {
+        move(next.get(), stateThatWasCreated);
       }
-    } else if (!next.isPresent() || check(stateThatWasCreated) != check(next.get())) {
-      emit(stateThatWasCreated, check(stateThatWasCreated));
-    } else {
-      moveImageOf(next.get(), stateThatWasCreated, check(stateThatWasCreated));
+    } else if (check(previous.get()) != check(stateThatWasCreated)) {
+      if (!next.isPresent()) {
+        emit(stateThatWasCreated);
+      } else if (check(stateThatWasCreated) != check(next.get())) {
+        emit(stateThatWasCreated);
+        emit(next.get());
+      } else {
+        move(next.get(), stateThatWasCreated);
+      }
     }
   }
 
@@ -147,8 +148,7 @@ public abstract class ConditionSensor
   }
 
   private void inputStateWillBeMutated (@NonNull final State stateThatWillBeMutated) {
-    @NonNull
-    final Optional<Correlation> correlation = getCorrelationToImage(stateThatWillBeMutated);
+    @NonNull final Optional<Correlation> correlation = getCorrelationTo(stateThatWillBeMutated);
 
     correlation.map(Correlation::getStartStateIdentifier)
       .flatMap(_outputStateRepository::find)
@@ -225,38 +225,43 @@ public abstract class ConditionSensor
           deleteImageOf(stateThatWillBeDeleted);
           deleteImageOf(next.get());
         } else {
-          moveImageOf(stateThatWillBeDeleted, next.get(), check(stateThatWillBeDeleted));
+          move(stateThatWillBeDeleted, next.get());
         }
       }
     } else if (!next.isPresent() || check(stateThatWillBeDeleted) != check(next.get())) {
       deleteImageOf(stateThatWillBeDeleted);
     } else {
-      moveImageOf(stateThatWillBeDeleted, next.get(), check(stateThatWillBeDeleted));
+      move(stateThatWillBeDeleted, next.get());
     }
   }
 
   protected abstract boolean check (@NonNull final State state);
 
   private void deleteImageOf (@NonNull final State preimage) {
-    getCorrelationToImage(preimage).map(Correlation::getStartStateIdentifier)
+    getCorrelationTo(preimage).map(Correlation::getStartStateIdentifier)
       .flatMap(_outputStateRepository::find)
       .ifPresent(this::delete);
   }
 
-  private void delete (final ValueState.@NonNull Boolean toDelete) {
+  private void delete (final BooleanValueState toDelete) {
     _applicationEventPublisher.publishEvent(
       new ApplicationEntityEvent.Delete(this, toDelete)
     );
   }
 
-  private void emit (@NonNull final State state, final boolean up) {
-    final ValueState.@NonNull Boolean result = new ValueState.Boolean();
+  private void emit (@NonNull final State state) {
+    Logger.getLogger(getClass().getName()).info(
+      "[" + getSensor().orElseThrow().getIdentifier() + "] Emit " + state.getEmissionDate() +
+      " (" + check(state) + ")"
+    );
 
-    result.setValue(up);
+    final BooleanValueState result = new BooleanValueState();
+
+    result.setValue(check(state));
     result.setEmissionDate(state.getEmissionDate());
-    result.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElse(null));
+    result.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElseThrow());
 
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(result));
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, result));
 
     @NonNull final Correlation correlation = new Correlation();
 
@@ -264,38 +269,39 @@ public abstract class ConditionSensor
     correlation.setEndStateIdentifier(state.getIdentifier());
     correlation.setName("origin");
 
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(correlation));
+    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, correlation));
   }
 
-  private void moveImageOf (
-    @NonNull final State from,
-    @NonNull final State to,
-    final boolean up
-  ) {
-    @NonNull final Correlation nextCorrelation = Duplicator.duplicate(
-      getCorrelationToImage(from).orElseThrow()
+  private void move (@NonNull final State from, @NonNull final State to) {
+    Logger.getLogger(getClass().getName()).info(
+      "[" + getSensor().orElseThrow().getIdentifier() + "] Moving " + from.getEmissionDate() +
+      " to " + to.getEmissionDate() + " (" + check(to) + ")"
     );
-    nextCorrelation.setEndStateIdentifier(to.getIdentifier());
 
-    final ValueState.@NonNull Boolean nextImage = Duplicator.duplicate(
-      _outputStateRepository.find(
-        nextCorrelation.getStartStateIdentifier()
-      ).orElseThrow()
+    @NonNull
+    final Correlation correlation = Duplicator.duplicate(getCorrelationTo(from).orElseThrow());
+
+    correlation.setEndStateIdentifier(to.getIdentifier());
+
+    final BooleanValueState image = Duplicator.duplicate(
+      _outputStateRepository.getAt(Objects.requireNonNull(correlation.getStartStateIdentifier()))
     );
-    nextImage.setEmissionDate(to.getEmissionDate());
-    nextImage.setValue(up);
+
+    Logger.getLogger(getClass().getName()).info(
+      "[" + getSensor().orElseThrow().getIdentifier() + "] -> " + image.getIdentifier() + " " +
+      image.getEmissionDate()
+    );
+
+    image.setEmissionDate(to.getEmissionDate());
 
     _applicationEventPublisher.publishEvent(
-      new ApplicationEntityEvent.Update(this, nextCorrelation, nextImage)
+      new ApplicationEntityEvent.Update(this, image, correlation)
     );
   }
 
-  private @NonNull Optional<Correlation> getCorrelationToImage (
-    @NonNull final State preimage
-  ) {
+  private @NonNull Optional<Correlation> getCorrelationTo (@NonNull final State preimage) {
     return _correlationRepository.findFirstCorrelationWithNameAndThatEndsBy(
-      "origin",
-      Objects.requireNonNull(preimage.getIdentifier())
+      "origin", Objects.requireNonNull(preimage.getIdentifier())
     );
   }
 
@@ -317,5 +323,45 @@ public abstract class ConditionSensor
 
   public SapaRepositories.@NonNull Boolean getOutputStateRepository () {
     return _outputStateRepository;
+  }
+
+  private @NonNull Logger getLogger () {
+    return Logger.getLogger(getClass().getName());
+  }
+
+  @Override
+  public boolean equals (@Nullable final Object other) {
+    if (other == null) return false;
+    if (other == this) return true;
+
+    if (other instanceof ConditionSensor) {
+      @NonNull final ConditionSensor otherConditionSensor = (ConditionSensor) other;
+
+      return Objects.equals(
+        _applicationEventPublisher,
+        otherConditionSensor.getApplicationEventPublisher()
+      ) && Objects.equals(
+        _correlationRepository,
+        otherConditionSensor.getCorrelationRepository()
+      ) && Objects.equals(
+        _inputStateRepository,
+        otherConditionSensor.getInputStateRepository()
+      ) && Objects.equals(
+        _outputStateRepository,
+        otherConditionSensor.getOutputStateRepository()
+      );
+    }
+
+    return false;
+  }
+
+  @Override
+  public int hashCode () {
+    return Objects.hash(
+      _applicationEventPublisher,
+      _correlationRepository,
+      _inputStateRepository,
+      _outputStateRepository
+    );
   }
 }

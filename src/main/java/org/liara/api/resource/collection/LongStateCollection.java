@@ -22,7 +22,7 @@
 package org.liara.api.resource.collection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.data.entity.state.ValueState;
+import org.liara.api.data.entity.state.LongValueState;
 import org.liara.api.resource.CollectionResource;
 import org.liara.api.resource.CollectionResourceBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,13 +33,13 @@ import org.springframework.stereotype.Component;
 @Component
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public final class LongStateCollection
-  extends CollectionResource<ValueState.Long>
+  extends CollectionResource<LongValueState>
 {
   @Autowired
   public LongStateCollection (
     @NonNull final CollectionResourceBuilder configuration
   )
   {
-    super(ValueState.Long.class, configuration);
+    super(LongValueState.class, configuration);
   }
 }

@@ -1,7 +1,7 @@
 package org.liara.api.data.repository.local
 
 import org.liara.api.data.entity.ApplicationEntity
-import org.liara.api.data.entity.state.ValueState
+import org.liara.api.data.entity.state.*
 import spock.lang.Specification
 
 import java.time.Duration
@@ -10,17 +10,17 @@ import java.time.ZonedDateTime
 class ApplicationEntityManagerSpecification
   extends Specification
 {
-  def <NumericState extends ValueState> List<NumericState> generateStates (
-    final Class<NumericState> type,
+  def <ValueType extends Number, StateType extends ValueState<ValueType>> List<StateType> generateStates (
+    final Class<StateType> type,
     final int count
   )
   {
-    final List<NumericState> entities = []
+    final List<StateType> entities = []
 
     for (int index = 0; index < count; ++index) {
-      final NumericState state = type.newInstance(new Object[0])
+      final StateType state = type.newInstance(new Object[0])
       state.setEmissionDate(ZonedDateTime.now() + Duration.ofMinutes(index))
-      state.setValue(index)
+      state.setValue(state.getType().newInstance(index.toString()))
       entities.add(state)
     }
 
@@ -30,6 +30,7 @@ class ApplicationEntityManagerSpecification
   def "it allows you to instantiate an empty manager" () {
     expect: "to instantiate an empty manager when the default constructor is invoked"
     new ApplicationEntityManager().size == 0
+    new ApplicationEntityManager().findAll() == []
   }
 
   def "it allows you to register new entities" () {
@@ -37,7 +38,7 @@ class ApplicationEntityManagerSpecification
     final ApplicationEntityManager manager = new ApplicationEntityManager()
 
     and: "a list of entities to register"
-    final List<ValueState.Integer> entities = generateStates(ValueState.Integer.class, 20)
+    final List<IntegerValueState> entities = generateStates(IntegerValueState.class, 20)
 
     when: "we register new entities into the given manager"
     entities.forEach({ x -> manager.merge(x) })
@@ -52,7 +53,7 @@ class ApplicationEntityManagerSpecification
   def "it allows you to remove entities" () {
     given: "a manager with some entities registered in"
     final ApplicationEntityManager manager = new ApplicationEntityManager()
-    final List<ValueState.Integer> entities = generateStates(ValueState.Integer.class, 20)
+    final List<IntegerValueState> entities = generateStates(IntegerValueState.class, 20)
 
     entities.forEach({ x -> manager.merge(x) })
 
@@ -72,7 +73,7 @@ class ApplicationEntityManagerSpecification
   def "it allows you to remove all of its entities" () {
     given: "a manager with some entities registered in"
     final ApplicationEntityManager manager = new ApplicationEntityManager()
-    final List<ValueState.Integer> entities = generateStates(ValueState.Integer.class, 20)
+    final List<IntegerValueState> entities = generateStates(IntegerValueState.class, 20)
 
     entities.forEach({ x -> manager.merge(x) })
 
@@ -87,20 +88,20 @@ class ApplicationEntityManagerSpecification
     given: "a manager with some entities registered in"
     final ApplicationEntityManager manager = new ApplicationEntityManager()
     final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
-      (ValueState.Integer.class): generateStates(ValueState.Integer.class, 23),
-      (ValueState.Double.class) : generateStates(ValueState.Double.class, 5),
-      (ValueState.Short.class)  : generateStates(ValueState.Short.class, 3)
+      (IntegerValueState.class): generateStates(IntegerValueState.class, 23),
+      (DoubleValueState.class) : generateStates(DoubleValueState.class, 5),
+      (ShortValueState.class)  : generateStates(ShortValueState.class, 3)
     ]
 
     entities.values().stream().flatMap({ x -> x.stream() })
             .forEach({ x -> manager.merge(x) })
 
     when: "we clear the repository of one type of entities"
-    manager.clear(ValueState.Double.class)
+    manager.clear(DoubleValueState.class)
 
     then: "we expect that the repository removed all entities of the given type"
-    manager.size == entities[ValueState.Integer.class].size() + entities[ValueState.Short.class].size()
-    for (final ApplicationEntity entity : entities[ValueState.Double.class]) {
+    manager.size == entities[IntegerValueState.class].size() + entities[ShortValueState.class].size()
+    for (final ApplicationEntity entity : entities[DoubleValueState.class]) {
       !manager.contains(entity)
     }
   }
@@ -111,9 +112,9 @@ class ApplicationEntityManagerSpecification
 
     when: "we add entities of multiple types"
     final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
-      (ValueState.Integer.class): generateStates(ValueState.Integer.class, 23),
-      (ValueState.Double.class) : generateStates(ValueState.Double.class, 5),
-      (ValueState.Short.class)  : generateStates(ValueState.Short.class, 3)
+      (IntegerValueState.class): generateStates(IntegerValueState.class, 23),
+      (DoubleValueState.class) : generateStates(DoubleValueState.class, 5),
+      (ShortValueState.class)  : generateStates(ShortValueState.class, 3)
     ]
 
     entities.values().stream().flatMap({ x -> x.stream() })
@@ -133,9 +134,9 @@ class ApplicationEntityManagerSpecification
 
     when: "we add entities of multiple types"
     final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
-      (ValueState.Integer.class): generateStates(ValueState.Integer.class, 23),
-      (ValueState.Double.class) : generateStates(ValueState.Double.class, 5),
-      (ValueState.Short.class)  : generateStates(ValueState.Short.class, 3)
+      (IntegerValueState.class): generateStates(IntegerValueState.class, 23),
+      (DoubleValueState.class) : generateStates(DoubleValueState.class, 5),
+      (ShortValueState.class)  : generateStates(ShortValueState.class, 3)
     ]
 
     entities.values().stream().flatMap({ x -> x.stream() })
@@ -158,17 +159,17 @@ class ApplicationEntityManagerSpecification
 
     when: "we add entities of multiple types"
     final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
-      (ValueState.Integer.class): generateStates(ValueState.Integer.class, 23),
-      (ValueState.Double.class) : generateStates(ValueState.Double.class, 5),
-      (ValueState.Short.class)  : generateStates(ValueState.Short.class, 3)
+      (IntegerValueState.class): generateStates(IntegerValueState.class, 23),
+      (DoubleValueState.class) : generateStates(DoubleValueState.class, 5),
+      (ShortValueState.class)  : generateStates(ShortValueState.class, 3)
     ]
 
     entities.values().stream().flatMap({ x -> x.stream() })
             .forEach({ x -> manager.merge(x) })
 
     then: "we expect to get an empty optional if we search for an _metamodel that does not exists"
-    !manager.find(ValueState.Byte.class, 5).present
-    !manager.find(ValueState.Double.class, 256).present
+    !manager.find(ByteValueState.class, 5).present
+    !manager.find(DoubleValueState.class, 256).present
   }
 
   def "it allows to check if an entity is registered by using its identifier" () {
@@ -177,9 +178,9 @@ class ApplicationEntityManagerSpecification
 
     when: "we add entities of multiple types"
     final Map<Class<? extends ApplicationEntity>, List<? extends ApplicationEntity>> entities = [
-      (ValueState.Integer.class): generateStates(ValueState.Integer.class, 23),
-      (ValueState.Double.class) : generateStates(ValueState.Double.class, 5),
-      (ValueState.Short.class)  : generateStates(ValueState.Short.class, 3)
+      (IntegerValueState.class): generateStates(IntegerValueState.class, 23),
+      (DoubleValueState.class) : generateStates(DoubleValueState.class, 5),
+      (ShortValueState.class)  : generateStates(ShortValueState.class, 3)
     ]
 
     entities.values().stream().flatMap({ x -> x.stream() })
@@ -196,7 +197,7 @@ class ApplicationEntityManagerSpecification
       manager.contains(toTest.class, toTest.identifier)
     }
 
-    !manager.contains(ValueState.Byte.class, 5)
-    !manager.contains(ValueState.Double.class, 256)
+    !manager.contains(ByteValueState.class, 5)
+    !manager.contains(DoubleValueState.class, 256)
   }
 }

@@ -12,6 +12,7 @@ import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.filtering.Filter;
 import org.liara.collection.operator.joining.Join;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
@@ -61,11 +62,9 @@ public class Correlation
   }
 
   @Nullable
-  @ApplicationEntityReference(Sensor.class)
   private Long _startStateIdentifier;
 
   @Nullable
-  @ApplicationEntityReference(Sensor.class)
   private Long _endStateIdentifier;
 
   @Nullable
@@ -78,11 +77,14 @@ public class Correlation
   }
 
   public Correlation (@NonNull final Correlation toCopy) {
+    super(toCopy);
     _startStateIdentifier = toCopy.getStartStateIdentifier();
     _endStateIdentifier = toCopy.getEndStateIdentifier();
     _name = toCopy.getName();
   }
 
+  @Column(name = "start_state_identifier", nullable = false)
+  @ApplicationEntityReference(Sensor.class)
   public @Nullable Long getStartStateIdentifier () {
     return _startStateIdentifier;
   }
@@ -91,6 +93,8 @@ public class Correlation
     _startStateIdentifier = startStateIdentifier;
   }
 
+  @Column(name = "end_state_identifier", nullable = false)
+  @ApplicationEntityReference(Sensor.class)
   public @Nullable Long getEndStateIdentifier () {
     return _endStateIdentifier;
   }
@@ -99,6 +103,7 @@ public class Correlation
     _endStateIdentifier = endStateIdentifier;
   }
 
+  @Column(name = "name", nullable = false)
   public @Nullable String getName () {
     return _name;
   }

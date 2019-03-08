@@ -1,12 +1,11 @@
 package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
+import org.liara.api.data.entity.state.BooleanValueState;
 import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SapaRepositories;
@@ -91,14 +90,17 @@ public class OneVsAllToUpDownMotionSensor
   {
     super.initialize(runner);
 
-    @NonNull final List<ValueState.@NonNull Boolean> states = _flags.findAllWithValue(getInputSensors(), true);
+    @NonNull final List<BooleanValueState> states = _flags.findAllWithValue(
+      getInputSensors(),
+      true
+    );
 
     @NonNull final OneVsAllToUpDownMotionSensorConfiguration configuration = getConfiguration();
 
-    ValueState.@Nullable Boolean previous = null;
+    BooleanValueState previous = null;
 
     for (int index = 0; index < states.size(); ++index) {
-      final ValueState.@NonNull Boolean current = states.get(index);
+      final BooleanValueState current = states.get(index);
 
       if (previous == null || areOfSameType(previous, current) == false) {
         emit(current, configuration.isValidInput(current));
@@ -118,24 +120,24 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final Sensor sensor = _sensors.find(event.getState().getSensorIdentifier()).get();
 
     if (sensor.getTypeInstance() == ValueSensorType.MOTION &&
-        ((ValueState.Boolean) event.getState()).getValue() &&
+        ((BooleanValueState) event.getState()).getValue() &&
         getConfiguration().isIgnoredInput(event.getState()) == false) {
-      onMotionStateWasCreated((ValueState.Boolean) event.getState());
+      onMotionStateWasCreated((BooleanValueState) event.getState());
     }
   }
 
   public void onMotionStateWasCreated (
-    final ValueState.@NonNull Boolean created
+    final BooleanValueState created
   )
   {
     @NonNull final List<@NonNull Long> inputSensors = getInputSensors();
-    @NonNull final Optional<ValueState.Boolean> previous =
+    @NonNull final Optional<BooleanValueState> previous =
       _flags.findPreviousWithValue(
       created,
       inputSensors,
       true
     );
-    @NonNull final Optional<ValueState.Boolean> next = _flags.findNextWithValue(
+    @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
       created,
       inputSensors,
       true
@@ -149,7 +151,7 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void onLeftMotionStateWasCreated (
-    final ValueState.@NonNull Boolean created, @NonNull final Optional<ValueState.Boolean> next
+    final BooleanValueState created, @NonNull final Optional<BooleanValueState> next
   )
   {
     if (next.isPresent() && areOfSameType(created, next.get())) {
@@ -160,7 +162,7 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void onRightMotionStateWasCreated (
-    final ValueState.@NonNull Boolean created, @NonNull final Optional<ValueState.Boolean> next
+    final BooleanValueState created, @NonNull final Optional<BooleanValueState> next
   )
   {
     if (next.isPresent() == false) {
@@ -174,7 +176,7 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private boolean areOfSameType (
-    final ValueState.@NonNull Boolean left, final ValueState.@NonNull Boolean right
+    final BooleanValueState left, final BooleanValueState right
   )
   {
     return getConfiguration().isValidInput(left) == getConfiguration().isValidInput(right);
@@ -191,15 +193,19 @@ public class OneVsAllToUpDownMotionSensor
 
     if (sensor.getTypeInstance() == ValueSensorType.MOTION &&
         !getConfiguration().isIgnoredInput(event.getNewValue())) {
-      onMotionStateWasMutated((ValueState.Boolean) event.getOldValue(), (ValueState.Boolean) event.getNewValue());
+      onMotionStateWasMutated(
+        (BooleanValueState) event.getOldValue(),
+        (BooleanValueState) event.getNewValue()
+      );
     }
   }
 
   public void onMotionStateWasMutated (
-    final ValueState.@NonNull Boolean base, final ValueState.@NonNull Boolean updated
+    final BooleanValueState base, final BooleanValueState updated
   )
   {
-    @NonNull final Optional<ValueState.Boolean> correlation = findRelatedResult(updated.getIdentifier());
+    @NonNull
+    final Optional<BooleanValueState> correlation = findRelatedResult(updated.getIdentifier());
 
     if (correlation.isPresent()) {
       onCorrelledMotionStateWasMutated(base, updated);
@@ -208,7 +214,7 @@ public class OneVsAllToUpDownMotionSensor
     }
   }
 
-  private @NonNull Optional<ValueState.@NonNull Boolean> findRelatedResult (
+  private @NonNull Optional<BooleanValueState> findRelatedResult (
     @NonNull final Long reference
   )
   {
@@ -227,16 +233,16 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void onCorrelledMotionStateWasMutated (
-    final ValueState.@NonNull Boolean base, final ValueState.@NonNull Boolean updated
+    final BooleanValueState base, final BooleanValueState updated
   )
   {
     @NonNull final List<@NonNull Long> inputSensors = getInputSensors();
-    @NonNull final Optional<ValueState.Boolean> previous = _flags.findPreviousWithValue(
+    @NonNull final Optional<BooleanValueState> previous = _flags.findPreviousWithValue(
       base.getEmissionDate(),
                                                                                          inputSensors,
                                                                                          true
     );
-    @NonNull final Optional<ValueState.Boolean> next = _flags.findNextWithValue(
+    @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
       base.getEmissionDate(),
                                                                                  inputSensors,
                                                                                  true
@@ -250,7 +256,7 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void onRightCorreledMotionStateWasMutated (
-    final ValueState.@NonNull Boolean updated, @NonNull final Optional<ValueState.Boolean> next
+    final BooleanValueState updated, @NonNull final Optional<BooleanValueState> next
   )
   {
     if (!next.isPresent()) {
@@ -275,8 +281,8 @@ public class OneVsAllToUpDownMotionSensor
   {
     super.stateWillBeDeleted(event);
 
-    if (event.getState() instanceof ValueState.Boolean) {
-      final ValueState.@NonNull Boolean state  = (ValueState.Boolean) event.getState();
+    if (event.getState() instanceof BooleanValueState) {
+      final BooleanValueState state = (BooleanValueState) event.getState();
       @NonNull final Sensor             sensor = _sensors.find(state.getSensorIdentifier())
                                                    .orElseThrow();
 
@@ -286,17 +292,21 @@ public class OneVsAllToUpDownMotionSensor
     }
   }
 
-  public void onMotionStateWillBeDeleted (final ValueState.@NonNull Boolean state) {
+  public void onMotionStateWillBeDeleted (final BooleanValueState state) {
     if (!findRelatedResult(state.getIdentifier()).isPresent()) return;
 
     final List<Long> inputs = getInputSensors();
-    final Optional<ValueState.Boolean> previous = _flags.findPreviousWithValue(
+    final Optional<BooleanValueState> previous = _flags.findPreviousWithValue(
       state.getEmissionDate(),
       inputs,
       true
     );
 
-    final Optional<ValueState.Boolean> next = _flags.findNextWithValue(state.getEmissionDate(), inputs, true);
+    final Optional<BooleanValueState> next = _flags.findNextWithValue(
+      state.getEmissionDate(),
+      inputs,
+      true
+    );
 
     if (previous.isPresent() == false) {
       onLeftMotionStateWillBeDeleted(state, next);
@@ -306,7 +316,7 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void onRightMotionStateWillBeDeleted (
-    final ValueState.@NonNull Boolean state, @NonNull final Optional<ValueState.Boolean> next
+    final BooleanValueState state, @NonNull final Optional<BooleanValueState> next
   )
   {
     if (!next.isPresent()) {
@@ -320,7 +330,7 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void onLeftMotionStateWillBeDeleted (
-    final ValueState.@NonNull Boolean state, @NonNull final Optional<ValueState.Boolean> next
+    final BooleanValueState state, @NonNull final Optional<BooleanValueState> next
   )
   {
     if (!next.isPresent()) {
@@ -332,7 +342,7 @@ public class OneVsAllToUpDownMotionSensor
     }
   }
 
-  private void delete (final ValueState.@NonNull Boolean state) {
+  private void delete (final BooleanValueState state) {
     _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Delete(
       this,
       findRelatedResult(state.getIdentifier()).get()
@@ -340,10 +350,10 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void move (
-    final ValueState.@NonNull Boolean from, final ValueState.@NonNull Boolean to
+    final BooleanValueState from, final BooleanValueState to
   )
   {
-    final ValueState.@NonNull Boolean toMove = Duplicator.duplicate(findRelatedResult(from.getIdentifier()).get());
+    final BooleanValueState toMove = Duplicator.duplicate(findRelatedResult(from.getIdentifier()).get());
     toMove.setEmissionDate(to.getEmissionDate());
 
     if (!Objects.equals(from, to)) {
@@ -362,12 +372,12 @@ public class OneVsAllToUpDownMotionSensor
     }
   }
 
-  private void emit (final ValueState.@NonNull Boolean created) {
+  private void emit (final BooleanValueState created) {
     emit(created, getConfiguration().isValidInput(created));
   }
 
   private void emit (@NonNull final State state, final boolean up) {
-    final ValueState.@NonNull Boolean flag = new ValueState.Boolean();
+    final BooleanValueState flag = new BooleanValueState();
 
     flag.setEmissionDate(state.getEmissionDate());
     flag.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElseThrow());
@@ -386,7 +396,7 @@ public class OneVsAllToUpDownMotionSensor
 
   @Override
   public @NonNull Class<? extends State> getEmittedStateClass () {
-    return ValueState.Boolean.class;
+    return BooleanValueState.class;
   }
 
   @Override

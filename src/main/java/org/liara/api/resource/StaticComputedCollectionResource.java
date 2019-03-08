@@ -2,7 +2,6 @@ package org.liara.api.resource;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.collection.jpa.JPAEntityCollection;
 import org.liara.collection.operator.Operator;
 
 public class StaticComputedCollectionResource<Model extends ApplicationEntity>
@@ -18,9 +17,6 @@ public class StaticComputedCollectionResource<Model extends ApplicationEntity>
   ) {
     super(modelClass, builder);
     _operator = operator;
-
-    System.out.println("Created collection : " + ((JPAEntityCollection) getCollection()).getQuery(
-      ":this"));
   }
 
   /**

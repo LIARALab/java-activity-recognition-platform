@@ -26,7 +26,8 @@ public interface StateRepository<TimeState extends State>
   }
 
   default @NonNull List<@NonNull TimeState> findPrevious (
-    @NonNull final TimeState state, @NonNull final Cursor cursor
+    @NonNull final TimeState state,
+    @NonNull final Cursor cursor
   )
   {
     return findPrevious(
@@ -37,7 +38,8 @@ public interface StateRepository<TimeState extends State>
   }
 
   default @NonNull Optional<TimeState> findPrevious (
-    @NonNull final ZonedDateTime date, @NonNull final Long sensorIdentifier
+    @NonNull final ZonedDateTime date,
+    @NonNull final Long sensorIdentifier
   ) {
     @NonNull final List<@NonNull TimeState> result = findPrevious(
       date,
@@ -50,7 +52,8 @@ public interface StateRepository<TimeState extends State>
   }
 
   default @NonNull List<@NonNull TimeState> findAllPrevious (
-    @NonNull final ZonedDateTime date, @NonNull final Long sensorIdentifier
+    @NonNull final ZonedDateTime date,
+    @NonNull final Long sensorIdentifier
   )
   {
     return findPrevious(
@@ -61,7 +64,8 @@ public interface StateRepository<TimeState extends State>
   }
 
   @NonNull List<@NonNull TimeState> findPrevious (
-    @NonNull final ZonedDateTime date, @NonNull final Collection<@NonNull Long> sensors,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Collection<@NonNull Long> sensors,
     @NonNull final Cursor cursor
   );
 

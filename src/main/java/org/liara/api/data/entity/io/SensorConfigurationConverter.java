@@ -1,4 +1,4 @@
-package org.liara.api.data.entity;
+package org.liara.api.data.entity.io;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.TreeNode;
@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.SensorConfiguration;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.AttributeConverter;

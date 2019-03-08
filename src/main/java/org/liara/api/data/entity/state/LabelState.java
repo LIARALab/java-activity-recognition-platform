@@ -55,7 +55,11 @@ public class LabelState
     return (duration == null) ? null : duration.getSeconds() * 1_000L + duration.getNano() / 1_000_000L;
   }
 
-  @Column(name = "start", nullable = false, precision = 6)
+  @Column(
+    name = "start",
+    nullable = false,
+    columnDefinition = "DATETIME(6)"
+  )
   public @Nullable ZonedDateTime getStart () {
     return _start;
   }
@@ -64,7 +68,10 @@ public class LabelState
     _start = start;
   }
 
-  @Column(name = "end", precision = 6)
+  @Column(
+    name = "end",
+    columnDefinition = "DATETIME(6)"
+  )
   public @Nullable ZonedDateTime getEnd () {
     return _end;
   }

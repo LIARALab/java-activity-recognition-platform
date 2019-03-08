@@ -46,9 +46,6 @@ public class DatabaseNodeDriver
   public void create (final NodeEvent.@NonNull Create creation) {
     @NonNull final Node node = new Node();
 
-    System.out.println(
-      "Creating node " + creation.getSchema().getName() + " child of " + creation.getSchema().getParent());
-
     node.setName(creation.getSchema().getName());
     node.getCoordinates().set(1, 2, 1);
     _eventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, node));

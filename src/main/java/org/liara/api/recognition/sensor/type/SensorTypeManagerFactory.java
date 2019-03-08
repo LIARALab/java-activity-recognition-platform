@@ -12,6 +12,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
+
 @Component
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public class SensorTypeManagerFactory
@@ -45,13 +47,16 @@ public class SensorTypeManagerFactory
 
     _sensorTypeManager = new SensorTypeManager();
 
-    for (@NonNull final SensorType type : _applicationContext.getBeansOfType(SensorType.class)
-                                            .values()) {
+    for (@NonNull final SensorType type : getSensorTypes()) {
       info("sensorType.registering " + type.getName() + " " + type.toString());
       _sensorTypeManager.register(type);
     }
 
     info(InstantiationMessageFactory.instantiated(SensorTypeManager.class, _sensorTypeManager));
+  }
+
+  private @NonNull Collection<@NonNull SensorType> getSensorTypes () {
+    return _applicationContext.getBeansOfType(SensorType.class).values();
   }
 
   @Override

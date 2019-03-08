@@ -1,9 +1,10 @@
-package org.liara.api.data.entity;
+package org.liara.api.data.entity.io;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.data.entity.SensorType;
 import org.springframework.boot.jackson.JsonComponent;
 
 import java.io.IOException;

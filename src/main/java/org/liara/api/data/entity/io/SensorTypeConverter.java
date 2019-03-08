@@ -1,6 +1,7 @@
-package org.liara.api.data.entity;
+package org.liara.api.data.entity.io;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.SensorType;
 import org.liara.api.recognition.sensor.type.SensorTypeManagerFactory;
 import org.springframework.stereotype.Component;
 

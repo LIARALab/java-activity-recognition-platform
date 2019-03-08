@@ -1,21 +1,20 @@
 package org.liara.api.recognition.sensor.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.data.entity.state.State;
-import org.liara.api.data.entity.state.ValueState;
+import org.liara.api.data.entity.state.*;
 
 public enum ValueSensorType
   implements NativeSensorType
 {
-  BOOLEAN("liara:boolean", ValueState.Boolean.class),
-  STRING("liara:string", ValueState.String.class),
-  BYTE("liara:byte", ValueState.Byte.class),
-  SHORT("liara:short", ValueState.Short.class),
-  INTEGER("liara:integer", ValueState.Integer.class),
-  LONG("liara:long", ValueState.Long.class),
-  FLOAT("liara:float", ValueState.Float.class),
-  DOUBLE("liara:double", ValueState.Double.class),
-  MOTION("liara:motion", ValueState.Boolean.class);
+  BOOLEAN("liara:boolean", BooleanValueState.class),
+  STRING("liara:string", StringValueState.class),
+  BYTE("liara:byte", ByteValueState.class),
+  SHORT("liara:short", ShortValueState.class),
+  INTEGER("liara:integer", IntegerValueState.class),
+  LONG("liara:long", LongValueState.class),
+  FLOAT("liara:float", FloatValueState.class),
+  DOUBLE("liara:double", DoubleValueState.class),
+  MOTION("liara:motion", BooleanValueState.class);
 
   @NonNull
   private final String _name;

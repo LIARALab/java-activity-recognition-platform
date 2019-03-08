@@ -20,12 +20,12 @@ import java.util.Optional;
 @Scope("prototype")
 @Primary
 public class DatabaseStateRepository<TimeState extends State>
-       extends DatabaseApplicationEntityRepository<TimeState>
+  extends DatabaseApplicationEntityRepository<TimeState>
   implements StateRepository<TimeState>
 {
   @NonNull
   private final EntityManager _entityManager;
-  
+
   @Autowired
   public DatabaseStateRepository (
     @NonNull final EntityManager entityManager,
@@ -34,57 +34,47 @@ public class DatabaseStateRepository<TimeState extends State>
     super(entityManager, stateType);
     _entityManager = entityManager;
   }
-  
+
   @Override
   public @NonNull List<@NonNull TimeState> findPrevious (
-    @NonNull final ZonedDateTime date, @NonNull final Collection<@NonNull Long> sensorIdentifiers,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Collection<@NonNull Long> sensorIdentifiers,
     @NonNull final Cursor cursor
   ) {
     @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
-      String.join(
-        "",
-        "SELECT state ",
-        "  FROM ",
-        getManagedEntity().getName(),
-        " state ",
-        " WHERE state.emissionDate < :date ",
-        "   AND state.sensorIdentifier IN :sensorIdentifiers",
-        " ORDER BY state.emissionDate DESC, state.identifier DESC"
-      ), getManagedEntity())
-                                                               .setParameter("date", date)
-                                                   .setParameter(
-                                                     "sensorIdentifiers",
-                                                     sensorIdentifiers
-                                                   )
-                                                               .setFirstResult(cursor.getOffset());
+      "SELECT state FROM " + getManagedEntity().getName() + " state" +
+      " WHERE state.emissionDate < :date " +
+      "   AND state.sensorIdentifier IN :sensorIdentifiers" +
+      " ORDER BY state.emissionDate DESC, state.identifier DESC",
+      getManagedEntity()
+    );
+
+    query.setParameter("date", date);
+    query.setParameter("sensorIdentifiers", sensorIdentifiers);
+    query.setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
     return query.getResultList();
   }
-  
+
   @Override
   public @NonNull List<@NonNull TimeState> findNext (
-    @NonNull final ZonedDateTime date, @NonNull final Collection<@NonNull Long> sensorIdentifiers,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Collection<@NonNull Long> sensorIdentifiers,
     @NonNull final Cursor cursor
   ) {
     @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
-      String.join(
-        "",
-        "SELECT state ",
-        "  FROM ",
-        getManagedEntity().getName(),
-        " state ",
-        " WHERE state.emissionDate < :date ",
-        "   AND state.sensorIdentifier IN :sensorIdentifiers ",
-        " ORDER BY state.emissionDate ASC, state.identifier ASC"
-      ), getManagedEntity())
-                                                               .setParameter("date", date)
-                                                   .setParameter(
-                                                     "sensorIdentifiers",
-                                                     sensorIdentifiers
-                                                   )
-                                                               .setFirstResult(cursor.getOffset());
+      "SELECT state FROM " + getManagedEntity().getName() + " state" +
+      " WHERE state.emissionDate > :date" +
+      "   AND state.sensorIdentifier IN :sensorIdentifiers" +
+      " ORDER BY state.emissionDate ASC, state.identifier ASC"
+      , getManagedEntity()
+    );
+
+    query.setParameter("date", date);
+    query.setParameter("sensorIdentifiers", sensorIdentifiers);
+    query.setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -96,19 +86,14 @@ public class DatabaseStateRepository<TimeState extends State>
     @NonNull final Collection<@NonNull Long> sensorIdentifiers, @NonNull final Cursor cursor
   ) {
     @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
-      String.join(
-        "",
-        "SELECT state ", "  FROM ", getManagedEntity().getName(), " state ",
-        " WHERE state.sensorIdentifier IN :sensorIdentifiers ",
-        " ORDER BY state.emissionDate ASC, state.identifier ASC"
-      ),
+      "SELECT state FROM " + getManagedEntity().getName() + " state" +
+      " WHERE state.sensorIdentifier IN :sensorIdentifiers" +
+      " ORDER BY state.emissionDate ASC, state.identifier ASC",
       getManagedEntity()
-    )
-                                                   .setParameter(
-                                                     "sensorIdentifiers",
-                                                     sensorIdentifiers
-                                                   )
-                                                   .setFirstResult(cursor.getOffset());
+    );
+
+    query.setParameter("sensorIdentifiers", sensorIdentifiers);
+    query.setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -119,18 +104,19 @@ public class DatabaseStateRepository<TimeState extends State>
   public @NonNull Optional<TimeState> findLast (
     @NonNull final Collection<@NonNull Long> sensors
   ) {
-    @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(String.join(
-      "",
-      "SELECT state ",
-      "  FROM ",
-      getManagedEntity().getName(),
-      " state ", " WHERE state.sensorIdentifier IN :sensors",
-      " ORDER BY state.emissionDate DESC, state.identifier DESC"
-    ), getManagedEntity()).setParameter("sensor", sensors).setFirstResult(0).setMaxResults(1);
+    @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
+      "SELECT state FROM " + getManagedEntity().getName() + " state" +
+      " WHERE state.sensorIdentifier IN :sensors" +
+      " ORDER BY state.emissionDate DESC, state.identifier DESC",
+      getManagedEntity()
+    );
+
+    query.setParameter("sensor", sensors);
+    query.setFirstResult(0);
+    query.setMaxResults(1);
 
     @NonNull final List<@NonNull TimeState> result = query.getResultList();
 
     return (result.size() > 0) ? Optional.of(result.get(0)) : Optional.empty();
   }
-
 }

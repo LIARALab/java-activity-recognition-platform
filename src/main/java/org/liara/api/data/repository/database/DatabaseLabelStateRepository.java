@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,27 +33,23 @@ public class DatabaseLabelStateRepository
 
   @Override
   public @NonNull Optional<LabelState> findAt (
-    @NonNull final ZonedDateTime area, @NonNull final Long sensorIdentifier
+    @NonNull final ZonedDateTime area,
+    @NonNull final Long sensorIdentifier
   ) {
-    @NonNull final List<@NonNull LabelState> result = _entityManager
-                                                        .createQuery(
-                                                          "SELECT label FROM " + getManagedEntity().getName() +
-                                                          " label " + "WHERE label.start <= :area " +
-                                                          "  AND (label.end IS NULL OR label.end >= :area)" +
-                                                          "  AND label.sensorIdentifier = :sensorIdentifier" +
-                                                          "ORDER BY label.identifier ASC",
-                                                          LabelState.class
-                                                        )
-                                                        .setParameter(
-                                                          "area",
-                                                          area
-                                                        )
-                                                        .setParameter(
-                                                          "sensorIdentifier",
-                                                          sensorIdentifier
-                                                        )
-                                                        .setMaxResults(1)
-                                                        .getResultList();
+    @NonNull final TypedQuery<LabelState> query = _entityManager.createQuery(
+      "SELECT label FROM " + getManagedEntity().getName() + " label" +
+      " WHERE label.start <= :area " +
+      "   AND (label.end IS NULL OR label.end >= :area)" +
+      "   AND label.sensorIdentifier = :sensorIdentifier" +
+      " ORDER BY label.start ASC, label.identifier ASC",
+      LabelState.class
+    );
+
+    query.setParameter("area", area);
+    query.setParameter("sensorIdentifier", sensorIdentifier);
+    query.setMaxResults(1);
+
+    @NonNull final List<@NonNull LabelState> result = query.getResultList();
 
     return result.size() > 0 ? Optional.of(result.get(0)) : Optional.empty();
   }

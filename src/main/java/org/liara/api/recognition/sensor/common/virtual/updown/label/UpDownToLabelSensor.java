@@ -4,23 +4,21 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
+import org.liara.api.data.entity.state.BooleanValueState;
 import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.LabelState;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.LabelStateRepository;
-import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SapaRepositories;
-import org.liara.api.event.ApplicationEntityEvent;
 import org.liara.api.event.StateEvent;
+import org.liara.api.io.APIEventPublisher;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
 import org.liara.api.recognition.sensor.type.ComputedSensorType;
 import org.liara.api.utils.Duplicator;
 import org.liara.collection.operator.cursoring.Cursor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +33,7 @@ public class UpDownToLabelSensor
   implements ComputedSensorType
 {
   @NonNull
-  private final ApplicationEventPublisher _publisher;
+  private final APIEventPublisher _publisher;
 
   @NonNull
   private final LabelStateRepository _outputs;
@@ -45,40 +43,20 @@ public class UpDownToLabelSensor
   @NonNull
   private final CorrelationRepository _correlations;
 
-  @NonNull
-  private final NodeRepository _nodes;
-
   @Autowired
-  public UpDownToLabelSensor (
-    @NonNull final ApplicationEventPublisher publisher, final SapaRepositories.@NonNull Boolean inputs,
-    @NonNull final LabelStateRepository outputs,
-    @NonNull final NodeRepository nodes,
-    @NonNull final CorrelationRepository correlations
-  )
-  {
-    _publisher = publisher;
-    _inputs = inputs;
-    _outputs = outputs;
-    _nodes = nodes;
-    _correlations = correlations;
-  }
-
-  public @NonNull UpDownToLabelSensorConfiguration getConfiguration () {
-    return getConfiguration(UpDownToLabelSensorConfiguration.class).orElseThrow();
-  }
-
-  public @NonNull Long getInputSensor () {
-    return getConfiguration().getInputSensor();
+  public UpDownToLabelSensor (@NonNull final UpDownToLabelSensorBuilder builder) {
+    _publisher = Objects.requireNonNull(builder.getPublisher());
+    _inputs = Objects.requireNonNull(builder.getInputs());
+    _outputs = Objects.requireNonNull(builder.getOutputs());
+    _correlations = Objects.requireNonNull(builder.getCorrelations());
   }
 
   @Override
-  public void initialize (
-    @NonNull final VirtualSensorRunner runner
-  )
-  {
+  public void initialize (@NonNull final VirtualSensorRunner runner) {
     super.initialize(runner);
 
-    @NonNull final List<ValueState.@NonNull Boolean> initializationStates = _inputs.find(getInputSensor(), Cursor.ALL);
+    @NonNull final List<BooleanValueState> initializationStates = _inputs.find(
+      getInputSensorIdentifier(), Cursor.ALL);
     LabelState                                       current              = null;
 
     for (int index = 0; index < initializationStates.size(); ++index) {
@@ -87,9 +65,12 @@ public class UpDownToLabelSensor
   }
 
   private @Nullable LabelState initialize (
-    @Nullable final LabelState current, final ValueState.@NonNull Boolean next
+    @Nullable final LabelState current,
+    final BooleanValueState next
   )
   {
+    Objects.requireNonNull(next.getValue());
+
     if (next.getValue() && current == null) {
       return begin(next);
     } else if (!next.getValue() && current != null) {
@@ -101,301 +82,222 @@ public class UpDownToLabelSensor
   }
 
   @Override
-  public void stateWasCreated (
-    final StateEvent.@NonNull WasCreated event
-  )
-  {
+  public void stateWasCreated (final StateEvent.@NonNull WasCreated event) {
     super.stateWasCreated(event);
 
-    if (Objects.equals(event.getState().getSensorIdentifier(), getInputSensor())) {
-      inputStateWasCreated((ValueState.Boolean) event.getState());
+    @NonNull final State stateThatWasCreated = event.getState();
+
+    if (Objects.equals(stateThatWasCreated.getSensorIdentifier(), getInputSensorIdentifier())) {
+      inputStateWasCreated((BooleanValueState) stateThatWasCreated);
     }
   }
 
-  public void inputStateWasCreated (final ValueState.@NonNull Boolean current) {
-    @NonNull final Optional<LabelState> previous = _outputs.findAt(
-      current.getEmissionDate(),
-      getSensor().map(Sensor::getIdentifier).orElseThrow()
+  private void inputStateWasCreated (final BooleanValueState stateThatWasCreated) {
+    Objects.requireNonNull(stateThatWasCreated.getEmissionDate());
+
+    _outputs.findAt(
+      stateThatWasCreated.getEmissionDate(),
+      getOutputSensorIdentifier()
+    ).ifPresentOrElse(
+      (parentLabel) -> innerInputStateWasCreated(parentLabel, stateThatWasCreated),
+      () -> outerInputStateWasCreated(stateThatWasCreated)
     );
-
-    if (previous.isPresent() && previous.get().contains(current.getEmissionDate())) {
-      onInnerInput(previous.get(), current);
-    } else {
-      onAloneInput(current);
-    }
   }
 
-  private void onAloneInput (
-    final ValueState.@NonNull Boolean current
-  )
-  {
-    if (current.getValue()) return;
+  /**
+   * An input state was created out of any existing labels.
+   */
+  private void outerInputStateWasCreated (final BooleanValueState stateThatWasCreated) {
+    Objects.requireNonNull(stateThatWasCreated.getValue());
 
-    @NonNull final Optional<ValueState.Boolean> next = _inputs.findNext(current);
+    if (!stateThatWasCreated.getValue()) return;
 
-    if (!next.isPresent()) {
-      begin(current);
-    } else if (next.get().getValue()) {
+    _inputs.findNext(stateThatWasCreated).ifPresentOrElse(
+      (next) -> outerInputStateWasCreatedBeforeAnotherState(stateThatWasCreated, next),
+      () -> begin(stateThatWasCreated)
+    );
+  }
+
+  private void outerInputStateWasCreatedBeforeAnotherState (
+    @NonNull final BooleanValueState stateThatWasCreated,
+    @NonNull final BooleanValueState next
+  ) {
+    Objects.requireNonNull(next.getValue());
+    Objects.requireNonNull(next.getIdentifier());
+
+    if (next.getValue()) {
       begin(
-        current,
-        findLabelStateCorrelatedWith(next.get().getIdentifier()).get()
+        stateThatWasCreated,
+        findLabelStateThatStartBy(next.getIdentifier()).orElseThrow()
       );
     } else {
-      create(current, next.get());
+      create(stateThatWasCreated, next);
     }
   }
 
-  private void onInnerInput (
-    @NonNull final LabelState previous, final ValueState.@NonNull Boolean current
-  )
-  {
-    if (current.getValue()) return;
+  /**
+   * An input state was created into an existing label.
+   */
+  private void innerInputStateWasCreated (
+    @NonNull final LabelState parentLabel,
+    final BooleanValueState stateThatWasCreated
+  ) {
+    Objects.requireNonNull(stateThatWasCreated.getValue());
 
-    @NonNull final State                        endState  = getEnd(previous).get();
-    @NonNull final Optional<ValueState.Boolean> nextState = _inputs.findNext(current);
+    if (stateThatWasCreated.getValue()) return;
 
-    finish(previous, current);
+    @NonNull final Optional<BooleanValueState> endState = getEnd(parentLabel);
+    @NonNull final Optional<BooleanValueState> nextState = _inputs.findNext(stateThatWasCreated);
 
-    if (endState == null) {
-      if (nextState.isPresent()) {
-        begin(nextState.get());
-      }
-    } else if (nextState.isPresent() && !Objects.equals(nextState.get(), endState)) {
-      create(nextState.get(), endState);
+    finish(parentLabel, stateThatWasCreated);
+
+    if (nextState.isPresent() && nextState.map(BooleanValueState::getValue).orElseThrow()) {
+      create(nextState.get(), endState.orElse(null));
     }
   }
 
   @Override
-  public void stateWasMutated (
-    final StateEvent.@NonNull WasMutated event
-  )
-  {
+  public void stateWillBeMutated (final StateEvent.@NonNull WillBeMutated event) {
+    super.stateWillBeMutated(event);
+
+    @NonNull final State stateThatWillBeMutated = event.getOldValue();
+
+    if (Objects.equals(stateThatWillBeMutated.getSensorIdentifier(), getInputSensorIdentifier())) {
+      inputStateWillBeDeleted((BooleanValueState) stateThatWillBeMutated);
+    }
+  }
+
+
+  @Override
+  public void stateWasMutated (final StateEvent.@NonNull WasMutated event) {
     super.stateWasMutated(event);
 
-    if (Objects.equals(event.getNewValue().getSensorIdentifier(), getInputSensor())) {
-      inputStateWasMutated((ValueState.Boolean) event.getOldValue(), (ValueState.Boolean) event.getNewValue());
+    @NonNull final State stateThatWasMutated = event.getNewValue();
+
+    if (Objects.equals(stateThatWasMutated.getSensorIdentifier(), getInputSensorIdentifier())) {
+      inputStateWasCreated((BooleanValueState) stateThatWasMutated);
     }
-  }
-
-  public void inputStateWasMutated (
-    final ValueState.@NonNull Boolean previous, final ValueState.@NonNull Boolean next
-  )
-  {
-    @NonNull final Optional<LabelState> correlated = findLabelStateCorrelatedWith(next.getIdentifier());
-
-    if (!correlated.isPresent()) {
-      inputStateWasCreated(next);
-    } else if (!Objects.equals(next.getEmissionDate(), previous.getEmissionDate()) &&
-               next.getValue() == previous.getValue()) {
-      onBoundaryLocationChange(correlated.get(), next);
-    } else if (next.getValue() != previous.getValue()) {
-      onBoundaryTypeChange(correlated.get(), next);
-    }
-  }
-
-  private void onBoundaryLocationChange (
-    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
-  )
-  {
-    if (changed.equals(getStart(correlated))) {
-      onStartBoundaryLocationChange(correlated, changed);
-    } else {
-      onEndBoundaryLocationChange(correlated, changed);
-    }
-  }
-
-  private void onEndBoundaryLocationChange (
-    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
-  )
-  {
-    final ValueState.@Nullable Boolean next = _inputs.findNext(correlated.getEnd(), changed.getSensorIdentifier())
-                                                      .orElse(null);
-
-    final ValueState.@Nullable Boolean previous = _inputs.findPrevious(
-      correlated.getEnd(),
-                                                                        changed.getSensorIdentifier()
-    ).orElse(null);
-
-    if (Objects.equals(next, changed) || Objects.equals(previous, changed)) {
-      finish(correlated, changed);
-    } else {
-      resolveHardEndMutation(correlated, changed, next);
-    }
-  }
-
-  private void onStartBoundaryLocationChange (
-    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
-  )
-  {
-    final ValueState.@Nullable Boolean next = _inputs.findNext(correlated.getStart(), changed.getSensorIdentifier())
-                                                      .orElse(null);
-
-    final ValueState.Boolean previous = _inputs.findPrevious(correlated.getStart(), changed.getSensorIdentifier())
-                                                .orElse(null);
-
-    if (Objects.equals(next, changed) || Objects.equals(previous, changed)) {
-      begin(changed, correlated);
-    } else {
-      resolveHardStartMutation(correlated, changed, next);
-    }
-  }
-
-  private void onBoundaryTypeChange (
-    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
-  )
-  {
-    if (Objects.equals(changed, getStart(correlated))) {
-      onStartBoundaryTypeChange(correlated, changed);
-    } else {
-      onEndBoundaryTypeChange(correlated, changed);
-    }
-  }
-
-  private void onEndBoundaryTypeChange (
-    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
-  )
-  {
-    final ValueState.@Nullable Boolean next = _inputs.findNext(getEnd(correlated).get()).orElse(null);
-    resolveHardEndMutation(correlated, changed, next);
-  }
-
-  private void onStartBoundaryTypeChange (
-    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean changed
-  )
-  {
-    final ValueState.@Nullable Boolean next = _inputs.findNext(correlated.getStart(), changed.getSensorIdentifier())
-                                                      .orElse(null);
-    resolveHardStartMutation(correlated, changed, next);
-  }
-
-  private void resolveHardStartMutation (
-    @NonNull final LabelState correlated,
-    final ValueState.@NonNull Boolean changed,
-    final ValueState.@Nullable Boolean next
-  )
-  {
-    if (next != null && next.getValue()) {
-      begin(next, correlated);
-    } else {
-      delete(correlated);
-    }
-
-    inputStateWasCreated(changed);
-  }
-
-
-  private void resolveHardEndMutation (
-    @NonNull final LabelState correlated,
-    final ValueState.@NonNull Boolean changed,
-    final ValueState.@Nullable Boolean next
-  )
-  {
-    if (next != null && next.getValue()) {
-      merge(
-        correlated,
-        findLabelStateCorrelatedWith(next.getIdentifier()).get()
-      );
-    } else {
-      finish(correlated, next);
-    }
-
-    inputStateWasCreated(changed);
   }
 
   @Override
-  public void stateWillBeDeleted (
-    final StateEvent.@NonNull WillBeDeleted event
-  )
-  {
+  public void stateWillBeDeleted (final StateEvent.@NonNull WillBeDeleted event) {
     super.stateWillBeDeleted(event);
 
-    if (event.getState() instanceof ValueState.Boolean) {
-      if (event.getState().getSensorIdentifier().equals(getInputSensor())) {
-        inputStateWillBeDeleted((ValueState.Boolean) event.getState());
-      }
+    @NonNull final State stateThatWillBeDeleted = event.getState();
+
+    if (Objects.equals(stateThatWillBeDeleted.getSensorIdentifier(), getInputSensorIdentifier())) {
+      inputStateWillBeDeleted((BooleanValueState) stateThatWillBeDeleted);
     }
   }
 
-  public void inputStateWillBeDeleted (
-    final ValueState.@NonNull Boolean state
-  )
-  {
-    @NonNull final Optional<LabelState> correlated = findLabelStateCorrelatedWith(state.getIdentifier());
+  private void inputStateWillBeDeleted (final BooleanValueState stateThatWillBeDeleted) {
+    Objects.requireNonNull(stateThatWillBeDeleted.getIdentifier());
 
-    if (correlated.isPresent()) {
-      onBoundaryDeletion(correlated.get(), state);
-    }
+    findLabelStateThatStartBy(stateThatWillBeDeleted.getIdentifier()).ifPresentOrElse(
+      (parentState) -> startBoundaryWillBeDeleted(parentState, stateThatWillBeDeleted),
+      () -> findLabelStateThatEndBy(stateThatWillBeDeleted.getIdentifier()).ifPresent(
+        (parentState) -> endBoundaryWillBeDeleted(parentState, stateThatWillBeDeleted)
+      )
+    );
   }
 
-  private void onBoundaryDeletion (
-    @NonNull final LabelState correlated, final ValueState.@NonNull Boolean state
-  )
-  {
-    final ValueState.Boolean next = _inputs.findNext(state).orElse(null);
+  private void startBoundaryWillBeDeleted (
+    @NonNull final LabelState label,
+    final BooleanValueState boundaryThatWillBeDeleted
+  ) {
+    @NonNull final Optional<BooleanValueState> next = _inputs.findNext(boundaryThatWillBeDeleted);
 
-    if (Objects.equals(getEnd(correlated).get(), state)) {
-      if (next != null && next.getValue()) {
-        merge(
-          correlated,
-          findLabelStateCorrelatedWith(next.getIdentifier()).get()
-        );
-      } else {
-        finish(correlated, next);
-      }
+    if (next.isPresent() && next.map(BooleanValueState::getValue).orElseThrow()) {
+      begin(next.get(), label);
     } else {
-      if (next != null && next.getValue()) {
-        begin(next, correlated);
-      } else {
-        delete(correlated);
-      }
+      delete(label);
+    }
+  }
+
+  private void endBoundaryWillBeDeleted (
+    @NonNull final LabelState label,
+    final BooleanValueState boundaryThatWillBeDeleted
+  ) {
+    _inputs.findNext(boundaryThatWillBeDeleted).ifPresentOrElse(
+      (next) -> endBoundaryWillBeDeletedBeforeAnotherState(label, next),
+      () -> finish(label, null)
+    );
+  }
+
+  private void endBoundaryWillBeDeletedBeforeAnotherState (
+    @NonNull final LabelState label,
+    final BooleanValueState next
+  ) {
+    Objects.requireNonNull(next.getValue());
+    Objects.requireNonNull(next.getIdentifier());
+
+    if (next.getValue()) {
+      merge(label, findLabelStateThatStartBy(next.getIdentifier()).orElseThrow());
+    } else {
+      finish(label, next);
     }
   }
 
   private void merge (
-    @NonNull final LabelState left, @NonNull final LabelState right
-  )
-  {
+    @NonNull final LabelState left,
+    @NonNull final LabelState right
+  ) {
+    @NonNull final Optional<BooleanValueState> end = getEnd(right);
+
     delete(right);
-    finish(left, getEnd(right).get());
+    finish(left, end.orElse(null));
   }
 
-  private void delete (@NonNull final LabelState right) {
-    _publisher.publishEvent(new ApplicationEntityEvent.Delete(this, right));
+  private void delete (@NonNull final LabelState toDelete) {
+    _publisher.delete(toDelete);
+    _publisher.delete(getStartCorrelation(toDelete));
+    getEndCorrelation(toDelete).ifPresent(_publisher::delete);
   }
 
   private void finish (
-    @NonNull final LabelState current, @Nullable final State next
-  )
-  {
-    @NonNull final LabelState  mutation       = Duplicator.duplicate(current);
-    @NonNull final Correlation endCorrelation = getEndCorrelation(current).get();
+    @NonNull final LabelState current,
+    @Nullable final State next
+  ) {
+    @NonNull final LabelState mutation = Duplicator.duplicate(current);
+
     mutation.setEnd(next == null ? null : next.getEmissionDate());
 
+    _publisher.update(mutation);
+
+    @NonNull final Optional<Correlation> endCorrelation = getEndCorrelation(current);
+
     if (next == null) {
-      _publisher.publishEvent(new ApplicationEntityEvent.Delete(endCorrelation));
-      _publisher.publishEvent(new ApplicationEntityEvent.Update(current));
+      endCorrelation.ifPresent(_publisher::delete);
+    } else if (endCorrelation.isPresent()) {
+      @NonNull final Correlation correlation = Duplicator.duplicate(endCorrelation.get());
+      correlation.setEndStateIdentifier(next.getIdentifier());
+      _publisher.update(correlation);
     } else {
-      endCorrelation.setEndStateIdentifier(next.getIdentifier());
-      _publisher.publishEvent(new ApplicationEntityEvent.Update(current, endCorrelation));
+      @NonNull final Correlation correlation = new Correlation();
+      correlation.setName("end");
+      correlation.setEndStateIdentifier(next.getIdentifier());
+      correlation.setStartStateIdentifier(current.getIdentifier());
+      _publisher.create(correlation);
     }
   }
 
-  private LabelState begin (@NonNull final State start) {
+  private @NonNull LabelState begin (@NonNull final State start) {
     return create(start, null);
   }
 
-  private LabelState create (
-    @NonNull final State start, @Nullable final State end
+  private @NonNull LabelState create (
+    @NonNull final State start,
+    @Nullable final State end
   )
   {
     @NonNull final LabelState state = new LabelState();
-
+    state.setName(getConfiguration().getLabel());
     state.setEmissionDate(start.getEmissionDate());
     state.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElseThrow());
     state.setStart(start.getEmissionDate());
     state.setEnd(end == null ? null : end.getEmissionDate());
 
-    _publisher.publishEvent(new ApplicationEntityEvent.Create(this, state));
+    _publisher.create(state);
 
     @NonNull final Correlation startCorrelation = new Correlation();
 
@@ -403,86 +305,83 @@ public class UpDownToLabelSensor
     startCorrelation.setStartStateIdentifier(state.getIdentifier());
     startCorrelation.setEndStateIdentifier(start.getIdentifier());
 
-    _publisher.publishEvent(new ApplicationEntityEvent.Create(this, startCorrelation));
+    _publisher.create(startCorrelation);
 
     if (end != null) {
       @NonNull final Correlation endCorrelation = new Correlation();
 
-      startCorrelation.setName("end");
-      startCorrelation.setStartStateIdentifier(state.getIdentifier());
-      startCorrelation.setEndStateIdentifier(end.getIdentifier());
+      endCorrelation.setName("end");
+      endCorrelation.setStartStateIdentifier(state.getIdentifier());
+      endCorrelation.setEndStateIdentifier(Objects.requireNonNull(end.getIdentifier()));
 
-      _publisher.publishEvent(new ApplicationEntityEvent.Create(this, endCorrelation));
+      _publisher.create(endCorrelation);
     }
 
     return state;
   }
 
   private void begin (
-    final ValueState.@NonNull Boolean current, @NonNull final LabelState state
-  )
-  {
+    final BooleanValueState current,
+    @NonNull final LabelState state
+  ) {
     @NonNull final LabelState mutation = Duplicator.duplicate(state);
     mutation.setStart(current.getEmissionDate());
     mutation.setEmissionDate(current.getEmissionDate());
 
-    @NonNull final Correlation startCorrelation = getStartCorrelation(state);
-    startCorrelation.setEndStateIdentifier(state.getIdentifier());
+    @NonNull final Correlation startCorrelation = Duplicator.duplicate(getStartCorrelation(state));
+    startCorrelation.setEndStateIdentifier(current.getIdentifier());
 
-    _publisher.publishEvent(new ApplicationEntityEvent.Update(this, state, startCorrelation));
+    _publisher.update(mutation);
+    _publisher.update(startCorrelation);
   }
 
   private @NonNull Correlation getStartCorrelation (@NonNull final LabelState label) {
-    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
-      getSensor().map(Sensor::getIdentifier).orElseThrow(),
-      "start",
-      label.getIdentifier()
-    ).get();
-  }
-
-  private ValueState.@NonNull Boolean getStart (@NonNull final LabelState label) {
-    return _inputs.find(getStartCorrelation(label).getEndStateIdentifier()).get();
+    return _correlations.findFirstCorrelationWithNameAndThatStartBy(
+      "start", Objects.requireNonNull(label.getIdentifier())
+    ).orElseThrow();
   }
 
   private @NonNull Optional<Correlation> getEndCorrelation (@NonNull final LabelState label) {
-    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
-      getSensor().map(Sensor::getIdentifier).orElseThrow(),
-      "end",
-      label.getIdentifier()
+    return _correlations.findFirstCorrelationWithNameAndThatStartBy(
+      "end", Objects.requireNonNull(label.getIdentifier())
     );
   }
 
-  private @NonNull Optional<ValueState.Boolean> getEnd (@NonNull final LabelState label) {
-    @NonNull final Optional<Correlation> correlation = getEndCorrelation(label);
-
-    return correlation.isPresent() ? _inputs.find(correlation.get().getEndStateIdentifier())
-                                   : Optional.empty();
+  private @NonNull Optional<BooleanValueState> getEnd (@NonNull final LabelState label) {
+    return getEndCorrelation(label).map(Correlation::getEndStateIdentifier)
+             .flatMap(_inputs::find);
   }
 
-  private @NonNull Optional<LabelState> findLabelStateCorrelatedWith (
-    @NonNull final Long state
+  private @NonNull Optional<LabelState> findLabelStateThatStartBy (
+    @NonNull final Long stateIdentifier
   ) {
-    @NonNull final Optional<Correlation> start = _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
+    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
       getSensor().map(Sensor::getIdentifier).orElseThrow(),
       "start",
-      state
-    );
+      stateIdentifier
+    ).map(Correlation::getStartStateIdentifier).flatMap(_outputs::find);
+  }
 
-    if (start.isPresent()) {
-      return _outputs.find(start.get().getStartStateIdentifier());
-    }
-
-    @NonNull final Optional<Correlation> end = _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
+  private @NonNull Optional<LabelState> findLabelStateThatEndBy (
+    @NonNull final Long stateIdentifier
+  ) {
+    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
       getSensor().map(Sensor::getIdentifier).orElseThrow(),
       "end",
-      state
-    );
+      stateIdentifier
+    ).map(Correlation::getStartStateIdentifier).flatMap(_outputs::find);
+  }
 
-    if (end.isPresent()) {
-      return _outputs.find(end.get().getStartStateIdentifier());
-    } else {
-      return Optional.empty();
-    }
+  public @NonNull UpDownToLabelSensorConfiguration getConfiguration () {
+    return getConfiguration(UpDownToLabelSensorConfiguration.class).orElseThrow();
+  }
+
+  public @NonNull Long getOutputSensorIdentifier () {
+    return getSensor().map(Sensor::getIdentifier).orElseThrow();
+  }
+
+  public @NonNull Long getInputSensorIdentifier () {
+    return getConfiguration().getInputSensor();
   }
 
   @Override
@@ -498,5 +397,36 @@ public class UpDownToLabelSensor
   @Override
   public @NonNull String getName () {
     return "liara:updownlabel";
+  }
+
+  @Override
+  public boolean equals (@Nullable final Object other) {
+    if (other == null) return false;
+    if (other == this) return true;
+
+    if (other instanceof UpDownToLabelSensor) {
+      @NonNull final UpDownToLabelSensor otherUpDownToLabelSensor = (UpDownToLabelSensor) other;
+
+      return Objects.equals(
+        _publisher,
+        otherUpDownToLabelSensor._publisher
+      ) && Objects.equals(
+        _outputs,
+        otherUpDownToLabelSensor._outputs
+      ) && Objects.equals(
+        _inputs,
+        otherUpDownToLabelSensor._inputs
+      ) && Objects.equals(
+        _correlations,
+        otherUpDownToLabelSensor._correlations
+      );
+    }
+
+    return false;
+  }
+
+  @Override
+  public int hashCode () {
+    return Objects.hash(_publisher, _outputs, _inputs, _correlations);
   }
 }

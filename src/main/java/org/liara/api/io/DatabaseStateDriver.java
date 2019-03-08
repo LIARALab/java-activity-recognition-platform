@@ -30,7 +30,8 @@ public class DatabaseStateDriver
 
   @Autowired
   public DatabaseStateDriver (
-    @NonNull final ApplicationEventPublisher publisher, @NonNull final EntityManager entityManager
+    @NonNull final ApplicationEventPublisher publisher,
+    @NonNull final EntityManager entityManager
   )
   {
     _publisher = publisher;

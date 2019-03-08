@@ -3,6 +3,7 @@ package org.liara.api.recognition.sensor.common.virtual.condition;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.SensorConfiguration;
+import org.liara.api.data.entity.state.BooleanValueState;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.recognition.sensor.type.ComputedSensorType;
@@ -28,7 +29,7 @@ public class LtSensor
   }
 
   private double getCeil () {
-    return getConfiguration(GtSensorConfiguration.class).map(GtSensorConfiguration::getFloor)
+    return getConfiguration(LtSensorConfiguration.class).map(LtSensorConfiguration::getCeil)
              .orElseThrow();
   }
 
@@ -38,7 +39,7 @@ public class LtSensor
 
   @Override
   public @NonNull Class<? extends State> getEmittedStateClass () {
-    return ValueState.Boolean.class;
+    return BooleanValueState.class;
   }
 
   @Override

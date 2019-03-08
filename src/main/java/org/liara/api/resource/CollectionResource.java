@@ -201,11 +201,6 @@ public class CollectionResource<Entity extends ApplicationEntity>
 
       configuration.validate(request.getParameters()).assertRequestIsValid();
 
-      System.out.println((
-        (JPAEntityCollection) configuration.parse(request.getParameters())
-                                .apply(getCollection())
-      ).getQuery(":this"));
-
       return Mono.just(
         RestResponse.ofCollection(
           configuration.parse(request.getParameters()).apply(getCollection())

@@ -115,7 +115,7 @@ public class ApplicationEntity
 
     while (clazz != ApplicationEntity.class) {
       if (clazz.isAnnotationPresent(Entity.class)) return clazz;
-      clazz = (Class<? extends ApplicationEntity>) clazz.getSuperclass();
+      clazz = clazz.getSuperclass().asSubclass(ApplicationEntity.class);
     }
 
     return ApplicationEntity.class;
@@ -159,8 +159,13 @@ public class ApplicationEntity
    *
    * @return The date of the first insertion of this entity into the application database.
    */
-  @Column(name = "created_at", nullable = false, updatable = false, precision = 6)
-  @ColumnDefault(value = "CURRENT_TIMESTAMP")
+  @Column(
+    name = "created_at",
+    nullable = false,
+    updatable = false,
+    columnDefinition = "DATETIME(6)"
+  )
+  @ColumnDefault(value = "CURRENT_TIMESTAMP(6)")
   public @Nullable ZonedDateTime getCreationDate () {
     return _creationDate;
   }
@@ -183,7 +188,10 @@ public class ApplicationEntity
    *
    * @return The date of deletion of this entity from the application database.
    */
-  @Column(name = "deleted_at", precision = 6)
+  @Column(
+    name = "deleted_at",
+    columnDefinition = "DATETIME(6)"
+  )
   public @Nullable ZonedDateTime getDeletionDate () {
     return _deletionDate;
   }
@@ -204,8 +212,12 @@ public class ApplicationEntity
    *
    * @return The date of the last mutation of this entity into the database.
    */
-  @Column(name = "updated_at", nullable = false, precision = 6)
-  @ColumnDefault(value = "CURRENT_TIMESTAMP")
+  @Column(
+    name = "updated_at",
+    nullable = false,
+    columnDefinition = "DATETIME(6)"
+  )
+  @ColumnDefault(value = "CURRENT_TIMESTAMP(6)")
   @UpdateTimestamp
   public @Nullable ZonedDateTime getUpdateDate () {
     return _updateDate;

@@ -109,7 +109,8 @@ public interface CorrelationRepository
 
   default @NonNull Optional<Correlation> findFirstCorrelationFromSeriesWithNameAndThatEndsBy (
     @NonNull final Long sensorIdentifier,
-    @NonNull final String name, @NonNull final Long stateIdentifier
+    @NonNull final String name,
+    @NonNull final Long stateIdentifier
   )
   {
     @NonNull final List<@NonNull Correlation> result = findCorrelationsFromSeriesWithNameAndThatEndsBy(
@@ -118,6 +119,7 @@ public interface CorrelationRepository
       stateIdentifier,
       Cursor.FIRST
     );
+
     return result.size() > 0 ? Optional.of(result.get(0)) : Optional.empty();
   }
 

@@ -24,33 +24,33 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
   private final EntityManager _entityManager;
 
   public DatabaseValueStateRepository (
-    @NonNull final EntityManager entityManager, @NonNull final Class<Wrapper> type
-  )
-  {
+    @NonNull final EntityManager entityManager,
+    @NonNull final Class<Wrapper> type
+  ) {
     super(entityManager, type);
     _entityManager = entityManager;
   }
 
   @Override
   public @NonNull List<@NonNull Wrapper> findPreviousWithValue (
-    @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final ZonedDateTime date,
+    @NonNull final List<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   )
   {
     @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(java.lang.String.join("",
-      "SELECT state ",
-      "  FROM ",
-      getManagedEntity().getName(),
-      " state ",
-      " WHERE state" + ".emissionDate < " + ":date ",
-      "   AND state" + ".sensorIdentifier " + "IN " + ":sensors ",
-      "   AND state.value " + "= :value",
-      " ORDER BY state" + ".emissionDate " + "DESC, state" + ".identifier DESC"
-    ), getManagedEntity()).setParameter("date", date).setParameter("sensors", inputSensorIdentifiers).setParameter(
-      "value",
-      value
-    ).setFirstResult(cursor.getOffset());
+      "SELECT state FROM " + getManagedEntity().getName() + " state ",
+      " WHERE stat.emissionDate < :date ",
+      "   AND state.sensorIdentifier IN :sensors ",
+      "   AND state.value = :value",
+      " ORDER BY state.emissionDate DESC, state.identifier DESC"
+    ), getManagedEntity());
+
+    states.setParameter("date", date);
+    states.setParameter("sensors", inputSensorIdentifiers);
+    states.setParameter("value", value);
+    states.setFirstResult(cursor.getOffset());
 
     if (cursor.hasLimit()) states.setMaxResults(cursor.getLimit());
 
@@ -95,7 +95,7 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
       "  FROM ",
       getManagedEntity().getName(),
       " state ",
-      " WHERE state" + ".sensorIdentifier IN :sensors ",
+      " WHERE state.sensorIdentifier IN :sensors ",
       "   AND state.value = :value",
       " ORDER BY state.emissionDate ASC"
     ), getManagedEntity()).setParameter("sensors", inputSensorIdentifiers).setParameter("value", value).setFirstResult(
