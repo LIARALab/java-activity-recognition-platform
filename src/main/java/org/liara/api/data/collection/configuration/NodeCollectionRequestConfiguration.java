@@ -24,8 +24,11 @@ package org.liara.api.data.collection.configuration;
 import org.liara.api.collection.configuration.CollectionRequestConfiguration;
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.EntityCollectionSubquery;
+import org.liara.api.collection.query.relation.JoinRelation;
 import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.data.collection.SensorCollection;
 import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.sensor.Sensor;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
 import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
@@ -108,6 +111,11 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
         ),
         APIRequestEntityFilterParserFactory.existsCollection(
           "children", Node.class, this::nodeChildrenRelation, NodeCollection.class
+        ),
+        APIRequestEntityFilterParserFactory.existsCollection(
+          "sensors",
+          Sensor.class, new JoinRelation<Node, Sensor>(root -> root.join("_sensors")),
+          SensorCollection.class
         )
       )
     );
@@ -126,7 +134,8 @@ public class NodeCollectionRequestConfiguration implements CollectionRequestConf
       APIRequestFilterValidatorFactory.text("name"),
       APIRequestFilterValidatorFactory.text("type"),
       APIRequestFilterValidatorFactory.includeCollection("parents", NodeCollection.class),
-      APIRequestFilterValidatorFactory.includeCollection("children", NodeCollection.class)
+      APIRequestFilterValidatorFactory.includeCollection("children", NodeCollection.class),
+      APIRequestFilterValidatorFactory.includeCollection("sensors", SensorCollection.class)
     );
   }
 
