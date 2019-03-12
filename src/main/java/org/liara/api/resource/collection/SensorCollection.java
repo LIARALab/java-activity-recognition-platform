@@ -23,7 +23,7 @@ package org.liara.api.resource.collection;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.event.ApplicationEntityEvent;
+import org.liara.api.event.entity.CreateApplicationEntityEvent;
 import org.liara.api.resource.CollectionResource;
 import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.error.InvalidModelException;
@@ -68,7 +68,7 @@ public class SensorCollection
   public @NonNull Mono<RestResponse> post (@NonNull final Sensor sensor) {
     try {
       assertIsValid(sensor);
-      _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, sensor));
+      _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, sensor));
 
       return Mono.just(RestResponse.ofType(Long.class).ofModel(
         Objects.requireNonNull(sensor.getIdentifier()))

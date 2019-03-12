@@ -24,7 +24,7 @@ package org.liara.api.resource.collection;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
-import org.liara.api.event.NodeEvent;
+import org.liara.api.event.node.CreateNodeEvent;
 import org.liara.api.resource.CollectionResource;
 import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.error.InvalidModelException;
@@ -76,7 +76,7 @@ public final class NodeCollection
   public @NonNull Mono<RestResponse> post (@NonNull final NodeSchema schema) {
     try {
       assertIsValid(schema);
-      _applicationEventPublisher.publishEvent(new NodeEvent.Create(this, schema));
+      _applicationEventPublisher.publishEvent(new CreateNodeEvent(this, schema));
 
       return Mono.just(
         RestResponse.ofType(Long.class).ofModel(

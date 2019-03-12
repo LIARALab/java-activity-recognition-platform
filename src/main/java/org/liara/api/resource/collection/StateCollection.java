@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.event.ApplicationEntityEvent;
+import org.liara.api.event.entity.CreateApplicationEntityEvent;
 import org.liara.api.resource.CollectionResource;
 import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.error.InvalidModelException;
@@ -90,7 +90,7 @@ public class StateCollection
   public @NonNull Mono<RestResponse> post (@NonNull final State state) {
     try {
       assertIsValid(state);
-      _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, state));
+      _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, state));
 
       return Mono.just(
         RestResponse.ofType(Long.class).ofModel(

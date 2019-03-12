@@ -4,9 +4,15 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.event.NodeEvent;
-import org.liara.api.event.SensorEvent;
-import org.liara.api.event.StateEvent;
+import org.liara.api.event.node.DidCreateNodeEvent;
+import org.liara.api.event.node.WillCreateNodeEvent;
+import org.liara.api.event.sensor.SensorEvent;
+import org.liara.api.event.sensor.SensorWasCreatedEvent;
+import org.liara.api.event.sensor.SensorWillBeCreatedEvent;
+import org.liara.api.event.state.DidCreateStateEvent;
+import org.liara.api.event.state.DidUpdateStateEvent;
+import org.liara.api.event.state.WillCreateStateEvent;
+import org.liara.api.event.state.WillUpdateStateEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
@@ -107,7 +113,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void sensorWillBeCreated (final SensorEvent.@NonNull WillBeCreated event) {
+  public void sensorWillBeCreated (final SensorWillBeCreatedEvent event) {
     try {
       for (final VirtualSensorRunner runner : _runners.values()) {
         runner.getHandler().sensorWillBeCreated(event);
@@ -120,7 +126,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void sensorWasCreated (final SensorEvent.@NonNull WasCreated event) {
+  public void sensorWasCreated (final SensorWasCreatedEvent event) {
     try {
       for (final VirtualSensorRunner runner : _runners.values()) {
         runner.getHandler().sensorWasCreated(event);
@@ -133,7 +139,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void nodeWillBeCreated (final NodeEvent.@NonNull WillBeCreated event) {
+  public void nodeWillBeCreated (final WillCreateNodeEvent event) {
     try {
       for (final VirtualSensorRunner runner : _runners.values()) {
         runner.getHandler().nodeWillBeCreated(event);
@@ -146,7 +152,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void nodeWasCreated (final NodeEvent.@NonNull WasCreated event) {
+  public void nodeWasCreated (final DidCreateNodeEvent event) {
     try {
       for (final VirtualSensorRunner runner : _runners.values()) {
         runner.getHandler().nodeWasCreated(event);
@@ -159,7 +165,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void stateWillBeCreated (final StateEvent.@NonNull WillBeCreated event) {
+  public void stateWillBeCreated (final WillCreateStateEvent event) {
     try {
       for (final VirtualSensorRunner runner : _runners.values()) {
         runner.getHandler().stateWillBeCreated(event);
@@ -172,7 +178,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void stateWasCreated (final StateEvent.@NonNull WasCreated event) {
+  public void stateWasCreated (final DidCreateStateEvent event) {
     try {
       for (final VirtualSensorRunner runner : _runners.values()) {
         runner.getHandler().stateWasCreated(event);
@@ -185,7 +191,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void stateWillBeMutated (final StateEvent.@NonNull WillBeMutated event) {
+  public void stateWillBeMutated (final WillUpdateStateEvent event) {
     try {
       for (final VirtualSensorRunner runner : _runners.values()) {
         runner.getHandler().stateWillBeMutated(event);
@@ -198,7 +204,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void stateWasMutated (final StateEvent.@NonNull WasMutated event) {
+  public void stateWasMutated (final DidUpdateStateEvent event) {
     try {
       for (final VirtualSensorRunner runner : _runners.values()) {
         runner.getHandler().stateWasMutated(event);

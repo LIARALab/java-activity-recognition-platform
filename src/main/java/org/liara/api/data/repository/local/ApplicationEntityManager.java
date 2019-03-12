@@ -87,13 +87,15 @@ public class ApplicationEntityManager
     }
   }
 
-  @NonNull
-  public <Entity extends ApplicationEntity> List<@NonNull Entity> get (@NonNull final Class<Entity> type) {
+  public <Entity extends ApplicationEntity> @NonNull List<@NonNull Entity> get (
+    @NonNull final Class<Entity> type
+  ) {
     return _entities.get(type);
   }
 
-  @NonNull
-  public ApplicationEntity get (@NonNull final ApplicationEntity entity) {return _entities.get(entity);}
+  public @NonNull ApplicationEntity get (@NonNull final ApplicationEntity entity) {
+    return _entities.get(entity);
+  }
 
   public <Entity extends ApplicationEntity> @NonNull Entity get (
     @NonNull final Class<Entity> type, @NonNull final Long identifier

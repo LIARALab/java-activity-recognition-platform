@@ -3,8 +3,10 @@ package org.liara.api.io;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.event.ApplicationEntityEvent;
-import org.liara.api.event.SensorEvent;
+import org.liara.api.event.entity.DidCreateApplicationEntityEvent;
+import org.liara.api.event.entity.WillCreateApplicationEntityEvent;
+import org.liara.api.event.sensor.SensorWasCreatedEvent;
+import org.liara.api.event.sensor.SensorWillBeCreatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,16 +30,18 @@ public class DatabaseSensorDriver
   }
 
   @EventListener
-  public void willCreate (final ApplicationEntityEvent.@NonNull WillCreate creation) {
+  public void willCreate (final WillCreateApplicationEntityEvent creation) {
     for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
-      if (entity instanceof Sensor) _publisher.publishEvent(new SensorEvent.WillBeCreated(this, (Sensor) entity));
+      if (entity instanceof Sensor)
+        _publisher.publishEvent(new SensorWillBeCreatedEvent(this, (Sensor) entity));
     }
   }
 
   @EventListener
-  public void didCreate (final ApplicationEntityEvent.@NonNull DidCreate creation) {
+  public void didCreate (final DidCreateApplicationEntityEvent creation) {
     for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
-      if (entity instanceof Sensor) _publisher.publishEvent(new SensorEvent.WasCreated(this, (Sensor) entity));
+      if (entity instanceof Sensor)
+        _publisher.publishEvent(new SensorWasCreatedEvent(this, (Sensor) entity));
     }
   }
 }

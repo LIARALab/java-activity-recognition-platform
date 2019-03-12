@@ -4,9 +4,14 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
-import org.liara.api.event.NodeEvent;
-import org.liara.api.event.SensorEvent;
-import org.liara.api.event.StateEvent;
+import org.liara.api.event.node.DidCreateNodeEvent;
+import org.liara.api.event.node.WillCreateNodeEvent;
+import org.liara.api.event.sensor.SensorWasCreatedEvent;
+import org.liara.api.event.sensor.SensorWillBeCreatedEvent;
+import org.liara.api.event.state.DidCreateStateEvent;
+import org.liara.api.event.state.DidUpdateStateEvent;
+import org.liara.api.event.state.WillCreateStateEvent;
+import org.liara.api.event.state.WillUpdateStateEvent;
 
 import java.util.Optional;
 
@@ -36,28 +41,28 @@ public abstract class AbstractVirtualSensorHandler implements VirtualSensorHandl
   }
 
   @Override
-  public void sensorWillBeCreated (final SensorEvent.@NonNull WillBeCreated event) { }
+  public void sensorWillBeCreated (final SensorWillBeCreatedEvent event) { }
 
   @Override
-  public void sensorWasCreated (final SensorEvent.@NonNull WasCreated event) { }
+  public void sensorWasCreated (final SensorWasCreatedEvent event) { }
 
   @Override
-  public void nodeWillBeCreated (final NodeEvent.@NonNull WillBeCreated event) { }
+  public void nodeWillBeCreated (final WillCreateNodeEvent event) { }
 
   @Override
-  public void nodeWasCreated (final NodeEvent.@NonNull WasCreated event) { }
+  public void nodeWasCreated (final DidCreateNodeEvent event) { }
 
   @Override
-  public void stateWillBeCreated (final StateEvent.@NonNull WillBeCreated event) { }
+  public void stateWillBeCreated (final WillCreateStateEvent event) { }
 
   @Override
-  public void stateWasCreated (final StateEvent.@NonNull WasCreated event) { }
+  public void stateWasCreated (final DidCreateStateEvent event) { }
 
   @Override
-  public void stateWillBeMutated (final StateEvent.@NonNull WillBeMutated event) { }
+  public void stateWillBeMutated (final WillUpdateStateEvent event) { }
 
   @Override
-  public void stateWasMutated (final StateEvent.@NonNull WasMutated event) { }
+  public void stateWasMutated (final DidUpdateStateEvent event) { }
 
   public @NonNull Optional<VirtualSensorRunner> getRunner () {
     return Optional.ofNullable(_runner);

@@ -6,12 +6,16 @@ import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.data.entity.state.BooleanValueState;
 import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.State;
+import org.liara.api.data.repository.BooleanValueStateRepository;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.NodeRepository;
-import org.liara.api.data.repository.SapaRepositories;
 import org.liara.api.data.repository.SensorRepository;
-import org.liara.api.event.ApplicationEntityEvent;
-import org.liara.api.event.StateEvent;
+import org.liara.api.event.entity.CreateApplicationEntityEvent;
+import org.liara.api.event.entity.DeleteApplicationEntityEvent;
+import org.liara.api.event.entity.UpdateApplicationEntityEvent;
+import org.liara.api.event.state.DidCreateStateEvent;
+import org.liara.api.event.state.DidUpdateStateEvent;
+import org.liara.api.event.state.WillDeleteStateEvent;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
 import org.liara.api.recognition.sensor.type.ComputedSensorType;
@@ -36,7 +40,7 @@ public class OneVsAllToUpDownMotionSensor
   @NonNull
   private final ApplicationEventPublisher _applicationEventPublisher;
 
-  private final SapaRepositories.@NonNull Boolean _flags;
+  private final BooleanValueStateRepository _flags;
 
   @NonNull
   private final SensorRepository _sensors;
@@ -50,7 +54,7 @@ public class OneVsAllToUpDownMotionSensor
   @Autowired
   public OneVsAllToUpDownMotionSensor (
     @NonNull final ApplicationEventPublisher publisher,
-    final SapaRepositories.@NonNull Boolean flags,
+    final BooleanValueStateRepository flags,
     @NonNull final SensorRepository sensors,
     @NonNull final CorrelationRepository correlations,
     @NonNull final NodeRepository nodes
@@ -112,7 +116,7 @@ public class OneVsAllToUpDownMotionSensor
 
   @Override
   public void stateWasCreated (
-    final StateEvent.@NonNull WasCreated event
+    final DidCreateStateEvent event
   )
   {
     super.stateWasCreated(event);
@@ -184,7 +188,7 @@ public class OneVsAllToUpDownMotionSensor
 
   @Override
   public void stateWasMutated (
-    final StateEvent.@NonNull WasMutated event
+    final DidUpdateStateEvent event
   )
   {
     super.stateWasMutated(event);
@@ -276,7 +280,7 @@ public class OneVsAllToUpDownMotionSensor
 
   @Override
   public void stateWillBeDeleted (
-    final StateEvent.@NonNull WillBeDeleted event
+    final WillDeleteStateEvent event
   )
   {
     super.stateWillBeDeleted(event);
@@ -343,7 +347,7 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void delete (final BooleanValueState state) {
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Delete(
+    _applicationEventPublisher.publishEvent(new DeleteApplicationEntityEvent(
       this,
       findRelatedResult(state.getIdentifier()).get()
     ));
@@ -366,9 +370,13 @@ public class OneVsAllToUpDownMotionSensor
       );
       correlation.setEndStateIdentifier(to.getIdentifier());
 
-      _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, toMove, correlation));
+      _applicationEventPublisher.publishEvent(new UpdateApplicationEntityEvent(
+        this,
+        toMove,
+        correlation
+      ));
     } else {
-      _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Update(this, toMove));
+      _applicationEventPublisher.publishEvent(new UpdateApplicationEntityEvent(this, toMove));
     }
   }
 
@@ -383,7 +391,7 @@ public class OneVsAllToUpDownMotionSensor
     flag.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElseThrow());
     flag.setValue(up);
 
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, flag));
+    _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, flag));
 
     @NonNull final Correlation correlation = new Correlation();
 
@@ -391,7 +399,7 @@ public class OneVsAllToUpDownMotionSensor
     correlation.setEndStateIdentifier(state.getIdentifier());
     correlation.setName("origin");
 
-    _applicationEventPublisher.publishEvent(new ApplicationEntityEvent.Create(this, correlation));
+    _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, correlation));
   }
 
   @Override

@@ -101,11 +101,11 @@ public class DatabaseCorrelationRepository
   ) {
     @NonNull final TypedQuery<Correlation> query = _entityManager.createQuery(
       "SELECT correlation FROM " + getManagedEntity().getName() + " correlation" +
-      " INNER JOIN " + State.class.getName() + " stateIdentifier" +
-      "         ON correlation.startStateIdentifier = stateIdentifier.identifier" +
+      " INNER JOIN " + State.class.getName() + " startState" +
+      "         ON correlation.startStateIdentifier = startState.identifier" +
       " WHERE correlation.startStateIdentifier = :stateIdentifier" +
       "   AND correlation.name = :name " +
-      "   AND stateIdentifier.sensorIdentifier = :sensorIdentifier" +
+      "   AND startState.sensorIdentifier = :sensorIdentifier" +
       " ORDER BY correlation.identifier",
       getManagedEntity()
     );
@@ -172,11 +172,11 @@ public class DatabaseCorrelationRepository
   ) {
     @NonNull final TypedQuery<Correlation> query = _entityManager.createQuery(
       "SELECT correlation FROM " + getManagedEntity().getName() + " correlation" +
-      " INNER JOIN " + State.class.getName() + " state " +
-      "         ON correlation.startStateIdentifier = state.identifier " +
+      " INNER JOIN " + State.class.getName() + " startState " +
+      "         ON correlation.startStateIdentifier = startState.identifier " +
       " WHERE correlation.endStateIdentifier = :stateIdentifier " +
       "   AND correlation.name = :name " +
-      "   AND state.sensorIdentifier = :sensorIdentifier" +
+      "   AND startState.sensorIdentifier = :sensorIdentifier" +
       " ORDER BY correlation.identifier",
       getManagedEntity()
     );

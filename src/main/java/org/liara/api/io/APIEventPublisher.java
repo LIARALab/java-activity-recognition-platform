@@ -3,7 +3,9 @@ package org.liara.api.io;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.event.ApplicationEntityEvent;
+import org.liara.api.event.entity.CreateApplicationEntityEvent;
+import org.liara.api.event.entity.DeleteApplicationEntityEvent;
+import org.liara.api.event.entity.UpdateApplicationEntityEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,19 +28,19 @@ public class APIEventPublisher
 
   public void delete (@NonNull final ApplicationEntity... entities) {
     _applicationEventPublisher.publishEvent(
-      new ApplicationEntityEvent.Delete(this, entities)
+      new DeleteApplicationEntityEvent(this, entities)
     );
   }
 
   public void create (@NonNull final ApplicationEntity... entities) {
     _applicationEventPublisher.publishEvent(
-      new ApplicationEntityEvent.Create(this, entities)
+      new CreateApplicationEntityEvent(this, entities)
     );
   }
 
   public void update (@NonNull final ApplicationEntity... entities) {
     _applicationEventPublisher.publishEvent(
-      new ApplicationEntityEvent.Update(this, entities)
+      new UpdateApplicationEntityEvent(this, entities)
     );
   }
 

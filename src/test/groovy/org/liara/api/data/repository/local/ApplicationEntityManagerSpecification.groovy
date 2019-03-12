@@ -27,10 +27,9 @@ class ApplicationEntityManagerSpecification
     return entities
   }
 
-  def "it allows you to instantiate an empty manager" () {
+  def "it instantiate an empty manager by default" () {
     expect: "to instantiate an empty manager when the default constructor is invoked"
     new ApplicationEntityManager().size == 0
-    new ApplicationEntityManager().findAll() == []
   }
 
   def "it allows you to register new entities" () {

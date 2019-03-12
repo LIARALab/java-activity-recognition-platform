@@ -2,7 +2,7 @@ package org.liara.api.io;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.event.ApplicationEntityEvent;
+import org.liara.api.event.entity.*;
 import org.liara.api.logging.Loggable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -38,43 +38,58 @@ public class DatabaseApplicationEntityDriver
 
   @Transactional
   @EventListener
-  public void create (final ApplicationEntityEvent.@NonNull Create creation) {
-    _eventPublisher.publishEvent(new ApplicationEntityEvent.Initialize(this, creation.getEntities()));
-    _eventPublisher.publishEvent(new ApplicationEntityEvent.WillCreate(this, creation.getEntities()));
+  public void create (final CreateApplicationEntityEvent creation) {
+    _eventPublisher.publishEvent(new InitializeApplicationEntityEvent(
+      this,
+      creation.getEntities()
+    ));
+    _eventPublisher.publishEvent(new WillCreateApplicationEntityEvent(
+      this,
+      creation.getEntities()
+    ));
 
     for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
       _entityManager.persist(entity);
+      _entityManager.flush();
     }
 
-    _eventPublisher.publishEvent(new ApplicationEntityEvent.DidCreate(this, creation.getEntities()));
+    _eventPublisher.publishEvent(new DidCreateApplicationEntityEvent(this, creation.getEntities()));
   }
 
   @Transactional
   @EventListener
-  public void update (final ApplicationEntityEvent.@NonNull Update mutation) {
-    _eventPublisher.publishEvent(new ApplicationEntityEvent.WillUpdate(this, mutation.getEntities()));
+  public void update (final UpdateApplicationEntityEvent mutation) {
+    _eventPublisher.publishEvent(new WillUpdateApplicationEntityEvent(
+      this,
+      mutation.getEntities()
+    ));
 
     for (@NonNull final ApplicationEntity entity : mutation.getEntities()) {
       _entityManager.merge(entity);
+      _entityManager.flush();
     }
 
-    _eventPublisher.publishEvent(new ApplicationEntityEvent.DidUpdate(this, mutation.getEntities()));
+    _eventPublisher.publishEvent(new DidUpdateApplicationEntityEvent(this, mutation.getEntities()));
   }
 
   @Transactional
   @EventListener
-  public void delete (final ApplicationEntityEvent.@NonNull Delete deletion) {
-    _eventPublisher.publishEvent(new ApplicationEntityEvent.WillDelete(this, deletion.getEntities()));
+  public void delete (final DeleteApplicationEntityEvent deletion) {
+    _eventPublisher.publishEvent(new WillDeleteApplicationEntityEvent(
+      this,
+      deletion.getEntities()
+    ));
 
     for (@NonNull final ApplicationEntity entity : deletion.getEntities()) {
       _entityManager.remove(entity);
+      _entityManager.flush();
     }
 
-    _eventPublisher.publishEvent(new ApplicationEntityEvent.DidDelete(this, deletion.getEntities()));
+    _eventPublisher.publishEvent(new DidDeleteApplicationEntityEvent(this, deletion.getEntities()));
   }
 
   @EventListener
-  public void initialize (final ApplicationEntityEvent.@NonNull Initialize initialization) {
+  public void initialize (final InitializeApplicationEntityEvent initialization) {
     for (@NonNull final ApplicationEntity applicationEntity : initialization.getEntities()) {
       applicationEntity.setCreationDate(ZonedDateTime.now());
       applicationEntity.setUpdateDate(ZonedDateTime.now());
