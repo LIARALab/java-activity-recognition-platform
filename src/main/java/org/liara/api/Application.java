@@ -34,6 +34,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 @SpringBootApplication
@@ -75,6 +76,7 @@ public class Application
   }
 
   public static void main (String[] args) {
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     Application.ARGUMENTS = args;
 
     final ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);

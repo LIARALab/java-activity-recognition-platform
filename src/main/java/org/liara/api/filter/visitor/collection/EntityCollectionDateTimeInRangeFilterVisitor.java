@@ -21,42 +21,64 @@
  ******************************************************************************/
 package org.liara.api.filter.visitor.collection;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-
 import org.liara.api.collection.query.EntityCollectionQuery;
 import org.liara.api.collection.query.selector.EntityFieldSelector;
 import org.liara.api.date.PartialZonedDateTime;
-import org.liara.api.filter.ast.BetweenFilterNode;
-import org.liara.api.filter.ast.CommonFilterNodeType;
-import org.liara.api.filter.ast.CompositeFilterNode;
-import org.liara.api.filter.ast.ConjunctionFilterNode;
-import org.liara.api.filter.ast.DisjunctionFilterNode;
-import org.liara.api.filter.ast.EqualToFilterNode;
-import org.liara.api.filter.ast.FilterNode;
-import org.liara.api.filter.ast.GreaterThanFilterNode;
-import org.liara.api.filter.ast.GreaterThanOrEqualToFilterNode;
-import org.liara.api.filter.ast.LessThanFilterNode;
-import org.liara.api.filter.ast.LessThanOrEqualToFilterNode;
-import org.liara.api.filter.ast.NotFilterNode;
-import org.liara.api.filter.ast.PredicateFilterNode;
+import org.liara.api.filter.ast.*;
 import org.liara.api.filter.visitor.AnnotationBasedFilterASTVisitor;
 import org.liara.api.filter.visitor.VisitCommonFilterNode;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class EntityCollectionDateTimeInRangeFilterVisitor<Entity> 
        extends AnnotationBasedFilterASTVisitor 
        implements EntityCollectionFilterVisitor<Entity, ZonedDateTime>
 {
-  @FunctionalInterface
-  private interface PredicateFactory {
-    public <Value extends Comparable<? super Value>> Predicate create (@NonNull final Expression<? extends Value> a, @NonNull final Value b);
+  private Predicate handleDate (
+    @NonNull final EntityFieldSelector<Entity, Expression<ZonedDateTime>> dateField,
+    @NonNull final PredicateFactory operator,
+    @NonNull final PartialZonedDateTime date
+  ) {
+    if (date.isCompleteZonedDateTime()) {
+      return operator.create(dateField.select(_query), date.toZonedDateTime());
+    } else {
+      final List<Predicate> predicates = new ArrayList<>();
+
+      if (date.containsDatetime()) {
+        predicates.add(
+          operator.create(
+            date.mask(dateField.select(_query), _query.getManager().getCriteriaBuilder()),
+            date.toZonedDateTime()
+          )
+        );
+      }
+
+      if (date.containsContext()) {
+        Arrays.stream(PartialZonedDateTime.CONTEXT_FIELDS)
+          .filter(date::isSupported)
+          .map(
+            field -> operator.create(
+              date.select(
+                dateField.select(_query),
+                _query.getManager().getCriteriaBuilder(),
+                field
+              ), date.getLong(field)
+            )
+          )
+          .forEach(predicates::add);
+      }
+
+      return _query.getManager()
+               .getCriteriaBuilder()
+               .and(predicates.toArray(new Predicate[predicates.size()]));
+    }
   }
   
   @NonNull
@@ -158,43 +180,13 @@ public class EntityCollectionDateTimeInRangeFilterVisitor<Entity>
       )
      ));
   }
-  
-  private Predicate handleDate (
-    @NonNull final EntityFieldSelector<Entity, Expression<ZonedDateTime>> dateField,
-    @NonNull final PredicateFactory operator,
-    @NonNull final PartialZonedDateTime date
-  ) {
-    if (date.isCompleteZonedDateTime()) {
-      return operator.create(dateField.select(_query), date.toZonedDateTime());
-    } else {
-      final List<Predicate> predicates = new ArrayList<>();
-      
-      if (date.containsDatetime()) {
-        predicates.add(
-          operator.create(
-            date.mask(dateField.select(_query), _query.getManager().getCriteriaBuilder()),
-            date.toZonedDateTime()
-          )
-        );
-      }
-      
-      if (date.containsContext()) {
-        Arrays.stream(PartialZonedDateTime.CONTEXT_FIELDS)
-              .filter(date::isSupported)
-              .map(
-                field -> operator.create(
-                   PartialZonedDateTime.select(
-                     dateField.select(_query), 
-                     _query.getManager().getCriteriaBuilder(), 
-                     field
-                   ), date.getLong(field)
-                 )
-               )
-              .forEach(predicates::add);
-      }
-      
-      return _query.getManager().getCriteriaBuilder().and(predicates.toArray(new Predicate[predicates.size()])); 
-    }
+
+  @FunctionalInterface
+  private interface PredicateFactory
+  {
+    <Value extends Comparable<? super Value>> Predicate create (
+      @NonNull final Expression<? extends Value> a, @NonNull final Value b
+    );
   }
 
   @VisitCommonFilterNode(type = CommonFilterNodeType.BETWEEN)

@@ -21,16 +21,18 @@
  ******************************************************************************/
 package org.liara.api.date;
 
+import org.springframework.lang.NonNull;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalField;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Expression;
-
-import org.springframework.lang.NonNull;
+import java.time.temporal.TemporalQueries;
+import java.util.Optional;
+import java.util.TimeZone;
 
 public class PartialZonedDateTime implements TemporalAccessor, Comparable<TemporalAccessor>
 {  
@@ -74,51 +76,81 @@ public class PartialZonedDateTime implements TemporalAccessor, Comparable<Tempor
   protected PartialZonedDateTime (@NonNull final TemporalAccessor date) {
     _date = date;
   }
-  
-  public static Expression<Long> select (
-    @NonNull final Expression<ZonedDateTime> _path, 
+
+  private static @NonNull
+  Expression<Long> doSelect (
+    @NonNull final Expression<ZonedDateTime> path,
     @NonNull final CriteriaBuilder builder,
     @NonNull final ChronoField field
   ) {
+
     switch (field) {
       case MICRO_OF_SECOND:
-        return builder.function("MICROSECOND", Long.class, _path);
+        return builder.function("MICROSECOND", Long.class, path);
       case SECOND_OF_MINUTE:
-        return builder.function("SECOND", Long.class, _path);
+        return builder.function("SECOND", Long.class, path);
       case MINUTE_OF_HOUR:
-        return builder.function("MINUTE", Long.class, _path);
+        return builder.function("MINUTE", Long.class, path);
       case HOUR_OF_DAY:
-        return builder.function("HOUR", Long.class, _path);
+        return builder.function("HOUR", Long.class, path);
       case DAY_OF_YEAR:
-        return builder.function("DAYOFYEAR", Long.class, _path);
+        return builder.function("DAYOFYEAR", Long.class, path);
       case DAY_OF_MONTH:
-        return builder.function("DAYOFMONTH", Long.class, _path);
+        return builder.function("DAYOFMONTH", Long.class, path);
       case DAY_OF_WEEK:
-        return builder.function("DAYOFWEEK", Long.class, _path);
+        return builder.function("DAYOFWEEK", Long.class, path);
       case ALIGNED_WEEK_OF_YEAR:
-        return builder.function("WEEKOFYEAR", Long.class, _path);
+        return builder.function("WEEKOFYEAR", Long.class, path);
       case ALIGNED_WEEK_OF_MONTH:
-        return builder.function("WEEK", Long.class, _path);
+        return builder.function("WEEK", Long.class, path);
       case MONTH_OF_YEAR:
-        return builder.function("MONTH", Long.class, _path);
+        return builder.function("MONTH", Long.class, path);
       case YEAR:
-        return builder.function("YEAR", Long.class, _path);
+        return builder.function("YEAR", Long.class, path);
       default:
         throw new Error("Unhandled field " + field);
     }
   }
-  
+
+  public Expression<Long> select (
+    @NonNull final Expression<ZonedDateTime> path,
+    @NonNull final CriteriaBuilder builder,
+    @NonNull final ChronoField field
+  ) {
+    return PartialZonedDateTime.doSelect(zone(path, builder), builder, field);
+  }
+
+  public @NonNull
+  Expression<ZonedDateTime> zone (
+    @NonNull final Expression<ZonedDateTime> path,
+    @NonNull final CriteriaBuilder builder
+  ) {
+    final String from = TimeZone.getDefault().getID();
+    final String to   = getZone().getId();
+
+    if (!from.equalsIgnoreCase(to)) {
+      return builder.function(
+        "CONVERT_TZ",
+        ZonedDateTime.class,
+        path,
+        builder.literal(from),
+        builder.literal(to)
+      );
+    } else {
+      return path;
+    }
+  }
 
   public Expression<ZonedDateTime> mask (
-    @NonNull final Expression<ZonedDateTime> _path, 
+    @NonNull final Expression<ZonedDateTime> path,
     @NonNull final CriteriaBuilder builder
   ) {
     return builder.function("STR_TO_DATE",
       ZonedDateTime.class, 
       builder.function(
         "DATE_FORMAT", 
-        String.class, 
-        _path,
+        String.class,
+        zone(path, builder),
         builder.literal(this.getSQLMask())
       ),
       builder.literal("%Y-%m-%d %H:%i:%s.%f")
@@ -142,9 +174,19 @@ public class PartialZonedDateTime implements TemporalAccessor, Comparable<Tempor
     
     return 0;
   }
+
+  public @NonNull
+  ZoneId getZone () {
+    return Optional.ofNullable(_date.query(TemporalQueries.zone()))
+             .orElseGet(ZoneId::systemDefault);
+  }
   
   public ZonedDateTime toZonedDateTime () {
-    ZonedDateTime result = ZonedDateTime.of(1900, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault());
+    ZonedDateTime result = ZonedDateTime.of(
+      1900, 1, 1,
+      0, 0, 0, 0,
+      ZoneId.systemDefault()
+    );
     
     for (final ChronoField field : new ChronoField[] {
       ChronoField.YEAR,
@@ -175,12 +217,12 @@ public class PartialZonedDateTime implements TemporalAccessor, Comparable<Tempor
 
   @Override
   public long getLong (@NonNull final TemporalField field) {
-    return this._date.getLong(field);
+    return _date.getLong(field);
   }
 
   @Override
   public boolean isSupported (@NonNull final TemporalField field) {
-    return this._date.isSupported(field);
+    return _date.isSupported(field);
   }
   
   public String getSQLMask () {
