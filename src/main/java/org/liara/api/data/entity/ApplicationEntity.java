@@ -109,16 +109,16 @@ public class ApplicationEntity
    */
   public static @NonNull Class<? extends ApplicationEntity> getBaseTypeOf (
     @NonNull final Class<? extends ApplicationEntity> entityClass
-  )
-  {
-    @NonNull Class<? extends ApplicationEntity>  clazz      = entityClass;
+  ) {
+    @NonNull Class<? extends ApplicationEntity> clazz  = entityClass;
+    @NonNull Class<? extends ApplicationEntity> result = ApplicationEntity.class;
 
     while (clazz != ApplicationEntity.class) {
-      if (clazz.isAnnotationPresent(Entity.class)) return clazz;
+      if (clazz.isAnnotationPresent(Entity.class)) result = clazz;
       clazz = clazz.getSuperclass().asSubclass(ApplicationEntity.class);
     }
 
-    return ApplicationEntity.class;
+    return result;
   }
 
   /**
@@ -261,6 +261,8 @@ public class ApplicationEntity
 
     if (other instanceof ApplicationEntity) {
       @NonNull final ApplicationEntity otherEntity = (ApplicationEntity) other;
+      if (_identifier == null) return false;
+      if (otherEntity.getIdentifier() == null) return false;
 
       return Objects.equals(getBaseClass(), otherEntity.getBaseClass()) &&
              Objects.equals(_identifier, otherEntity.getIdentifier());

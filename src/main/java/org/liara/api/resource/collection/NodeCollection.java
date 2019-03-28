@@ -77,12 +77,8 @@ public final class NodeCollection
     try {
       assertIsValid(schema);
       _applicationEventPublisher.publishEvent(new CreateNodeEvent(this, schema));
-
-      return Mono.just(
-        RestResponse.ofType(Long.class).ofModel(
-          Objects.requireNonNull(schema.getIdentifier())
-        )
-      );
+      Objects.requireNonNull(schema.getIdentifier());
+      return Mono.just(RestResponse.ofType(Long.class).ofModel(schema.getIdentifier()));
     } catch (@NonNull final InvalidModelException exception) {
       return Mono.error(new IllegalRestRequestException(exception));
     }

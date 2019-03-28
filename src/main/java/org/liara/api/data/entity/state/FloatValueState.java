@@ -12,10 +12,10 @@ import javax.persistence.Table;
 @Table(name = "states_float")
 @PrimaryKeyJoinColumn(name = "state_identifier")
 public class FloatValueState
-  extends NumericValueState<java.lang.Float>
+  extends NumericValueState<Float>
 {
   public FloatValueState () {
-    super(java.lang.Float.class);
+    super(Float.class);
   }
 
   public FloatValueState (final @NonNull FloatValueState toCopy) {
@@ -24,12 +24,12 @@ public class FloatValueState
 
   @Column(name = "value", nullable = false)
   @Override
-  public java.lang.@Nullable Float getValue () {
+  public @Nullable Float getValue () {
     return super.getValue();
   }
 
   @Override
-  public void setValue (final java.lang.@Nullable Float value) {
+  public void setValue (final @Nullable Float value) {
     super.setValue(value);
   }
 }

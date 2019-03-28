@@ -3,9 +3,7 @@ package org.liara.api.io;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.event.entity.CreateApplicationEntityEvent;
-import org.liara.api.event.entity.DeleteApplicationEntityEvent;
-import org.liara.api.event.entity.UpdateApplicationEntityEvent;
+import org.liara.api.event.entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,15 +30,57 @@ public class APIEventPublisher
     );
   }
 
+  public void willDelete (@NonNull final ApplicationEntity... entities) {
+    _applicationEventPublisher.publishEvent(
+      new WillDeleteApplicationEntityEvent(this, entities)
+    );
+  }
+
+  public void didDelete (@NonNull final ApplicationEntity... entities) {
+    _applicationEventPublisher.publishEvent(
+      new DidDeleteApplicationEntityEvent(this, entities)
+    );
+  }
+
   public void create (@NonNull final ApplicationEntity... entities) {
     _applicationEventPublisher.publishEvent(
       new CreateApplicationEntityEvent(this, entities)
     );
   }
 
+  public void initialize (@NonNull final ApplicationEntity... entities) {
+    _applicationEventPublisher.publishEvent(
+      new InitializeApplicationEntityEvent(this, entities)
+    );
+  }
+
+  public void willCreate (@NonNull final ApplicationEntity... entities) {
+    _applicationEventPublisher.publishEvent(
+      new WillCreateApplicationEntityEvent(this, entities)
+    );
+  }
+
+  public void didCreate (@NonNull final ApplicationEntity... entities) {
+    _applicationEventPublisher.publishEvent(
+      new DidCreateApplicationEntityEvent(this, entities)
+    );
+  }
+
   public void update (@NonNull final ApplicationEntity... entities) {
     _applicationEventPublisher.publishEvent(
       new UpdateApplicationEntityEvent(this, entities)
+    );
+  }
+
+  public void willUpdate (@NonNull final ApplicationEntity... entities) {
+    _applicationEventPublisher.publishEvent(
+      new WillUpdateApplicationEntityEvent(this, entities)
+    );
+  }
+
+  public void didUpdate (@NonNull final ApplicationEntity... entities) {
+    _applicationEventPublisher.publishEvent(
+      new DidUpdateApplicationEntityEvent(this, entities)
     );
   }
 

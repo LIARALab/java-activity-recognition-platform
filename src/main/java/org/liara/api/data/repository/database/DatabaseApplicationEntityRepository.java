@@ -2,22 +2,17 @@ package org.liara.api.data.repository.database;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.hibernate.CacheMode;
+import org.hibernate.jpa.QueryHints;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.repository.ApplicationEntityRepository;
 import org.liara.collection.operator.cursoring.Cursor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Optional;
 
-@Component
-@Scope("prototype")
-@Primary
 public class DatabaseApplicationEntityRepository<Entity extends ApplicationEntity>
        implements ApplicationEntityRepository<Entity>
 {
@@ -26,8 +21,7 @@ public class DatabaseApplicationEntityRepository<Entity extends ApplicationEntit
 
   @NonNull
   private final Class<Entity> _type;
-  
-  @Autowired
+
   public DatabaseApplicationEntityRepository (
     @NonNull final EntityManager entityManager,
     @NonNull final Class<Entity> type
@@ -47,6 +41,7 @@ public class DatabaseApplicationEntityRepository<Entity extends ApplicationEntit
       "SELECT entity FROM " + _type.getName() + " entity ORDER BY entity.identifier ASC", _type)
                                                             .setFirstResult(cursor.getOffset());
 
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
     return query.getResultList();

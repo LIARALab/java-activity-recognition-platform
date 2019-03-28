@@ -12,10 +12,10 @@ import javax.persistence.Table;
 @Table(name = "states_byte")
 @PrimaryKeyJoinColumn(name = "state_identifier")
 public class ByteValueState
-  extends NumericValueState<java.lang.Byte>
+  extends NumericValueState<Byte>
 {
   public ByteValueState () {
-    super(java.lang.Byte.class);
+    super(Byte.class);
   }
 
   public ByteValueState (final @NonNull ByteValueState toCopy) {
@@ -24,12 +24,12 @@ public class ByteValueState
 
   @Column(name = "value", nullable = false)
   @Override
-  public java.lang.@Nullable Byte getValue () {
+  public @Nullable Byte getValue () {
     return super.getValue();
   }
 
   @Override
-  public void setValue (final java.lang.@Nullable Byte value) {
+  public void setValue (final @Nullable Byte value) {
     super.setValue(value);
   }
 }

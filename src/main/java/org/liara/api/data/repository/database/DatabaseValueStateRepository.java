@@ -1,21 +1,17 @@
 package org.liara.api.data.repository.database;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.hibernate.CacheMode;
+import org.hibernate.jpa.QueryHints;
 import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.data.repository.ValueStateRepository;
 import org.liara.collection.operator.cursoring.Cursor;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-@Component
-@Scope("prototype")
-@Primary
 public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
   extends DatabaseStateRepository<Wrapper>
   implements ValueStateRepository<Value, Wrapper>
@@ -39,18 +35,20 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
     @NonNull final Cursor cursor
   )
   {
-    @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(java.lang.String.join("",
-      "SELECT state FROM " + getManagedEntity().getName() + " state ",
-      " WHERE stat.emissionDate < :date ",
-      "   AND state.sensorIdentifier IN :sensors ",
-      "   AND state.value = :value",
-      " ORDER BY state.emissionDate DESC, state.identifier DESC"
-    ), getManagedEntity());
+    @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
+      "SELECT state FROM " + getManagedEntity().getName() + " state " +
+      " WHERE stat.emissionDate < :date " +
+      "   AND state.sensorIdentifier IN :sensors " +
+      "   AND state.value = :value" +
+      " ORDER BY state.emissionDate DESC, state.identifier DESC",
+      getManagedEntity()
+    );
 
     states.setParameter("date", date);
     states.setParameter("sensors", inputSensorIdentifiers);
     states.setParameter("value", value);
     states.setFirstResult(cursor.getOffset());
+    states.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) states.setMaxResults(cursor.getLimit());
 
@@ -59,26 +57,26 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
 
   @Override
   public @NonNull List<@NonNull Wrapper> findNextWithValue (
-    @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final ZonedDateTime date,
+    @NonNull final List<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   )
   {
-    @NonNull final TypedQuery<Wrapper> states;
+    @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
+      "SELECT state FROM " + getManagedEntity().getName() + " state " +
+      " WHERE state.emissionDate > :date " +
+      "   AND state.sensorIdentifier IN :sensors " +
+      "   AND state.value = :value" +
+      " ORDER BY state.emissionDate ASC",
+      getManagedEntity()
+    );
 
-    states = _entityManager.createQuery(java.lang.String.join("",
-      "SELECT state ",
-      "  FROM ",
-      getManagedEntity().getName(),
-      " state ",
-      " WHERE state.emissionDate > :date ",
-      "   AND state.sensorIdentifier IN :sensors ",
-      "   AND state.value = :value",
-      " ORDER BY state.emissionDate ASC"
-    ), getManagedEntity()).setParameter("date", date).setParameter("sensors", inputSensorIdentifiers).setParameter(
-      "value",
-      value
-    ).setFirstResult(cursor.getOffset());
+    states.setParameter("date", date);
+    states.setParameter("sensors", inputSensorIdentifiers);
+    states.setParameter("value", value);
+    states.setFirstResult(cursor.getOffset());
+    states.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) states.setMaxResults(cursor.getLimit());
 
@@ -87,23 +85,25 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
 
   @Override
   public @NonNull List<@NonNull Wrapper> findAllWithValue (
-    @NonNull final List<@NonNull Long> inputSensorIdentifiers, @NonNull final Value value, @NonNull final Cursor cursor
-  )
-  {
-    @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(java.lang.String.join("",
-      "SELECT state ",
-      "  FROM ",
-      getManagedEntity().getName(),
-      " state ",
-      " WHERE state.sensorIdentifier IN :sensors ",
-      "   AND state.value = :value",
-      " ORDER BY state.emissionDate ASC"
-    ), getManagedEntity()).setParameter("sensors", inputSensorIdentifiers).setParameter("value", value).setFirstResult(
-      cursor.getOffset());
+    @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final Value value,
+    @NonNull final Cursor cursor
+  ) {
+    @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
+      "SELECT state FROM " + getManagedEntity().getName() + " state " +
+      " WHERE state.sensorIdentifier IN :sensors " +
+      "   AND state.value = :value" +
+      " ORDER BY state.emissionDate ASC",
+      getManagedEntity()
+    );
+
+    states.setParameter("sensors", inputSensorIdentifiers);
+    states.setParameter("value", value);
+    states.setFirstResult(cursor.getOffset());
+    states.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) states.setMaxResults(cursor.getLimit());
 
     return states.getResultList();
   }
-
 }

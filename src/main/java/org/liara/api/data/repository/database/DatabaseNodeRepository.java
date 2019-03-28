@@ -7,6 +7,8 @@ import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.tree.DatabaseNestedSetRepository;
 import org.liara.api.data.tree.NestedSet;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -15,7 +17,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 @Component
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Primary
 public class DatabaseNodeRepository
        extends DatabaseApplicationEntityRepository<Node>
@@ -29,7 +31,7 @@ public class DatabaseNodeRepository
   
   @Autowired
   public DatabaseNodeRepository(
-    @NonNull final EntityManager entityManager
+    @Qualifier("generatorEntityManager") @NonNull final EntityManager entityManager
   ) {
     super(entityManager, Node.class);
     _entityManager = entityManager;

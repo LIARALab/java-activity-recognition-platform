@@ -77,7 +77,8 @@ public interface StateRepository<TimeState extends State>
   }
 
   default @NonNull List<@NonNull TimeState> findNext (
-    @NonNull final TimeState state, @NonNull final Cursor cursor
+    @NonNull final TimeState state,
+    @NonNull final Cursor cursor
   ) {
     return findNext(
       Objects.requireNonNull(state.getEmissionDate()),
@@ -95,9 +96,10 @@ public interface StateRepository<TimeState extends State>
   }
 
   default @NonNull Optional<TimeState> findNext (
-    @NonNull final ZonedDateTime date, @NonNull final Long sensorIdentifier
+    @NonNull final ZonedDateTime date,
+    @NonNull final Long sensorIdentifier
   ) {
-    final List<TimeState> results = findNext(
+    @NonNull final List<@NonNull TimeState> results = findNext(
       date,
       Collections.singletonList(sensorIdentifier),
       Cursor.FIRST
@@ -108,14 +110,15 @@ public interface StateRepository<TimeState extends State>
   }
 
   @NonNull List<@NonNull TimeState> findNext (
-    @NonNull final ZonedDateTime date, @NonNull final Collection<@NonNull Long> sensorIdentifiers,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Collection<@NonNull Long> sensorIdentifiers,
     @NonNull final Cursor count
   );
 
   default @NonNull List<@NonNull TimeState> find (
-    @NonNull final Long sensorIdentifier, @NonNull final Cursor cursor
-  )
-  {
+    @NonNull final Long sensorIdentifier,
+    @NonNull final Cursor cursor
+  ) {
     return find(
       Collections.singletonList(sensorIdentifier),
       cursor

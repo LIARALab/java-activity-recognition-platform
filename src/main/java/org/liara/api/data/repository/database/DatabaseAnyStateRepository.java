@@ -1,8 +1,11 @@
 package org.liara.api.data.repository.database;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.AnyStateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -10,14 +13,16 @@ import org.springframework.stereotype.Component;
 import javax.persistence.EntityManager;
 
 @Component
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Primary
 public class DatabaseAnyStateRepository
-  extends DatabaseStateRepository<org.liara.api.data.entity.state.State>
+  extends DatabaseStateRepository<State>
   implements AnyStateRepository
 {
   @Autowired
-  public DatabaseAnyStateRepository (final @NonNull EntityManager entityManager) {
-    super(entityManager, org.liara.api.data.entity.state.State.class);
+  public DatabaseAnyStateRepository (
+    @Qualifier("generatorEntityManager") @NonNull final EntityManager entityManager
+  ) {
+    super(entityManager, State.class);
   }
 }

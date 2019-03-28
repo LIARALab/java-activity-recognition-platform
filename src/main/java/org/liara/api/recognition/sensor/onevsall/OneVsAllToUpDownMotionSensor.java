@@ -1,4 +1,4 @@
-package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall;
+package org.liara.api.recognition.sensor.onevsall;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;

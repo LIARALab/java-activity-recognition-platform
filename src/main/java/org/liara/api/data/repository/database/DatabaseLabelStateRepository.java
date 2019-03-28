@@ -1,8 +1,12 @@
 package org.liara.api.data.repository.database;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.hibernate.CacheMode;
+import org.hibernate.jpa.QueryHints;
 import org.liara.api.data.entity.state.LabelState;
 import org.liara.api.data.repository.LabelStateRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -14,7 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Primary
 public class DatabaseLabelStateRepository
   extends DatabaseStateRepository<LabelState>
@@ -24,7 +28,7 @@ public class DatabaseLabelStateRepository
   private final EntityManager _entityManager;
 
   public DatabaseLabelStateRepository (
-    @NonNull final EntityManager entityManager
+    @Qualifier("generatorEntityManager") @NonNull final EntityManager entityManager
   ) {
     super(entityManager, LabelState.class);
 
@@ -48,6 +52,7 @@ public class DatabaseLabelStateRepository
     query.setParameter("area", area);
     query.setParameter("sensorIdentifier", sensorIdentifier);
     query.setMaxResults(1);
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     @NonNull final List<@NonNull LabelState> result = query.getResultList();
 

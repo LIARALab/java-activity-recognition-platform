@@ -20,7 +20,11 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import javax.persistence.EntityManager;
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Service
@@ -120,8 +124,8 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "sensorWillBeCreated", error);
-      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
-        error.printStackTrace();
+      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
+      throw error;
     }
   }
 
@@ -133,8 +137,8 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "sensorWasCreated", error);
-      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
-        error.printStackTrace();
+      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
+      throw error;
     }
   }
 
@@ -146,8 +150,8 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "nodeWillBeCreated", error);
-      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
-        error.printStackTrace();
+      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
+      throw error;
     }
   }
 
@@ -159,8 +163,8 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "nodeWasCreated", error);
-      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
-        error.printStackTrace();
+      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
+      throw error;
     }
   }
 
@@ -172,8 +176,8 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "stateWillBeCreated", error);
-      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
-        error.printStackTrace();
+      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
+      throw error;
     }
   }
 
@@ -185,8 +189,8 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "stateWasCreated", error);
-      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
-        error.printStackTrace();
+      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
+      throw error;
     }
   }
 
@@ -198,8 +202,8 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "stateWillBeMutated", error);
-      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
-        error.printStackTrace();
+      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
+      throw error;
     }
   }
 
@@ -211,8 +215,8 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "stateWasMutated", error);
-      if (!Objects.equals(getLogger().getLevel(), System.Logger.Level.TRACE))
-        error.printStackTrace();
+      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
+      throw error;
     }
   }
 

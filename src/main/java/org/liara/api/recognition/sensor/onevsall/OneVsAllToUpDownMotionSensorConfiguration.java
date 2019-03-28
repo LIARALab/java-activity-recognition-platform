@@ -1,4 +1,4 @@
-package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall;
+package org.liara.api.recognition.sensor.onevsall;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import org.checkerframework.checker.nullness.qual.NonNull;

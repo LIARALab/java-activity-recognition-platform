@@ -12,24 +12,24 @@ import javax.persistence.Table;
 @Table(name = "states_long")
 @PrimaryKeyJoinColumn(name = "state_identifier")
 public class LongValueState
-  extends NumericValueState<java.lang.Long>
+  extends NumericValueState<Long>
 {
   public LongValueState () {
-    super(java.lang.Long.class);
+    super(Long.class);
   }
 
-  public LongValueState (final @NonNull LongValueState toCopy) {
+  public LongValueState (@NonNull final LongValueState toCopy) {
     super(toCopy);
   }
 
   @Column(name = "value", nullable = false)
   @Override
-  public java.lang.@Nullable Long getValue () {
+  public @Nullable Long getValue () {
     return super.getValue();
   }
 
   @Override
-  public void setValue (final java.lang.@Nullable Long value) {
+  public void setValue (@Nullable final Long value) {
     super.setValue(value);
   }
 }

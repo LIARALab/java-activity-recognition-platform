@@ -1,13 +1,11 @@
 package org.liara.api.data.repository.database;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.hibernate.CacheMode;
+import org.hibernate.jpa.QueryHints;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.StateRepository;
 import org.liara.collection.operator.cursoring.Cursor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -16,9 +14,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-@Component
-@Scope("prototype")
-@Primary
 public class DatabaseStateRepository<TimeState extends State>
   extends DatabaseApplicationEntityRepository<TimeState>
   implements StateRepository<TimeState>
@@ -26,7 +21,6 @@ public class DatabaseStateRepository<TimeState extends State>
   @NonNull
   private final EntityManager _entityManager;
 
-  @Autowired
   public DatabaseStateRepository (
     @NonNull final EntityManager entityManager,
     @NonNull final Class<TimeState> stateType
@@ -52,6 +46,7 @@ public class DatabaseStateRepository<TimeState extends State>
     query.setParameter("date", date);
     query.setParameter("sensorIdentifiers", sensorIdentifiers);
     query.setFirstResult(cursor.getOffset());
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -75,6 +70,7 @@ public class DatabaseStateRepository<TimeState extends State>
     query.setParameter("date", date);
     query.setParameter("sensorIdentifiers", sensorIdentifiers);
     query.setFirstResult(cursor.getOffset());
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -83,7 +79,8 @@ public class DatabaseStateRepository<TimeState extends State>
 
   @Override
   public @NonNull List<@NonNull TimeState> find (
-    @NonNull final Collection<@NonNull Long> sensorIdentifiers, @NonNull final Cursor cursor
+    @NonNull final Collection<@NonNull Long> sensorIdentifiers,
+    @NonNull final Cursor cursor
   ) {
     @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state" +
@@ -94,6 +91,7 @@ public class DatabaseStateRepository<TimeState extends State>
 
     query.setParameter("sensorIdentifiers", sensorIdentifiers);
     query.setFirstResult(cursor.getOffset());
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -114,6 +112,7 @@ public class DatabaseStateRepository<TimeState extends State>
     query.setParameter("sensor", sensors);
     query.setFirstResult(0);
     query.setMaxResults(1);
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     @NonNull final List<@NonNull TimeState> result = query.getResultList();
 

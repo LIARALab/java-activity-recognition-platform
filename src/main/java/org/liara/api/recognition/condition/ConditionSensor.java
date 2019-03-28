@@ -9,18 +9,15 @@ import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.AnyStateRepository;
 import org.liara.api.data.repository.BooleanValueStateRepository;
 import org.liara.api.data.repository.CorrelationRepository;
-import org.liara.api.event.entity.CreateApplicationEntityEvent;
-import org.liara.api.event.entity.DeleteApplicationEntityEvent;
-import org.liara.api.event.entity.UpdateApplicationEntityEvent;
 import org.liara.api.event.state.DidCreateStateEvent;
 import org.liara.api.event.state.DidUpdateStateEvent;
 import org.liara.api.event.state.WillDeleteStateEvent;
 import org.liara.api.event.state.WillUpdateStateEvent;
+import org.liara.api.io.APIEventPublisher;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
 import org.liara.api.utils.Duplicator;
 import org.liara.collection.operator.cursoring.Cursor;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Objects;
@@ -31,7 +28,7 @@ public abstract class ConditionSensor
   extends AbstractVirtualSensorHandler
 {
   @NonNull
-  private final ApplicationEventPublisher _applicationEventPublisher;
+  private final APIEventPublisher _applicationEventPublisher;
 
   @NonNull
   private final CorrelationRepository _correlationRepository;
@@ -119,9 +116,9 @@ public abstract class ConditionSensor
    * @param stateThatWasCreated The input state that was created.
    */
   private void inputStateWasCreated (@NonNull final State stateThatWasCreated) {
-    @NonNull final Optional<State> previous =
-      _inputStateRepository.findPrevious(stateThatWasCreated);
-    @NonNull final Optional<State> next = _inputStateRepository.findNext(stateThatWasCreated);
+    @NonNull
+    final Optional<State>          previous = _inputStateRepository.findPrevious(stateThatWasCreated);
+    @NonNull final Optional<State> next     = _inputStateRepository.findNext(stateThatWasCreated);
 
     if (!previous.isPresent()) {
       if (!next.isPresent() || check(stateThatWasCreated) != check(next.get())) {
@@ -213,10 +210,10 @@ public abstract class ConditionSensor
    * @param stateThatWillBeDeleted Input state that will be deleted.
    */
   private void inputStateWillBeDeleted (@NonNull final State stateThatWillBeDeleted) {
-    @NonNull final Optional<State> previous =
-      _inputStateRepository.findPrevious(stateThatWillBeDeleted);
-    @NonNull final Optional<State> next =
-      _inputStateRepository.findNext(stateThatWillBeDeleted);
+    @NonNull final Optional<State> previous = _inputStateRepository.findPrevious(
+      stateThatWillBeDeleted);
+    @NonNull
+    final Optional<State>          next     = _inputStateRepository.findNext(stateThatWillBeDeleted);
 
     if (previous.isPresent()) {
       if (check(previous.get()) != check(stateThatWillBeDeleted)) {
@@ -245,9 +242,7 @@ public abstract class ConditionSensor
   }
 
   private void delete (@NonNull final BooleanValueState toDelete) {
-    _applicationEventPublisher.publishEvent(
-      new DeleteApplicationEntityEvent(this, toDelete)
-    );
+    _applicationEventPublisher.delete(toDelete);
   }
 
   private void emit (@NonNull final State state) {
@@ -256,13 +251,13 @@ public abstract class ConditionSensor
       " (" + check(state) + ")"
     );
 
-    final BooleanValueState result = new BooleanValueState();
+    @NonNull final BooleanValueState result = new BooleanValueState();
 
     result.setValue(check(state));
     result.setEmissionDate(state.getEmissionDate());
     result.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElseThrow());
 
-    _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, result));
+    _applicationEventPublisher.create(result);
 
     @NonNull final Correlation correlation = new Correlation();
 
@@ -270,7 +265,7 @@ public abstract class ConditionSensor
     correlation.setEndStateIdentifier(state.getIdentifier());
     correlation.setName("origin");
 
-    _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, correlation));
+    _applicationEventPublisher.create(correlation);
   }
 
   private void move (@NonNull final State from, @NonNull final State to) {
@@ -279,25 +274,16 @@ public abstract class ConditionSensor
       " to " + to.getEmissionDate() + " (" + check(to) + ")"
     );
 
-    @NonNull
-    final Correlation correlation = Duplicator.duplicate(getCorrelationTo(from).orElseThrow());
-
-    correlation.setEndStateIdentifier(to.getIdentifier());
-
-    final BooleanValueState image = Duplicator.duplicate(
+    @NonNull final Correlation correlation = getCorrelationTo(from).map(Duplicator::duplicate)
+                                               .orElseThrow();
+    @NonNull final BooleanValueState image = Duplicator.duplicate(
       _outputStateRepository.getAt(Objects.requireNonNull(correlation.getStartStateIdentifier()))
     );
 
-    Logger.getLogger(getClass().getName()).info(
-      "[" + getSensor().orElseThrow().getIdentifier() + "] -> " + image.getIdentifier() + " " +
-      image.getEmissionDate()
-    );
-
+    correlation.setEndStateIdentifier(to.getIdentifier());
     image.setEmissionDate(to.getEmissionDate());
 
-    _applicationEventPublisher.publishEvent(
-      new UpdateApplicationEntityEvent(this, image, correlation)
-    );
+    _applicationEventPublisher.update(image, correlation);
   }
 
   private @NonNull Optional<Correlation> getCorrelationTo (@NonNull final State preimage) {
@@ -310,7 +296,7 @@ public abstract class ConditionSensor
     return getConfiguration(ConditionSensorConfiguration.class);
   }
 
-  public @NonNull ApplicationEventPublisher getApplicationEventPublisher () {
+  public @NonNull APIEventPublisher getApplicationEventPublisher () {
     return _applicationEventPublisher;
   }
 
@@ -324,10 +310,6 @@ public abstract class ConditionSensor
 
   public @NonNull BooleanValueStateRepository getOutputStateRepository () {
     return _outputStateRepository;
-  }
-
-  private @NonNull Logger getLogger () {
-    return Logger.getLogger(getClass().getName());
   }
 
   @Override

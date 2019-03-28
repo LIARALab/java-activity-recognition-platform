@@ -42,5 +42,4 @@ public class ValueState<Value>
   public @NonNull Class<Value> getType () {
     return _type;
   }
-
 }

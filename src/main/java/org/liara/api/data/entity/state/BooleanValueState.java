@@ -12,10 +12,10 @@ import javax.persistence.Table;
 @Table(name = "states_boolean")
 @PrimaryKeyJoinColumn(name = "state_identifier")
 public class BooleanValueState
-  extends ValueState<java.lang.Boolean>
+  extends ValueState<Boolean>
 {
   public BooleanValueState () {
-    super(java.lang.Boolean.class);
+    super(Boolean.class);
   }
 
   public BooleanValueState (final @NonNull BooleanValueState toCopy) {
@@ -24,12 +24,12 @@ public class BooleanValueState
 
   @Column(name = "value", nullable = false)
   @Override
-  public java.lang.@Nullable Boolean getValue () {
+  public @Nullable Boolean getValue () {
     return super.getValue();
   }
 
   @Override
-  public void setValue (final java.lang.@Nullable Boolean value) {
+  public void setValue (final @Nullable Boolean value) {
     super.setValue(value);
   }
 }

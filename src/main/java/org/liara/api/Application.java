@@ -29,18 +29,20 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.Metamodel;
+import java.util.TimeZone;
 
 @SpringBootApplication
-@ComponentScan({
-  "org.liara.api", "org.liara.rest"
-})
+@ComponentScan({"org.liara.api", "org.liara.rest"})
 @Import({})
 public class Application
 {
   public static void main (@NonNull final String[] args) {
+    TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
     @NonNull final ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
     context.getBean(VirtualSensorManager.class).start();
   }
@@ -49,4 +51,17 @@ public class Application
   public @NonNull Metamodel getMetamodel (@NonNull final EntityManager entityManager) {
     return entityManager.getMetamodel();
   }
+
+  @Primary
+  @Bean("clientEntityManager")
+  public @NonNull EntityManager getClientEntityManager (
+    @NonNull final EntityManagerFactory factory
+  ) {
+    return factory.createEntityManager();
+  }
+
+  @Bean("generatorEntityManager")
+  public @NonNull EntityManager getGeneratorEntityManager (
+    @NonNull final EntityManagerFactory factory
+  ) { return factory.createEntityManager(); }
 }

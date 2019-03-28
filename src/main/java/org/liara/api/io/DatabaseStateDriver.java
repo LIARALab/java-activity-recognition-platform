@@ -5,6 +5,7 @@ import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.event.entity.*;
 import org.liara.api.event.state.*;
+import org.liara.api.utils.Duplicator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,32 +43,36 @@ public class DatabaseStateDriver
   @EventListener
   public void willCreate (final WillCreateApplicationEntityEvent creation) {
     for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
-      if (entity instanceof State)
+      if (entity instanceof State) {
         _publisher.publishEvent(new WillCreateStateEvent(this, (State) entity));
+      }
     }
   }
 
   @EventListener
   public void didCreate (final DidCreateApplicationEntityEvent creation) {
     for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
-      if (entity instanceof State)
+      if (entity instanceof State) {
         _publisher.publishEvent(new DidCreateStateEvent(this, (State) entity));
+      }
     }
   }
 
   @EventListener
   public void willDelete (final WillDeleteApplicationEntityEvent deletion) {
     for (@NonNull final ApplicationEntity entity : deletion.getEntities()) {
-      if (entity instanceof State)
+      if (entity instanceof State) {
         _publisher.publishEvent(new WillDeleteStateEvent(this, (State) entity));
+      }
     }
   }
 
   @EventListener
   public void didDelete (final DidDeleteApplicationEntityEvent deletion) {
     for (@NonNull final ApplicationEntity entity : deletion.getEntities()) {
-      if (entity instanceof State)
+      if (entity instanceof State) {
         _publisher.publishEvent(new DidDeleteStateEvent(this, (State) entity));
+      }
     }
   }
 
@@ -76,7 +81,12 @@ public class DatabaseStateDriver
     for (@NonNull final ApplicationEntity entity : mutation.getEntities()) {
       if (entity instanceof State) {
         @NonNull final State newState = (State) entity;
-        @NonNull final State oldState = _entityManager.find(newState.getClass(), newState.getIdentifier());
+        @NonNull final State oldState = Duplicator.duplicate(
+          _entityManager.find(
+            newState.getClass(),
+            newState.getIdentifier()
+          )
+        );
 
         _oldStates.put(newState, oldState);
         _publisher.publishEvent(new WillUpdateStateEvent(this, oldState, newState));
@@ -91,7 +101,7 @@ public class DatabaseStateDriver
         @NonNull final State newState = (State) entity;
         @NonNull final State oldState = _oldStates.get(newState);
 
-        _oldStates.remove(newState, oldState);
+        _oldStates.remove(newState);
         _publisher.publishEvent(new DidUpdateStateEvent(this, oldState, newState));
       }
     }

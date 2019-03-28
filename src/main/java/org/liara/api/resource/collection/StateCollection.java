@@ -22,7 +22,6 @@
 package org.liara.api.resource.collection;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.state.State;
@@ -56,9 +55,6 @@ public class StateCollection
   @NonNull
   private final Validator _validator;
 
-  @NonNull
-  private final ObjectMapper _objectMapper;
-
   @Autowired
   public StateCollection (
     @NonNull final StateCollectionBuilder builder
@@ -66,7 +62,6 @@ public class StateCollection
     super(State.class, Objects.requireNonNull(builder.getCollectionResourceBuilder()));
     _applicationEventPublisher = Objects.requireNonNull(builder.getApplicationEventPublisher());
     _validator = Objects.requireNonNull(builder.getValidator());
-    _objectMapper = Objects.requireNonNull(builder.getObjectMapper());
   }
 
   @Override

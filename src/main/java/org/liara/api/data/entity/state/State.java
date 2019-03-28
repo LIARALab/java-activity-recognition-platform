@@ -134,10 +134,7 @@ public class State extends ApplicationEntity
     _sensorIdentifier = toCopy.getSensorIdentifier();
   }
 
-  @Column(
-    name = "sensor_identifier",
-    nullable = false
-  )
+  @Column(name = "sensor_identifier", nullable = false)
   @ApplicationEntityReference(Sensor.class)
   public @Nullable Long getSensorIdentifier () {
     return _sensorIdentifier;
@@ -147,11 +144,7 @@ public class State extends ApplicationEntity
     _sensorIdentifier = sensorIdentifier;
   }
 
-  @Column(
-    name = "emitted_at",
-    nullable = false,
-    columnDefinition = "DATETIME(6)"
-  )
+  @Column(name = "emitted_at", nullable = false, columnDefinition = "DATETIME(6)")
   public @Nullable ZonedDateTime getEmissionDate () {
     return _emissionDate;
   }

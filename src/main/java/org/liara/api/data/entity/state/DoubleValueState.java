@@ -12,10 +12,10 @@ import javax.persistence.Table;
 @Table(name = "states_double")
 @PrimaryKeyJoinColumn(name = "state_identifier")
 public class DoubleValueState
-  extends NumericValueState<java.lang.Double>
+  extends NumericValueState<Double>
 {
   public DoubleValueState () {
-    super(java.lang.Double.class);
+    super(Double.class);
   }
 
   public DoubleValueState (final @NonNull DoubleValueState toCopy) {
@@ -24,12 +24,12 @@ public class DoubleValueState
 
   @Column(name = "value", nullable = false)
   @Override
-  public java.lang.@Nullable Double getValue () {
+  public @Nullable Double getValue () {
     return super.getValue();
   }
 
   @Override
-  public void setValue (final java.lang.@Nullable Double value) {
+  public void setValue (final @Nullable Double value) {
     super.setValue(value);
   }
 }

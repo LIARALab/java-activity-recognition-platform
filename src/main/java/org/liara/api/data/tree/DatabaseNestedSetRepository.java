@@ -3,6 +3,7 @@ package org.liara.api.data.tree;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -16,7 +17,7 @@ public class DatabaseNestedSetRepository
 
   @Autowired
   public DatabaseNestedSetRepository (
-    @NonNull final EntityManager entityManager
+    @NonNull @Qualifier("generatorEntityManager") final EntityManager entityManager
   )
   { _entityManager = entityManager; }
 
@@ -33,9 +34,9 @@ public class DatabaseNestedSetRepository
 
   @Override
   public void attachChild (
-    @NonNull final NestedSet node, @Nullable final NestedSet parent
-  )
-  {
+    @NonNull final NestedSet node,
+    @Nullable final NestedSet parent
+  ) {
     if (node == parent) {
       throw new Error("Unable to attach a node to itself.");
     }
@@ -54,6 +55,7 @@ public class DatabaseNestedSetRepository
     }
 
     _entityManager.merge(node);
+    _entityManager.flush();
   }
 
   public @NonNull Integer getRootNestedSetStart (@NonNull final NestedSet toAdd) {
@@ -183,6 +185,8 @@ public class DatabaseNestedSetRepository
     )).setParameter("removedSetStart", node.getCoordinates().getStart()).setParameter("removedSetEnd",
       node.getCoordinates().getEnd()
     ).executeUpdate();
+
+    _entityManager.flush();
   }
 
   @Override

@@ -1,11 +1,15 @@
 package org.liara.api.data.repository.database;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.hibernate.CacheMode;
+import org.hibernate.jpa.QueryHints;
 import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.collection.operator.cursoring.Cursor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -15,7 +19,7 @@ import javax.persistence.TypedQuery;
 import java.util.List;
 
 @Component
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_SINGLETON)
 @Primary
 public class DatabaseCorrelationRepository
   extends DatabaseApplicationEntityRepository<Correlation>
@@ -25,7 +29,9 @@ public class DatabaseCorrelationRepository
   private final EntityManager _entityManager;
 
   @Autowired
-  public DatabaseCorrelationRepository (@NonNull final EntityManager entityManager) {
+  public DatabaseCorrelationRepository (
+    @Qualifier("generatorEntityManager") @NonNull final EntityManager entityManager
+  ) {
     super(entityManager, Correlation.class);
     _entityManager = entityManager;
   }
@@ -45,6 +51,7 @@ public class DatabaseCorrelationRepository
 
     query.setParameter("stateIdentifier", stateIdentifier);
     query.setFirstResult(cursor.getOffset());
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -65,6 +72,7 @@ public class DatabaseCorrelationRepository
 
     query.setParameter("stateIdentifier", stateIdentifier);
     query.setFirstResult(cursor.getOffset());
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -87,6 +95,7 @@ public class DatabaseCorrelationRepository
     query.setParameter("stateIdentifier", stateIdentifier);
     query.setParameter("name", name);
     query.setFirstResult(cursor.getOffset());
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -114,6 +123,7 @@ public class DatabaseCorrelationRepository
     query.setParameter("name", name);
     query.setParameter("sensorIdentifier", sensorIdentifier);
     query.setFirstResult(cursor.getOffset());
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -134,6 +144,7 @@ public class DatabaseCorrelationRepository
 
     query.setParameter("state", state);
     query.setFirstResult(cursor.getOffset());
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -157,6 +168,7 @@ public class DatabaseCorrelationRepository
     query.setParameter("stateIdentifier", stateIdentifier);
     query.setParameter("name", name);
     query.setFirstResult(cursor.getOffset());
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -185,6 +197,7 @@ public class DatabaseCorrelationRepository
     query.setParameter("name", name);
     query.setParameter("sensorIdentifier", sensorIdentifier);
     query.setFirstResult(cursor.getOffset());
+    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 

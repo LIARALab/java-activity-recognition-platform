@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 @Component
 @Scope("prototype")
@@ -105,6 +106,9 @@ public class UpDownToLabelSensor
   }
 
   private void inputStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
+    Logger.getLogger(getClass().getName()).info(
+      "[" + getSensor().get().getIdentifier() + "] InputStateWasCreated "
+    );
     Objects.requireNonNull(stateThatWasCreated.getEmissionDate());
 
     _outputs.findAt(
@@ -137,6 +141,10 @@ public class UpDownToLabelSensor
     Objects.requireNonNull(next.getValue());
     Objects.requireNonNull(next.getIdentifier());
 
+    Logger.getLogger(getClass().getName()).info(
+      "Next of " + stateThatWasCreated.getEmissionDate() + " " + stateThatWasCreated.getValue() +
+      " is " + next.getEmissionDate() + " " + next.getValue()
+    );
     if (next.getValue()) {
       begin(
         stateThatWasCreated,
@@ -175,7 +183,7 @@ public class UpDownToLabelSensor
     @NonNull final State stateThatWillBeMutated = event.getOldValue();
 
     if (Objects.equals(stateThatWillBeMutated.getSensorIdentifier(), getInputSensorIdentifier())) {
-      //inputStateWillBeDeleted((BooleanValueState) stateThatWillBeMutated);
+      inputStateWillBeDeleted((BooleanValueState) stateThatWillBeMutated);
     }
   }
 
@@ -202,7 +210,12 @@ public class UpDownToLabelSensor
   }
 
   private void inputStateWillBeDeleted (@NonNull final BooleanValueState stateThatWillBeDeleted) {
+    Logger.getLogger(getClass().getName()).info(
+      "[" + getSensor().get().getIdentifier() + "] InputStateWillBeDeleted "
+    );
     Objects.requireNonNull(stateThatWillBeDeleted.getIdentifier());
+
+    @NonNull final Optional<BooleanValueState> next = _inputs.findNext(stateThatWillBeDeleted);
 
     findLabelStateThatStartBy(stateThatWillBeDeleted.getIdentifier()).ifPresentOrElse(
       (parentState) -> startBoundaryWillBeDeleted(parentState, stateThatWillBeDeleted),
@@ -253,6 +266,11 @@ public class UpDownToLabelSensor
     @NonNull final LabelState left,
     @NonNull final LabelState right
   ) {
+    Logger.getLogger(getClass().getName()).info(
+      "[" + getSensor().get().getIdentifier() + "] Merging " + left.getName() + " " +
+      left.getStart() + " ... " + left.getEnd() +
+      " with " + right.getName() + " " + right.getStart() + " ... " + right.getEnd()
+    );
     @NonNull final Optional<BooleanValueState> end = findEndState(right);
 
     delete(right);
@@ -260,6 +278,10 @@ public class UpDownToLabelSensor
   }
 
   private void delete (@NonNull final LabelState toDelete) {
+    Logger.getLogger(getClass().getName()).info(
+      "[" + getSensor().get().getIdentifier() + "] Deleting " + toDelete.getName() + " " +
+      toDelete.getStart() + " ... " + toDelete.getEnd()
+    );
     _publisher.delete(toDelete);
     _publisher.delete(getStartCorrelation(toDelete));
     findEndCorrelation(toDelete).ifPresent(_publisher::delete);
@@ -269,6 +291,12 @@ public class UpDownToLabelSensor
     @NonNull final LabelState current,
     @Nullable final State next
   ) {
+    Logger.getLogger(getClass().getName()).info(
+      "[" + getSensor().get().getIdentifier() + "] Finishing " + current.getName() + " " +
+      current.getStart() + " ... " + current.getEnd() +
+      " at " + (next == null ? null : next.getEmissionDate())
+    );
+
     @NonNull final LabelState mutation = Duplicator.duplicate(current);
 
     mutation.setEnd(next == null ? null : next.getEmissionDate());
@@ -297,6 +325,14 @@ public class UpDownToLabelSensor
     @Nullable final State end
   )
   {
+    Logger.getLogger(getClass().getName()).info(
+      "[" + getSensor().get().getIdentifier() + "] Creating " + start.getEmissionDate() + " ... " +
+      (
+        (end == null) ? null :
+        end.getEmissionDate()
+      )
+    );
+
     @NonNull final LabelState state = new LabelState();
     state.setName(getConfiguration().getLabel());
     state.setEmissionDate(start.getEmissionDate());
@@ -333,6 +369,12 @@ public class UpDownToLabelSensor
     final BooleanValueState current,
     @NonNull final LabelState state
   ) {
+    Logger.getLogger(getClass().getName()).info(
+      "[" + getSensor().get().getIdentifier() + "] Moving " + state.getName() + " " +
+      state.getStart() + " ... " + state.getEnd() +
+      " at " + current.getEmissionDate()
+    );
+
     @NonNull final LabelState mutation = Duplicator.duplicate(state);
     mutation.setStart(current.getEmissionDate());
     mutation.setEmissionDate(current.getEmissionDate());

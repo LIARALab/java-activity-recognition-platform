@@ -12,24 +12,24 @@ import javax.persistence.Table;
 @Table(name = "states_short")
 @PrimaryKeyJoinColumn(name = "state_identifier")
 public class ShortValueState
-  extends NumericValueState<java.lang.Short>
+  extends NumericValueState<Short>
 {
   public ShortValueState () {
-    super(java.lang.Short.class);
+    super(Short.class);
   }
 
-  public ShortValueState (final @NonNull ShortValueState toCopy) {
+  public ShortValueState (@NonNull final ShortValueState toCopy) {
     super(toCopy);
   }
 
   @Column(name = "value", nullable = false)
   @Override
-  public java.lang.@Nullable Short getValue () {
+  public @Nullable Short getValue () {
     return super.getValue();
   }
 
   @Override
-  public void setValue (final java.lang.@Nullable Short value) {
+  public void setValue (@Nullable final Short value) {
     super.setValue(value);
   }
 }

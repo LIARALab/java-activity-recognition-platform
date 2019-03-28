@@ -1,6 +1,7 @@
 package org.liara.api.utils;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.springframework.aop.support.AopUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -21,7 +22,9 @@ public final class Duplicator
   )
   throws DuplicationException
   {
-    @NonNull final Class<? extends Source>       type        = (Class<? extends Source>) toDuplicate.getClass();
+    @NonNull final Class<? extends Source>       type        =
+      (Class<? extends Source>) AopUtils.getTargetClass(
+      toDuplicate);
     @NonNull final Constructor<? extends Source> constructor = getCopyConstructorOrFail(type);
 
     try {

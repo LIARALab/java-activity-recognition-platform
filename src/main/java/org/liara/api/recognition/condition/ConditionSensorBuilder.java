@@ -5,9 +5,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.repository.AnyStateRepository;
 import org.liara.api.data.repository.BooleanValueStateRepository;
 import org.liara.api.data.repository.CorrelationRepository;
+import org.liara.api.io.APIEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +18,7 @@ import java.util.Objects;
 public class ConditionSensorBuilder
 {
   @Nullable
-  private ApplicationEventPublisher _applicationEventPublisher;
+  private APIEventPublisher _applicationEventPublisher;
 
   @Nullable
   private CorrelationRepository _correlationRepository;
@@ -34,13 +34,13 @@ public class ConditionSensorBuilder
     _outputStateRepository = null;
   }
 
-  public @Nullable ApplicationEventPublisher getApplicationEventPublisher () {
+  public @Nullable APIEventPublisher getApplicationEventPublisher () {
     return _applicationEventPublisher;
   }
 
   @Autowired
   public void setApplicationEventPublisher (
-    @Nullable final ApplicationEventPublisher applicationEventPublisher
+    @Nullable final APIEventPublisher applicationEventPublisher
   ) {
     _applicationEventPublisher = applicationEventPublisher;
   }
