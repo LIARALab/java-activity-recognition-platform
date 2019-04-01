@@ -9,6 +9,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.validation.Validator;
 import java.util.Objects;
@@ -27,16 +28,21 @@ public class SensorCollectionBuilder
   @Nullable
   private Validator _validator;
 
+  @Nullable
+  private TransactionTemplate _transactionTemplate;
+
   public SensorCollectionBuilder () {
     _collectionResourceBuilder = null;
     _applicationEventPublisher = null;
     _validator = null;
+    _transactionTemplate = null;
   }
 
   public SensorCollectionBuilder (@NonNull final SensorCollectionBuilder toCopy) {
     _collectionResourceBuilder = toCopy.getCollectionResourceBuilder();
     _applicationEventPublisher = toCopy.getApplicationEventPublisher();
     _validator = toCopy.getValidator();
+    _transactionTemplate = toCopy.getTransactionTemplate();
   }
 
   @Override
@@ -83,6 +89,15 @@ public class SensorCollectionBuilder
     return this;
   }
 
+  public @Nullable TransactionTemplate getTransactionTemplate () {
+    return _transactionTemplate;
+  }
+
+  @Autowired
+  public void setTransactionTemplate (@Nullable final TransactionTemplate transactionTemplate) {
+    _transactionTemplate = transactionTemplate;
+  }
+
   @Override
   public boolean equals (@Nullable final Object other) {
     if (other == null) return false;
@@ -95,12 +110,16 @@ public class SensorCollectionBuilder
       return Objects.equals(
         _collectionResourceBuilder,
         otherNodeCollectionBuilder.getCollectionResourceBuilder()
-      ) &&
-             Objects.equals(
-               _applicationEventPublisher,
-               otherNodeCollectionBuilder.getApplicationEventPublisher()
-             ) &&
-             Objects.equals(_validator, otherNodeCollectionBuilder.getValidator());
+      ) && Objects.equals(
+        _applicationEventPublisher,
+        otherNodeCollectionBuilder.getApplicationEventPublisher()
+      ) && Objects.equals(
+        _validator,
+        otherNodeCollectionBuilder.getValidator()
+      ) && Objects.equals(
+        _transactionTemplate,
+        otherNodeCollectionBuilder.getTransactionTemplate()
+      );
     }
 
     return false;
@@ -111,7 +130,8 @@ public class SensorCollectionBuilder
     return Objects.hash(
       _collectionResourceBuilder,
       _applicationEventPublisher,
-      _validator
+      _validator,
+      _transactionTemplate
     );
   }
 }

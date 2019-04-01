@@ -24,8 +24,9 @@ package org.liara.api.resource.collection;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
+import org.liara.api.data.entity.SensorType;
 import org.liara.api.data.entity.state.State;
-import org.liara.api.event.entity.CreateApplicationEntityEvent;
+import org.liara.api.io.APIEventPublisher;
 import org.liara.api.resource.CollectionResource;
 import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.error.InvalidModelException;
@@ -33,11 +34,12 @@ import org.liara.rest.request.RestRequest;
 import org.liara.rest.response.RestResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Mono;
 
+import javax.persistence.EntityManager;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.util.Objects;
@@ -50,18 +52,22 @@ public class StateCollection
   extends CollectionResource<State>
 {
   @NonNull
-  private final ApplicationEventPublisher _applicationEventPublisher;
+  private final APIEventPublisher _apiEventPublisher;
 
   @NonNull
   private final Validator _validator;
+
+  @NonNull
+  private final TransactionTemplate _transactionTemplate;
 
   @Autowired
   public StateCollection (
     @NonNull final StateCollectionBuilder builder
   ) {
     super(State.class, Objects.requireNonNull(builder.getCollectionResourceBuilder()));
-    _applicationEventPublisher = Objects.requireNonNull(builder.getApplicationEventPublisher());
+    _apiEventPublisher = Objects.requireNonNull(builder.getAPIEventPublisher());
     _validator = Objects.requireNonNull(builder.getValidator());
+    _transactionTemplate = Objects.requireNonNull(builder.getTransactionTemplate());
   }
 
   @Override
@@ -74,9 +80,19 @@ public class StateCollection
     @NonNull final JsonNode jsonNode
   ) {
     if (jsonNode.has("sensorIdentifier")) {
-      return Objects.requireNonNull(Optional.ofNullable(
-        getEntityManager().find(Sensor.class, jsonNode.get("sensorIdentifier").asLong())
-      ).orElseThrow().getTypeInstance()).getEmittedStateClass();
+      @NonNull final EntityManager entityManager = getEntityManagerFactory().createEntityManager();
+      entityManager.getTransaction().begin();
+
+      @NonNull final Optional<Sensor> sensor = Optional.ofNullable(
+        entityManager.find(Sensor.class, jsonNode.get("sensorIdentifier").asLong())
+      );
+
+      entityManager.getTransaction().commit();
+      entityManager.close();
+
+      return sensor.map(Sensor::getTypeInstance)
+               .map(SensorType::getEmittedStateClass)
+               .orElseThrow();
     } else {
       throw new Error("No sensorIdentifier field found into the posted content.");
     }
@@ -85,7 +101,8 @@ public class StateCollection
   public @NonNull Mono<RestResponse> post (@NonNull final State state) {
     try {
       assertIsValid(state);
-      _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, state));
+
+      _transactionTemplate.execute(status -> this.tryToPost(state));
 
       return Mono.just(
         RestResponse.ofType(Long.class).ofModel(
@@ -95,6 +112,18 @@ public class StateCollection
     } catch (@NonNull final InvalidModelException exception) {
       exception.printStackTrace();
       return Mono.error(new IllegalRestRequestException(exception));
+    }
+  }
+
+  private boolean tryToPost (@NonNull final State state) {
+    try {
+      _apiEventPublisher.create(state);
+      return true;
+    } catch (@NonNull final Throwable throwable) {
+      throw new Error(
+        "Unable to post a new state into the application database.",
+        throwable
+      );
     }
   }
 

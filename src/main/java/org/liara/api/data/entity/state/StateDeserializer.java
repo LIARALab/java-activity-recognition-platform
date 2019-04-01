@@ -7,12 +7,13 @@ import com.fasterxml.jackson.databind.node.ValueNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.repository.SensorRepository;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jackson.JsonComponent;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.util.Objects;
@@ -23,12 +24,12 @@ public class StateDeserializer
   extends JsonDeserializer<State>
 {
   @Nullable
-  private SensorRepository _sensorRepository;
+  private EntityManagerFactory _entityManagerFactory;
 
   @Autowired
-  public StateDeserializer (@NonNull final SensorRepository sensorRepository) {
+  public StateDeserializer (@NonNull final EntityManagerFactory entityManagerFactory) {
     super();
-    _sensorRepository = sensorRepository;
+    _entityManagerFactory = entityManagerFactory;
   }
 
   @Override
@@ -57,7 +58,7 @@ public class StateDeserializer
   throws IOException {
     @NonNull final JsonLocation location   = parser.getCurrentLocation();
     @NonNull final TreeNode     objectNode = parser.readValueAsTree();
-    @NonNull final Optional<Sensor> sensor = _sensorRepository.find(
+    @NonNull final Optional<Sensor> sensor = findSensor(
       parseSensorIdentifier(parser, location, objectNode)
     );
 
@@ -81,6 +82,20 @@ public class StateDeserializer
         location
       );
     }
+  }
+
+  private @NonNull Optional<Sensor> findSensor (@NonNull final Long identifier) {
+    @NonNull final EntityManager entityManager = _entityManagerFactory.createEntityManager();
+    entityManager.getTransaction().begin();
+
+    @NonNull final Optional<Sensor> result = Optional.ofNullable(
+      entityManager.find(Sensor.class, identifier)
+    );
+
+    entityManager.getTransaction().commit();
+    entityManager.close();
+
+    return result;
   }
 
   private @NonNull State parseRawState (

@@ -3,7 +3,7 @@ package org.liara.api.resource;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.relation.Relation;
 import org.liara.api.relation.RelationManager;
-import org.liara.collection.jpa.JPAEntityCollection;
+import org.liara.collection.ModelCollection;
 import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.filtering.Filter;
 import org.liara.rest.request.handler.RestRequestHandler;
@@ -13,7 +13,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityManager;
 import javax.persistence.metamodel.ManagedType;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -30,9 +29,6 @@ public class RelationBasedFilteringHandlerFactory
     new HashMap<>();
 
   @NonNull
-  private final EntityManager _entityManager;
-
-  @NonNull
   private final RelationManager _relationManager;
 
   @NonNull
@@ -41,10 +37,8 @@ public class RelationBasedFilteringHandlerFactory
   @Autowired
   public RelationBasedFilteringHandlerFactory (
     @NonNull final RelationManager relationManager,
-    @NonNull final EntityFilteringHandlerFactory entityFilteringHandlerFactory,
-    @NonNull final EntityManager entityManager
+    @NonNull final EntityFilteringHandlerFactory entityFilteringHandlerFactory
   ) {
-    _entityManager = entityManager;
     _relationManager = relationManager;
     _entityFilteringHandlerFactory = entityFilteringHandlerFactory;
   }
@@ -105,8 +99,8 @@ public class RelationBasedFilteringHandlerFactory
   ) {
     return () -> getHandlerFor(relation.getDestinationClass()).map(
       (@NonNull final Operator operator) -> Filter.exists(
-        (JPAEntityCollection) operator.apply(relation.getOperator().apply(
-          new JPAEntityCollection(_entityManager, relation.getDestinationClass())
+        (ModelCollection) operator.apply(relation.getOperator().apply(
+          ModelCollection.create(relation.getDestinationClass())
         ))
       )
     );

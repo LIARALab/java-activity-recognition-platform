@@ -1,13 +1,11 @@
 package org.liara.api.data.repository.database;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.hibernate.CacheMode;
-import org.hibernate.jpa.QueryHints;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.StateRepository;
+import org.liara.api.io.WritingSession;
 import org.liara.collection.operator.cursoring.Cursor;
 
-import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 import java.util.Collection;
@@ -19,14 +17,14 @@ public class DatabaseStateRepository<TimeState extends State>
   implements StateRepository<TimeState>
 {
   @NonNull
-  private final EntityManager _entityManager;
+  private final WritingSession _writingSession;
 
   public DatabaseStateRepository (
-    @NonNull final EntityManager entityManager,
+    @NonNull final WritingSession writingSession,
     @NonNull final Class<TimeState> stateType
   ) {
-    super(entityManager, stateType);
-    _entityManager = entityManager;
+    super(writingSession, stateType);
+    _writingSession = writingSession;
   }
 
   @Override
@@ -35,7 +33,7 @@ public class DatabaseStateRepository<TimeState extends State>
     @NonNull final Collection<@NonNull Long> sensorIdentifiers,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
+    @NonNull final TypedQuery<TimeState> query = _writingSession.getEntityManager().createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state" +
       " WHERE state.emissionDate < :date " +
       "   AND state.sensorIdentifier IN :sensorIdentifiers" +
@@ -46,7 +44,6 @@ public class DatabaseStateRepository<TimeState extends State>
     query.setParameter("date", date);
     query.setParameter("sensorIdentifiers", sensorIdentifiers);
     query.setFirstResult(cursor.getOffset());
-    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -59,18 +56,17 @@ public class DatabaseStateRepository<TimeState extends State>
     @NonNull final Collection<@NonNull Long> sensorIdentifiers,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
+    @NonNull final TypedQuery<TimeState> query = _writingSession.getEntityManager().createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state" +
       " WHERE state.emissionDate > :date" +
       "   AND state.sensorIdentifier IN :sensorIdentifiers" +
-      " ORDER BY state.emissionDate ASC, state.identifier ASC"
-      , getManagedEntity()
+      " ORDER BY state.emissionDate ASC, state.identifier ASC",
+      getManagedEntity()
     );
 
     query.setParameter("date", date);
     query.setParameter("sensorIdentifiers", sensorIdentifiers);
     query.setFirstResult(cursor.getOffset());
-    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -82,7 +78,7 @@ public class DatabaseStateRepository<TimeState extends State>
     @NonNull final Collection<@NonNull Long> sensorIdentifiers,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
+    @NonNull final TypedQuery<TimeState> query = _writingSession.getEntityManager().createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state" +
       " WHERE state.sensorIdentifier IN :sensorIdentifiers" +
       " ORDER BY state.emissionDate ASC, state.identifier ASC",
@@ -91,7 +87,6 @@ public class DatabaseStateRepository<TimeState extends State>
 
     query.setParameter("sensorIdentifiers", sensorIdentifiers);
     query.setFirstResult(cursor.getOffset());
-    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     if (cursor.hasLimit()) query.setMaxResults(cursor.getLimit());
 
@@ -102,7 +97,7 @@ public class DatabaseStateRepository<TimeState extends State>
   public @NonNull Optional<TimeState> findLast (
     @NonNull final Collection<@NonNull Long> sensors
   ) {
-    @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
+    @NonNull final TypedQuery<TimeState> query = _writingSession.getEntityManager().createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state" +
       " WHERE state.sensorIdentifier IN :sensors" +
       " ORDER BY state.emissionDate DESC, state.identifier DESC",
@@ -112,7 +107,6 @@ public class DatabaseStateRepository<TimeState extends State>
     query.setParameter("sensor", sensors);
     query.setFirstResult(0);
     query.setMaxResults(1);
-    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     @NonNull final List<@NonNull TimeState> result = query.getResultList();
 

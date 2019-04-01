@@ -29,9 +29,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.Metamodel;
 import java.util.TimeZone;
@@ -48,20 +46,9 @@ public class Application
   }
 
   @Bean
-  public @NonNull Metamodel getMetamodel (@NonNull final EntityManager entityManager) {
-    return entityManager.getMetamodel();
-  }
-
-  @Primary
-  @Bean("clientEntityManager")
-  public @NonNull EntityManager getClientEntityManager (
-    @NonNull final EntityManagerFactory factory
+  public @NonNull Metamodel getMetamodel (
+    @NonNull final EntityManagerFactory entityManagerFactory
   ) {
-    return factory.createEntityManager();
+    return entityManagerFactory.getMetamodel();
   }
-
-  @Bean("generatorEntityManager")
-  public @NonNull EntityManager getGeneratorEntityManager (
-    @NonNull final EntityManagerFactory factory
-  ) { return factory.createEntityManager(); }
 }

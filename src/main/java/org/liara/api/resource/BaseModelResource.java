@@ -4,12 +4,12 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.relation.Relation;
 import org.liara.api.relation.RelationManager;
-import org.liara.collection.Collection;
-import org.liara.collection.jpa.JPAEntityCollection;
-import org.liara.collection.operator.Composition;
-import org.liara.collection.operator.cursoring.Cursor;
+import org.liara.collection.ModelCollection;
+import org.liara.collection.jpa.JPACollections;
 import org.liara.rest.metamodel.RestResource;
 
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -66,15 +66,7 @@ public class BaseModelResource<Model extends ApplicationEntity>
         _collectionResourceBuilder
       );
     } else {
-      @NonNull final Collection collection = new JPAEntityCollection(
-        _collectionResourceBuilder.getEntityManager(),
-        relation.getDestinationClass()
-      );
-
-      @NonNull final List<Object> results = Composition.of(
-        Cursor.FIRST,
-        relation.getOperator(getModel())
-      ).apply(collection).fetch();
+      @NonNull final List<?> results = fetchFirst(relation);
 
       if (results.isEmpty()) {
         throw new NoSuchElementException();
@@ -87,5 +79,29 @@ public class BaseModelResource<Model extends ApplicationEntity>
         return builder.build();
       }
     }
+  }
+
+  private @NonNull List<@NonNull ?> fetchFirst (@NonNull final Relation relation) {
+    final org.liara.collection.@NonNull Collection<?> collection = relation.getOperator(
+      getModel()
+    ).apply(ModelCollection.create(relation.getDestinationClass()));
+
+    @NonNull final EntityManager entityManager =
+      _collectionResourceBuilder.getEntityManagerFactory().createEntityManager();
+    entityManager.getTransaction().begin();
+
+    @NonNull final TypedQuery<?> query = entityManager.createQuery(
+      JPACollections.getQuery(collection, ":this").toString(),
+      collection.getModelClass()
+    ).setFirstResult(0).setMaxResults(1);
+
+    JPACollections.getParameters(collection).forEach(query::setParameter);
+
+    @NonNull final List<@NonNull ?> result = query.getResultList();
+
+    entityManager.getTransaction().commit();
+    entityManager.close();
+
+    return result;
   }
 }

@@ -35,6 +35,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Mono;
 
 import javax.validation.ConstraintViolation;
@@ -59,6 +60,9 @@ public final class NodeCollection
   @NonNull
   private final Validator _validator;
 
+  @NonNull
+  private final TransactionTemplate _transactionTemplate;
+
   @Autowired
   public NodeCollection (
     @NonNull final NodeCollectionBuilder builder
@@ -66,6 +70,7 @@ public final class NodeCollection
     super(Node.class, Objects.requireNonNull(builder.getCollectionResourceBuilder()));
     _applicationEventPublisher = Objects.requireNonNull(builder.getApplicationEventPublisher());
     _validator = Objects.requireNonNull(builder.getValidator());
+    _transactionTemplate = Objects.requireNonNull(builder.getTransactionTemplate());
   }
 
   @Override
@@ -76,7 +81,12 @@ public final class NodeCollection
   public @NonNull Mono<RestResponse> post (@NonNull final NodeSchema schema) {
     try {
       assertIsValid(schema);
-      _applicationEventPublisher.publishEvent(new CreateNodeEvent(this, schema));
+
+      _transactionTemplate.execute(status -> {
+        _applicationEventPublisher.publishEvent(new CreateNodeEvent(this, schema));
+        return null;
+      });
+
       Objects.requireNonNull(schema.getIdentifier());
       return Mono.just(RestResponse.ofType(Long.class).ofModel(schema.getIdentifier()));
     } catch (@NonNull final InvalidModelException exception) {

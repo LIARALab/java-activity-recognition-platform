@@ -21,12 +21,14 @@
  ******************************************************************************/
 package org.liara.api;
 
-import org.hibernate.dialect.MySQL5Dialect;
+import org.hibernate.dialect.MySQL8Dialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.type.BooleanType;
 import org.hibernate.type.LongType;
 
-public class DatabaseDialect extends MySQL5Dialect {
+public class DatabaseDialect
+  extends MySQL8Dialect
+{
   public DatabaseDialect() {
       super();
       registerKeyword("microsecond");

@@ -6,15 +6,14 @@ import org.hibernate.jpa.QueryHints;
 import org.liara.api.data.entity.state.Correlation;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.CorrelationRepository;
+import org.liara.api.io.WritingSession;
 import org.liara.collection.operator.cursoring.Cursor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
@@ -26,14 +25,14 @@ public class DatabaseCorrelationRepository
   implements CorrelationRepository
 {
   @NonNull
-  private final EntityManager _entityManager;
+  private final WritingSession _writingSession;
 
   @Autowired
   public DatabaseCorrelationRepository (
-    @Qualifier("generatorEntityManager") @NonNull final EntityManager entityManager
+    @NonNull final WritingSession writingSession
   ) {
-    super(entityManager, Correlation.class);
-    _entityManager = entityManager;
+    super(writingSession, Correlation.class);
+    _writingSession = writingSession;
   }
 
   @Override
@@ -41,7 +40,7 @@ public class DatabaseCorrelationRepository
     @NonNull final Long stateIdentifier,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TypedQuery<Correlation> query = _entityManager.createQuery(
+    @NonNull final TypedQuery<Correlation> query = _writingSession.getEntityManager().createQuery(
       "SELECT correlation FROM " + getManagedEntity().getName() + " correlation" +
       " WHERE correlation.startStateIdentifier = :stateIdentifier" +
       "    OR correlation.endStateIdentifier = :stateIdentifier" +
@@ -63,7 +62,7 @@ public class DatabaseCorrelationRepository
     @NonNull final Long stateIdentifier,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TypedQuery<Correlation> query = _entityManager.createQuery(
+    @NonNull final TypedQuery<Correlation> query = _writingSession.getEntityManager().createQuery(
       "SELECT correlation FROM " + getManagedEntity().getName() + " correlation " +
       " WHERE correlation.startStateIdentifier = :stateIdentifier " +
       " ORDER BY correlation.identifier",
@@ -84,7 +83,7 @@ public class DatabaseCorrelationRepository
     @NonNull final String name, @NonNull final Long stateIdentifier,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TypedQuery<Correlation> query = _entityManager.createQuery(
+    @NonNull final TypedQuery<Correlation> query = _writingSession.getEntityManager().createQuery(
       "SELECT correlation FROM " + getManagedEntity().getName() + " correlation" +
       " WHERE correlation.startStateIdentifier = :stateIdentifier" +
       "   AND correlation.name = :name" +
@@ -108,7 +107,7 @@ public class DatabaseCorrelationRepository
     @NonNull final String name, @NonNull final Long stateIdentifier,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TypedQuery<Correlation> query = _entityManager.createQuery(
+    @NonNull final TypedQuery<Correlation> query = _writingSession.getEntityManager().createQuery(
       "SELECT correlation FROM " + getManagedEntity().getName() + " correlation" +
       " INNER JOIN " + State.class.getName() + " startState" +
       "         ON correlation.startStateIdentifier = startState.identifier" +
@@ -135,7 +134,7 @@ public class DatabaseCorrelationRepository
     @NonNull final Long state,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TypedQuery<Correlation> query = _entityManager.createQuery(
+    @NonNull final TypedQuery<Correlation> query = _writingSession.getEntityManager().createQuery(
       "SELECT correlation FROM " + getManagedEntity().getName() + " correlation" +
       " WHERE correlation.endStateIdentifier = :state" +
       " ORDER BY correlation.identifier ASC",
@@ -157,7 +156,7 @@ public class DatabaseCorrelationRepository
     @NonNull final Long stateIdentifier,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TypedQuery<Correlation> query = _entityManager.createQuery(
+    @NonNull final TypedQuery<Correlation> query = _writingSession.getEntityManager().createQuery(
       "SELECT correlation FROM " + getManagedEntity().getName() + " correlation" +
       " WHERE correlation.endStateIdentifier = :stateIdentifier" +
       "   AND correlation.name = :name" +
@@ -182,7 +181,7 @@ public class DatabaseCorrelationRepository
     @NonNull final Long stateIdentifier,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TypedQuery<Correlation> query = _entityManager.createQuery(
+    @NonNull final TypedQuery<Correlation> query = _writingSession.getEntityManager().createQuery(
       "SELECT correlation FROM " + getManagedEntity().getName() + " correlation" +
       " INNER JOIN " + State.class.getName() + " startState " +
       "         ON correlation.startStateIdentifier = startState.identifier " +

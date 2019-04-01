@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.util.Objects;
 
 @Component
@@ -25,7 +25,7 @@ public class CollectionResourceBuilder
   private RelationBasedOrderingProcessorFactory _entityOrderingHandlerFactory;
 
   @Nullable
-  private EntityManager _entityManager;
+  private EntityManagerFactory _entityManagerFactory;
 
   @Nullable
   private RelationManager _relationManager;
@@ -33,14 +33,14 @@ public class CollectionResourceBuilder
   public CollectionResourceBuilder () {
     _entityFilteringHandlerFactory = null;
     _entityOrderingHandlerFactory = null;
-    _entityManager = null;
+    _entityManagerFactory = null;
     _relationManager = null;
   }
 
   public CollectionResourceBuilder (@NonNull final CollectionResourceBuilder toCopy) {
     _entityFilteringHandlerFactory = toCopy.getEntityFilteringHandlerFactory();
     _entityOrderingHandlerFactory = toCopy.getEntityOrderingHandlerFactory();
-    _entityManager = toCopy.getEntityManager();
+    _entityManagerFactory = toCopy.getEntityManagerFactory();
     _relationManager = toCopy.getRelationManager();
   }
 
@@ -83,15 +83,15 @@ public class CollectionResourceBuilder
     return this;
   }
 
-  public @Nullable EntityManager getEntityManager () {
-    return _entityManager;
+  public @Nullable EntityManagerFactory getEntityManagerFactory () {
+    return _entityManagerFactory;
   }
 
   @Autowired
-  public @NonNull CollectionResourceBuilder setEntityManager (
-    @Nullable final EntityManager entityManager
+  public @NonNull CollectionResourceBuilder setEntityManagerFactory (
+    @Nullable final EntityManagerFactory entityManagerFactory
   ) {
-    _entityManager = entityManager;
+    _entityManagerFactory = entityManagerFactory;
     return this;
   }
 
@@ -117,8 +117,8 @@ public class CollectionResourceBuilder
                otherCollectionResourceBuilder.getEntityOrderingHandlerFactory()
              ) &&
              Objects.equals(
-               _entityManager,
-               otherCollectionResourceBuilder.getEntityManager()
+               _entityManagerFactory,
+               otherCollectionResourceBuilder.getEntityManagerFactory()
              ) &&
              Objects.equals(
                _relationManager,
@@ -134,7 +134,7 @@ public class CollectionResourceBuilder
     return Objects.hash(
       _entityFilteringHandlerFactory,
       _entityOrderingHandlerFactory,
-      _entityManager,
+      _entityManagerFactory,
       _relationManager
     );
   }

@@ -3,13 +3,14 @@ package org.liara.api.resource.collection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.io.APIEventPublisher;
 import org.liara.api.resource.CollectionResourceBuilder;
 import org.liara.api.utils.Builder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.validation.Validator;
 import java.util.Objects;
@@ -23,7 +24,7 @@ public class StateCollectionBuilder
   private CollectionResourceBuilder _collectionResourceBuilder;
 
   @Nullable
-  private ApplicationEventPublisher _applicationEventPublisher;
+  private APIEventPublisher _apiEventPublisher;
 
   @Nullable
   private Validator _validator;
@@ -31,18 +32,23 @@ public class StateCollectionBuilder
   @Nullable
   private ObjectMapper _objectMapper;
 
+  @Nullable
+  private TransactionTemplate _transactionTemplate;
+
   public StateCollectionBuilder () {
     _collectionResourceBuilder = null;
-    _applicationEventPublisher = null;
+    _apiEventPublisher = null;
     _validator = null;
     _objectMapper = null;
+    _transactionTemplate = null;
   }
 
   public StateCollectionBuilder (@NonNull final StateCollectionBuilder toCopy) {
     _collectionResourceBuilder = toCopy.getCollectionResourceBuilder();
-    _applicationEventPublisher = toCopy.getApplicationEventPublisher();
+    _apiEventPublisher = toCopy.getAPIEventPublisher();
     _validator = toCopy.getValidator();
     _objectMapper = toCopy.getObjectMapper();
+    _transactionTemplate = toCopy.getTransactionTemplate();
   }
 
   @Override
@@ -64,15 +70,15 @@ public class StateCollectionBuilder
     _objectMapper = objectMapper;
   }
 
-  public @Nullable ApplicationEventPublisher getApplicationEventPublisher () {
-    return _applicationEventPublisher;
+  public @Nullable APIEventPublisher getAPIEventPublisher () {
+    return _apiEventPublisher;
   }
 
   @Autowired
-  public @NonNull StateCollectionBuilder setApplicationEventPublisher (
-    @Nullable final ApplicationEventPublisher applicationEventPublisher
+  public @NonNull StateCollectionBuilder setAPIEventPublisher (
+    @Nullable final APIEventPublisher apiEventPublisher
   ) {
-    _applicationEventPublisher = applicationEventPublisher;
+    _apiEventPublisher = apiEventPublisher;
     return this;
   }
 
@@ -98,6 +104,15 @@ public class StateCollectionBuilder
     return this;
   }
 
+  public @Nullable TransactionTemplate getTransactionTemplate () {
+    return _transactionTemplate;
+  }
+
+  @Autowired
+  public void setTransactionTemplate (@Nullable final TransactionTemplate transactionTemplate) {
+    _transactionTemplate = transactionTemplate;
+  }
+
   @Override
   public boolean equals (@Nullable final Object other) {
     if (other == null) return false;
@@ -105,20 +120,23 @@ public class StateCollectionBuilder
 
     if (other instanceof StateCollectionBuilder) {
       @NonNull
-      final StateCollectionBuilder otherNodeCollectionBuilder = (StateCollectionBuilder) other;
+      final StateCollectionBuilder otherStateCollectionBuilder = (StateCollectionBuilder) other;
 
       return Objects.equals(
         _collectionResourceBuilder,
-        otherNodeCollectionBuilder.getCollectionResourceBuilder()
+        otherStateCollectionBuilder.getCollectionResourceBuilder()
       ) && Objects.equals(
-        _applicationEventPublisher,
-        otherNodeCollectionBuilder.getApplicationEventPublisher()
+        _apiEventPublisher,
+        otherStateCollectionBuilder.getAPIEventPublisher()
       ) && Objects.equals(
         _validator,
-        otherNodeCollectionBuilder.getValidator()
+        otherStateCollectionBuilder.getValidator()
       ) && Objects.equals(
         _objectMapper,
-        otherNodeCollectionBuilder.getObjectMapper()
+        otherStateCollectionBuilder.getObjectMapper()
+      ) && Objects.equals(
+        _transactionTemplate,
+        otherStateCollectionBuilder.getTransactionTemplate()
       );
     }
 
@@ -129,9 +147,10 @@ public class StateCollectionBuilder
   public int hashCode () {
     return Objects.hash(
       _collectionResourceBuilder,
-      _applicationEventPublisher,
+      _apiEventPublisher,
       _validator,
-      _objectMapper
+      _objectMapper,
+      _transactionTemplate
     );
   }
 }

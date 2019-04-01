@@ -34,6 +34,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Mono;
 
 import javax.validation.ConstraintViolation;
@@ -52,12 +53,16 @@ public class SensorCollection
   @NonNull
   private final Validator _validator;
 
+  @NonNull
+  private final TransactionTemplate _transactionTemplate;
+
   @Autowired
   public SensorCollection (@NonNull final SensorCollectionBuilder builder) {
     super(Sensor.class, Objects.requireNonNull(builder.getCollectionResourceBuilder()));
 
     _applicationEventPublisher = Objects.requireNonNull(builder.getApplicationEventPublisher());
     _validator = Objects.requireNonNull(builder.getValidator());
+    _transactionTemplate = Objects.requireNonNull(builder.getTransactionTemplate());
   }
 
   @Override
@@ -68,7 +73,11 @@ public class SensorCollection
   public @NonNull Mono<RestResponse> post (@NonNull final Sensor sensor) {
     try {
       assertIsValid(sensor);
-      _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, sensor));
+
+      _transactionTemplate.execute(status -> {
+        _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, sensor));
+        return null;
+      });
 
       return Mono.just(RestResponse.ofType(Long.class).ofModel(
         Objects.requireNonNull(sensor.getIdentifier()))

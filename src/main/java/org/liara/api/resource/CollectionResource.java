@@ -26,7 +26,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.utils.Duplicator;
 import org.liara.collection.Collection;
-import org.liara.collection.jpa.JPAEntityCollection;
+import org.liara.collection.ModelCollection;
 import org.liara.collection.operator.Operator;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.liara.rest.cursor.FreeCursorHandler;
@@ -42,6 +42,8 @@ import org.liara.selection.processor.ProcessorExecutor;
 import reactor.core.publisher.Mono;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.TypedQuery;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -68,7 +70,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
   private final RelationBasedOrderingProcessorFactory _entityOrderingHandlerFactory;
 
   @NonNull
-  private final EntityManager _entityManager;
+  private final EntityManagerFactory _entityManagerFactory;
 
   @NonNull
   private final CollectionResourceBuilder _builder;
@@ -82,7 +84,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
       Objects.requireNonNull(builder.getEntityOrderingHandlerFactory());
     _entityFilteringHandlerFactory =
       Objects.requireNonNull(builder.getEntityFilteringHandlerFactory());
-    _entityManager = Objects.requireNonNull(builder.getEntityManager());
+    _entityManagerFactory = Objects.requireNonNull(builder.getEntityManagerFactory());
     _builder = Duplicator.duplicate(builder);
   }
 
@@ -119,12 +121,18 @@ public class CollectionResource<Entity extends ApplicationEntity>
 
   public @NonNull ModelResource<Entity> getFirstModelResource ()
   throws NoSuchElementException {
-    @NonNull final List<@NonNull Entity> identifiers = _entityManager.createQuery(
+    @NonNull final EntityManager entityManager = _entityManagerFactory.createEntityManager();
+    entityManager.getTransaction().begin();
+
+    @NonNull final List<@NonNull Entity> identifiers = entityManager.createQuery(
       "SELECT model " +
       "FROM " + _modelClass.getName() + " model " +
       "ORDER BY model.identifier ASC",
       getModelClass()
     ).setMaxResults(1).getResultList();
+
+    entityManager.getTransaction().commit();
+    entityManager.close();
 
     if (identifiers.isEmpty()) {
       throw new NoSuchElementException("No first model found for this collection.");
@@ -135,12 +143,18 @@ public class CollectionResource<Entity extends ApplicationEntity>
 
   public @NonNull ModelResource<Entity> getLastModelResource ()
   throws NoSuchElementException {
-    @NonNull final List<@NonNull Entity> identifiers = _entityManager.createQuery(
+    @NonNull final EntityManager entityManager = _entityManagerFactory.createEntityManager();
+    entityManager.getTransaction().begin();
+
+    @NonNull final List<@NonNull Entity> identifiers = entityManager.createQuery(
       "SELECT model " +
       "FROM " + _modelClass.getName() + " model " +
       "ORDER BY model.identifier DESC",
       getModelClass()
     ).setMaxResults(1).getResultList();
+
+    entityManager.getTransaction().commit();
+    entityManager.close();
 
     if (identifiers.isEmpty()) {
       throw new NoSuchElementException("No last model found for this collection.");
@@ -151,14 +165,24 @@ public class CollectionResource<Entity extends ApplicationEntity>
 
   public @NonNull ModelResource<Entity> getModelResource (@NonNull final UUID identifier)
   throws NoSuchElementException {
-    @NonNull final List<@NonNull Entity> identifiers = _entityManager.createQuery(
+    @NonNull final EntityManager entityManager = _entityManagerFactory.createEntityManager();
+    entityManager.getTransaction().begin();
+
+    @NonNull final TypedQuery<Entity> query = entityManager.createQuery(
       "SELECT model " +
       "FROM " + _modelClass.getName() + " model " +
       "WHERE model.universalUniqueIdentifier = :identifier " +
       "ORDER BY model.identifier DESC",
       getModelClass()
-    ).setParameter("identifier", identifier.toString())
-                                                         .setMaxResults(1).getResultList();
+    );
+
+    query.setParameter("identifier", identifier.toString());
+    query.setMaxResults(1);
+
+    @NonNull final List<@NonNull Entity> identifiers = query.getResultList();
+
+    entityManager.getTransaction().commit();
+    entityManager.close();
 
     if (identifiers.isEmpty()) {
       throw new NoSuchElementException(
@@ -173,8 +197,19 @@ public class CollectionResource<Entity extends ApplicationEntity>
     @NonNull final Long identifier
   )
   throws NoSuchElementException {
+    @NonNull final EntityManager entityManager = _entityManagerFactory.createEntityManager();
+    entityManager.getTransaction().begin();
+
+    @NonNull final Optional<Entity> model = Optional.ofNullable(
+      entityManager.find(_modelClass, identifier)
+    );
+
+    entityManager.getTransaction().commit();
+    entityManager.close();
+
+
     return toModelResource(
-      Optional.ofNullable(_entityManager.find(_modelClass, identifier)).orElseThrow(
+      model.orElseThrow(
         () -> new NoSuchElementException(
           "No model of type " + _modelClass.getName() + " with identifier " +
           identifier.toString() + " found into this collection."
@@ -201,11 +236,19 @@ public class CollectionResource<Entity extends ApplicationEntity>
 
       configuration.validate(request.getParameters()).assertRequestIsValid();
 
-      return Mono.just(
-        RestResponse.ofCollection(
-          configuration.parse(request.getParameters()).apply(getCollection())
-        )
-      );
+      @NonNull final Operator      operator   = configuration.parse(request.getParameters());
+      @NonNull final Collection<?> collection = operator.apply(getCollection());
+
+      @NonNull final EntityManager entityManager = getEntityManagerFactory().createEntityManager();
+      entityManager.getTransaction().begin();
+
+      @NonNull final RestResponse<?> response = RestResponse.ofCollection(collection)
+                                                  .resolve(entityManager);
+
+      entityManager.getTransaction().commit();
+      entityManager.close();
+
+      return Mono.just(response);
     } catch (@NonNull final InvalidAPIRequestException exception) {
       throw new IllegalRestRequestException(exception);
     }
@@ -220,7 +263,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
   }
 
   public @NonNull Collection<Entity> getCollection () {
-    return new JPAEntityCollection<>(_entityManager, getModelClass());
+    return new ModelCollection<>(getModelClass());
   }
 
   public @NonNull Class<Entity> getModelClass () {
@@ -247,8 +290,8 @@ public class CollectionResource<Entity extends ApplicationEntity>
     return _entityOrderingHandlerFactory;
   }
 
-  public @NonNull EntityManager getEntityManager () {
-    return _entityManager;
+  public @NonNull EntityManagerFactory getEntityManagerFactory () {
+    return _entityManagerFactory;
   }
 
   @Override
@@ -259,16 +302,19 @@ public class CollectionResource<Entity extends ApplicationEntity>
     if (other instanceof CollectionResource) {
       @NonNull final CollectionResource otherCollectionResource = (CollectionResource) other;
 
-      return Objects.equals(_modelClass, otherCollectionResource.getModelClass()) &&
-             Objects.equals(
-               _entityFilteringHandlerFactory,
-               otherCollectionResource.getEntityFilteringHandlerFactory()
-             ) &&
-             Objects.equals(
-               _entityOrderingHandlerFactory,
-               otherCollectionResource.getEntityOrderingHandlerFactory()
-             ) &&
-             Objects.equals(_entityManager, otherCollectionResource.getEntityManager());
+      return Objects.equals(
+        _modelClass,
+        otherCollectionResource.getModelClass()
+      ) && Objects.equals(
+        _entityFilteringHandlerFactory,
+        otherCollectionResource.getEntityFilteringHandlerFactory()
+      ) && Objects.equals(
+        _entityOrderingHandlerFactory,
+        otherCollectionResource.getEntityOrderingHandlerFactory()
+      ) && Objects.equals(
+        _entityManagerFactory,
+        otherCollectionResource.getEntityManagerFactory()
+      );
     }
 
     return false;
@@ -280,7 +326,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
       _modelClass,
       _entityFilteringHandlerFactory,
       _entityOrderingHandlerFactory,
-      _entityManager
+      _entityManagerFactory
     );
   }
 }

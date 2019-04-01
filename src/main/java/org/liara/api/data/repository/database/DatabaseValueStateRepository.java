@@ -5,9 +5,9 @@ import org.hibernate.CacheMode;
 import org.hibernate.jpa.QueryHints;
 import org.liara.api.data.entity.state.ValueState;
 import org.liara.api.data.repository.ValueStateRepository;
+import org.liara.api.io.WritingSession;
 import org.liara.collection.operator.cursoring.Cursor;
 
-import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -17,14 +17,14 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
   implements ValueStateRepository<Value, Wrapper>
 {
   @NonNull
-  private final EntityManager _entityManager;
+  private final WritingSession _writingSession;
 
   public DatabaseValueStateRepository (
-    @NonNull final EntityManager entityManager,
+    @NonNull final WritingSession writingSession,
     @NonNull final Class<Wrapper> type
   ) {
-    super(entityManager, type);
-    _entityManager = entityManager;
+    super(writingSession, type);
+    _writingSession = writingSession;
   }
 
   @Override
@@ -35,7 +35,7 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
     @NonNull final Cursor cursor
   )
   {
-    @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
+    @NonNull final TypedQuery<Wrapper> states = _writingSession.getEntityManager().createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state " +
       " WHERE stat.emissionDate < :date " +
       "   AND state.sensorIdentifier IN :sensors " +
@@ -63,7 +63,7 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
     @NonNull final Cursor cursor
   )
   {
-    @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
+    @NonNull final TypedQuery<Wrapper> states = _writingSession.getEntityManager().createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state " +
       " WHERE state.emissionDate > :date " +
       "   AND state.sensorIdentifier IN :sensors " +
@@ -89,7 +89,7 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
-    @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
+    @NonNull final TypedQuery<Wrapper> states = _writingSession.getEntityManager().createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state " +
       " WHERE state.sensorIdentifier IN :sensors " +
       "   AND state.value = :value" +
