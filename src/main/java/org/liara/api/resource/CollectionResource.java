@@ -28,6 +28,7 @@ import org.liara.api.utils.Duplicator;
 import org.liara.collection.Collection;
 import org.liara.collection.ModelCollection;
 import org.liara.collection.operator.Operator;
+import org.liara.collection.operator.aggregate.Aggregate;
 import org.liara.request.validator.error.InvalidAPIRequestException;
 import org.liara.rest.cursor.FreeCursorHandler;
 import org.liara.rest.error.IllegalRestRequestException;
@@ -94,7 +95,8 @@ public class CollectionResource<Entity extends ApplicationEntity>
            IS_LONG.test(name) ||
            "first".equalsIgnoreCase(name) ||
            "last".equalsIgnoreCase(name) ||
-           "aggregate".equalsIgnoreCase(name)
+           "aggregate".equalsIgnoreCase(name) ||
+           "count".equalsIgnoreCase(name)
       ;
   }
 
@@ -121,7 +123,21 @@ public class CollectionResource<Entity extends ApplicationEntity>
       return getAggregationResource();
     }
 
+    if ("count".equalsIgnoreCase(name)) {
+      return getPartialAggregationResource(Aggregate.expression("COUNT(:this)"));
+    }
+
     return FilterableRestResource.super.getResource(name);
+  }
+
+  private @NonNull RestResource getPartialAggregationResource (
+    @NonNull final Aggregate expression
+  ) {
+    return new PartialAggregationResource<>(
+      Arrays.asList(expression),
+      this,
+      Objects.requireNonNull(_builder.getAggregationResourceBuilder())
+    );
   }
 
   private @NonNull RestResource getAggregationResource () {
