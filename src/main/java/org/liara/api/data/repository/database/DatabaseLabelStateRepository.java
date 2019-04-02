@@ -5,12 +5,12 @@ import org.hibernate.CacheMode;
 import org.hibernate.jpa.QueryHints;
 import org.liara.api.data.entity.state.LabelState;
 import org.liara.api.data.repository.LabelStateRepository;
-import org.liara.api.io.WritingSession;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -24,12 +24,12 @@ public class DatabaseLabelStateRepository
   implements LabelStateRepository
 {
   @NonNull
-  private final WritingSession _writingSession;
+  private final EntityManager _entityManager;
 
-  public DatabaseLabelStateRepository (@NonNull final WritingSession writingSession) {
-    super(writingSession, LabelState.class);
+  public DatabaseLabelStateRepository (@NonNull final EntityManager entityManager) {
+    super(entityManager, LabelState.class);
 
-    _writingSession = writingSession;
+    _entityManager = entityManager;
   }
 
   @Override
@@ -37,7 +37,7 @@ public class DatabaseLabelStateRepository
     @NonNull final ZonedDateTime area,
     @NonNull final Long sensorIdentifier
   ) {
-    @NonNull final TypedQuery<LabelState> query = _writingSession.getEntityManager().createQuery(
+    @NonNull final TypedQuery<LabelState> query = _entityManager.createQuery(
       "SELECT label FROM " + getManagedEntity().getName() + " label" +
       " WHERE label.start <= :area " +
       "   AND (label.end IS NULL OR label.end >= :area)" +

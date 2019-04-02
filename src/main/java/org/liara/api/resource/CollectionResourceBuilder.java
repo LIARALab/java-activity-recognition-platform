@@ -19,6 +19,9 @@ import java.util.Objects;
 public class CollectionResourceBuilder
 {
   @Nullable
+  private AggregationResourceBuilder _aggregationResourceBuilder;
+
+  @Nullable
   private RelationBasedFilteringHandlerFactory _entityFilteringHandlerFactory;
 
   @Nullable
@@ -35,6 +38,7 @@ public class CollectionResourceBuilder
     _entityOrderingHandlerFactory = null;
     _entityManagerFactory = null;
     _relationManager = null;
+    _aggregationResourceBuilder = null;
   }
 
   public CollectionResourceBuilder (@NonNull final CollectionResourceBuilder toCopy) {
@@ -42,12 +46,24 @@ public class CollectionResourceBuilder
     _entityOrderingHandlerFactory = toCopy.getEntityOrderingHandlerFactory();
     _entityManagerFactory = toCopy.getEntityManagerFactory();
     _relationManager = toCopy.getRelationManager();
+    _aggregationResourceBuilder = toCopy.getAggregationResourceBuilder();
   }
 
   public <Model extends ApplicationEntity> @NonNull CollectionResource<Model> build (
     @NonNull final Class<Model> modelClass
   ) {
     return new CollectionResource<>(modelClass, this);
+  }
+
+  public @Nullable AggregationResourceBuilder getAggregationResourceBuilder () {
+    return _aggregationResourceBuilder;
+  }
+
+  @Autowired
+  public void setAggregationResourceBuilder (
+    @Nullable final AggregationResourceBuilder aggregationResourceBuilder
+  ) {
+    _aggregationResourceBuilder = aggregationResourceBuilder;
   }
 
   public @NonNull RelationManager getRelationManager () {
@@ -123,6 +139,10 @@ public class CollectionResourceBuilder
              Objects.equals(
                _relationManager,
                otherCollectionResourceBuilder.getRelationManager()
+             ) &&
+             Objects.equals(
+               _aggregationResourceBuilder,
+               otherCollectionResourceBuilder.getAggregationResourceBuilder()
              );
     }
 
@@ -135,7 +155,8 @@ public class CollectionResourceBuilder
       _entityFilteringHandlerFactory,
       _entityOrderingHandlerFactory,
       _entityManagerFactory,
-      _relationManager
+      _relationManager,
+      _aggregationResourceBuilder
     );
   }
 }

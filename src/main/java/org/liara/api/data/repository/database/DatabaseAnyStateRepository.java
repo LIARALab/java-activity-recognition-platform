@@ -3,12 +3,13 @@ package org.liara.api.data.repository.database;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.AnyStateRepository;
-import org.liara.api.io.WritingSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
 
 @Component
 @Scope(BeanDefinition.SCOPE_SINGLETON)
@@ -19,8 +20,8 @@ public class DatabaseAnyStateRepository
 {
   @Autowired
   public DatabaseAnyStateRepository (
-    @NonNull final WritingSession session
+    @NonNull final EntityManager entityManager
   ) {
-    super(session, State.class);
+    super(entityManager, State.class);
   }
 }

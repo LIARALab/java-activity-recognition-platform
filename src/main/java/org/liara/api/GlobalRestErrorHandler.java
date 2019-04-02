@@ -3,6 +3,8 @@ package org.liara.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.antlr.v4.misc.OrderedHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.liara.request.validator.error.InvalidAPIRequestException;
+import org.liara.rest.error.IllegalRestRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.AbstractErrorWebExceptionHandler;
@@ -69,7 +71,34 @@ public class GlobalRestErrorHandler
       }
     }
 
+    if (throwable instanceof IllegalRestRequestException) {
+      return renderIllegalRestRequestException((IllegalRestRequestException) throwable, request);
+    }
+
     return render500Error(request);
+  }
+
+  private @NonNull Mono<ServerResponse> renderIllegalRestRequestException (
+    @NonNull final IllegalRestRequestException exception,
+    @NonNull final ServerRequest request
+  ) {
+    if (exception.getCause() instanceof InvalidAPIRequestException) {
+      return renderInvalidAPIRequestException((InvalidAPIRequestException) exception.getCause());
+    }
+
+    return render500Error(request);
+  }
+
+  private @NonNull Mono<ServerResponse> renderInvalidAPIRequestException (
+    @NonNull final InvalidAPIRequestException exception
+  ) {
+    @NonNull final Map<@NonNull String, @NonNull Object> body = new HashMap<>();
+    body.put("errors", exception.getErrors());
+    body.put("request", exception.getRequest());
+
+    return ServerResponse.status(HttpStatus.BAD_REQUEST)
+             .contentType(MediaType.APPLICATION_JSON)
+             .syncBody(body);
   }
 
   private @NonNull Mono<ServerResponse> render404Error (@NonNull final ServerRequest request) {

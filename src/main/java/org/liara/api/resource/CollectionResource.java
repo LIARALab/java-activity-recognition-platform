@@ -93,7 +93,8 @@ public class CollectionResource<Entity extends ApplicationEntity>
     return IS_UUID4.test(name) ||
            IS_LONG.test(name) ||
            "first".equalsIgnoreCase(name) ||
-           "last".equalsIgnoreCase(name)
+           "last".equalsIgnoreCase(name) ||
+           "aggregate".equalsIgnoreCase(name)
       ;
   }
 
@@ -116,7 +117,15 @@ public class CollectionResource<Entity extends ApplicationEntity>
       return getLastModelResource();
     }
 
+    if ("aggregate".equalsIgnoreCase(name)) {
+      return getAggregationResource();
+    }
+
     return FilterableRestResource.super.getResource(name);
+  }
+
+  private @NonNull RestResource getAggregationResource () {
+    return Objects.requireNonNull(_builder.getAggregationResourceBuilder()).build(this);
   }
 
   public @NonNull ModelResource<Entity> getFirstModelResource ()

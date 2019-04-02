@@ -2,9 +2,9 @@ package org.liara.api.data.tree;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.io.WritingSession;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
@@ -12,11 +12,11 @@ public class DatabaseNestedSetRepository
   implements NestedSetRepository
 {
   @NonNull
-  private final WritingSession _writingSession;
+  private final EntityManager _entityManager;
 
   @Autowired
-  public DatabaseNestedSetRepository (@NonNull final WritingSession writingSession) {
-    _writingSession = writingSession;
+  public DatabaseNestedSetRepository (@NonNull final EntityManager entityManager) {
+    _entityManager = entityManager;
   }
 
   public void attachNode (@NonNull final NestedSet node) {
@@ -49,12 +49,12 @@ public class DatabaseNestedSetRepository
       node.getCoordinates().setDepth(parent.getCoordinates().getDepth() + 1);
     }
 
-    _writingSession.getEntityManager().merge(node);
-    _writingSession.getEntityManager().flush();
+    _entityManager.merge(node);
+    _entityManager.flush();
   }
 
   public @NonNull Integer getRootNestedSetStart (@NonNull final NestedSet toAdd) {
-    @NonNull final TypedQuery<Integer> query = _writingSession.getEntityManager().createQuery(
+    @NonNull final TypedQuery<Integer> query = _entityManager.createQuery(
       "SELECT COALESCE(MAX(node.coordinates.end)," +
       " 0) + 1 " + "FROM " + toAdd.getClass().getName() + " node " +
       "WHERE node.identifier != :toAddIdentifier",
@@ -67,25 +67,25 @@ public class DatabaseNestedSetRepository
   }
 
   private void expand (@NonNull final NestedSet parent) {
-    _writingSession.getEntityManager().createQuery(
+    _entityManager.createQuery(
       "UPDATE " + parent.getClass().getName() + " node " + "SET node.coordinates.start = node.coordinates.start + 2 " +
       "WHERE node.coordinates.start > :parentSetEnd")
       .setParameter("parentSetEnd", parent.getCoordinates().getEnd())
       .executeUpdate();
 
-    _writingSession.getEntityManager().createQuery(
+    _entityManager.createQuery(
       "UPDATE " + parent.getClass().getName() + " node " + "SET node.coordinates.end = node.coordinates.end + 2 " +
       "WHERE node.coordinates.end >= :parentSetEnd")
       .setParameter("parentSetEnd", parent.getCoordinates().getEnd())
       .executeUpdate();
 
-    _writingSession.getEntityManager().flush();
-    _writingSession.getEntityManager().refresh(parent);
+    _entityManager.flush();
+    _entityManager.refresh(parent);
   }
 
   @Override
   public <Node extends NestedSet> @NonNull List<@NonNull Node> getAllChildrenOf (@NonNull final Node node) {
-    @NonNull final TypedQuery<? extends NestedSet> query = _writingSession.getEntityManager()
+    @NonNull final TypedQuery<? extends NestedSet> query = _entityManager
                                                              .createQuery(String.join(
                                                                "",
       "SELECT node ",
@@ -103,7 +103,7 @@ public class DatabaseNestedSetRepository
 
   @Override
   public <Node extends NestedSet> @NonNull List<@NonNull Node> getChildrenOf (@NonNull final Node node) {
-    @NonNull final TypedQuery<? extends NestedSet> query = _writingSession.getEntityManager()
+    @NonNull final TypedQuery<? extends NestedSet> query = _entityManager
                                                              .createQuery(String.join(
                                                                "",
       "SELECT node ",
@@ -122,7 +122,7 @@ public class DatabaseNestedSetRepository
 
   @Override
   public <Node extends NestedSet> @Nullable Node getParentOf (@NonNull final Node node) {
-    @NonNull final TypedQuery<? extends NestedSet> query = _writingSession.getEntityManager()
+    @NonNull final TypedQuery<? extends NestedSet> query = _entityManager
                                                              .createQuery(String.join(
                                                                "",
       "SELECT node ",
@@ -143,7 +143,7 @@ public class DatabaseNestedSetRepository
 
   @Override
   public <Node extends NestedSet> @NonNull List<@NonNull Node> getParentsOf (@NonNull final Node node) {
-    @NonNull final TypedQuery<? extends NestedSet> query = _writingSession.getEntityManager()
+    @NonNull final TypedQuery<? extends NestedSet> query = _entityManager
                                                              .createQuery(String.join(
                                                                "",
       "SELECT node ",
@@ -161,7 +161,7 @@ public class DatabaseNestedSetRepository
 
   @Override
   public void removeChild (@NonNull final NestedSet node) {
-    _writingSession.getEntityManager()
+    _entityManager
       .createQuery(String.join("", "UPDATE ", node.getClass().getName(), " ",
       "SET coordinates.start = coordinates.start - :removedLength, ",
       "    coordinates.end = coordinates.end - :removedLength, ",
@@ -170,7 +170,7 @@ public class DatabaseNestedSetRepository
       node.getCoordinates().getEnd()
     ).executeUpdate();
 
-    _writingSession.getEntityManager()
+    _entityManager
       .createQuery(String.join("", "UPDATE ", node.getClass().getName(), " ",
       "SET coordinates.end = coordinates.end - :removedLength, ",
       "WHERE coordinates.end > :removedSetEnd ",
@@ -181,7 +181,7 @@ public class DatabaseNestedSetRepository
       .setParameter("removedSetStart", node.getCoordinates().getStart())
       .executeUpdate();
 
-    _writingSession.getEntityManager().createQuery(String.join(
+    _entityManager.createQuery(String.join(
       "",
       "DELETE ",
       node.getClass().getName(),
@@ -192,12 +192,12 @@ public class DatabaseNestedSetRepository
       node.getCoordinates().getEnd()
     ).executeUpdate();
 
-    _writingSession.getEntityManager().flush();
+    _entityManager.flush();
   }
 
   @Override
   public <Node extends NestedSet> @NonNull Node getRoot (@NonNull final Node node) {
-    return (Node) _writingSession.getEntityManager().createQuery(String.join(
+    return (Node) _entityManager.createQuery(String.join(
       "",
       "SELECT node FROM ",
       node.getClass().getName(),
