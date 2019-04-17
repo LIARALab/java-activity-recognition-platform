@@ -147,8 +147,8 @@ public class AggregationResource<Entity extends ApplicationEntity>
     );
 
     query.append("SELECT ");
-    groupingClause.ifPresent(query::append);
-    if (groupingClause.isPresent() && aggregations.isPresent()) {
+    if (groupingClause.isPresent()) {
+      query.append(groupingClause.get());
       query.append(", ");
     }
     query.append(aggregations.orElse("COUNT(target)"));

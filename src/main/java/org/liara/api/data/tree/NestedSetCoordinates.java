@@ -125,7 +125,7 @@ public class NestedSetCoordinates
 
   public @Nullable Boolean isParentSetOf (@NonNull final NestedSetCoordinates set) {
     if (isDefined() && set.isDefined()) {
-      return _start > set.getStart() && _end < set.getEnd() && set.getDepth() < _depth;
+      return _start < set.getStart() && _end > set.getEnd();
     } else {
       return null;
     }

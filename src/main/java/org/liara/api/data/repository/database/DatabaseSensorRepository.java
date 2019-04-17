@@ -1,8 +1,6 @@
 package org.liara.api.data.repository.database;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.hibernate.CacheMode;
-import org.hibernate.jpa.QueryHints;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.repository.NodeRepository;
@@ -46,32 +44,34 @@ public class DatabaseSensorRepository
   ) {
     @NonNull final TypedQuery<Sensor> query = _entityManager.createQuery(
       "SELECT sensor FROM " + Sensor.class.getName() + " sensor " +
-      " WHERE sensor._type = :type",
+      " WHERE sensor.type = :type",
       Sensor.class
     );
 
     query.setParameter("type", type);
-    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     return query.getResultList();
   }
 
   @Override
   public @NonNull List<@NonNull Sensor> getSensorsOfTypeIntoNode (
-    @NonNull final String type, @NonNull final Long nodeIdentifier
+    @NonNull final String type,
+    @NonNull final Long nodeIdentifier
   ) {
     final Node node = _entityManager.find(Node.class, nodeIdentifier);
 
     @NonNull final TypedQuery<Sensor> query = _entityManager.createQuery(
       "SELECT sensor FROM " + Sensor.class.getName() + " sensor " +
-      " WHERE sensor._type = :type " +
-      "   AND sensor._node IN :nodes",
+      " JOIN " + Node.class.getName() + " node ON node.identifier = sensor.nodeIdentifier" +
+      " WHERE sensor.type = :type " +
+      "   AND node.coordinates.start >= :start" +
+      "   AND node.coordinates.end <= :end",
       Sensor.class
     );
 
     query.setParameter("type", type);
-    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
-    query.setParameter("nodes", _nodes.getAllChildrenOf(node));
+    query.setParameter("start", node.getCoordinates().getStart());
+    query.setParameter("end", node.getCoordinates().getEnd());
 
     return query.getResultList();
   }

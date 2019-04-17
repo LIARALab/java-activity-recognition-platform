@@ -22,7 +22,6 @@ import org.liara.collection.operator.cursoring.Cursor;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 public abstract class ConditionSensor
   extends AbstractVirtualSensorHandler
@@ -246,11 +245,6 @@ public abstract class ConditionSensor
   }
 
   private void emit (@NonNull final State state) {
-    Logger.getLogger(getClass().getName()).info(
-      "[" + getSensor().orElseThrow().getIdentifier() + "] Emit " + state.getEmissionDate() +
-      " (" + check(state) + ")"
-    );
-
     @NonNull final BooleanValueState result = new BooleanValueState();
 
     result.setValue(check(state));
@@ -269,11 +263,6 @@ public abstract class ConditionSensor
   }
 
   private void move (@NonNull final State from, @NonNull final State to) {
-    Logger.getLogger(getClass().getName()).info(
-      "[" + getSensor().orElseThrow().getIdentifier() + "] Moving " + from.getEmissionDate() +
-      " to " + to.getEmissionDate() + " (" + check(to) + ")"
-    );
-
     @NonNull final Correlation correlation = getCorrelationTo(from).map(Duplicator::duplicate)
                                                .orElseThrow();
     @NonNull final BooleanValueState image = Duplicator.duplicate(

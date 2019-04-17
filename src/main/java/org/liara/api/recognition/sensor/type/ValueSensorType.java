@@ -23,9 +23,9 @@ public enum ValueSensorType
   private final Class<? extends State> _emittedStateClass;
 
   ValueSensorType (
-    @NonNull final String name, @NonNull final Class<? extends State> emittedStateClass
-  )
-  {
+    @NonNull final String name,
+    @NonNull final Class<? extends State> emittedStateClass
+  ) {
     _name = name;
     _emittedStateClass = emittedStateClass;
   }

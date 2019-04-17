@@ -1,6 +1,9 @@
 package org.liara.api.recognition.sensor.onevsall;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.data.entity.state.BooleanValueState;
@@ -10,36 +13,38 @@ import org.liara.api.data.repository.BooleanValueStateRepository;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
-import org.liara.api.event.entity.CreateApplicationEntityEvent;
-import org.liara.api.event.entity.DeleteApplicationEntityEvent;
-import org.liara.api.event.entity.UpdateApplicationEntityEvent;
+import org.liara.api.event.sensor.SensorWasCreatedEvent;
 import org.liara.api.event.state.DidCreateStateEvent;
 import org.liara.api.event.state.DidUpdateStateEvent;
 import org.liara.api.event.state.WillDeleteStateEvent;
+import org.liara.api.event.state.WillUpdateStateEvent;
+import org.liara.api.io.APIEventPublisher;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
 import org.liara.api.recognition.sensor.type.ComputedSensorType;
 import org.liara.api.recognition.sensor.type.ValueSensorType;
 import org.liara.api.utils.Duplicator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class OneVsAllToUpDownMotionSensor
   extends AbstractVirtualSensorHandler
   implements ComputedSensorType
 {
   @NonNull
-  private final ApplicationEventPublisher _applicationEventPublisher;
+  private final APIEventPublisher _apiEventPublisher;
 
+  @NonNull
   private final BooleanValueStateRepository _flags;
 
   @NonNull
@@ -51,355 +56,381 @@ public class OneVsAllToUpDownMotionSensor
   @NonNull
   private final NodeRepository _nodes;
 
+  @Nullable
+  private Set<@NonNull Long> _inputSensors;
+
   @Autowired
-  public OneVsAllToUpDownMotionSensor (
-    @NonNull final ApplicationEventPublisher publisher,
-    final BooleanValueStateRepository flags,
-    @NonNull final SensorRepository sensors,
-    @NonNull final CorrelationRepository correlations,
-    @NonNull final NodeRepository nodes
-  )
-  {
-    _correlations = correlations;
-    _applicationEventPublisher = publisher;
-    _flags = flags;
-    _sensors = sensors;
-    _nodes = nodes;
-  }
-
-  public @NonNull OneVsAllToUpDownMotionSensorConfiguration getConfiguration () {
-    return getConfiguration(OneVsAllToUpDownMotionSensorConfiguration.class).orElseThrow();
-  }
-
-  public @NonNull List<@NonNull Long> getInputSensors () {
-    final @NonNull List<@NonNull Long> result = new ArrayList<>();
-
-    _sensors.getSensorsOfTypeIntoNode(
-      ValueSensorType.MOTION.getName(),
-      _nodes.getRoot(
-        _nodes.find(getSensor().map(Sensor::getNodeIdentifier).orElseThrow()).orElseThrow()
-      ).getIdentifier()
-    )
-            .stream()
-            .filter((@NonNull final Sensor sensor) -> !getConfiguration().isIgnoredInput(sensor))
-      .forEach((@NonNull final Sensor sensor) -> result.add(sensor.getIdentifier()));
-
-    return result;
+  public OneVsAllToUpDownMotionSensor (@NonNull final OneVsAllToUpDownMotionSensorBuilder builder) {
+    _correlations = Objects.requireNonNull(builder.getCorrelations());
+    _apiEventPublisher = Objects.requireNonNull(builder.getApiEventPublisher());
+    _flags = Objects.requireNonNull(builder.getFlags());
+    _sensors = Objects.requireNonNull(builder.getSensors());
+    _nodes = Objects.requireNonNull(builder.getNodes());
+    _inputSensors = null;
   }
 
   @Override
-  public void initialize (
-    @NonNull final VirtualSensorRunner runner
-  )
-  {
+  public void initialize (@NonNull final VirtualSensorRunner runner) {
     super.initialize(runner);
 
-    @NonNull final List<BooleanValueState> states = _flags.findAllWithValue(
-      getInputSensors(),
-      true
+    @NonNull final List<@NonNull BooleanValueState> states = _flags.findAllWithValue(
+      getInputSensors(), true
     );
 
-    @NonNull final OneVsAllToUpDownMotionSensorConfiguration configuration = getConfiguration();
+    @Nullable BooleanValueState previous = null;
 
-    BooleanValueState previous = null;
+    for (@NonNegative int index = 0; index < states.size(); ++index) {
+      @NonNull final BooleanValueState current = states.get(index);
 
-    for (int index = 0; index < states.size(); ++index) {
-      final BooleanValueState current = states.get(index);
-
-      if (previous == null || areOfSameType(previous, current) == false) {
-        emit(current, configuration.isValidInput(current));
+      if (previous == null || !areOfSameType(previous, current)) {
+        emit(current);
       }
 
       previous = current;
     }
   }
 
+  private boolean isInputState (@NonNull final State state) {
+    if (getInputSensors().contains(state.getSensorIdentifier())) {
+      @NonNull final BooleanValueState booleanState = (BooleanValueState) state;
+      return Objects.equals(booleanState.getValue(), true) && !isIgnoredInput(booleanState);
+    }
+
+    return false;
+  }
+
   @Override
-  public void stateWasCreated (
-    final DidCreateStateEvent event
-  )
-  {
-    super.stateWasCreated(event);
+  public void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) {
+    super.sensorWasCreated(event);
 
-    @NonNull final Sensor sensor = _sensors.find(event.getState().getSensorIdentifier()).get();
-
-    if (sensor.getTypeInstance() == ValueSensorType.MOTION &&
-        ((BooleanValueState) event.getState()).getValue() &&
-        getConfiguration().isIgnoredInput(event.getState()) == false) {
-      onMotionStateWasCreated((BooleanValueState) event.getState());
+    if (event.getSensor().getTypeInstance() == ValueSensorType.MOTION) {
+      _inputSensors = null;
     }
   }
 
-  public void onMotionStateWasCreated (
-    final BooleanValueState created
-  )
-  {
-    @NonNull final List<@NonNull Long> inputSensors = getInputSensors();
-    @NonNull final Optional<BooleanValueState> previous =
-      _flags.findPreviousWithValue(
-      created,
-      inputSensors,
-      true
+  @Override
+  public void stateWasCreated (@NonNull final DidCreateStateEvent event) {
+    super.stateWasCreated(event);
+
+    @NonNull final State stateThatWasCreated = event.getState();
+
+    if (isInputState(stateThatWasCreated)) {
+      onInputStateWasCreated((BooleanValueState) stateThatWasCreated);
+    }
+  }
+
+  private void onInputStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
+    @NonNull final Optional<BooleanValueState> previous = _flags.findPreviousWithValue(
+      stateThatWasCreated, getInputSensors(), true
     );
     @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
-      created,
-      inputSensors,
-      true
+      stateThatWasCreated, getInputSensors(), true
     );
 
-    if (previous.isPresent() == false) {
-      onLeftMotionStateWasCreated(created, next);
-    } else if (!areOfSameType(previous.get(), created)) {
-      onRightMotionStateWasCreated(created, next);
+    if (!previous.isPresent()) {
+      onLeftMotionStateWasCreated(stateThatWasCreated, next.orElse(null));
+    } else if (!areOfSameType(previous.get(), stateThatWasCreated)) {
+      onRightMotionStateWasCreated(stateThatWasCreated, next.orElse(null));
     }
   }
 
   private void onLeftMotionStateWasCreated (
-    final BooleanValueState created, @NonNull final Optional<BooleanValueState> next
-  )
-  {
-    if (next.isPresent() && areOfSameType(created, next.get())) {
-      move(next.get(), created);
+    @NonNull final BooleanValueState created,
+    @Nullable final BooleanValueState next
+  ) {
+    if (next != null && areOfSameType(created, next)) {
+      move(next, created);
     } else {
       emit(created);
     }
   }
 
   private void onRightMotionStateWasCreated (
-    final BooleanValueState created, @NonNull final Optional<BooleanValueState> next
-  )
-  {
-    if (next.isPresent() == false) {
+    @NonNull final BooleanValueState created,
+    @Nullable final BooleanValueState next
+  ) {
+    if (next == null) {
       emit(created);
-    } else if (areOfSameType(created, next.get())) {
-      move(next.get(), created);
+    } else if (areOfSameType(created, next)) {
+      move(next, created);
     } else {
       emit(created);
-      emit(next.get());
+      emit(next);
     }
   }
 
-  private boolean areOfSameType (
-    final BooleanValueState left, final BooleanValueState right
-  )
-  {
-    return getConfiguration().isValidInput(left) == getConfiguration().isValidInput(right);
+  @Override
+  public void stateWillBeMutated (@NonNull final WillUpdateStateEvent event) {
+    super.stateWillBeMutated(event);
+
+    @NonNull final State stateThatWillBeMutated = event.getOldValue();
+
+    if (isInputState(stateThatWillBeMutated)) {
+      onInputStateWillBeMutated((BooleanValueState) stateThatWillBeMutated);
+    }
+  }
+
+  private void onInputStateWillBeMutated (@NonNull final BooleanValueState stateThatWillBeMutated) {
+    onInputStateWillBeDeleted(stateThatWillBeMutated);
   }
 
   @Override
-  public void stateWasMutated (
-    final DidUpdateStateEvent event
-  )
-  {
+  public void stateWasMutated (@NonNull final DidUpdateStateEvent event) {
     super.stateWasMutated(event);
 
-    @NonNull final Sensor sensor = _sensors.find(event.getNewValue().getSensorIdentifier()).get();
+    @NonNull final State stateThatWasMutated = event.getNewValue();
 
-    if (sensor.getTypeInstance() == ValueSensorType.MOTION &&
-        !getConfiguration().isIgnoredInput(event.getNewValue())) {
-      onMotionStateWasMutated(
-        (BooleanValueState) event.getOldValue(),
-        (BooleanValueState) event.getNewValue()
-      );
+    if (isInputState(stateThatWasMutated)) {
+      onInputStateWasMutated((BooleanValueState) stateThatWasMutated);
     }
   }
 
-  public void onMotionStateWasMutated (
-    final BooleanValueState base, final BooleanValueState updated
-  )
-  {
-    @NonNull
-    final Optional<BooleanValueState> correlation = findRelatedResult(updated.getIdentifier());
-
-    if (correlation.isPresent()) {
-      onCorrelledMotionStateWasMutated(base, updated);
-    } else if (updated.getValue()) {
-      onMotionStateWasCreated(updated);
-    }
-  }
-
-  private @NonNull Optional<BooleanValueState> findRelatedResult (
-    @NonNull final Long reference
-  )
-  {
-    @NonNull final Optional<Correlation> correlation =
-      _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
-        getSensor().map(Sensor::getIdentifier).orElseThrow(),
-        "origin",
-        reference
-    );
-
-    if (correlation.isPresent()) {
-      return _flags.find(correlation.get().getStartStateIdentifier());
-    } else {
-      return Optional.empty();
-    }
-  }
-
-  private void onCorrelledMotionStateWasMutated (
-    final BooleanValueState base, final BooleanValueState updated
-  )
-  {
-    @NonNull final List<@NonNull Long> inputSensors = getInputSensors();
-    @NonNull final Optional<BooleanValueState> previous = _flags.findPreviousWithValue(
-      base.getEmissionDate(),
-                                                                                         inputSensors,
-                                                                                         true
-    );
-    @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
-      base.getEmissionDate(),
-                                                                                 inputSensors,
-                                                                                 true
-    );
-
-    if (previous.isPresent() && Objects.equals(previous.get(), updated)) {
-      move(updated, updated);
-    } else {
-      onRightCorreledMotionStateWasMutated(updated, next);
-    }
-  }
-
-  private void onRightCorreledMotionStateWasMutated (
-    final BooleanValueState updated, @NonNull final Optional<BooleanValueState> next
-  )
-  {
-    if (!next.isPresent()) {
-      delete(updated);
-      onMotionStateWasCreated(updated);
-    } else if (Objects.equals(next.get(), updated)) {
-      move(updated, updated);
-    } else if (areOfSameType(next.get(), updated)) {
-      move(updated, next.get());
-      onMotionStateWasCreated(updated);
-    } else {
-      delete(updated);
-      delete(next.get());
-      onMotionStateWasCreated(updated);
-    }
+  public void onInputStateWasMutated (@NonNull final BooleanValueState stateThatWasMutated) {
+    onInputStateWasCreated(stateThatWasMutated);
   }
 
   @Override
-  public void stateWillBeDeleted (
-    final WillDeleteStateEvent event
-  )
-  {
+  public void stateWillBeDeleted (@NonNull final WillDeleteStateEvent event) {
     super.stateWillBeDeleted(event);
 
-    if (event.getState() instanceof BooleanValueState) {
-      final BooleanValueState state = (BooleanValueState) event.getState();
-      @NonNull final Sensor             sensor = _sensors.find(state.getSensorIdentifier())
-                                                   .orElseThrow();
+    @NonNull final State stateThatWillBeDeleted = event.getState();
 
-      if (sensor.getTypeInstance() == ValueSensorType.MOTION && state.getValue()) {
-        onMotionStateWillBeDeleted(state);
-      }
+    if (isInputState(stateThatWillBeDeleted)) {
+      onInputStateWillBeDeleted((BooleanValueState) stateThatWillBeDeleted);
     }
   }
 
-  public void onMotionStateWillBeDeleted (final BooleanValueState state) {
-    if (!findRelatedResult(state.getIdentifier()).isPresent()) return;
+  public void onInputStateWillBeDeleted (@NonNull final BooleanValueState stateThatWillBeDeleted) {
+    Objects.requireNonNull(stateThatWillBeDeleted.getIdentifier());
+    Objects.requireNonNull(stateThatWillBeDeleted.getEmissionDate());
 
-    final List<Long> inputs = getInputSensors();
-    final Optional<BooleanValueState> previous = _flags.findPreviousWithValue(
-      state.getEmissionDate(),
-      inputs,
-      true
+    if (!findCorrelationFromInput(stateThatWillBeDeleted.getIdentifier()).isPresent()) return;
+
+    @NonNull final Optional<BooleanValueState> previous = _flags.findPreviousWithValue(
+      stateThatWillBeDeleted.getEmissionDate(), getInputSensors(), true
+    );
+    @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
+      stateThatWillBeDeleted.getEmissionDate(), getInputSensors(), true
     );
 
-    final Optional<BooleanValueState> next = _flags.findNextWithValue(
-      state.getEmissionDate(),
-      inputs,
-      true
-    );
-
-    if (previous.isPresent() == false) {
-      onLeftMotionStateWillBeDeleted(state, next);
+    if (!previous.isPresent()) {
+      onLeftMotionStateWillBeDeleted(stateThatWillBeDeleted, next.orElse(null));
     } else {
-      onRightMotionStateWillBeDeleted(state, next);
+      onRightMotionStateWillBeDeleted(stateThatWillBeDeleted, next.orElse(null));
     }
   }
 
   private void onRightMotionStateWillBeDeleted (
-    final BooleanValueState state, @NonNull final Optional<BooleanValueState> next
-  )
-  {
-    if (!next.isPresent()) {
-      delete(state);
-    } else if (areOfSameType(state, next.get())) {
-      move(state, next.get());
+    @NonNull final BooleanValueState stateThatWillBeDeleted,
+    @Nullable final BooleanValueState next
+  ) {
+    if (next == null) {
+      delete(stateThatWillBeDeleted);
+    } else if (areOfSameType(stateThatWillBeDeleted, next)) {
+      move(stateThatWillBeDeleted, next);
     } else {
-      delete(state);
-      delete(next.get());
+      delete(stateThatWillBeDeleted);
+      delete(next);
     }
   }
 
   private void onLeftMotionStateWillBeDeleted (
-    final BooleanValueState state, @NonNull final Optional<BooleanValueState> next
-  )
-  {
-    if (!next.isPresent()) {
-      delete(state);
-    } else if (areOfSameType(state, next.get())) {
-      move(state, next.get());
+    @NonNull final BooleanValueState stateThatWillBeDeleted,
+    @Nullable final BooleanValueState next
+  ) {
+    if (next == null) {
+      delete(stateThatWillBeDeleted);
+    } else if (areOfSameType(stateThatWillBeDeleted, next)) {
+      move(stateThatWillBeDeleted, next);
     } else {
-      delete(state);
+      delete(stateThatWillBeDeleted);
     }
   }
 
-  private void delete (final BooleanValueState state) {
-    _applicationEventPublisher.publishEvent(new DeleteApplicationEntityEvent(
-      this,
-      findRelatedResult(state.getIdentifier()).get()
-    ));
+  private @NonNull Optional<Correlation> findCorrelationFromInput (@NonNull final Long input) {
+    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
+      getSensor().map(Sensor::getIdentifier).orElseThrow(), "origin", input
+    );
   }
 
-  private void move (
-    final BooleanValueState from, final BooleanValueState to
-  )
-  {
-    final BooleanValueState toMove = Duplicator.duplicate(findRelatedResult(from.getIdentifier()).get());
+  private @NonNull Optional<Correlation> findCorrelationFromOutput (@NonNull final Long output) {
+    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
+      getSensor().map(Sensor::getIdentifier).orElseThrow(), "origin", output
+    );
+  }
+
+  private @NonNull Optional<BooleanValueState> findOutput (@NonNull final Long input) {
+    return findCorrelationFromInput(input).map(Correlation::getStartStateIdentifier)
+             .flatMap(_flags::find);
+  }
+
+  private @NonNull Optional<BooleanValueState> findInput (@NonNull final Long output) {
+    return findCorrelationFromOutput(output).map(Correlation::getEndStateIdentifier)
+             .flatMap(_flags::find);
+  }
+
+
+  private void delete (@NonNull final BooleanValueState state) {
+    Objects.requireNonNull(state.getIdentifier());
+    @NonNull
+    final Correlation                correlation =
+      findCorrelationFromInput(state.getIdentifier()).orElseThrow();
+    @NonNull
+    final BooleanValueState          output      =
+      _flags.find(correlation.getStartStateIdentifier())
+                                                     .orElseThrow();
+
+    _apiEventPublisher.delete(correlation, output);
+  }
+
+  private void move (@NonNull final BooleanValueState from, @NonNull final BooleanValueState to) {
+    Objects.requireNonNull(from.getIdentifier());
+
+    @NonNull final BooleanValueState toMove = findOutput(from.getIdentifier()).map(
+      Duplicator::duplicate
+    ).orElseThrow();
+
     toMove.setEmissionDate(to.getEmissionDate());
 
-    if (!Objects.equals(from, to)) {
-      @NonNull final Correlation correlation = Duplicator.duplicate(
-        _correlations.findFirstCorrelationFromSeriesWithNameAndThatStartBy(
-          getSensor().map(Sensor::getIdentifier).orElseThrow(),
-          "origin",
-          toMove.getIdentifier()
-        ).orElseThrow()
-      );
+    if (Objects.equals(from, to)) {
+      _apiEventPublisher.update(toMove);
+    } else {
+      Objects.requireNonNull(toMove.getIdentifier());
+
+      @NonNull final Correlation correlation = findCorrelationFromOutput(
+        toMove.getIdentifier()
+      ).map(Duplicator::duplicate).orElseThrow();
+
       correlation.setEndStateIdentifier(to.getIdentifier());
 
-      _applicationEventPublisher.publishEvent(new UpdateApplicationEntityEvent(
-        this,
-        toMove,
-        correlation
-      ));
-    } else {
-      _applicationEventPublisher.publishEvent(new UpdateApplicationEntityEvent(this, toMove));
+      _apiEventPublisher.update(toMove, correlation);
     }
   }
 
-  private void emit (final BooleanValueState created) {
-    emit(created, getConfiguration().isValidInput(created));
+  private void emit (@NonNull final BooleanValueState input) {
+    emit(input, isValidInput(input));
   }
 
-  private void emit (@NonNull final State state, final boolean up) {
-    final BooleanValueState flag = new BooleanValueState();
+  private void emit (@NonNull final State input, final boolean up) {
+    @NonNull final BooleanValueState output = new BooleanValueState();
 
-    flag.setEmissionDate(state.getEmissionDate());
-    flag.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElseThrow());
-    flag.setValue(up);
+    output.setEmissionDate(input.getEmissionDate());
+    output.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElseThrow());
+    output.setValue(up);
 
-    _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, flag));
+    _apiEventPublisher.create(output);
 
     @NonNull final Correlation correlation = new Correlation();
 
-    correlation.setStartStateIdentifier(flag.getIdentifier());
-    correlation.setEndStateIdentifier(state.getIdentifier());
+    correlation.setStartStateIdentifier(output.getIdentifier());
+    correlation.setEndStateIdentifier(input.getIdentifier());
     correlation.setName("origin");
 
-    _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, correlation));
+    _apiEventPublisher.create(correlation);
+  }
+
+  private boolean isIgnoredInput (@NonNull final Sensor sensor) {
+    @NonNull final OneVsAllToUpDownMotionSensorConfiguration configuration = getConfiguration();
+
+    if (configuration.getIgnoredInputs().contains(sensor.getIdentifier())) {
+      return true;
+    }
+
+    if (configuration.getIgnoredNodes().isEmpty()) return false;
+
+    Objects.requireNonNull(sensor.getNodeIdentifier());
+
+    @NonNull final Node stateNode = _nodes.getAt(sensor.getNodeIdentifier());
+    Objects.requireNonNull(stateNode.getCoordinates());
+
+    for (@NonNull final Long nodeIdentifier : configuration.getIgnoredNodes()) {
+      @NonNull final Node node = _nodes.getAt(nodeIdentifier);
+      Objects.requireNonNull(node.getCoordinates());
+
+      if (
+        Objects.equals(stateNode.getIdentifier(), node.getIdentifier()) ||
+        Objects.equals(node.getCoordinates().isParentSetOf(stateNode.getCoordinates()), true)
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private boolean isIgnoredInput (@NonNull final BooleanValueState state) {
+    return isIgnoredInput(_sensors.find(state.getSensorIdentifier()).orElseThrow());
+  }
+
+  private boolean isValidInput (@NonNull final Sensor sensor) {
+    @NonNull final OneVsAllToUpDownMotionSensorConfiguration configuration = getConfiguration();
+
+    if (configuration.getValidInputs().contains(sensor.getIdentifier())) {
+      return true;
+    }
+
+    Objects.requireNonNull(sensor.getNodeIdentifier());
+
+    @NonNull final Node stateNode = _nodes.getAt(sensor.getNodeIdentifier());
+    Objects.requireNonNull(stateNode.getCoordinates());
+
+    for (@NonNull final Long nodeIdentifier : configuration.getValidNodes()) {
+      @NonNull final Node node = _nodes.getAt(nodeIdentifier);
+      Objects.requireNonNull(node.getCoordinates());
+
+      if (
+        Objects.equals(stateNode.getIdentifier(), node.getIdentifier()) ||
+        Objects.equals(node.getCoordinates().isParentSetOf(stateNode.getCoordinates()), true)
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private boolean isValidInput (@NonNull final BooleanValueState state) {
+    return isValidInput(_sensors.find(state.getSensorIdentifier()).orElseThrow());
+  }
+
+  private boolean areOfSameType (
+    @NonNull final BooleanValueState left,
+    @NonNull final BooleanValueState right
+  ) {
+    return isValidInput(left) == isValidInput(right);
+  }
+
+  public @NonNull OneVsAllToUpDownMotionSensorConfiguration getConfiguration () {
+    return getConfiguration(OneVsAllToUpDownMotionSensorConfiguration.class).orElseThrow();
+  }
+
+  public @NonNull Set<@NonNull Long> getInputSensors () {
+    if (_inputSensors == null) computeInputSensors();
+
+    return _inputSensors;
+  }
+
+  public void computeInputSensors () {
+    @NonNull final Sensor sensor = getSensor().orElseThrow();
+    Objects.requireNonNull(sensor.getNodeIdentifier());
+
+    @NonNull final Node sensorNode = _nodes.getAt(sensor.getNodeIdentifier());
+    @NonNull final Node rootNode   = _nodes.getRoot(sensorNode);
+
+    @NonNull final List<@NonNull Sensor> sensors = _sensors.getSensorsOfTypeIntoNode(
+      ValueSensorType.MOTION.getName(),
+      Objects.requireNonNull(rootNode.getIdentifier())
+    );
+
+    _inputSensors = sensors.stream()
+                      .filter(this::isNotIgnoredInput)
+                      .map(Sensor::getIdentifier)
+                      .map(Objects::requireNonNull)
+                      .collect(Collectors.toSet());
+  }
+
+  private boolean isNotIgnoredInput (@NonNull final Sensor sensor) {
+    return !isIgnoredInput(sensor);
   }
 
   @Override

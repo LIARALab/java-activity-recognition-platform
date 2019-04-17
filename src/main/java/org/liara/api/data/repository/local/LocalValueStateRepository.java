@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,7 +27,8 @@ public class LocalValueStateRepository<Value, Wrapper extends ValueState>
 
   @Override
   public @NonNull List<@NonNull Wrapper> findPreviousWithValue (
-    @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
@@ -48,7 +50,8 @@ public class LocalValueStateRepository<Value, Wrapper extends ValueState>
 
   @Override
   public @NonNull List<@NonNull Wrapper> findNextWithValue (
-    @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
@@ -70,7 +73,7 @@ public class LocalValueStateRepository<Value, Wrapper extends ValueState>
 
   @Override
   public @NonNull List<@NonNull Wrapper> findAllWithValue (
-    @NonNull final List<Long> inputSensorIdentifiers,
+    @NonNull final Collection<Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {

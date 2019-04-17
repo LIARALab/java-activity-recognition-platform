@@ -8,6 +8,7 @@ import org.liara.collection.operator.cursoring.Cursor;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
@@ -28,14 +29,14 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
   @Override
   public @NonNull List<@NonNull Wrapper> findPreviousWithValue (
     @NonNull final ZonedDateTime date,
-    @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   )
   {
     @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state " +
-      " WHERE stat.emissionDate < :date " +
+      " WHERE state.emissionDate < :date " +
       "   AND state.sensorIdentifier IN :sensors " +
       "   AND state.value = :value" +
       " ORDER BY state.emissionDate DESC, state.identifier DESC",
@@ -55,7 +56,7 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
   @Override
   public @NonNull List<@NonNull Wrapper> findNextWithValue (
     @NonNull final ZonedDateTime date,
-    @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   )
@@ -81,7 +82,7 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
 
   @Override
   public @NonNull List<@NonNull Wrapper> findAllWithValue (
-    @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {

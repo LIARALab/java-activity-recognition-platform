@@ -5,16 +5,14 @@ import org.liara.api.data.entity.state.ValueState;
 import org.liara.collection.operator.cursoring.Cursor;
 
 import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 public interface ValueStateRepository<Value, Wrapper extends ValueState>
   extends StateRepository<Wrapper>
 {
   default @NonNull Optional<Wrapper> findPreviousWithValue (
-    @NonNull final ValueState created, @NonNull final Long inputSensorIdentifier,
+    @NonNull final ValueState created,
+    @NonNull final Long inputSensorIdentifier,
     @NonNull final Value value
   ) {
     return findPreviousWithValue(
@@ -25,7 +23,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull Optional<Wrapper> findPreviousWithValue (
-    @NonNull final ZonedDateTime date, @NonNull final Long inputSensorIdentifier,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Long inputSensorIdentifier,
     @NonNull final Value value
   ) {
     return findPreviousWithValue(
@@ -36,7 +35,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull Optional<Wrapper> findPreviousWithValue (
-    @NonNull final Wrapper created, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final Wrapper created,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value
   ) {
     return findPreviousWithValue(
@@ -47,7 +47,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull Optional<Wrapper> findPreviousWithValue (
-    @NonNull final ZonedDateTime emissionDate, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final ZonedDateTime emissionDate,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value
   ) {
     @NonNull final List<Wrapper> result = findPreviousWithValue(
@@ -62,7 +63,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull List<@NonNull Wrapper> findPreviousWithValue (
-    @NonNull final Wrapper created, @NonNull final Long inputSensorIdentifier,
+    @NonNull final Wrapper created,
+    @NonNull final Long inputSensorIdentifier,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
@@ -73,7 +75,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull List<@NonNull Wrapper> findPreviousWithValue (
-    @NonNull final ZonedDateTime date, @NonNull final Long inputSensorIdentifier,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Long inputSensorIdentifier,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
@@ -86,7 +89,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull List<@NonNull Wrapper> findPreviousWithValue (
-    @NonNull final Wrapper created, @NonNull final List<@NonNull Long> inputSensors,
+    @NonNull final Wrapper created,
+    @NonNull final Collection<@NonNull Long> inputSensors,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
@@ -97,13 +101,15 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   @NonNull List<@NonNull Wrapper> findPreviousWithValue (
-    @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   );
 
   default @NonNull Optional<Wrapper> findNextWithValue (
-    @NonNull final Wrapper created, @NonNull final Long inputSensorIdentifiers,
+    @NonNull final Wrapper created,
+    @NonNull final Long inputSensorIdentifiers,
     @NonNull final Value value
   ) {
     return findNextWithValue(
@@ -114,7 +120,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull Optional<Wrapper> findNextWithValue (
-    @NonNull final ZonedDateTime date, @NonNull final Long inputSensorIdentifier,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Long inputSensorIdentifier,
     @NonNull final Value value
   ) {
     return findNextWithValue(
@@ -125,7 +132,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull Optional<Wrapper> findNextWithValue (
-    @NonNull final Wrapper created, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final Wrapper created,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value
   ) {
     return findNextWithValue(
@@ -136,7 +144,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull Optional<Wrapper> findNextWithValue (
-    @NonNull final ZonedDateTime emissionDate, @NonNull final List<Long> inputSensorIdentifier,
+    @NonNull final ZonedDateTime emissionDate,
+    @NonNull final Collection<Long> inputSensorIdentifier,
     @NonNull final Value value
   ) {
     @NonNull final List<@NonNull Wrapper> result = findNextWithValue(
@@ -150,7 +159,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull List<@NonNull Wrapper> findNextWithValue (
-    @NonNull final Wrapper created, @NonNull final Long inputSensorIdentifier,
+    @NonNull final Wrapper created,
+    @NonNull final Long inputSensorIdentifier,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
@@ -161,7 +171,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull List<@NonNull Wrapper> findNextWithValue (
-    @NonNull final ZonedDateTime date, @NonNull final Long inputSensorIdentifier,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Long inputSensorIdentifier,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
@@ -174,7 +185,8 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   default @NonNull List<@NonNull Wrapper> findNextWithValue (
-    @NonNull final Wrapper created, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final Wrapper created,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
@@ -185,13 +197,15 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   @NonNull List<@NonNull Wrapper> findNextWithValue (
-    @NonNull final ZonedDateTime date, @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final ZonedDateTime date,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   );
 
   default @NonNull List<@NonNull Wrapper> findAllWithValue (
-    @NonNull final List<@NonNull Long> inputSensorIdentifiers, @NonNull final Value value
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final Value value
   )
   {
     return findAllWithValue(
@@ -202,7 +216,7 @@ public interface ValueStateRepository<Value, Wrapper extends ValueState>
   }
 
   @NonNull List<@NonNull Wrapper> findAllWithValue (
-    @NonNull final List<@NonNull Long> inputSensorIdentifiers,
+    @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
   );

@@ -11,6 +11,11 @@ import org.springframework.stereotype.Component;
 @Scope(BeanDefinition.SCOPE_SINGLETON)
 public final class ValueSensorTypeProvider
 {
+  @Bean("value_sensor_type_motion")
+  public static @NonNull SensorType createLiaraMotionSensorType () {
+    return ValueSensorType.MOTION;
+  }
+
   @Bean("value_sensor_type_boolean")
   public static @NonNull SensorType createLiaraBooleanSensorType () {
     return ValueSensorType.BOOLEAN;
