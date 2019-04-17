@@ -11,7 +11,7 @@ ENV DATABASE_USERNAME ${DATABASE_USERNAME}
 ENV DATABASE_PASSWORD ${DATABASE_PASSWORD}
 
 RUN yum install wget pwgen findutils -y && \
-    wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" https://download.oracle.com/otn/java/jdk/11.0.3+12/37f5e150db5247ab9333b11c1dddcd30/jdk-11.0.3_linux-x64_bin.rpm && \
+    wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn/java/jdk/11.0.3+12/37f5e150db5247ab9333b11c1dddcd30/jdk-11.0.3_linux-x64_bin.rpm && \
     rpm -ivh jdk-11.0.3_linux-x64_bin.rpm && \
     rm -f jdk-11.0.3_linux-x64_bin.rpm
 
