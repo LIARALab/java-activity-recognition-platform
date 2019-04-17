@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseStateCreationSchemaHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.state.handler</a> &gt; <span class="el_source">BaseStateCreationSchemaHandler.java</span></div><h1>BaseStateCreationSchemaHandler.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.state.handler;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.entity.state.StateCreationSchema;
+import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateWillBeCreatedEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.NonNull;
+
+import javax.persistence.EntityManager;
+import java.time.ZonedDateTime;
+import java.util.Map;
+
+public class BaseStateCreationSchemaHandler&lt;Schema extends StateCreationSchema&gt;
+{  
+  @NonNull
+  private final ApplicationEventPublisher _publisher;
+  
+  @Autowired
+  public BaseStateCreationSchemaHandler (
+    @NonNull final ApplicationEventPublisher publisher
+<span class="nc" id="L24">  ) {</span>
+<span class="nc" id="L25">    _publisher = publisher;</span>
+<span class="nc" id="L26">  }</span>
+  
+  protected void apply (
+    @NonNull final EntityManager manager,
+    @NonNull final Schema schema, 
+    @NonNull final State state
+  ) {
+<span class="nc" id="L33">    state.setCreationDate(ZonedDateTime.now());</span>
+<span class="nc" id="L34">    state.setUpdateDate(ZonedDateTime.now());</span>
+<span class="nc" id="L35">    state.setDeletionDate(null);</span>
+<span class="nc" id="L36">    state.setEmissionDate(schema.getEmissionDate());</span>
+<span class="nc" id="L37">    state.setIdentifier(null);</span>
+<span class="nc" id="L38">    state.setSensor(schema.getSensor().resolve(manager));</span>
+    
+<span class="nc bnc" id="L40" title="All 2 branches missed.">    for (final Map.Entry&lt;String, ApplicationEntityReference&lt;State&gt;&gt; correlation : schema.correlations()) {</span>
+<span class="nc" id="L41">      state.correlate(correlation.getKey(), correlation.getValue().resolve(manager));</span>
+<span class="nc" id="L42">    }</span>
+<span class="nc" id="L43">  }</span>
+  
+  protected State instanciate (
+    @NonNull final EntityManager manager,
+    @NonNull final Schema schema
+  ) {
+<span class="nc" id="L49">    final State state = new State();</span>
+<span class="nc" id="L50">    apply(manager, schema, state);</span>
+<span class="nc" id="L51">    return state;</span>
+  }
+
+  protected State handle (
+    @NonNull final EntityManager manager,
+    @NonNull final Schema schema
+  ) {    
+<span class="nc" id="L58">    _publisher.publishEvent(new StateWillBeCreatedEvent(this, schema));</span>
+<span class="nc" id="L59">    final State state = instanciate(manager, schema);</span>
+<span class="nc" id="L60">    manager.persist(state);</span>
+<span class="nc" id="L61">    _publisher.publishEvent(new StateWasCreatedEvent(this, state));</span>
+    
+<span class="nc" id="L63">    return state;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

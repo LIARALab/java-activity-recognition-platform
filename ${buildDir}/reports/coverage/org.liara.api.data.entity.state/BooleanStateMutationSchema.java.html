@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BooleanStateMutationSchema.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.state</a> &gt; <span class="el_source">BooleanStateMutationSchema.java</span></div><h1>BooleanStateMutationSchema.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.state;
+
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.Streams;
+import org.liara.api.data.schema.Schema;
+import org.liara.api.utils.Beans;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import javax.persistence.EntityManager;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Schema(BooleanState.class)
+@JsonDeserialize(using = JsonDeserializer.None.class)
+<span class="fc" id="L20">public class BooleanStateMutationSchema extends StateMutationSchema</span>
+{
+  public static BooleanStateMutationSchema create (@NonNull final Map&lt;String, ?&gt; values) {
+<span class="fc" id="L23">    return Beans.instanciate(BooleanStateMutationSchema.class, values);</span>
+  }
+  
+  public static List&lt;BooleanStateMutationSchema&gt; create (@NonNull final Iterable&lt;Map&lt;String, ?&gt;&gt; values) {
+<span class="fc" id="L27">    return Streams.stream(values).map(BooleanStateMutationSchema::create).collect(Collectors.toList());</span>
+  }
+  
+<span class="fc" id="L30">  @Nullable</span>
+  private Boolean _value = null;
+  
+  public Boolean getValue () {
+<span class="fc" id="L34">    return _value;</span>
+  }
+  
+  @JsonSetter
+  public void setValue (@Nullable final Boolean value) {
+<span class="fc" id="L39">    _value = value;</span>
+<span class="fc" id="L40">  }</span>
+  
+  public void setValue (@NonNull final Optional&lt;Boolean&gt; value) {
+<span class="nc" id="L43">    _value = value.orElse(null);</span>
+<span class="nc" id="L44">  }</span>
+
+  public void apply (
+    @NonNull final BooleanState state,
+    @NonNull final EntityManager manager
+  )
+  {
+<span class="nc bnc" id="L51" title="All 2 branches missed.">    if (_value != null) state.setValue(_value);</span>
+<span class="nc" id="L52">  }</span>
+  
+  @Override
+  public BooleanState apply (@NonNull final EntityManager manager) {
+<span class="nc" id="L56">    final BooleanState result = (BooleanState) getState().resolve(manager);</span>
+
+<span class="nc" id="L58">    apply(result, manager);</span>
+<span class="nc" id="L59">    super.apply(result, manager);</span>
+    
+<span class="nc" id="L61">    return result;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

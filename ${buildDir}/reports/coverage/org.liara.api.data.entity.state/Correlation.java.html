@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Correlation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.state</a> &gt; <span class="el_source">Correlation.java</span></div><h1>Correlation.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.state;
+
+import org.liara.api.data.entity.ApplicationEntity;
+import org.springframework.lang.Nullable;
+
+import javax.persistence.*;
+
+@Entity
+@Table(name = &quot;correlations_of_states&quot;)
+public class Correlation
+  extends ApplicationEntity
+{
+  @Nullable
+  @ManyToOne(optional = false)
+  @JoinColumn(name = &quot;master_identifier&quot;, nullable = false, unique = false, updatable = true)
+  private State _master;
+
+  @Nullable
+  @ManyToOne(optional = false)
+  @JoinColumn(name = &quot;slave_identifier&quot;, nullable = false, unique = false, updatable = true)
+  private State _slave;
+
+  @Nullable
+  @Column(name = &quot;label&quot;, nullable = false, updatable = true, unique = false)
+  private String _label;
+
+<span class="nc" id="L27">  public Correlation () {</span>
+<span class="nc" id="L28">    _master = null;</span>
+<span class="nc" id="L29">    _slave = null;</span>
+<span class="nc" id="L30">    _label = null;</span>
+<span class="nc" id="L31">  }</span>
+
+  public @Nullable
+  State getMaster () {
+<span class="nc" id="L35">    return _master;</span>
+  }
+
+  public void setMaster (@Nullable final State master) {
+<span class="nc" id="L39">    _master = master;</span>
+<span class="nc" id="L40">  }</span>
+
+  public @Nullable
+  State getSlave () {
+<span class="nc" id="L44">    return _slave;</span>
+  }
+
+  public void setSlave (@Nullable final State slave) {
+<span class="nc" id="L48">    _slave = slave;</span>
+<span class="nc" id="L49">  }</span>
+
+  public @Nullable
+  String getLabel () {
+<span class="nc" id="L53">    return _label;</span>
+  }
+
+  public void setLabel (@Nullable final String label) {
+<span class="nc" id="L57">    _label = label;</span>
+<span class="nc" id="L58">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

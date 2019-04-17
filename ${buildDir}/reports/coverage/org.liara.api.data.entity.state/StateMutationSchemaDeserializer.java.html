@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StateMutationSchemaDeserializer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.state</a> &gt; <span class="el_source">StateMutationSchemaDeserializer.java</span></div><h1>StateMutationSchemaDeserializer.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.state;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
+import org.liara.api.data.collection.EntityCollections;
+import org.liara.api.data.schema.UseMutationSchema;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jackson.JsonComponent;
+import org.springframework.context.ApplicationContext;
+import org.springframework.lang.NonNull;
+
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+
+@JsonComponent
+<span class="nc" id="L23">public class StateMutationSchemaDeserializer extends JsonDeserializer&lt;StateMutationSchema&gt;</span>
+{
+  @Autowired
+  private ApplicationContext _context;
+  
+  @Override
+  public StateMutationSchema deserialize (
+    @NonNull final JsonParser parser, 
+    @NonNull final DeserializationContext context
+  )
+  throws IOException
+  {
+<span class="nc" id="L35">    final ObjectMapper mapper = (ObjectMapper) parser.getCodec();</span>
+<span class="nc" id="L36">    final TreeNode treeNode = mapper.readTree(parser);</span>
+    
+<span class="nc bnc" id="L38" title="All 2 branches missed.">    if (treeNode.isObject()) {</span>
+<span class="nc" id="L39">      final ObjectNode node = (ObjectNode) treeNode;</span>
+<span class="nc" id="L40">      return deserialize(node, mapper);</span>
+<span class="nc" id="L41">    } else if (</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">      treeNode.isValueNode() &amp;&amp; </span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">      ((ValueNode) treeNode).isNull()</span>
+    ) {
+<span class="nc" id="L45">      return null;</span>
+    } else {
+<span class="nc" id="L47">      throw new Error(String.join(</span>
+        &quot;&quot;, 
+        &quot;Unnable to parse a StateMutationSchema from the provided json : &quot;,
+        &quot;the given json is nor an object, nor a null value.&quot;
+      ));
+    }
+  }
+
+  private StateMutationSchema deserialize (
+    @NonNull final ObjectNode node, 
+    @NonNull final ObjectMapper mapper
+  ) throws IOException {
+<span class="nc" id="L59">    final Long stateIdentifier = (</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">      node.hasNonNull(&quot;identifier&quot;) ? node.get(&quot;identifier&quot;).asLong() </span>
+                                    : null
+    );
+    
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (stateIdentifier == null) {</span>
+<span class="nc" id="L65">      return deserializeDefault(node, mapper);</span>
+    } else {
+<span class="nc" id="L67">      final Optional&lt;State&gt; state = (</span>
+        EntityCollections.STATES
+<span class="nc" id="L69">                         .findByIdentifier(stateIdentifier)</span>
+      );
+      
+<span class="nc bnc" id="L72" title="All 2 branches missed.">      if (state.isPresent()) {</span>
+<span class="nc" id="L73">        return deserializeForState(node, mapper, state.get());</span>
+      } else {
+<span class="nc" id="L75">        return deserializeDefault(node, mapper);</span>
+      }
+    }
+  }
+
+  @SuppressWarnings(&quot;unchecked&quot;) /* Checked by isAssignableFrom */
+  private StateMutationSchema deserializeForState (
+    @NonNull final ObjectNode node, 
+    @NonNull final ObjectMapper mapper, 
+    @NonNull final State state
+  ) throws IOException {
+<span class="nc" id="L86">    final Class&lt;? extends State&gt; stateClass = state.getClass();</span>
+<span class="nc" id="L87">    final UseMutationSchema useMutationSchema = stateClass.getAnnotation(</span>
+      UseMutationSchema.class
+    );
+    
+<span class="nc bnc" id="L91" title="All 2 branches missed.">    if (useMutationSchema == null) {</span>
+<span class="nc" id="L92">      throw new Error(String.join(</span>
+        &quot;&quot;,
+        &quot;Unnable to parse StateMutationSchema for the state &quot;,
+<span class="nc" id="L95">        state.toString(), &quot; because the given sensor state class &quot;,</span>
+<span class="nc" id="L96">        stateClass.getName(), &quot; does not declare a &quot;, </span>
+<span class="nc" id="L97">        UseMutationSchema.class.toString(),</span>
+        &quot;annotation.&quot;
+      ));
+    } else {
+<span class="nc" id="L101">      final Class&lt;?&gt; mutationSchema = useMutationSchema.value();</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">      if (StateMutationSchema.class.isAssignableFrom(mutationSchema)) {</span>
+<span class="nc" id="L103">        return deserializeSchema(</span>
+          node, mapper, 
+          (Class&lt;? extends StateMutationSchema&gt;) mutationSchema
+        );
+      } else {
+<span class="nc" id="L108">        throw new Error(String.join(</span>
+          &quot;&quot;,
+<span class="nc" id="L110">          &quot;Unnable to parse StateMutationSchema for the state &quot;, state.toString(), </span>
+          &quot; because the given sensor state mutation schema class &quot;,
+<span class="nc" id="L112">          mutationSchema.toString(), &quot; is not a child class of &quot;, </span>
+<span class="nc" id="L113">          StateMutationSchema.class.toString()</span>
+        ));
+      }
+    }
+  }
+
+  private StateMutationSchema deserializeSchema (
+    @NonNull final ObjectNode node,
+    @NonNull final ObjectMapper mapper, 
+    @NonNull final Class&lt;? extends StateMutationSchema&gt; mutationSchema
+  ) throws IOException {
+<span class="nc" id="L124">    return mapper.treeToValue(node, mutationSchema);</span>
+  }
+
+  private StateMutationSchema deserializeDefault (
+    @NonNull final ObjectNode node, 
+    @NonNull final ObjectMapper mapper
+  ) {
+<span class="nc" id="L131">    final StateMutationSchema schema = (StateMutationSchema) _context.getBean(&quot;stateMutationSchema&quot;);</span>
+    
+<span class="nc bnc" id="L133" title="All 2 branches missed.">    schema.setState(node.hasNonNull(&quot;identifier&quot;) ? node.get(&quot;identifier&quot;).asLong() : null);</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">    schema.setEmissionDate(node.hasNonNull(&quot;emittionDate&quot;) ? ZonedDateTime.parse(</span>
+<span class="nc" id="L135">      node.get(&quot;emittionDate&quot;).asText(),</span>
+<span class="nc" id="L136">      DateTimeFormatter.ofPattern(&quot;YYYY-MM-dd'T'HH:mm:ss.SSSXXX&quot;)</span>
+      ) : null
+    );
+    
+<span class="nc" id="L140">    return schema;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConditionSensor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.recognition.sensor.common.virtual.condition</a> &gt; <span class="el_source">ConditionSensor.java</span></div><h1>ConditionSensor.java</h1><pre class="source lang-java linenums">package org.liara.api.recognition.sensor.common.virtual.condition;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.*;
+import org.liara.api.data.repository.TimeSeriesRepository;
+import org.liara.api.data.schema.SchemaManager;
+import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateWasMutatedEvent;
+import org.liara.api.event.StateWillBeDeletedEvent;
+import org.liara.api.event.StateWillBeMutatedEvent;
+import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
+import org.liara.api.recognition.sensor.EmitStateOfType;
+import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
+import org.liara.api.recognition.sensor.VirtualSensorRunner;
+import org.springframework.context.annotation.Scope;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Optional;
+
+@UseSensorConfigurationOfType(ConditionSensorConfiguration.class)
+@EmitStateOfType(BooleanState.class)
+@Component
+@Scope(&quot;prototype&quot;)
+public abstract class ConditionSensor&lt;CheckedState extends State&gt;
+  extends AbstractVirtualSensorHandler
+{
+  @NonNull
+  private final SchemaManager _schemaManager;
+
+  @NonNull
+  private final TimeSeriesRepository&lt;CheckedState&gt; _input;
+
+  @NonNull
+  private final TimeSeriesRepository&lt;BooleanState&gt; _output;
+
+  public ConditionSensor (
+    @NonNull final SchemaManager schemaManager,
+    @NonNull final TimeSeriesRepository&lt;CheckedState&gt; data,
+    @NonNull final TimeSeriesRepository&lt;BooleanState&gt; output
+  )
+  {
+<span class="nc" id="L45">    super();</span>
+<span class="nc" id="L46">    _schemaManager = schemaManager;</span>
+<span class="nc" id="L47">    _input = data;</span>
+<span class="nc" id="L48">    _output = output;</span>
+<span class="nc" id="L49">  }</span>
+
+  public ConditionSensorConfiguration getConfiguration () {
+<span class="nc" id="L52">    return getRunner().getSensor().getConfiguration().as(ConditionSensorConfiguration.class);</span>
+  }
+
+  public ApplicationEntityReference&lt;Sensor&gt; getInputSensor () {
+<span class="nc" id="L56">    return getConfiguration().getInputSensor();</span>
+  }
+
+  public Sensor getSensor () {
+<span class="nc" id="L60">    return getRunner().getSensor();</span>
+  }
+
+  @Override
+  public void initialize (
+    @NonNull final VirtualSensorRunner runner
+  )
+  {
+<span class="nc" id="L68">    super.initialize(runner);</span>
+
+<span class="nc" id="L70">    final List&lt;CheckedState&gt; states = _input.findAll(getInputSensor());</span>
+
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (states.size() &gt; 0) {</span>
+<span class="nc" id="L73">      emit(states.get(0), check(states.get(0)));</span>
+    }
+
+<span class="nc bnc" id="L76" title="All 2 branches missed.">    for (int index = 1; index &lt; states.size(); ++index) {</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">      if (check(states.get(index - 1)) != check(states.get(index))) {</span>
+<span class="nc" id="L78">        emit(states.get(index), check(states.get(index)));</span>
+      }
+    }
+<span class="nc" id="L81">  }</span>
+
+  @Override
+  public void stateWasCreated (
+    @NonNull final StateWasCreatedEvent event
+  )
+  {
+<span class="nc" id="L88">    super.stateWasCreated(event);</span>
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">    if (event.getState().getSensor() == getInputSensor()) {</span>
+<span class="nc" id="L91">      inputStateWasCreated((CheckedState) event.getState().getModel());</span>
+    }
+<span class="nc" id="L93">  }</span>
+
+  /**
+   * &lt;table&gt;
+   *   &lt;tr&gt;
+   *     &lt;th&gt;Previous&lt;/th&gt;
+   *     &lt;th&gt;Current&lt;/th&gt;
+   *     &lt;th&gt;Next&lt;/th&gt;
+   *     &lt;th&gt;Result&lt;/th&gt;
+   *   &lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;EMIT CURRENT &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;EMIT CURRENT &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;EMIT CURRENT &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;EMIT CURRENT &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;MOVE NEXT TO CURRENT &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;MOVE NEXT TO CURRENT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;EMIT CURRENT, EMIT NEXT &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;EMIT CURRENT, EMIT NEXT &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;MOVE NEXT TO CURRENT &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;MOVE NEXT TO CURRENT &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;EMIT CURRENT &lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;EMIT CURRENT&lt;/td&gt;&lt;/tr&gt;
+   * &lt;/table&gt;
+   *
+   * @param current
+   */
+  private void inputStateWasCreated (
+    @NonNull final CheckedState current
+  )
+  {
+<span class="nc" id="L129">    final Optional&lt;CheckedState&gt; previous = _input.findPrevious(current);</span>
+<span class="nc" id="L130">    final Optional&lt;CheckedState&gt; next     = _input.findNext(current);</span>
+
+<span class="nc bnc" id="L132" title="All 2 branches missed.">    if (previous.isPresent()) {</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">      if (check(previous.get()) != check(current)) {</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        if (!next.isPresent()) {</span>
+<span class="nc" id="L135">          emit(current, check(current));</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        } else if (check(current) != check(next.get())) {</span>
+<span class="nc" id="L137">          emit(current, check(current));</span>
+<span class="nc" id="L138">          emit(next.get(), check(next.get()));</span>
+        } else {
+<span class="nc" id="L140">          move(next.get(), current, check(current));</span>
+        }
+      }
+<span class="nc bnc" id="L143" title="All 4 branches missed.">    } else if (!next.isPresent() || check(current) != check(next.get())) {</span>
+<span class="nc" id="L144">      emit(current, check(current));</span>
+    } else {
+<span class="nc" id="L146">      move(next.get(), current, check(current));</span>
+    }
+<span class="nc" id="L148">  }</span>
+
+  @Override
+  public void stateWillBeMutated (
+    @NonNull final StateWillBeMutatedEvent event
+  )
+  {
+<span class="nc" id="L155">    super.stateWillBeMutated(event);</span>
+<span class="nc" id="L156">    final Optional&lt;CheckedState&gt; state = _input.find(event.getState().getState().getIdentifier());</span>
+
+<span class="nc bnc" id="L158" title="All 4 branches missed.">    if (state.isPresent() &amp;&amp; state.get().getSensor().equals(getInputSensor())) {</span>
+<span class="nc" id="L159">      inputStateWillBeMutated(state.get());</span>
+    }
+<span class="nc" id="L161">  }</span>
+
+  private void inputStateWillBeMutated (@NonNull final CheckedState current) {
+<span class="nc" id="L164">    final Optional&lt;BooleanState&gt; oldValue = _output.findFirstWithCorrelation(</span>
+      &quot;origin&quot;,
+<span class="nc" id="L166">      current.getReference(),</span>
+<span class="nc" id="L167">      getSensor().getReference()</span>
+    );
+
+<span class="nc bnc" id="L170" title="All 2 branches missed.">    if (oldValue.isPresent()) {</span>
+<span class="nc" id="L171">      delete(oldValue.get());</span>
+    }
+<span class="nc" id="L173">  }</span>
+
+  @Override
+  public void stateWasMutated (
+    @NonNull final StateWasMutatedEvent event
+  )
+  {
+<span class="nc" id="L180">    super.stateWasMutated(event);</span>
+
+<span class="nc bnc" id="L182" title="All 2 branches missed.">    if (event.getNewValue().getSensor() == getInputSensor()) {</span>
+<span class="nc" id="L183">      inputStateWasCreated((CheckedState) event.getNewValue().getModel());</span>
+    }
+<span class="nc" id="L185">  }</span>
+
+  @Override
+  public void stateWillBeDeleted (
+    @NonNull final StateWillBeDeletedEvent event
+  )
+  {
+<span class="nc" id="L192">    super.stateWillBeDeleted(event);</span>
+
+<span class="nc" id="L194">    final Optional&lt;CheckedState&gt; state = _input.find(event.getState().getState().getIdentifier());</span>
+
+<span class="nc bnc" id="L196" title="All 4 branches missed.">    if (state.isPresent() &amp;&amp; state.get().getSensorIdentifier().equals(getInputSensor().getIdentifier())) {</span>
+<span class="nc" id="L197">      inputStateWillBeDeleted(state.get());</span>
+    }
+<span class="nc" id="L199">  }</span>
+
+  /**
+   * &lt;table&gt;
+   *   &lt;tr&gt;
+   *     &lt;th&gt;Previous&lt;/th&gt;
+   *     &lt;th&gt;Current&lt;/th&gt;
+   *     &lt;th&gt;Next&lt;/th&gt;
+   *     &lt;th&gt;Result&lt;/th&gt;
+   *   &lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;NOTHING&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;DELETE CURRENT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;DELETE CURRENT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;DELETE CURRENT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;DELETE CURRENT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;MOVE CURRENT TO NEXT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;MOVE CURRENT TO NEXT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;DELETE CURRENT, DELETE NEXT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;DELETE CURRENT, DELETE NEXT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;MOVE CURRENT TO NEXT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;MOVE CURRENT TO NEXT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;DELETE CURRENT&lt;/td&gt;&lt;/tr&gt;
+   *   &lt;tr&gt;&lt;td&gt;FAUX&lt;/td&gt;&lt;td&gt;VRAI&lt;/td&gt;&lt;td&gt;NULL&lt;/td&gt;&lt;!-- = --&gt;&lt;td&gt;DELETE CURRENT&lt;/td&gt;&lt;/tr&gt;
+   * &lt;/table&gt;
+   *
+   * @param current
+   */
+  private void inputStateWillBeDeleted (
+    @NonNull final CheckedState current
+  )
+  {
+<span class="nc" id="L235">    final Optional&lt;CheckedState&gt; previous = _input.findPrevious(current);</span>
+<span class="nc" id="L236">    final Optional&lt;CheckedState&gt; next     = _input.findNext(current);</span>
+
+<span class="nc bnc" id="L238" title="All 2 branches missed.">    if (previous.isPresent()) {</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">      if (check(previous.get()) != check(current)) {</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">        if (!next.isPresent()) {</span>
+<span class="nc" id="L241">          delete(current);</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">        } else if (check(current) != check(next.get())) {</span>
+<span class="nc" id="L243">          delete(current);</span>
+<span class="nc" id="L244">          delete(next.get());</span>
+        } else {
+<span class="nc" id="L246">          move(current, next.get(), check(current));</span>
+        }
+      }
+<span class="nc bnc" id="L249" title="All 4 branches missed.">    } else if (!next.isPresent() || check(current) != check(next.get())) {</span>
+<span class="nc" id="L250">      delete(current);</span>
+    } else {
+<span class="nc" id="L252">      move(current, next.get(), check(current));</span>
+    }
+<span class="nc" id="L254">  }</span>
+
+  protected abstract boolean check (@NonNull final CheckedState state);
+
+  private void delete (@NonNull final CheckedState correlated) {
+<span class="nc" id="L259">    final BooleanState toDelete = _output.findFirstWithCorrelation(&quot;origin&quot;,</span>
+<span class="nc" id="L260">      correlated.getReference(),</span>
+<span class="nc" id="L261">      getSensor().getReference()</span>
+<span class="nc" id="L262">    ).get();</span>
+
+<span class="nc" id="L264">    delete(toDelete);</span>
+<span class="nc" id="L265">  }</span>
+
+  private void delete (@NonNull final BooleanState correlated) {
+<span class="nc" id="L268">    final StateDeletionSchema deletion = new StateDeletionSchema();</span>
+<span class="nc" id="L269">    deletion.setState(correlated);</span>
+<span class="nc" id="L270">    _schemaManager.execute(deletion);</span>
+<span class="nc" id="L271">  }</span>
+
+  private void emit (
+    @NonNull final CheckedState state, @NonNull final boolean up
+  )
+  {
+<span class="nc" id="L277">    final BooleanStateCreationSchema creation = new BooleanStateCreationSchema();</span>
+<span class="nc" id="L278">    creation.setSensor(getSensor());</span>
+<span class="nc" id="L279">    creation.setEmissionDate(state.getEmissionDate());</span>
+<span class="nc" id="L280">    creation.setValue(up);</span>
+<span class="nc" id="L281">    creation.correlate(&quot;origin&quot;, state);</span>
+
+<span class="nc" id="L283">    _schemaManager.execute(creation);</span>
+<span class="nc" id="L284">  }</span>
+
+  private void move (
+    @NonNull final CheckedState from, @NonNull final CheckedState to, @NonNull final boolean up
+  )
+  {
+<span class="nc" id="L290">    final BooleanState toMove = _output.findFirstWithCorrelation(&quot;origin&quot;,</span>
+<span class="nc" id="L291">      from.getReference(),</span>
+<span class="nc" id="L292">      getSensor().getReference()</span>
+<span class="nc" id="L293">    ).get();</span>
+
+<span class="nc" id="L295">    final BooleanStateMutationSchema mutation = new BooleanStateMutationSchema();</span>
+
+<span class="nc" id="L297">    mutation.setState(toMove);</span>
+<span class="nc" id="L298">    mutation.setEmissionDate(to.getEmissionDate());</span>
+<span class="nc" id="L299">    mutation.setValue(up);</span>
+<span class="nc" id="L300">    mutation.correlate(&quot;origin&quot;, to);</span>
+
+<span class="nc" id="L302">    _schemaManager.execute(mutation);</span>
+<span class="nc" id="L303">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

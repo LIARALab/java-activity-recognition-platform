@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityCollectionDateTimeInRangeFilterVisitor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.filter.visitor.collection</a> &gt; <span class="el_source">EntityCollectionDateTimeInRangeFilterVisitor.java</span></div><h1>EntityCollectionDateTimeInRangeFilterVisitor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.filter.visitor.collection;
+
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+
+import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.date.PartialZonedDateTime;
+import org.liara.api.filter.ast.BetweenFilterNode;
+import org.liara.api.filter.ast.CommonFilterNodeType;
+import org.liara.api.filter.ast.CompositeFilterNode;
+import org.liara.api.filter.ast.ConjunctionFilterNode;
+import org.liara.api.filter.ast.DisjunctionFilterNode;
+import org.liara.api.filter.ast.EqualToFilterNode;
+import org.liara.api.filter.ast.FilterNode;
+import org.liara.api.filter.ast.GreaterThanFilterNode;
+import org.liara.api.filter.ast.GreaterThanOrEqualToFilterNode;
+import org.liara.api.filter.ast.LessThanFilterNode;
+import org.liara.api.filter.ast.LessThanOrEqualToFilterNode;
+import org.liara.api.filter.ast.NotFilterNode;
+import org.liara.api.filter.ast.PredicateFilterNode;
+import org.liara.api.filter.visitor.AnnotationBasedFilterASTVisitor;
+import org.liara.api.filter.visitor.VisitCommonFilterNode;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+public class EntityCollectionDateTimeInRangeFilterVisitor&lt;Entity&gt; 
+       extends AnnotationBasedFilterASTVisitor 
+       implements EntityCollectionFilterVisitor&lt;Entity, ZonedDateTime&gt;
+{
+  @FunctionalInterface
+  private interface PredicateFactory {
+    public &lt;Value extends Comparable&lt;? super Value&gt;&gt; Predicate create (@NonNull final Expression&lt;? extends Value&gt; a, @NonNull final Value b);
+  }
+  
+<span class="nc" id="L62">  @NonNull</span>
+  private final List&lt;Predicate&gt; _stack = new ArrayList&lt;&gt;();
+  
+<span class="nc" id="L65">  @Nullable</span>
+  private EntityCollectionQuery&lt;Entity, ?&gt; _query = null;
+  
+  @NonNull
+  private final EntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt; _start;
+  
+  @NonNull
+  private final EntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt; _end;
+  
+  public EntityCollectionDateTimeInRangeFilterVisitor(
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt; start,
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt; end
+  )
+<span class="nc" id="L78">  {</span>
+<span class="nc" id="L79">    _start = start;</span>
+<span class="nc" id="L80">    _end = end;</span>
+<span class="nc" id="L81">  }</span>
+
+  @Override
+  public Predicate filter (
+    @NonNull final EntityCollectionQuery&lt;Entity, ?&gt; query, 
+    @NonNull final PredicateFilterNode predicate
+  ) {
+<span class="nc" id="L88">    _query = query;</span>
+<span class="nc" id="L89">    visit(predicate);</span>
+<span class="nc" id="L90">    _query = null;</span>
+<span class="nc" id="L91">    return _stack.remove(0);</span>
+  }
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.CONJUNCTION)
+  public void visit (@NonNull final ConjunctionFilterNode conjunction) {
+<span class="nc" id="L96">    final List&lt;Predicate&gt; predicates = this.visitComposite(conjunction);</span>
+<span class="nc" id="L97">    _stack.add(</span>
+<span class="nc" id="L98">      _query.getManager().getCriteriaBuilder().and(</span>
+<span class="nc" id="L99">        predicates.toArray(new Predicate[predicates.size()])</span>
+      )
+    );
+<span class="nc" id="L102">  }</span>
+  
+  @VisitCommonFilterNode(type = CommonFilterNodeType.DISJUNCTION)
+  public void visit (@NonNull final DisjunctionFilterNode disjunction) {
+<span class="nc" id="L106">    final List&lt;Predicate&gt; predicates = this.visitComposite(disjunction);</span>
+<span class="nc" id="L107">    _stack.add(</span>
+<span class="nc" id="L108">      _query.getManager().getCriteriaBuilder().or(</span>
+<span class="nc" id="L109">        predicates.toArray(new Predicate[predicates.size()])</span>
+      )
+    );
+<span class="nc" id="L112">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.GREATHER_THAN)
+  public void visit (@NonNull final GreaterThanFilterNode&lt;PartialZonedDateTime&gt; predicate) {
+<span class="nc" id="L116">    _stack.add(handleDate(_end, _query.getManager().getCriteriaBuilder()::greaterThan, predicate.getMinimum()));</span>
+<span class="nc" id="L117">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.GREATHER_THAN_OR_EQUAL_TO)
+  public void visit (@NonNull final GreaterThanOrEqualToFilterNode&lt;PartialZonedDateTime&gt; predicate) {
+<span class="nc" id="L121">    _stack.add(handleDate(</span>
+      _end, 
+<span class="nc" id="L123">      _query.getManager().getCriteriaBuilder()::greaterThanOrEqualTo, </span>
+<span class="nc" id="L124">      predicate.getMinimum()</span>
+    ));
+<span class="nc" id="L126">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.LESS_THAN)
+  public void visit (@NonNull final LessThanFilterNode&lt;PartialZonedDateTime&gt; predicate) {
+<span class="nc" id="L130">    _stack.add(handleDate(</span>
+      _start, 
+<span class="nc" id="L132">      _query.getManager().getCriteriaBuilder()::lessThan, </span>
+<span class="nc" id="L133">      predicate.getMaximum()</span>
+    ));
+<span class="nc" id="L135">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.LESS_THAN_OR_EQUAL_TO)
+  public void visit (@NonNull final LessThanOrEqualToFilterNode&lt;PartialZonedDateTime&gt; predicate) {
+<span class="nc" id="L139">    _stack.add(handleDate(</span>
+      _start, 
+<span class="nc" id="L141">      _query.getManager().getCriteriaBuilder()::lessThanOrEqualTo, </span>
+<span class="nc" id="L142">      predicate.getMaximum()</span>
+    ));
+<span class="nc" id="L144">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.EQUAL_TO)
+  public void visit (@NonNull final EqualToFilterNode&lt;PartialZonedDateTime&gt; predicate) {
+<span class="nc" id="L148">    _stack.add(_query.getManager().getCriteriaBuilder().and(</span>
+<span class="nc" id="L149">      handleDate(</span>
+        _end, 
+<span class="nc" id="L151">        _query.getManager().getCriteriaBuilder()::greaterThanOrEqualTo,</span>
+<span class="nc" id="L152">        predicate.getValue()</span>
+      ),
+<span class="nc" id="L154">      handleDate(</span>
+        _start, 
+<span class="nc" id="L156">        _query.getManager().getCriteriaBuilder()::lessThanOrEqualTo,</span>
+<span class="nc" id="L157">        predicate.getValue()</span>
+      )
+     ));
+<span class="nc" id="L160">  }</span>
+  
+  private Predicate handleDate (
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt; dateField,
+    @NonNull final PredicateFactory operator,
+    @NonNull final PartialZonedDateTime date
+  ) {
+<span class="nc bnc" id="L167" title="All 2 branches missed.">    if (date.isCompleteZonedDateTime()) {</span>
+<span class="nc" id="L168">      return operator.create(dateField.select(_query), date.toZonedDateTime());</span>
+    } else {
+<span class="nc" id="L170">      final List&lt;Predicate&gt; predicates = new ArrayList&lt;&gt;();</span>
+      
+<span class="nc bnc" id="L172" title="All 2 branches missed.">      if (date.containsDatetime()) {</span>
+<span class="nc" id="L173">        predicates.add(</span>
+<span class="nc" id="L174">          operator.create(</span>
+<span class="nc" id="L175">            date.mask(dateField.select(_query), _query.getManager().getCriteriaBuilder()),</span>
+<span class="nc" id="L176">            date.toZonedDateTime()</span>
+          )
+        );
+      }
+      
+<span class="nc bnc" id="L181" title="All 2 branches missed.">      if (date.containsContext()) {</span>
+<span class="nc" id="L182">        Arrays.stream(PartialZonedDateTime.CONTEXT_FIELDS)</span>
+<span class="nc" id="L183">              .filter(date::isSupported)</span>
+<span class="nc" id="L184">              .map(</span>
+<span class="nc" id="L185">                field -&gt; operator.create(</span>
+<span class="nc" id="L186">                   PartialZonedDateTime.select(</span>
+<span class="nc" id="L187">                     dateField.select(_query), </span>
+<span class="nc" id="L188">                     _query.getManager().getCriteriaBuilder(), </span>
+                     field
+<span class="nc" id="L190">                   ), date.getLong(field)</span>
+                 )
+               )
+<span class="nc" id="L193">              .forEach(predicates::add);</span>
+      }
+      
+<span class="nc" id="L196">      return _query.getManager().getCriteriaBuilder().and(predicates.toArray(new Predicate[predicates.size()])); </span>
+    }
+  }
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.BETWEEN)
+  public void visit (@NonNull final BetweenFilterNode&lt;PartialZonedDateTime&gt; predicate) {
+<span class="nc" id="L202">    final PartialZonedDateTime minimum = predicate.getMinimum();</span>
+<span class="nc" id="L203">    final PartialZonedDateTime maximum = predicate.getMaximum();</span>
+    
+<span class="nc" id="L205">    _stack.add(</span>
+<span class="nc" id="L206">      _query.getManager().getCriteriaBuilder().and(</span>
+<span class="nc" id="L207">        handleDate(_end, _query.getManager().getCriteriaBuilder()::greaterThanOrEqualTo, minimum),</span>
+<span class="nc" id="L208">        handleDate(_start, _query.getManager().getCriteriaBuilder()::lessThanOrEqualTo, maximum)</span>
+      )
+    );
+<span class="nc" id="L211">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.NOT)
+  public void visit (@NonNull final NotFilterNode predicate) {
+<span class="nc" id="L215">    predicate.getChild(0).invit(this);</span>
+<span class="nc" id="L216">    _stack.set(</span>
+<span class="nc" id="L217">      _stack.size() - 1, </span>
+<span class="nc" id="L218">      _query.getManager().getCriteriaBuilder().not(</span>
+<span class="nc" id="L219">        _stack.get(_stack.size() - 1)</span>
+      )
+    );
+<span class="nc" id="L222">  }</span>
+  
+  private List&lt;Predicate&gt; visitComposite (@NonNull final CompositeFilterNode&lt;PredicateFilterNode&gt; composite) {
+<span class="nc bnc" id="L225" title="All 2 branches missed.">    for (final PredicateFilterNode predicate : composite) {</span>
+<span class="nc" id="L226">      predicate.invit(this);</span>
+<span class="nc" id="L227">    }</span>
+    
+<span class="nc" id="L229">    final List&lt;Predicate&gt; result = new ArrayList&lt;&gt;(composite.getChildCount());</span>
+    
+<span class="nc bnc" id="L231" title="All 2 branches missed.">    for (int index = 0; index &lt; composite.getChildCount(); ++index) {</span>
+<span class="nc" id="L232">      result.add(0, _stack.remove(_stack.size() - 1));</span>
+    }
+    
+<span class="nc" id="L235">    return result;</span>
+  }
+  
+  public void visitDefault (@NonNull final FilterNode node) {
+<span class="nc" id="L239">    throw new Error(&quot;Unhandled node &quot; + node);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

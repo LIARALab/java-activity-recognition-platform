@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StateMutationSchema.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.state</a> &gt; <span class="el_source">StateMutationSchema.java</span></div><h1>StateMutationSchema.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.state;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.ApplicationSchema;
+import org.liara.api.data.schema.Schema;
+import org.liara.api.validation.Required;
+import org.liara.api.validation.ValidApplicationEntityReference;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import javax.persistence.EntityManager;
+import java.time.ZonedDateTime;
+import java.util.*;
+
+@Schema(State.class)
+@JsonDeserialize(using = StateMutationSchemaDeserializer.class)
+<span class="fc" id="L21">public class StateMutationSchema implements ApplicationSchema</span>
+{
+<span class="fc" id="L23">  @NonNull</span>
+<span class="fc" id="L24">  private ApplicationEntityReference&lt;? extends State&gt; _state = ApplicationEntityReference.empty(State.class);</span>
+  
+<span class="fc" id="L26">  @Nullable</span>
+  private ZonedDateTime _emissionDate = null;
+  
+<span class="fc" id="L29">  @NonNull</span>
+  private final Map&lt;String, ApplicationEntityReference&lt;State&gt;&gt; _correlations = new HashMap&lt;&gt;();
+  
+<span class="fc" id="L32">  @NonNull</span>
+  private final Set&lt;String&gt; _decorrelations = new HashSet&lt;&gt;();
+  
+  public void clear () {
+<span class="nc" id="L36">    _state = ApplicationEntityReference.empty(State.class);</span>
+<span class="nc" id="L37">    _emissionDate = null;</span>
+<span class="nc" id="L38">    _correlations.clear();</span>
+<span class="nc" id="L39">    _decorrelations.clear();</span>
+<span class="nc" id="L40">  }</span>
+  
+  @Required
+  @ValidApplicationEntityReference
+  public ApplicationEntityReference&lt;? extends State&gt; getState () {
+<span class="fc" id="L45">    return _state;</span>
+  }
+  
+  public &lt;Entity extends State&gt; void setState (@Nullable final Entity state) {
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">    _state = (state == null) ? ApplicationEntityReference.empty(State.class)</span>
+<span class="fc" id="L50">                             : ApplicationEntityReference.of(state);</span>
+<span class="fc" id="L51">  }</span>
+  
+  public void setState (@Nullable final ApplicationEntityReference&lt;? extends State&gt; state) {
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">    _state = (state == null) ? ApplicationEntityReference.empty(State.class)</span>
+                             : state;
+<span class="fc" id="L56">  }</span>
+  
+  @JsonSetter
+  public void setState (@Nullable final Long identifier) {
+<span class="fc" id="L60">    _state = ApplicationEntityReference.of(State.class, identifier);</span>
+<span class="fc" id="L61">  }</span>
+
+  @JsonFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;)
+  public ZonedDateTime getEmissionDate () {
+<span class="fc" id="L65">    return _emissionDate;</span>
+  }
+
+  @JsonSetter
+  public void setEmissionDate (@Nullable final ZonedDateTime emissionDate) {
+<span class="fc" id="L70">    _emissionDate = emissionDate;</span>
+<span class="fc" id="L71">  }</span>
+  
+  public void setEmittionDate (@NonNull final Optional&lt;ZonedDateTime&gt; emittionDate) {
+<span class="nc" id="L74">    _emissionDate = emittionDate.orElse(null);</span>
+<span class="nc" id="L75">  }</span>
+  
+  public void decorrelate (@NonNull final String label) {
+<span class="fc" id="L78">    _correlations.remove(label);</span>
+    
+<span class="fc" id="L80">    _decorrelations.add(label);</span>
+<span class="fc" id="L81">  }</span>
+  
+  public void correlate (
+    @NonNull final String label, 
+    @NonNull final Long state
+  ) {
+<span class="fc" id="L87">    _decorrelations.remove(label);</span>
+    
+<span class="fc" id="L89">    _correlations.put(label, ApplicationEntityReference.of(State.class, state));</span>
+<span class="fc" id="L90">  }</span>
+  
+  public void correlate (
+    @NonNull final String label, 
+    @NonNull final State state
+  ) {
+<span class="fc" id="L96">    correlate(label, state.getIdentifier());</span>
+<span class="fc" id="L97">  }</span>
+  
+  public Set&lt;String&gt; getDecorrelations () {
+<span class="fc" id="L100">    return Collections.unmodifiableSet(_decorrelations);</span>
+  }
+  
+  @JsonIgnore
+  public Map&lt;String, Boolean&gt; getDecorrelationsMap () {
+<span class="fc" id="L105">    final Map&lt;String, Boolean&gt; result = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">    for (final String decorrelation : _decorrelations) {</span>
+<span class="fc" id="L107">      result.put(decorrelation, true);</span>
+<span class="fc" id="L108">    }</span>
+<span class="fc" id="L109">    return result;</span>
+  }
+  
+  public Iterable&lt;String&gt; decorrelations () {
+<span class="nc" id="L113">    return Collections.unmodifiableSet(_decorrelations);</span>
+  }
+  
+  public Map&lt;String, ApplicationEntityReference&lt;State&gt;&gt; getCorrelations () {
+<span class="fc" id="L117">    return Collections.unmodifiableMap(_correlations);</span>
+  }
+ 
+  public ApplicationEntityReference&lt;State&gt; getCorrelation (@NonNull final String name) {
+<span class="nc" id="L121">    return _correlations.get(name);</span>
+  }
+  
+  @ValidApplicationEntityReference
+  @Required
+  public Set&lt;ApplicationEntityReference&lt;State&gt;&gt; getCorrelated () {
+<span class="nc" id="L127">    return Collections.unmodifiableSet(new HashSet&lt;&gt;(_correlations.values()));</span>
+  }
+  
+  public Iterable&lt;Map.Entry&lt;String, ApplicationEntityReference&lt;State&gt;&gt;&gt; correlations () {
+<span class="nc" id="L131">    return Collections.unmodifiableSet(_correlations.entrySet());</span>
+  }
+
+  public void apply (
+    @NonNull final State state,
+    @NonNull final EntityManager manager
+  )
+  {
+<span class="nc bnc" id="L139" title="All 2 branches missed.">    if (_emissionDate != null) state.setEmissionDate(_emissionDate);</span>
+    
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    for (final String decorrelation : _decorrelations) {</span>
+<span class="nc" id="L142">      state.decorrelate(decorrelation);</span>
+<span class="nc" id="L143">    }</span>
+    
+<span class="nc bnc" id="L145" title="All 2 branches missed.">    for (final Map.Entry&lt;String, ApplicationEntityReference&lt;State&gt;&gt; correlation : _correlations.entrySet()) {</span>
+<span class="nc" id="L146">      state.correlate(</span>
+<span class="nc" id="L147">        correlation.getKey(),</span>
+<span class="nc" id="L148">        correlation.getValue()</span>
+<span class="nc" id="L149">                   .resolve(manager)</span>
+      );
+<span class="nc" id="L151">    }</span>
+<span class="nc" id="L152">  }</span>
+
+  public State apply (@NonNull final EntityManager manager) {
+<span class="nc" id="L155">    final State state = getState().resolve(manager);</span>
+<span class="nc" id="L156">    apply(state, manager);</span>
+<span class="nc" id="L157">    return state;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

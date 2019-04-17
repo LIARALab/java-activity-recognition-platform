@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SensorRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository</a> &gt; <span class="el_source">SensorRepository.java</span></div><h1>SensorRepository.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository;
+
+import java.util.List;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.springframework.lang.NonNull;
+
+public interface SensorRepository extends ApplicationEntityRepository&lt;Sensor&gt;
+{
+  public default List&lt;Sensor&gt; getSensorsOfType (@NonNull final Class&lt;?&gt; type) {
+<span class="nc" id="L13">    return getSensorsOfType(type.getName());</span>
+  }
+  
+  public List&lt;Sensor&gt; getSensorsOfType (@NonNull final String type);
+  
+  public default List&lt;Sensor&gt; getSensorsOfTypeIntoNode (
+    @NonNull final Class&lt;?&gt; type,
+    @NonNull final ApplicationEntityReference&lt;Node&gt; node
+  ) {
+<span class="fc" id="L22">    return getSensorsOfTypeIntoNode(type.getName(), node);</span>
+  }
+  
+  public List&lt;Sensor&gt; getSensorsOfTypeIntoNode (
+    @NonNull final String type, 
+    @NonNull final ApplicationEntityReference&lt;Node&gt; node
+  );
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

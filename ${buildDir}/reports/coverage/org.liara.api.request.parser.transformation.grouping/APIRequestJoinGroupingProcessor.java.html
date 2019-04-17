@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>APIRequestJoinGroupingProcessor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.request.parser.transformation.grouping</a> &gt; <span class="el_source">APIRequestJoinGroupingProcessor.java</span></div><h1>APIRequestJoinGroupingProcessor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.request.parser.transformation.grouping;
+
+import javax.persistence.criteria.Join;
+
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.transformation.grouping.EntityCollectionGroupTransformation;
+import org.liara.api.collection.transformation.grouping.EntityCollectionJoinGroupingTransformation;
+import org.springframework.lang.NonNull;
+
+public class      APIRequestJoinGroupingProcessor&lt;Entity, Joined&gt; 
+       implements APIRequestGroupingProcessor&lt;Entity&gt;
+{
+  @NonNull
+  private final String _parameter;
+  
+  @NonNull
+  private final EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; _join;
+  
+  @NonNull
+  private final APIRequestGroupingProcessor&lt;Joined&gt; _processor;
+    
+  public APIRequestJoinGroupingProcessor(
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join, 
+    @NonNull final APIRequestGroupingProcessor&lt;Joined&gt; processor
+<span class="nc" id="L47">  ) {</span>
+<span class="nc" id="L48">    _parameter = parameter;</span>
+<span class="nc" id="L49">    _join = join;</span>
+<span class="nc" id="L50">    _processor = processor;</span>
+<span class="nc" id="L51">  }</span>
+
+  @Override
+  public EntityCollectionGroupTransformation&lt;Entity&gt; process (
+    @NonNull final String key
+  ) {
+<span class="nc" id="L57">    return new EntityCollectionJoinGroupingTransformation&lt;Entity, Joined&gt;(</span>
+        _join,
+<span class="nc" id="L59">        _processor.process(key.substring(_parameter.length() + 1))</span>
+    );
+  }
+
+  @Override
+  public boolean hableToProcess (@NonNull final String key) {
+<span class="nc" id="L65">    return key.startsWith(_parameter + &quot;.&quot;);</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

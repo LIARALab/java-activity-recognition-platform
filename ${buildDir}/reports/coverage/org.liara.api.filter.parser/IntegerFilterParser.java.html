@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IntegerFilterParser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.filter.parser</a> &gt; <span class="el_source">IntegerFilterParser.java</span></div><h1>IntegerFilterParser.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+/**
+ * Copyright 2018 Cedric DEMONGIVERT
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
+ * files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, 
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software 
+ * is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE 
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR 
+ * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package org.liara.api.filter.parser;
+
+import org.liara.api.filter.ast.*;
+import org.springframework.lang.NonNull;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+/**
+ * @author C&amp;eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
+ *
+ */
+<span class="fc" id="L52">public class IntegerFilterParser implements FilterParser</span>
+{
+  @NonNull
+<span class="fc" id="L55">  public static final Pattern NUMBER_PATTERN    = Pattern.compile(&quot;((\\+|\\-)?\\d+)&quot;);</span>
+
+  @NonNull
+<span class="fc" id="L58">  public static final Pattern PREDICATE_PATTERN = Pattern.compile(</span>
+<span class="fc" id="L59">    String.join(</span>
+      &quot;|&quot;,
+<span class="fc" id="L61">      &quot;(?&lt;greaterThan&gt;gt:&quot; + NUMBER_PATTERN.pattern() + &quot;)&quot;,</span>
+<span class="fc" id="L62">      &quot;(?&lt;greaterThanOrEqualTo&gt;gte:&quot; + NUMBER_PATTERN.pattern() + &quot;)&quot;,</span>
+<span class="fc" id="L63">      &quot;(?&lt;lessThan&gt;lt:&quot; + NUMBER_PATTERN.pattern() + &quot;)&quot;,</span>
+<span class="fc" id="L64">      &quot;(?&lt;lessThanOrEqualTo&gt;lte:&quot; + NUMBER_PATTERN.pattern() + &quot;)&quot;,</span>
+<span class="fc" id="L65">      &quot;(?&lt;between&gt;&quot; + NUMBER_PATTERN.pattern() + &quot;\\:&quot; + NUMBER_PATTERN.pattern() + &quot;)&quot;,</span>
+<span class="fc" id="L66">      &quot;(?&lt;notBetween&gt;not:&quot; + NUMBER_PATTERN.pattern() + &quot;\\:&quot; + NUMBER_PATTERN.pattern() + &quot;)&quot;,</span>
+<span class="fc" id="L67">      &quot;(?&lt;equalTo&gt;&quot; + NUMBER_PATTERN.pattern() + &quot;)&quot;,</span>
+<span class="fc" id="L68">      &quot;(?&lt;notEqualTo&gt;not:&quot; + NUMBER_PATTERN.pattern() + &quot;)&quot;</span>
+    )
+  );
+
+  public PredicateFilterNode parse (@NonNull final String value) {
+<span class="fc" id="L73">    final List&lt;PredicateFilterNode&gt; predicates = Arrays.stream(</span>
+<span class="fc" id="L74">      value.split(&quot;;&quot;)</span>
+<span class="fc" id="L75">    ).map(token -&gt; parseConjunction(token.trim()))</span>
+<span class="fc" id="L76">     .collect(Collectors.toList());</span>
+    
+<span class="fc bfc" id="L78" title="All 2 branches covered.">    if (predicates.size() == 1) {</span>
+<span class="fc" id="L79">      return predicates.get(0);</span>
+    } else {
+<span class="fc" id="L81">      return new DisjunctionFilterNode(</span>
+        predicates
+      );
+    }
+  }
+
+  private PredicateFilterNode parseConjunction (@NonNull final String value) {
+<span class="fc" id="L88">    final List&lt;PredicateFilterNode&gt; predicates = Arrays.stream(</span>
+<span class="fc" id="L89">      value.split(&quot;,&quot;)</span>
+<span class="fc" id="L90">    ).map(token -&gt; parsePredicate(token.trim()))</span>
+<span class="fc" id="L91">     .collect(Collectors.toList());</span>
+    
+<span class="fc bfc" id="L93" title="All 2 branches covered.">    if (predicates.size() == 1) {</span>
+<span class="fc" id="L94">      return predicates.get(0);</span>
+    } else {
+<span class="fc" id="L96">      return new ConjunctionFilterNode(</span>
+        predicates
+      );
+    }
+  }
+
+  private PredicateFilterNode parsePredicate (@NonNull final String value) {
+<span class="fc" id="L103">    final Matcher matcher = PREDICATE_PATTERN.matcher(value);</span>
+<span class="fc" id="L104">    matcher.matches();</span>
+<span class="fc" id="L105">    matcher.groupCount();</span>
+
+<span class="fc" id="L107">    String result = null;</span>
+
+<span class="fc bfc" id="L109" title="All 2 branches covered.">    if ((result = matcher.group(&quot;greaterThan&quot;)) != null) {</span>
+<span class="fc" id="L110">      return this.parseGreaterThan(result);</span>
+<span class="fc bfc" id="L111" title="All 2 branches covered.">    } else if ((result = matcher.group(&quot;greaterThanOrEqualTo&quot;)) != null) {</span>
+<span class="fc" id="L112">      return this.parseGreaterThanOrEqualTo(result);</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">    } else if ((result = matcher.group(&quot;lessThan&quot;)) != null) {</span>
+<span class="fc" id="L114">      return this.parseLessThan(result);</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">    } else if ((result = matcher.group(&quot;lessThanOrEqualTo&quot;)) != null) {</span>
+<span class="fc" id="L116">      return this.parseLessThanOrEqualTo(result);</span>
+<span class="fc bfc" id="L117" title="All 2 branches covered.">    } else if ((result = matcher.group(&quot;between&quot;)) != null) {</span>
+<span class="fc" id="L118">      return this.parseBetweenThan(result);</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">    } else if ((result = matcher.group(&quot;notBetween&quot;)) != null) {</span>
+<span class="fc" id="L120">      return this.parseNotBetweenThan(result);</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">    } else if ((result = matcher.group(&quot;equalTo&quot;)) != null) {</span>
+<span class="fc" id="L122">      return this.parseEqualTo(result);</span>
+    } else {
+<span class="fc" id="L124">      return this.parseNotEqualTo(matcher.group(&quot;notEqualTo&quot;));</span>
+    }
+  }
+
+  private PredicateFilterNode parseNotEqualTo (@NonNull final String result) {
+<span class="fc" id="L129">    return new NotFilterNode(this.parseEqualTo(result.substring(4)));</span>
+  }
+
+  private PredicateFilterNode parseEqualTo (@NonNull final String result) {
+<span class="fc" id="L133">    return new EqualToFilterNode&lt;Integer&gt;(parseInteger(result));</span>
+  }
+
+  private PredicateFilterNode parseNotBetweenThan (@NonNull final String result) {
+<span class="fc" id="L137">    return new NotFilterNode(this.parseBetweenThan(result.substring(4)));</span>
+  }
+
+  private PredicateFilterNode parseBetweenThan (@NonNull final String result) {
+<span class="fc" id="L141">    final String[] tokens = result.split(&quot;:&quot;);</span>
+<span class="fc" id="L142">    return new BetweenFilterNode&lt;Integer&gt;(parseInteger(tokens[0]), parseInteger(tokens[1]));</span>
+  }
+
+  private PredicateFilterNode parseLessThanOrEqualTo (@NonNull final String result) {
+<span class="fc" id="L146">    return new LessThanOrEqualToFilterNode&lt;Integer&gt;(parseInteger(result.split(&quot;:&quot;)[1]));</span>
+  }
+
+  private PredicateFilterNode parseLessThan (@NonNull final String result) {
+<span class="fc" id="L150">    return new LessThanFilterNode&lt;Integer&gt;(parseInteger(result.split(&quot;:&quot;)[1]));</span>
+  }
+
+  private PredicateFilterNode parseGreaterThanOrEqualTo (@NonNull final String result) {
+<span class="fc" id="L154">    return new GreaterThanOrEqualToFilterNode&lt;Integer&gt;(parseInteger(result.split(&quot;:&quot;)[1]));</span>
+  }
+
+  private PredicateFilterNode parseGreaterThan (@NonNull final String result) {
+<span class="fc" id="L158">    return new GreaterThanFilterNode&lt;Integer&gt;(parseInteger(result.split(&quot;:&quot;)[1]));</span>
+  }
+  
+  private ValueFilterNode&lt;Integer&gt; parseInteger (@NonNull final String token) {
+<span class="fc" id="L162">    return ValueFilterNode.from(Integer.parseInt(token));</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

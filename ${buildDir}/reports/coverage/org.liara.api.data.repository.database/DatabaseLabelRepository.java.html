@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DatabaseLabelRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository.database</a> &gt; <span class="el_source">DatabaseLabelRepository.java</span></div><h1>DatabaseLabelRepository.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository.database;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.LabelState;
+import org.liara.api.data.repository.LabelRepository;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Scope;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Optional;
+
+@Component
+@Scope(&quot;prototype&quot;)
+@Primary
+public class DatabaseLabelRepository
+  extends DatabaseTimeSeriesRepository&lt;LabelState&gt;
+  implements LabelRepository
+{
+  @NonNull
+  private final EntityManager _entityManager;
+
+  public DatabaseLabelRepository (
+    @NonNull final EntityManager entityManager
+  ) {
+<span class="nc" id="L31">    super(entityManager, LabelState.class);</span>
+
+<span class="nc" id="L33">    _entityManager = entityManager;</span>
+<span class="nc" id="L34">  }</span>
+
+  @Override
+  public Optional&lt;LabelState&gt; findAt (
+    @NonNull final ZonedDateTime area,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="nc" id="L41">    final List&lt;LabelState&gt; result = _entityManager.createQuery(String.join(</span>
+      &quot;&quot;,
+      &quot;SELECT label &quot;,
+      &quot;FROM &quot;,
+<span class="nc" id="L45">      LabelState.class.getName(),</span>
+      &quot; label &quot;,
+      &quot;WHERE label._start &lt;= :area &quot;,
+      &quot;  AND ( &quot;,
+      &quot;       label._end IS NULL &quot;,
+      &quot;    OR label._end &gt;= :area &quot;,
+      &quot;  ) AND label._sensor._identifier = :sensor&quot;
+<span class="nc" id="L52">    ), LabelState.class).setParameter(&quot;area&quot;, area)</span>
+<span class="nc" id="L53">                                                       .setParameter(&quot;sensor&quot;, sensor.getIdentifier())</span>
+<span class="nc" id="L54">                                                       .getResultList();</span>
+
+<span class="nc bnc" id="L56" title="All 2 branches missed.">    return result.size() &gt; 0 ? Optional.ofNullable(result.get(0)) : Optional.empty();</span>
+  }
+
+  @Override
+  public List&lt;LabelState&gt; findWithDurationGreatherThan (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, @NonNull final Duration duration
+  )
+  {
+<span class="nc" id="L64">    final List&lt;LabelState&gt; result = _entityManager.createQuery(String.join(</span>
+      &quot;&quot;,
+      &quot;SELECT label &quot;,
+      &quot;FROM &quot;,
+<span class="nc" id="L68">      LabelState.class.getName(),</span>
+      &quot; label &quot;,
+      &quot;WHERE TIMESTAMPDIFF(SECOND, label._start, label._end) &gt; :duration&quot;,
+      &quot;  AND label._sensor._identifier = :sensor&quot;
+    ), LabelState.class)
+<span class="nc" id="L73">                                                       .setParameter(&quot;duration&quot;, duration.getSeconds())</span>
+<span class="nc" id="L74">                                                       .setParameter(&quot;sensor&quot;, sensor.getIdentifier())</span>
+<span class="nc" id="L75">                                                       .getResultList();</span>
+
+<span class="nc" id="L77">    return result;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

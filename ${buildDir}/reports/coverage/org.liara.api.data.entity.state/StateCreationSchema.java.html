@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StateCreationSchema.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.state</a> &gt; <span class="el_source">StateCreationSchema.java</span></div><h1>StateCreationSchema.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.state;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.ApplicationSchema;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.schema.Schema;
+import org.liara.api.validation.Required;
+import org.liara.api.validation.ValidApplicationEntityReference;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import java.time.ZonedDateTime;
+import java.util.*;
+
+@Schema(State.class)
+@JsonDeserialize(using = StateCreationSchemaDeserializer.class)
+<span class="fc" id="L20">public class StateCreationSchema implements ApplicationSchema</span>
+{
+<span class="fc" id="L22">  @Nullable</span>
+  private ZonedDateTime _emissionDate = null;
+  
+<span class="fc" id="L25">  @NonNull</span>
+<span class="fc" id="L26">  private ApplicationEntityReference&lt;Sensor&gt; _sensor = ApplicationEntityReference.empty(Sensor.class);</span>
+  
+<span class="fc" id="L28">  @NonNull</span>
+  private final Map&lt;String, ApplicationEntityReference&lt;State&gt;&gt; _correlations = new HashMap&lt;&gt;();
+  
+  public void clear () {
+<span class="nc" id="L32">    _emissionDate = null;</span>
+<span class="nc" id="L33">    _sensor = ApplicationEntityReference.empty(Sensor.class);</span>
+<span class="nc" id="L34">    _correlations.clear();</span>
+<span class="nc" id="L35">  }</span>
+  
+  @Required
+  @ValidApplicationEntityReference
+  public ApplicationEntityReference&lt;Sensor&gt; getSensor () {
+<span class="fc" id="L40">    return _sensor;</span>
+  }
+  
+  @JsonSetter
+  public void setSensor (@Nullable final Long sensor) {
+<span class="nc" id="L45">    _sensor = ApplicationEntityReference.of(Sensor.class, sensor);</span>
+<span class="nc" id="L46">  }</span>
+  
+  public void setSensor (@Nullable final Sensor sensor) {
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">    _sensor = (sensor == null) ? ApplicationEntityReference.empty(Sensor.class)</span>
+<span class="fc" id="L50">                               : ApplicationEntityReference.of(sensor);</span>
+<span class="fc" id="L51">  }</span>
+  
+  @Required
+  @JsonFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;)
+  public ZonedDateTime getEmissionDate () {
+<span class="fc" id="L56">    return _emissionDate;</span>
+  }
+  
+  @JsonSetter
+  public void setEmissionDate (@Nullable final ZonedDateTime emissionDate) {
+<span class="fc" id="L61">    _emissionDate = emissionDate;</span>
+<span class="fc" id="L62">  }</span>
+  
+  public void setEmittionDate (@NonNull final Optional&lt;ZonedDateTime&gt; emittionDate) {
+<span class="nc" id="L65">    _emissionDate = emittionDate.orElse(null);</span>
+<span class="nc" id="L66">  }</span>
+  
+  public void correlate (
+    @NonNull final String label, 
+    @NonNull final State state
+  ) {
+<span class="fc" id="L72">    _correlations.put(label, ApplicationEntityReference.of(state));</span>
+<span class="fc" id="L73">  }</span>
+  
+  public void decorrelate (@NonNull final String label) {
+<span class="nc" id="L76">    _correlations.remove(label);</span>
+<span class="nc" id="L77">  }</span>
+  
+  public ApplicationEntityReference&lt;State&gt; getCorrelation (@NonNull final String label) {
+<span class="nc" id="L80">    return _correlations.get(label);</span>
+  }
+  
+  public Map&lt;String, ApplicationEntityReference&lt;State&gt;&gt; getCorrelations () {
+<span class="fc" id="L84">    return Collections.unmodifiableMap(_correlations);</span>
+  }
+  
+  public Iterable&lt;Map.Entry&lt;String, ApplicationEntityReference&lt;State&gt;&gt;&gt; correlations () {
+<span class="fc" id="L88">    return Collections.unmodifiableSet(_correlations.entrySet());</span>
+  }
+  
+  @ValidApplicationEntityReference
+  @Required
+  public Set&lt;ApplicationEntityReference&lt;State&gt;&gt; getCorrelated () {
+<span class="nc" id="L94">    return Collections.unmodifiableSet(new HashSet&lt;&gt;(_correlations.values()));</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

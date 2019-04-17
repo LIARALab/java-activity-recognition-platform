@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>VirtualSensorRunner.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.recognition.sensor</a> &gt; <span class="el_source">VirtualSensorRunner.java</span></div><h1>VirtualSensorRunner.java</h1><pre class="source lang-java linenums">package org.liara.api.recognition.sensor;
+
+import java.util.ArrayList;
+
+import org.jboss.logging.Logger;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.State;
+import org.springframework.context.ApplicationContext;
+import org.springframework.lang.NonNull;
+
+public class VirtualSensorRunner
+{
+<span class="fc" id="L13">  @NonNull</span>
+<span class="fc" id="L14">  private final Logger _logger = Logger.getLogger(VirtualSensorManager.class);</span>
+  
+  @NonNull
+  private final Sensor _sensor;
+  
+  @NonNull
+  private final VirtualSensorHandler _handler;
+  
+  @NonNull
+  private VirtualSensorRunnerState _state;
+  
+  @NonNull
+  private final VirtualSensorManager _manager;
+  
+<span class="fc" id="L28">  @NonNull</span>
+  private final ArrayList&lt;State&gt; _buffer = new ArrayList&lt;&gt;(200);
+  
+  private static VirtualSensorRunner instanciate (
+    @NonNull final VirtualSensorManager manager,
+    @NonNull final Sensor sensor
+  ) {
+<span class="nc bnc" id="L35" title="All 2 branches missed.">    if (!sensor.isVirtual()) {</span>
+<span class="nc" id="L36">      throw new Error(&quot;Unnable to instanciate a runner for a non-virtual sensor.&quot;);</span>
+    }
+    
+    @SuppressWarnings(&quot;unchecked&quot;) /* Checked virtual sensor */
+<span class="nc" id="L40">    final Class&lt;? extends VirtualSensorHandler&gt; handlerType = (Class&lt;? extends VirtualSensorHandler&gt;) sensor.getTypeClass();</span>
+<span class="nc" id="L41">    final ApplicationContext applicationContext = manager.getApplicationContext();</span>
+    /* @TODO check handler unicity */
+<span class="nc" id="L43">    final VirtualSensorHandler handler = applicationContext.getBean(</span>
+<span class="nc" id="L44">      applicationContext.getBeanNamesForType(handlerType)[0], handlerType</span>
+    );
+    
+<span class="nc" id="L47">    final VirtualSensorRunner result = new VirtualSensorRunner(manager, sensor, handler);</span>
+<span class="nc" id="L48">    manager.registerRunner(result);</span>
+<span class="nc" id="L49">    return result;</span>
+  }
+  
+  public static VirtualSensorRunner create (
+    @NonNull final VirtualSensorManager manager,
+    @NonNull final Sensor sensor
+  ) {
+<span class="nc" id="L56">    final VirtualSensorRunner result = instanciate(manager, sensor);</span>
+<span class="nc" id="L57">    result.initialize();</span>
+<span class="nc" id="L58">    return result;</span>
+  }
+  
+  public static VirtualSensorRunner unbound (
+    @NonNull final Sensor sensor,
+    @NonNull final VirtualSensorHandler handler
+  ) {
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">    if (!sensor.isVirtual()) {</span>
+<span class="nc" id="L66">      throw new Error(&quot;Unnable to instanciate a runner for a non-virtual sensor.&quot;);</span>
+    }
+    
+<span class="fc" id="L69">    return new VirtualSensorRunner(null, sensor, handler);</span>
+  }
+  
+  public static VirtualSensorRunner restart (
+    @NonNull final VirtualSensorManager manager,
+    @NonNull final Sensor sensor
+  ) {
+<span class="nc" id="L76">    final VirtualSensorRunner result = instanciate(manager, sensor);</span>
+<span class="nc" id="L77">    result.resume();</span>
+<span class="nc" id="L78">    return result;</span>
+  }
+  
+  
+  protected VirtualSensorRunner (
+    @NonNull final VirtualSensorManager manager,
+    @NonNull final Sensor sensor,
+    @NonNull final VirtualSensorHandler handler
+<span class="fc" id="L86">  ) {</span>
+<span class="fc" id="L87">    _manager = manager;</span>
+<span class="fc" id="L88">    _sensor = sensor;</span>
+<span class="fc" id="L89">    _handler = handler;</span>
+<span class="fc" id="L90">    _state = VirtualSensorRunnerState.INSTANCIATED;</span>
+<span class="fc" id="L91">  }</span>
+  
+  public void initialize () {
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">    if (_state == VirtualSensorRunnerState.INSTANCIATED) {</span>
+<span class="fc" id="L95">      _state = VirtualSensorRunnerState.INITIALIZING;</span>
+<span class="fc" id="L96">      _handler.initialize(this);</span>
+<span class="fc" id="L97">      _state = VirtualSensorRunnerState.WAITING;</span>
+    } else {
+<span class="nc" id="L99">      throw new Error(String.join(</span>
+        &quot;&quot;, 
+        &quot;Unnable to initialize the current virtual sensor runner instance, only instanciated &quot;,
+        &quot;virtual sensor runner instance can be initialized. The current state is : &quot; + _state + &quot;.&quot;
+      ));
+    }
+<span class="fc" id="L105">  }</span>
+  
+  public void resume () {
+<span class="nc bnc" id="L108" title="All 2 branches missed.">    switch (_state) {</span>
+      case INSTANCIATED:
+      case PAUSED:
+<span class="nc" id="L111">        _state = VirtualSensorRunnerState.RESUMING;</span>
+<span class="nc" id="L112">        _handler.resume(this);</span>
+<span class="nc" id="L113">        _state = VirtualSensorRunnerState.WAITING;</span>
+<span class="nc" id="L114">        break;</span>
+      default:
+<span class="nc" id="L116">        throw new Error(String.join(</span>
+          &quot;&quot;, 
+          &quot;Unnable to resume the current virtual sensor runner instance, only instanciated and paused &quot;,
+          &quot;virtual sensor runner instance can be resumed. The current state is : &quot; + _state + &quot;.&quot;
+        ));
+    }
+<span class="nc" id="L122">  }</span>
+  
+  public void pause () {
+<span class="nc bnc" id="L125" title="All 2 branches missed.">    if (_state == VirtualSensorRunnerState.WAITING) {</span>
+<span class="nc" id="L126">      _state = VirtualSensorRunnerState.PAUSING;</span>
+<span class="nc" id="L127">      _handler.pause();</span>
+<span class="nc" id="L128">      _state = VirtualSensorRunnerState.PAUSED;</span>
+    } else {
+<span class="nc" id="L130">      throw new Error(String.join(</span>
+        &quot;&quot;, 
+        &quot;Unnable to pause the current virtual sensor runner instance, only waiting &quot;,
+        &quot;virtual sensor runner instance can be paused. The current state is : &quot; + _state + &quot;.&quot;
+      ));
+    }
+<span class="nc" id="L136">  }</span>
+  
+  public void stop () {
+<span class="nc bnc" id="L139" title="All 2 branches missed.">    if (_state == VirtualSensorRunnerState.WAITING) {</span>
+<span class="nc" id="L140">      _state = VirtualSensorRunnerState.STOPPING;</span>
+<span class="nc" id="L141">      _handler.stop();</span>
+<span class="nc" id="L142">      _state = VirtualSensorRunnerState.STOPPED;</span>
+    } else {
+<span class="nc" id="L144">      throw new Error(String.join(</span>
+        &quot;&quot;, 
+        &quot;Unnable to stop the current virtual sensor runner instance, only waiting &quot;,
+        &quot;virtual sensor runner instance can be stopped. The current state is : &quot; + _state + &quot;.&quot;
+      ));
+    }
+<span class="nc" id="L150">  }</span>
+
+  public Sensor getSensor () {
+<span class="fc" id="L153">    return _sensor;</span>
+  }
+
+  public VirtualSensorHandler getHandler () {
+<span class="fc" id="L157">    return _handler;</span>
+  }
+  
+  public VirtualSensorManager getManager () {
+<span class="nc" id="L161">    return _manager;</span>
+  }
+  
+  public VirtualSensorRunnerState getState () {
+<span class="nc" id="L165">    return _state;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

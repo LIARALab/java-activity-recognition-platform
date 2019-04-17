@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LocalNodeRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository.local</a> &gt; <span class="el_source">LocalNodeRepository.java</span></div><h1>LocalNodeRepository.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository.local;
+
+import java.util.Set;
+import java.util.WeakHashMap;
+
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.tree.LocalNestedSetTree;
+import org.liara.api.data.entity.tree.NestedSetCoordinates;
+import org.liara.api.data.entity.tree.NestedSetTree;
+import org.liara.api.data.repository.NodeRepository;
+import org.springframework.lang.NonNull;
+
+public class LocalNodeRepository
+       extends LocalApplicationEntityRepository&lt;Node&gt;
+       implements NestedSetTree&lt;Node&gt;, NodeRepository
+{
+  @NonNull
+<span class="fc" id="L18">  public static final WeakHashMap&lt;NestedSetTree&lt;Node&gt;, LocalNodeRepository&gt; REPOSITORIES = new WeakHashMap&lt;&gt;();</span>
+  
+  public static LocalNodeRepository of (@NonNull final Node node) {
+<span class="fc" id="L21">    return REPOSITORIES.get(node.getTree());</span>
+  }
+  
+  @NonNull
+  private final LocalNestedSetTree&lt;Node&gt; _tree;
+  
+  public static LocalNodeRepository from (@NonNull final LocalEntityManager manager) {
+<span class="fc" id="L28">    final LocalNodeRepository result = new LocalNodeRepository();</span>
+<span class="fc" id="L29">    manager.addListener(result);</span>
+<span class="fc" id="L30">    return result;</span>
+  }
+  
+  public LocalNodeRepository() {
+<span class="fc" id="L34">    super(Node.class);</span>
+<span class="fc" id="L35">    _tree = new LocalNestedSetTree&lt;&gt;();</span>
+<span class="fc" id="L36">    REPOSITORIES.put(_tree, this);</span>
+<span class="fc" id="L37">  }</span>
+
+  @Override
+  public long getSize () {
+<span class="nc" id="L41">    return _tree.getSize();</span>
+  }
+
+  @Override
+  public Node getNode (@NonNull final Long identifier) {
+<span class="nc" id="L46">    return _tree.getNode(identifier);</span>
+  }
+
+  @Override
+  public Set&lt;Node&gt; getNodes () {
+<span class="nc" id="L51">    return _tree.getNodes();</span>
+  }
+
+  @Override
+  public Set&lt;Node&gt; getChildrenOf (@NonNull final Node node) {
+<span class="nc" id="L56">    return _tree.getChildrenOf(node);</span>
+  }
+
+  @Override
+  public Set&lt;Node&gt; getAllChildrenOf (@NonNull final Node node) {
+<span class="nc" id="L61">    return _tree.getAllChildrenOf(node);</span>
+  }
+
+  @Override
+  public Node getParentOf (@NonNull final Node node) {
+<span class="nc" id="L66">    return _tree.getParentOf(node);</span>
+  }
+
+  @Override
+  public Set&lt;Node&gt; getParentsOf (@NonNull final Node node) {
+<span class="nc" id="L71">    return _tree.getParentsOf(node);</span>
+  }
+
+  @Override
+  public NestedSetCoordinates getCoordinates () {
+<span class="nc" id="L76">    return _tree.getCoordinates();</span>
+  }
+
+  @Override
+  public NestedSetCoordinates getCoordinatesOf (@NonNull final Node node) {
+<span class="nc" id="L81">    return _tree.getCoordinatesOf(node);</span>
+  }
+
+  @Override
+  public int getSetStart () {
+<span class="nc" id="L86">    return _tree.getSetStart();</span>
+  }
+
+  @Override
+  public int getSetStartOf (@NonNull final Node node) {
+<span class="nc" id="L91">    return _tree.getSetStartOf(node);</span>
+  }
+
+  @Override
+  public int getSetEnd () {
+<span class="nc" id="L96">    return _tree.getSetEnd();</span>
+  }
+
+  @Override
+  public int getSetEndOf (@NonNull final Node node) {
+<span class="nc" id="L101">    return _tree.getSetEndOf(node);</span>
+  }
+
+  @Override
+  public int getDepth () {
+<span class="nc" id="L106">    return _tree.getDepth();</span>
+  }
+
+  @Override
+  public int getDepthOf (@NonNull final Node node) {
+<span class="nc" id="L111">    return _tree.getDepthOf(node);</span>
+  }
+
+  @Override
+  public void addNode (@NonNull final Node node) {
+<span class="fc" id="L116">    _tree.addNode(node);</span>
+<span class="fc" id="L117">    add(node);</span>
+<span class="fc" id="L118">  }</span>
+
+  @Override
+  public void addNode (@NonNull final Node node, @NonNull final Node parent) {
+<span class="nc" id="L122">    _tree.addNode(node, parent);</span>
+<span class="nc" id="L123">    add(node);</span>
+<span class="nc" id="L124">  }</span>
+
+  @Override
+  public void removeNode (@NonNull final Node node) {
+<span class="fc" id="L128">    _tree.removeNode(node);</span>
+<span class="fc" id="L129">    remove(node);</span>
+<span class="fc" id="L130">  }</span>
+
+  @Override
+  public Node getRoot (@NonNull final Node node) {
+<span class="nc" id="L134">    return _tree.getRoot(node);</span>
+  }
+
+  @Override
+  protected void trackedEntityWasAdded (@NonNull final Node entity) {
+<span class="fc" id="L139">    super.trackedEntityWasAdded(entity);</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">    if (!_tree.contains(entity)) {</span>
+<span class="fc" id="L141">      _tree.addNode(entity);</span>
+    }
+<span class="fc" id="L143">  }</span>
+
+  @Override
+  protected void trackedEntityWasRemoved (@NonNull final Node entity) {
+<span class="fc" id="L147">    super.trackedEntityWasRemoved(entity);</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">    if (_tree.contains(entity)) {</span>
+<span class="nc" id="L149">      _tree.removeNode(entity);</span>
+    }
+<span class="fc" id="L151">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

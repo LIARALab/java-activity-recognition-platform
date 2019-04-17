@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>State.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.state</a> &gt; <span class="el_source">State.java</span></div><h1>State.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.data.entity.state;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Objects;
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.schema.UseCreationSchema;
+import org.liara.api.data.schema.UseMutationSchema;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import javax.persistence.*;
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Entity
+@Table(name = &quot;states&quot;)
+@Inheritance(strategy = InheritanceType.JOINED)
+@UseCreationSchema(StateCreationSchema.class)
+@UseMutationSchema(StateMutationSchema.class)
+public class State extends ApplicationEntity
+{
+  @Column(name = &quot;emitted_at&quot;, nullable = false, updatable = true, unique = false, precision = 6)
+  private ZonedDateTime _emissionDate;
+  
+  @ManyToOne(optional = false)
+  @JoinColumn(name = &quot;sensor_identifier&quot;, nullable = false, unique = false, updatable = true)
+  private Sensor _sensor;
+
+  @ManyToMany(cascade = CascadeType.ALL)
+  @JoinTable(name = &quot;correlations_of_states&quot;, joinColumns = @JoinColumn(name = &quot;master_identifier&quot;),
+    inverseJoinColumns = @JoinColumn(name = &quot;slave_identifier&quot;)
+  )
+  @MapKeyColumn(name = &quot;label&quot;)
+  private Map&lt;String, State&gt; _correlations;
+
+<span class="fc" id="L65">  public State () {</span>
+<span class="fc" id="L66">    _emissionDate = null;</span>
+<span class="fc" id="L67">    _sensor = null;</span>
+<span class="fc" id="L68">    _correlations = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L69">  }</span>
+
+  @JsonFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;)
+  public ZonedDateTime getEmissionDate () {
+<span class="fc" id="L73">    return _emissionDate;</span>
+  }
+
+  public void setEmissionDate (@NonNull final ZonedDateTime emissionDate) {
+<span class="fc" id="L77">    _emissionDate = emissionDate;</span>
+<span class="fc" id="L78">  }</span>
+
+  @JsonIgnore
+  public Sensor getSensor () {
+<span class="fc" id="L82">    return _sensor;</span>
+  }
+
+  public void setSensor (@Nullable final Sensor sensor) {
+<span class="fc bfc" id="L86" title="All 2 branches covered.">    if (_sensor != sensor) {</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">      if (_sensor != null) {</span>
+<span class="nc" id="L88">        final Sensor oldSensor = _sensor;</span>
+<span class="nc" id="L89">        _sensor = null;</span>
+<span class="nc" id="L90">        oldSensor.removeState(this);</span>
+      }
+
+<span class="fc" id="L93">      _sensor = sensor;</span>
+
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">      if (_sensor != null) {</span>
+<span class="fc" id="L96">        _sensor.addState(this);</span>
+      }
+    }
+<span class="fc" id="L99">  }</span>
+  
+  public void correlate (
+    @NonNull final String label, 
+    @NonNull final State state
+  ) {
+<span class="fc" id="L105">    final String unifiedLabel = label.toLowerCase().trim();</span>
+<span class="fc" id="L106">    _correlations.put(unifiedLabel, state);</span>
+<span class="fc" id="L107">  }</span>
+  
+  public void decorrelate (
+    @NonNull final String label
+  ) {
+<span class="fc" id="L112">    final String unifiedLabel = label.toLowerCase().trim();</span>
+<span class="fc" id="L113">    _correlations.remove(unifiedLabel);</span>
+<span class="fc" id="L114">  }</span>
+  
+  public Iterable&lt;Map.Entry&lt;String, State&gt;&gt; correlations () {
+<span class="fc" id="L117">    return Collections.unmodifiableSet(_correlations.entrySet());</span>
+  }
+  
+  public State getCorrelation (@NonNull final String label) {
+<span class="fc" id="L121">    final String unifiedLabel = label.toLowerCase().trim();</span>
+<span class="fc" id="L122">    return _correlations.get(unifiedLabel);</span>
+  }
+
+  @JsonIgnore
+  public Set&lt;Map.Entry&lt;String, State&gt;&gt; getCorrelations () {
+<span class="fc" id="L127">    return Collections.unmodifiableSet(_correlations.entrySet());</span>
+  }
+  
+  @JsonProperty(&quot;correlations&quot;)
+  public Set&lt;Object[]&gt; getJSONCorrelations () {
+<span class="nc" id="L132">    return _correlations.entrySet().stream().map(entry -&gt; {</span>
+<span class="nc" id="L133">      return new Object[] { entry.getKey(), entry.getValue().getIdentifier() };</span>
+<span class="nc" id="L134">    }).collect(Collectors.toSet());</span>
+  }
+  
+  public boolean hasCorrelation (@NonNull final String label) {
+<span class="nc" id="L138">    final String unifiedLabel = label.toLowerCase().trim();</span>
+<span class="nc" id="L139">    return _correlations.containsKey(unifiedLabel);</span>
+  }
+  
+  public boolean isCorrelated (@NonNull final State state) {
+<span class="nc" id="L143">    return _correlations.containsValue(state);</span>
+  }
+  
+  public boolean isCorrelated (
+    @NonNull final String label,
+    @NonNull final State state
+  ) {
+<span class="nc" id="L150">    final String unifiedLabel = label.toLowerCase().trim();</span>
+<span class="nc" id="L151">    return Objects.equal(_correlations.get(unifiedLabel), state);</span>
+  }
+
+  @Transient
+  public Long getSensorIdentifier () {
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">    return _sensor == null ? null : _sensor.getIdentifier();</span>
+  }
+
+  @JsonIgnore
+  @Transient
+  public Long getNodeIdentifier () {
+<span class="fc" id="L162">    return _sensor.getNodeIdentifier();</span>
+  }
+  
+  @Override
+  public StateSnapshot snapshot () {
+<span class="nc" id="L167">    return new StateSnapshot(this);</span>
+  }  
+  
+  @Override
+  public ApplicationEntityReference&lt;? extends State&gt; getReference () {
+<span class="nc" id="L172">    return ApplicationEntityReference.of(this);</span>
+  }
+
+  @Override
+  public String toString () {
+<span class="nc" id="L177">    return String.join(</span>
+      &quot;&quot;, 
+<span class="nc bnc" id="L179" title="All 2 branches missed.">      super.toString(), &quot;[&quot;,</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">      &quot;sensor : &quot;, _sensor == null ? null : _sensor.toString(), &quot;, &quot;,</span>
+<span class="nc" id="L181">      &quot;emittionDate : &quot;, _emissionDate == null ? null : _emissionDate.toString(), &quot;]&quot;</span>
+    );
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityCollectionOperator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.transformation.operator</a> &gt; <span class="el_source">EntityCollectionOperator.java</span></div><h1>EntityCollectionOperator.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.transformation.operator;
+
+import java.util.Arrays;
+
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+
+import org.liara.api.collection.EntityCollection;
+import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.transformation.Transformation;
+import org.springframework.lang.NonNull;
+
+/**
+ * An operator that can be applied to mutate a given entity collection query.
+ * 
+ * @author C&amp;eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
+ *
+ * @param &lt;Entity&gt; Entity targeted by this operation.
+ */
+@FunctionalInterface
+public interface EntityCollectionOperator&lt;Entity&gt; 
+       extends   Transformation&lt;
+                   EntityCollection&lt;Entity&gt;, 
+                   EntityCollection&lt;Entity&gt;
+                 &gt;
+{
+  /**
+   * Apply the current operator to the given query.
+   * 
+   * @param query Query to update.
+   */
+  public void apply (
+    @NonNull final EntityCollectionQuery&lt;Entity, ?&gt; query
+  );
+  
+  /**
+   * Apply the current operator to the given query.
+   * 
+   * @param manager Manage related to the query.
+   * @param query Query to mutate.
+   * @param entity Targeted entity.
+   */
+  default public void apply (
+    @NonNull final EntityManager manager,
+    @NonNull final CriteriaQuery&lt;?&gt; query,
+    @NonNull final Root&lt;Entity&gt; entity
+  ) {
+<span class="nc" id="L71">    apply(EntityCollectionQuery.from(manager, query, entity));</span>
+<span class="nc" id="L72">  }</span>
+  
+  /**
+   * Apply the current operator to the given query.
+   * 
+   * @param manager Manage related to the query.
+   * @param query Query to mutate.
+   * @param entity Targeted entity.
+   */
+  default public &lt;Output&gt; void apply (
+    @NonNull final EntityManager manager,
+    @NonNull final Subquery&lt;Output&gt; query,
+    @NonNull final Root&lt;Entity&gt; entity
+  ) {
+<span class="nc" id="L86">    apply(EntityCollectionQuery.from(manager, query, entity));</span>
+<span class="nc" id="L87">  }</span>
+  
+  /**
+   * Apply this operator to a collection.
+   * 
+   * @param collection Collection to mutate.
+   */
+  default EntityCollection&lt;Entity&gt; apply (
+    @NonNull final EntityCollection&lt;Entity&gt; collection
+  ) {
+<span class="nc" id="L97">    return collection.apply(this);</span>
+  }
+  
+  /**
+   * Create an operator that apply the given operator and then apply the current operator on a collection.
+   * 
+   * @param operator Operator to conjugate.
+   * @return An operator that apply the given operator and then apply the current operator on a collection.
+   */
+  default EntityCollectionOperator&lt;Entity&gt; apply (
+    @NonNull final EntityCollectionOperator&lt;Entity&gt; operator
+  ) {
+<span class="nc" id="L109">    return new EntityCollectionConjunctionOperator&lt;&gt;(Arrays.asList(</span>
+      this, operator
+    ));
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>APIRequestEntityFilterParserFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.request.parser.operator</a> &gt; <span class="el_source">APIRequestEntityFilterParserFactory.java</span></div><h1>APIRequestEntityFilterParserFactory.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.request.parser.operator;
+
+import java.time.ZonedDateTime;
+
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+
+import org.liara.api.collection.EntityCollection;
+import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.collection.query.relation.EntityRelation;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.filter.interpretor.BooleanFilterInterpretor;
+import org.liara.api.filter.interpretor.DatetimeFilterInterpretor;
+import org.liara.api.filter.interpretor.DatetimeInRangeFilterInterpretor;
+import org.liara.api.filter.interpretor.DoubleFilterInterpretor;
+import org.liara.api.filter.interpretor.IntegerFilterInterpretor;
+import org.liara.api.filter.interpretor.DurationFilterInterpretor;
+import org.liara.api.filter.interpretor.TextFilterInterpretor;
+import org.springframework.lang.NonNull;
+
+<span class="nc" id="L44">public final class APIRequestEntityFilterParserFactory</span>
+{  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; callback (
+    @NonNull final String parameter, 
+    @NonNull final APIRequestEntityCollectionCallbackOperatorParser&lt;Entity&gt; callback
+  ) {
+<span class="nc" id="L50">    return new APIRequestEntityCollectionIfPresentOperatorParser&lt;&gt;(parameter, callback);</span>
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; defaultValue (
+    @NonNull final String parameter,
+    @NonNull final APIRequestEntityCollectionOperatorParser&lt;Entity&gt; parser,
+    @NonNull final EntityCollectionOperator&lt;Entity&gt; operator
+  ) {
+<span class="nc" id="L58">    return new APIRequestDefaultOperatorParser&lt;&gt;(parameter, operator, parser);</span>
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; booleanValue (
+    @NonNull final String parameter, 
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Expression&lt;Boolean&gt;&gt; selector
+  ) {
+<span class="nc" id="L65">    return APIRequestEntityFilterParserFactory.booleanValue(</span>
+      parameter, (EntityFieldSelector&lt;Entity, Expression&lt;Boolean&gt;&gt;) selector
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; booleanValue (
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;Boolean&gt;&gt; selector
+  ) {
+<span class="nc" id="L74">    return new APIRequestEntityCollectionCommandBasedFilteringOperatorParser&lt;Entity, Boolean&gt;(</span>
+        parameter, new BooleanFilterInterpretor&lt;&gt;(selector)
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; integer (
+    @NonNull final String parameter, 
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Expression&lt;Integer&gt;&gt; selector
+  ) {
+<span class="nc" id="L83">    return APIRequestEntityFilterParserFactory.integerValue(</span>
+      parameter, (EntityFieldSelector&lt;Entity, Expression&lt;Integer&gt;&gt;) selector
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; integerValue (
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;Integer&gt;&gt; selector
+  ) {
+<span class="nc" id="L92">    return new APIRequestEntityCollectionCommandBasedFilteringOperatorParser&lt;Entity, Integer&gt;(</span>
+        parameter, new IntegerFilterInterpretor&lt;&gt;(selector)
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; doubleValue (
+    @NonNull final String parameter, 
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Expression&lt;Double&gt;&gt; selector
+  ) {
+<span class="nc" id="L101">    return APIRequestEntityFilterParserFactory.doubleValue(</span>
+      parameter, (EntityFieldSelector&lt;Entity, Expression&lt;Double&gt;&gt;) selector
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; doubleValue (
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;Double&gt;&gt; selector
+  ) {
+<span class="nc" id="L110">    return new APIRequestEntityCollectionCommandBasedFilteringOperatorParser&lt;Entity, Double&gt;(</span>
+        parameter, new DoubleFilterInterpretor&lt;&gt;(selector)
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; datetime (
+    @NonNull final String parameter, 
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt; selector
+  ) {
+<span class="nc" id="L119">    return APIRequestEntityFilterParserFactory.datetime(</span>
+      parameter, (EntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt;) selector
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; datetime (
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt; selector
+  ) {
+<span class="nc" id="L128">    return new APIRequestEntityCollectionCommandBasedFilteringOperatorParser&lt;Entity, ZonedDateTime&gt;(</span>
+        parameter,
+        new DatetimeFilterInterpretor&lt;&gt;(selector)
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; datetimeInRange (
+    @NonNull final String parameter, 
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt; start,
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt; end
+  ) {
+<span class="nc" id="L139">    return APIRequestEntityFilterParserFactory.datetimeInRange(</span>
+      parameter, 
+      (EntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt;) start, 
+      (EntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt;) end
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; datetimeInRange (
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt; start,
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;ZonedDateTime&gt;&gt; end
+  ) {
+<span class="nc" id="L151">    return new APIRequestEntityCollectionCommandBasedFilteringOperatorParser&lt;Entity, ZonedDateTime&gt;(</span>
+        parameter, 
+        new DatetimeInRangeFilterInterpretor&lt;&gt;(start, end)
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; duration (
+    @NonNull final String parameter, 
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Expression&lt;Long&gt;&gt; selector
+  ) {
+<span class="nc" id="L161">    return APIRequestEntityFilterParserFactory.duration(</span>
+      parameter, (EntityFieldSelector&lt;Entity, Expression&lt;Long&gt;&gt;) selector
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; duration (
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;Long&gt;&gt; selector
+  ) {
+<span class="nc" id="L170">    return new APIRequestEntityCollectionCommandBasedFilteringOperatorParser&lt;Entity, Long&gt;(</span>
+        parameter,
+        new DurationFilterInterpretor&lt;&gt;(selector)
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; text (
+    @NonNull final String parameter, 
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Expression&lt;String&gt;&gt; selector
+  ) {
+<span class="nc" id="L180">    return APIRequestEntityFilterParserFactory.text(</span>
+      parameter, (EntityFieldSelector&lt;Entity, Expression&lt;String&gt;&gt;) selector
+    );
+  }
+  
+  public static &lt;Entity&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; text (
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;String&gt;&gt; selector
+  ) {
+<span class="nc" id="L189">    return new APIRequestEntityCollectionCommandBasedFilteringOperatorParser&lt;Entity, String&gt;(</span>
+        parameter,
+        new TextFilterInterpretor&lt;&gt;(selector)
+    );
+  }
+  
+  public static &lt;Entity, Joined&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; joinCollection (
+    @NonNull final String parameter, 
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join, 
+    @NonNull final Class&lt;? extends EntityCollection&lt;Joined&gt;&gt; collection
+  ) {
+
+<span class="nc" id="L201">    return joinCollection(</span>
+      parameter, 
+      (EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt;) join, 
+      collection
+    );
+  }
+  
+  public static &lt;Entity, Joined&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; joinCollection (
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join, 
+    @NonNull final Class&lt;? extends EntityCollection&lt;Joined&gt;&gt; collection
+  ) {
+<span class="nc" id="L213">    return new APIRequestEntityCollectionJoinOperatorParser&lt;Entity, Joined&gt;(</span>
+        parameter, join, 
+        new APIRequestConfigurationBasedFilteringOperatorParser&lt;Joined&gt;(
+<span class="nc" id="L216">          CollectionRequestConfiguration.getDefaultClass(collection)</span>
+        )
+    );
+  }
+  
+  public static &lt;Entity, Joined&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; joinConfiguration (
+    @NonNull final String parameter, 
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join, 
+    @NonNull final Class&lt;? extends CollectionRequestConfiguration&lt;Joined&gt;&gt; configuration
+  ) {
+<span class="nc" id="L226">    return APIRequestEntityFilterParserFactory.joinConfiguration(</span>
+      parameter, (EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt;) join, configuration
+    );
+  }
+  
+  public static &lt;Entity, Joined&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; joinConfiguration (
+    @NonNull final String parameter, 
+    @NonNull final EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join, 
+    @NonNull final Class&lt;? extends CollectionRequestConfiguration&lt;Joined&gt;&gt; configuration
+  ) {
+<span class="nc" id="L236">    return new APIRequestEntityCollectionJoinOperatorParser&lt;Entity, Joined&gt;(</span>
+        parameter, join, 
+        new APIRequestConfigurationBasedFilteringOperatorParser&lt;&gt;(configuration)
+    );
+  }
+  
+  public static &lt;Entity, Joined&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; existsConfiguration (
+    @NonNull final String parameter, 
+    @NonNull final Class&lt;Joined&gt; joined,
+    @NonNull final EntityRelation&lt;Entity, Joined&gt; relation, 
+    @NonNull final Class&lt;? extends CollectionRequestConfiguration&lt;Joined&gt;&gt; configuration
+  ) {
+<span class="nc" id="L248">    return new APIRequestEntityCollectionExistsOperatorParser&lt;&gt;(</span>
+        parameter, joined, relation,
+        new APIRequestConfigurationBasedFilteringOperatorParser&lt;&gt;(configuration)
+    );
+  }
+  
+  public static &lt;Entity, Joined&gt; APIRequestEntityCollectionOperatorParser&lt;Entity&gt; existsCollection (
+    @NonNull final String parameter, 
+    @NonNull final Class&lt;Joined&gt; joined,
+    @NonNull final EntityRelation&lt;Entity, Joined&gt; relation, 
+    @NonNull final Class&lt;? extends EntityCollection&lt;Joined&gt;&gt; collection
+  ) {
+<span class="nc" id="L260">    return new APIRequestEntityCollectionExistsOperatorParser&lt;Entity, Joined&gt;(</span>
+        parameter, joined, relation,
+        new APIRequestConfigurationBasedFilteringOperatorParser&lt;Joined&gt;(
+<span class="nc" id="L263">          CollectionRequestConfiguration.getDefaultClass(collection)</span>
+        )
+    );
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

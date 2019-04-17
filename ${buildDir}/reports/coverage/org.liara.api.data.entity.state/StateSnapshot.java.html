@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StateSnapshot.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.state</a> &gt; <span class="el_source">StateSnapshot.java</span></div><h1>StateSnapshot.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.state;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.ApplicationEntitySnapshot;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.springframework.lang.NonNull;
+
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+public class StateSnapshot extends ApplicationEntitySnapshot
+{
+  @NonNull
+  private final ApplicationEntityReference&lt;Sensor&gt; _sensor;
+  
+  @NonNull
+  private final ZonedDateTime _emissionDate;
+  
+<span class="pc" id="L21">  @NonNull</span>
+  private final Map&lt;String, ApplicationEntityReference&lt;State&gt;&gt; _correlations = new HashMap&lt;&gt;();
+  
+  public StateSnapshot (@NonNull final StateSnapshot toCopy) {
+<span class="nc" id="L25">    super(toCopy);</span>
+    
+<span class="nc" id="L27">    _sensor = toCopy.getSensor();</span>
+<span class="nc" id="L28">    _emissionDate = toCopy.getEmittionDate();</span>
+<span class="nc bnc" id="L29" title="All 2 branches missed.">    for (final Map.Entry&lt;String, ApplicationEntityReference&lt;State&gt;&gt; correlation : toCopy.getCorrelations().entrySet()) {</span>
+<span class="nc" id="L30">      _correlations.put(correlation.getKey(), correlation.getValue());</span>
+<span class="nc" id="L31">    }</span>
+<span class="nc" id="L32">  }</span>
+
+  public StateSnapshot (@NonNull final State model) {
+<span class="fc" id="L35">    super(model);</span>
+    
+<span class="fc" id="L37">    _sensor = ApplicationEntityReference.of(Sensor.class, model.getSensorIdentifier());</span>
+<span class="fc" id="L38">    _emissionDate = model.getEmissionDate();</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">    for (final Map.Entry&lt;String, State&gt; correlation : model.getCorrelations()) {</span>
+<span class="fc" id="L40">      _correlations.put(correlation.getKey(), correlation.getValue().getReference().as(State.class));</span>
+<span class="fc" id="L41">    }</span>
+<span class="fc" id="L42">  }</span>
+  
+  public ApplicationEntityReference&lt;Sensor&gt; getSensor () {
+<span class="fc" id="L45">    return _sensor;</span>
+  }
+  
+  public ZonedDateTime getEmittionDate () {
+<span class="fc" id="L49">    return _emissionDate;</span>
+  }
+  
+  public Map&lt;String, ApplicationEntityReference&lt;State&gt;&gt; getCorrelations () {
+<span class="nc" id="L53">    return Collections.unmodifiableMap(_correlations);</span>
+  }
+  
+  public ApplicationEntityReference&lt;State&gt; getCorrelation (@NonNull final String name) {
+<span class="nc" id="L57">    return _correlations.get(name);</span>
+  }
+  
+  public boolean hasCorrelation (@NonNull final String name) {
+<span class="nc" id="L61">    return _correlations.containsKey(name);</span>
+  }
+  
+  public Iterable&lt;Map.Entry&lt;String, ApplicationEntityReference&lt;State&gt;&gt;&gt; correlations () {
+<span class="nc" id="L65">    return Collections.unmodifiableSet(_correlations.entrySet());</span>
+  }
+  
+  @Override
+  public StateSnapshot clone () {
+<span class="nc" id="L70">    return new StateSnapshot(this);</span>
+  }
+  
+  @Override
+  public State getModel () {
+<span class="fc" id="L75">    return (State) super.getModel();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

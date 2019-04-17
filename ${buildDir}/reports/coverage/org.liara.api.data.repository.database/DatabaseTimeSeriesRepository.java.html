@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DatabaseTimeSeriesRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository.database</a> &gt; <span class="el_source">DatabaseTimeSeriesRepository.java</span></div><h1>DatabaseTimeSeriesRepository.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository.database;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.repository.TimeSeriesRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Scope;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Component
+@Scope(&quot;prototype&quot;)
+@Primary
+public class DatabaseTimeSeriesRepository&lt;TimeState extends State&gt;
+       extends DatabaseApplicationEntityRepository&lt;TimeState&gt;
+       implements TimeSeriesRepository&lt;TimeState&gt;
+{
+  @NonNull
+  private final EntityManager _entityManager;
+  
+  @NonNull
+  private final Class&lt;TimeState&gt; _stateType;
+  
+  @Autowired
+  public DatabaseTimeSeriesRepository (
+    @NonNull final EntityManager entityManager,
+    @NonNull final Class&lt;TimeState&gt; stateType
+  ) {
+<span class="nc" id="L41">    super(entityManager, stateType);</span>
+<span class="nc" id="L42">    _entityManager = entityManager;</span>
+<span class="nc" id="L43">    _stateType = stateType;</span>
+<span class="nc" id="L44">  }</span>
+
+  @Override
+  public List&lt;TimeState&gt; findAllAt (
+    @NonNull final ZonedDateTime date, @NonNull final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; sensors
+  )
+  {
+<span class="nc" id="L51">    return _entityManager.createQuery(String.join(</span>
+      &quot;&quot;,
+      &quot;SELECT state &quot;,
+      &quot;  FROM &quot;,
+<span class="nc" id="L55">      _stateType.getName(),</span>
+      &quot; state &quot;,
+      &quot; WHERE state._emissionDate = :date &quot;,
+      &quot;   AND state._sensor._identifier IN :sensors&quot;,
+      &quot; ORDER BY state._identifier ASC&quot;
+    ), _stateType)
+<span class="nc" id="L61">                         .setParameter(&quot;date&quot;, date)</span>
+<span class="nc" id="L62">                         .setParameter(&quot;sensors&quot;,</span>
+<span class="nc" id="L63">                                       sensors.stream()</span>
+<span class="nc" id="L64">                                              .map(ApplicationEntityReference::getIdentifier)</span>
+<span class="nc" id="L65">                                              .collect(Collectors.toList())</span>
+                         )
+<span class="nc" id="L67">                         .getResultList();</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findPrevious (
+    @NonNull final ZonedDateTime date,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor,
+    final int count
+  ) {
+<span class="nc" id="L76">    return _entityManager.createQuery(</span>
+<span class="nc" id="L77">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT state &quot;,
+<span class="nc" id="L80">        &quot;  FROM &quot;, _stateType.getName(), &quot; state &quot;,</span>
+        &quot; WHERE state._emissionDate &lt; :date &quot;,
+        &quot;   AND state._sensor._identifier = :sensor&quot;,
+        &quot; ORDER BY state._emissionDate DESC, state._identifier ASC&quot;
+      ), _stateType
+<span class="nc" id="L85">    ).setParameter(&quot;date&quot;, date)</span>
+<span class="nc" id="L86">     .setParameter(&quot;sensor&quot;, sensor.getIdentifier())</span>
+<span class="nc" id="L87">     .setMaxResults(count)</span>
+<span class="nc" id="L88">     .getResultList();</span>
+  }
+  
+  @Override
+  public List&lt;TimeState&gt; findNext (
+    @NonNull final ZonedDateTime date,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor,
+    final int count
+  ) {
+<span class="nc" id="L97">    return _entityManager.createQuery(</span>
+<span class="nc" id="L98">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT state &quot;,
+<span class="nc" id="L101">        &quot;  FROM &quot;, _stateType.getName(), &quot; state &quot;,</span>
+        &quot; WHERE state._emissionDate &gt; :date &quot;,
+        &quot;   AND state._sensor._identifier = :sensor &quot;,
+        &quot; ORDER BY state._emissionDate ASC, state._identifier ASC&quot;
+      ), _stateType
+<span class="nc" id="L106">    ).setParameter(&quot;date&quot;, date)</span>
+<span class="nc" id="L107">     .setParameter(&quot;sensor&quot;, sensor.getIdentifier())</span>
+<span class="nc" id="L108">     .setMaxResults(count)</span>
+<span class="nc" id="L109">     .getResultList();</span>
+  }
+  
+  @Override
+  public List&lt;TimeState&gt; find (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor,
+    final int from,
+    final int count
+  ) {
+<span class="nc" id="L118">    return _entityManager.createQuery(</span>
+<span class="nc" id="L119">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT state &quot;,
+<span class="nc" id="L122">        &quot;  FROM &quot;, _stateType.getName(), &quot; state &quot;,</span>
+        &quot; WHERE state._sensor._identifier = :sensor &quot;,
+        &quot; ORDER BY state._emissionDate ASC, state._identifier ASC&quot;
+      ), _stateType
+<span class="nc" id="L126">    ).setParameter(&quot;sensor&quot;, sensor.getIdentifier())</span>
+<span class="nc" id="L127">     .setMaxResults(count)</span>
+<span class="nc" id="L128">     .setFirstResult(from)</span>
+<span class="nc" id="L129">     .getResultList();</span>
+  }
+  
+  @Override
+  public List&lt;TimeState&gt; findAll (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="nc" id="L136">    return _entityManager.createQuery(</span>
+<span class="nc" id="L137">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT state &quot;,
+<span class="nc" id="L140">        &quot;  FROM &quot;, _stateType.getName(), &quot; state &quot;,</span>
+        &quot; WHERE state._sensor._identifier = :sensor &quot;,
+        &quot; ORDER BY state._emissionDate ASC, state._identifier ASC&quot;
+      ), _stateType
+<span class="nc" id="L144">    ).setParameter(&quot;sensor&quot;, sensor.getIdentifier())</span>
+<span class="nc" id="L145">     .getResultList();</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findWithCorrelation (
+    @NonNull final String key, 
+    @NonNull final ApplicationEntityReference&lt;? extends State&gt; correlated,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="nc" id="L154">    return _entityManager.createQuery(</span>
+<span class="nc" id="L155">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT state &quot;,
+<span class="nc" id="L158">        &quot;  FROM &quot;, _stateType.getName(), &quot; state &quot;,</span>
+        &quot; WHERE state._correlations[:key]._identifier = :correlated&quot;,
+        &quot;   AND state._sensor._identifier = :sensor&quot;,
+        &quot; ORDER BY state._identifier ASC&quot;
+      ), _stateType
+<span class="nc" id="L163">    ).setParameter(&quot;correlated&quot;, correlated.getIdentifier())</span>
+<span class="nc" id="L164">     .setParameter(&quot;sensor&quot;, sensor.getIdentifier())</span>
+<span class="nc" id="L165">     .setParameter(&quot;key&quot;, key)</span>
+<span class="nc" id="L166">     .getResultList();</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findWithCorrelations (
+    @NonNull final Map&lt;String, ApplicationEntityReference&lt;? extends State&gt;&gt; correlations,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="nc" id="L174">    final CriteriaBuilder builder = _entityManager.getCriteriaBuilder();</span>
+<span class="nc" id="L175">    final CriteriaQuery&lt;TimeState&gt; query = builder.createQuery(_stateType);</span>
+    
+<span class="nc" id="L177">    final Root&lt;TimeState&gt; root = query.from(_stateType);</span>
+<span class="nc" id="L178">    final MapJoin&lt;TimeState, String, State&gt; rootCorrelations = root.join(</span>
+<span class="nc" id="L179">      root.getModel().getDeclaredMap(</span>
+        &quot;_correlations&quot;, String.class, State.class
+      )
+    );
+    
+<span class="nc" id="L184">    final List&lt;Predicate&gt; predicates = new ArrayList&lt;&gt;();</span>
+    
+<span class="nc bnc" id="L186" title="All 2 branches missed.">    for (final Map.Entry&lt;String, ApplicationEntityReference&lt;? extends State&gt;&gt; correlation : correlations.entrySet()) {</span>
+<span class="nc" id="L187">      predicates.add(builder.equal(</span>
+<span class="nc" id="L188">        rootCorrelations.on(</span>
+<span class="nc" id="L189">          builder.equal(rootCorrelations.key(), correlation.getKey())).value().get(&quot;_identifier&quot;),</span>
+<span class="nc" id="L190">        correlation.getValue().getIdentifier()</span>
+      ));
+<span class="nc" id="L192">    }</span>
+    
+<span class="nc" id="L194">    predicates.add(builder.equal(</span>
+<span class="nc" id="L195">      root.get(&quot;_sensor&quot;).get(&quot;_identifier&quot;),</span>
+<span class="nc" id="L196">      sensor.getIdentifier()</span>
+    ));
+    
+<span class="nc" id="L199">    query.where(builder.and(predicates.toArray(new Predicate[predicates.size()])));</span>
+    
+<span class="nc" id="L201">    return _entityManager.createQuery(query).getResultList();</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findWithAnyCorrelation (
+    @NonNull final Collection&lt;String&gt; keys,
+    @NonNull final ApplicationEntityReference&lt;? extends State&gt; correlated,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  )
+  {
+<span class="nc" id="L211">    return _entityManager.createQuery(</span>
+<span class="nc" id="L212">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT state &quot;,
+<span class="nc" id="L215">        &quot;  FROM &quot;, _stateType.getName(), &quot; state &quot;,</span>
+        &quot; WHERE KEY(state._correlations) IN :keys &quot;,
+        &quot;   AND VALUE(state._correlations)._identifier = :correlated &quot;,
+        &quot;   AND state._sensor._identifier = :sensor &quot;,
+        &quot; ORDER BY state._identifier ASC&quot;
+      ), _stateType
+<span class="nc" id="L221">    ).setParameter(&quot;correlated&quot;, correlated.getIdentifier())</span>
+<span class="nc" id="L222">     .setParameter(&quot;sensor&quot;, sensor.getIdentifier())</span>
+<span class="nc" id="L223">     .setParameter(&quot;keys&quot;, keys)</span>
+<span class="nc" id="L224">     .getResultList();</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findAll (
+    @NonNull final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; sensors
+  ) {
+<span class="nc" id="L231">    return _entityManager.createQuery(</span>
+<span class="nc" id="L232">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT state &quot;,
+<span class="nc" id="L235">        &quot;  FROM &quot;, _stateType.getName(), &quot; state &quot;,</span>
+        &quot; WHERE state._sensor._identifier IN :sensors &quot;,
+        &quot; ORDER BY state._emissionDate ASC, state._identifier ASC&quot;
+      ), _stateType
+<span class="nc" id="L239">    ).setParameter(</span>
+      &quot;sensors&quot;, 
+<span class="nc" id="L241">      sensors.stream()</span>
+<span class="nc" id="L242">             .map(ApplicationEntityReference::getIdentifier)</span>
+<span class="nc" id="L243">             .collect(Collectors.toList())</span>
+<span class="nc" id="L244">    ).getResultList();</span>
+  }
+  
+  @Override
+  public List&lt;TimeState&gt; findPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors, 
+    final int count
+  ) {
+<span class="nc" id="L253">    return findAllPreviousQuery(date, inputSensors).setMaxResults(count)</span>
+<span class="nc" id="L254">                                                   .getResultList();</span>
+  }
+  
+
+  @Override
+  public List&lt;TimeState&gt; findNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors, 
+    final int count
+  ) {
+<span class="nc" id="L264">    return findAllNextQuery(date, inputSensors).setMaxResults(count)</span>
+<span class="nc" id="L265">                                               .getResultList();</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findAllNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  ) {
+<span class="nc" id="L273">    return findAllNextQuery(date, inputSensors).getResultList();</span>
+  }
+  
+  @Override
+  public List&lt;TimeState&gt; findAllPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  ) {
+<span class="nc" id="L281">    return findAllPreviousQuery(date, inputSensors).getResultList();</span>
+  }
+  
+  private TypedQuery&lt;TimeState&gt; findAllNextQuery (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  ) {
+<span class="nc" id="L288">    return _entityManager.createQuery(</span>
+<span class="nc" id="L289">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT state &quot;,
+<span class="nc" id="L292">        &quot;  FROM &quot;, _stateType.getName(), &quot; state &quot;,</span>
+        &quot; WHERE state._emissionDate &gt; :date &quot;,
+        &quot;   AND state._sensor._identifier IN :sensors &quot;,
+        &quot; ORDER BY state._emissionDate ASC, state._identifier ASC&quot;
+      ), _stateType
+<span class="nc" id="L297">    ).setParameter(&quot;date&quot;, date)</span>
+<span class="nc" id="L298">     .setParameter(</span>
+       &quot;sensors&quot;, 
+<span class="nc" id="L300">       inputSensors.stream()</span>
+<span class="nc" id="L301">                   .map(ApplicationEntityReference::getIdentifier)</span>
+<span class="nc" id="L302">                   .collect(Collectors.toSet())</span>
+     );
+  }
+
+  private TypedQuery&lt;TimeState&gt; findAllPreviousQuery (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  ) {
+<span class="nc" id="L310">    return _entityManager.createQuery(</span>
+<span class="nc" id="L311">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT state &quot;,
+<span class="nc" id="L314">        &quot;  FROM &quot;, _stateType.getName(), &quot; state &quot;,</span>
+        &quot; WHERE state._emissionDate &lt; :date &quot;,
+        &quot;   AND state._sensor._identifier IN :sensors &quot;,
+        &quot; ORDER BY state._emissionDate DESC, state._identifier ASC&quot;
+      ), _stateType
+<span class="nc" id="L319">    ).setParameter(&quot;date&quot;, date)</span>
+<span class="nc" id="L320">     .setParameter(</span>
+       &quot;sensors&quot;, 
+<span class="nc" id="L322">       inputSensors.stream()</span>
+<span class="nc" id="L323">                   .map(ApplicationEntityReference::getIdentifier)</span>
+<span class="nc" id="L324">                   .collect(Collectors.toSet())</span>
+     );
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

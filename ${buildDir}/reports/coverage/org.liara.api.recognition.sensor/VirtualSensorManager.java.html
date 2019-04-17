@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>VirtualSensorManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.recognition.sensor</a> &gt; <span class="el_source">VirtualSensorManager.java</span></div><h1>VirtualSensorManager.java</h1><pre class="source lang-java linenums">package org.liara.api.recognition.sensor;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.PreDestroy;
+
+import org.jboss.logging.Logger;
+import org.liara.api.collection.Operators;
+import org.liara.api.data.collection.EntityCollections;
+import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.event.NodeWasCreatedEvent;
+import org.liara.api.event.NodeWillBeCreatedEvent;
+import org.liara.api.event.SensorWasCreatedEvent;
+import org.liara.api.event.SensorWillBeCreatedEvent;
+import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateWasMutatedEvent;
+import org.liara.api.event.StateWillBeCreatedEvent;
+import org.liara.api.event.StateWillBeMutatedEvent;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+
+@Service
+public class VirtualSensorManager
+{
+  @NonNull
+  private final ApplicationContext _applicationContext;
+  
+  @NonNull
+  private final SensorCollection _sensors;
+  
+<span class="nc" id="L41">  @NonNull</span>
+<span class="nc" id="L42">  private final Logger _logger = Logger.getLogger(VirtualSensorManager.class);</span>
+  
+<span class="nc" id="L44">  @NonNull</span>
+<span class="nc" id="L45">  private final BiMap&lt;Long, VirtualSensorRunner&gt; _runners = HashBiMap.create();</span>
+  
+  @Autowired
+  public VirtualSensorManager (
+    @NonNull final ApplicationContext applicationContext,
+    @NonNull final SensorCollection sensors
+<span class="nc" id="L51">  ) { </span>
+<span class="nc" id="L52">    _applicationContext = applicationContext;</span>
+<span class="nc" id="L53">    _sensors = sensors; </span>
+<span class="nc" id="L54">  }</span>
+  
+  public void registerRunner (@NonNull final VirtualSensorRunner runner) {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">    if (runner.getManager() != this) {</span>
+<span class="nc" id="L58">      throw new Error(&quot;Unnable to register a runner created for another virtual sensor manager instance.&quot;);</span>
+    }
+    
+<span class="nc bnc" id="L61" title="All 2 branches missed.">    if (!_runners.containsValue(runner)) {</span>
+<span class="nc" id="L62">      _logger.info(&quot;Registering new virtual sensor runner : &quot; + runner.getHandler().getClass().getName() + &quot;#&quot; + runner.getSensor().getIdentifier());</span>
+<span class="nc" id="L63">      _runners.put(runner.getSensor().getIdentifier(), runner);</span>
+    }
+<span class="nc" id="L65">  }</span>
+  
+  public void unregisterRunner (@NonNull final VirtualSensorRunner runner) {
+<span class="nc bnc" id="L68" title="All 2 branches missed.">    if (runner.getManager() != this) {</span>
+<span class="nc" id="L69">      throw new Error(&quot;Unnable to unregister a runner created for another virtual sensor manager instance.&quot;);</span>
+    }
+    
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (_runners.containsValue(runner)) {</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">      switch (runner.getState()) {</span>
+        case STOPPED:
+        case PAUSED:
+<span class="nc" id="L76">          _runners.remove(runner.getSensor().getIdentifier());</span>
+<span class="nc" id="L77">          break;</span>
+        default:
+<span class="nc" id="L79">          runner.pause();</span>
+          break;
+      }
+    }
+<span class="nc" id="L83">  }</span>
+  
+  public void start () {
+<span class="nc" id="L86">    _logger.info(&quot;Virtual sensor manager initialization...&quot;);</span>
+<span class="nc" id="L87">    _logger.info(&quot;Finding virtual sensors in application database...&quot;);</span>
+    
+<span class="nc" id="L89">    final List&lt;Sensor&gt; sensors = EntityCollections.SENSORS.apply(</span>
+<span class="nc" id="L90">                                   Operators.equal(&quot;_virtual&quot;, true)</span>
+<span class="nc" id="L91">                                 ).get();</span>
+    
+<span class="nc bnc" id="L93" title="All 2 branches missed.">    for (final Sensor sensor : sensors) {</span>
+<span class="nc" id="L94">      VirtualSensorRunner.restart(this, sensor);</span>
+<span class="nc" id="L95">    }</span>
+<span class="nc" id="L96">  }</span>
+  
+  @EventListener
+  public void onSensorCreation (@NonNull final SensorWasCreatedEvent event) {
+<span class="nc" id="L100">    final Sensor sensor = event.getSensor().getModel();</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">    if (sensor.isVirtual()) {</span>
+<span class="nc" id="L102">      VirtualSensorRunner.create(this, sensor);</span>
+    }
+<span class="nc" id="L104">  }</span>
+  
+  @PreDestroy
+  public void beforeApplicationShutdown () {
+<span class="nc" id="L108">    _logger.info(&quot;Virtual sensor manager destruction...&quot;);</span>
+<span class="nc" id="L109">    _logger.info(&quot;Stopping all running virtual sensors...&quot;);</span>
+    
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    for (final VirtualSensorRunner runner : _runners.values()) {</span>
+<span class="nc" id="L112">      runner.pause();</span>
+<span class="nc" id="L113">    }</span>
+    
+<span class="nc" id="L115">    _runners.clear();</span>
+<span class="nc" id="L116">  }</span>
+  
+  @EventListener
+  public void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event) {
+<span class="nc bnc" id="L120" title="All 2 branches missed.">    for (final VirtualSensorRunner runner : _runners.values()) {</span>
+<span class="nc" id="L121">      runner.getHandler().sensorWillBeCreated(event);</span>
+<span class="nc" id="L122">    }</span>
+<span class="nc" id="L123">  }</span>
+
+  @EventListener
+  public void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) {
+<span class="nc bnc" id="L127" title="All 2 branches missed.">    for (final VirtualSensorRunner runner : _runners.values()) {</span>
+<span class="nc" id="L128">      runner.getHandler().sensorWasCreated(event);</span>
+<span class="nc" id="L129">    }</span>
+<span class="nc" id="L130">  }</span>
+
+  @EventListener
+  public void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event) {
+<span class="nc bnc" id="L134" title="All 2 branches missed.">    for (final VirtualSensorRunner runner : _runners.values()) {</span>
+<span class="nc" id="L135">      runner.getHandler().nodeWillBeCreated(event);</span>
+<span class="nc" id="L136">    }</span>
+<span class="nc" id="L137">  }</span>
+
+  @EventListener
+  public void nodeWasCreated (@NonNull final NodeWasCreatedEvent event) {
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    for (final VirtualSensorRunner runner : _runners.values()) {</span>
+<span class="nc" id="L142">      runner.getHandler().nodeWasCreated(event);</span>
+<span class="nc" id="L143">    }</span>
+<span class="nc" id="L144">  }</span>
+
+  @EventListener
+  public void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event) {
+<span class="nc bnc" id="L148" title="All 2 branches missed.">    for (final VirtualSensorRunner runner : _runners.values()) {</span>
+<span class="nc" id="L149">      runner.getHandler().stateWillBeCreated(event);</span>
+<span class="nc" id="L150">    }</span>
+<span class="nc" id="L151">  }</span>
+
+  @EventListener
+  public void stateWasCreated (@NonNull final StateWasCreatedEvent event) {
+<span class="nc bnc" id="L155" title="All 2 branches missed.">    for (final VirtualSensorRunner runner : _runners.values()) {</span>
+<span class="nc" id="L156">      runner.getHandler().stateWasCreated(event);</span>
+<span class="nc" id="L157">    }</span>
+<span class="nc" id="L158">  }</span>
+
+  @EventListener
+  public void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event) {
+<span class="nc bnc" id="L162" title="All 2 branches missed.">    for (final VirtualSensorRunner runner : _runners.values()) {</span>
+<span class="nc" id="L163">      runner.getHandler().stateWillBeMutated(event);</span>
+<span class="nc" id="L164">    }</span>
+<span class="nc" id="L165">  }</span>
+
+  @EventListener
+  public void stateWasMutated (@NonNull final StateWasMutatedEvent event) {
+<span class="nc bnc" id="L169" title="All 2 branches missed.">    for (final VirtualSensorRunner runner : _runners.values()) {</span>
+<span class="nc" id="L170">      runner.getHandler().stateWasMutated(event);</span>
+<span class="nc" id="L171">    }</span>
+<span class="nc" id="L172">  }</span>
+  
+  public VirtualSensorRunner getRunner (@NonNull final Long identifier) {
+<span class="nc" id="L175">    return _runners.get(identifier);</span>
+  }
+  
+  public VirtualSensorRunner getRunner (@NonNull final Sensor sensor) {
+<span class="nc" id="L179">    return _runners.get(sensor.getIdentifier());</span>
+  }
+  
+  public Set&lt;VirtualSensorRunner&gt; getRunners () {
+<span class="nc" id="L183">    return Collections.unmodifiableSet(_runners.values());</span>
+  }
+  
+  public Iterator&lt;VirtualSensorRunner&gt; runners () {
+<span class="nc" id="L187">    return getRunners().iterator();</span>
+  }
+  
+  public ApplicationContext getApplicationContext () {
+<span class="nc" id="L191">    return _applicationContext;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

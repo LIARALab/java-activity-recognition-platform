@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SensorCreationSchema.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.sensor</a> &gt; <span class="el_source">SensorCreationSchema.java</span></div><h1>SensorCreationSchema.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.sensor;
+
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.liara.api.data.entity.ApplicationEntityCreationSchema;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.schema.Schema;
+import org.liara.api.recognition.sensor.SensorConfiguration;
+import org.liara.api.validation.Required;
+import org.liara.api.validation.SensorType;
+import org.liara.api.validation.ValidApplicationEntityReference;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import javax.validation.Valid;
+import java.util.Optional;
+
+@Schema(Sensor.class)
+@JsonDeserialize(using = SensorCreationSchemaDeserializer.class)
+<span class="nc" id="L21">public class SensorCreationSchema</span>
+  extends ApplicationEntityCreationSchema
+{
+<span class="nc" id="L24">  @NonNull</span>
+  private String _name = null;
+  
+<span class="nc" id="L27">  @NonNull</span>
+  private String _type = null;
+  
+<span class="nc" id="L30">  @NonNull</span>
+  private String _unit = null;
+  
+<span class="nc" id="L33">  @NonNull</span>
+<span class="nc" id="L34">  private ApplicationEntityReference&lt;Node&gt; _parent = ApplicationEntityReference.empty(Node.class);</span>
+  
+<span class="nc" id="L36">  @NonNull</span>
+  private SensorConfiguration _configuration = null;
+  
+  @Required
+  public String getName () {
+<span class="nc" id="L41">    return _name;</span>
+  }
+  
+  @JsonSetter
+  public void setName (@Nullable final String name) {
+<span class="nc" id="L46">    _name = name;</span>
+<span class="nc" id="L47">  }</span>
+
+  public void setName (@NonNull final Optional&lt;String&gt; name) {
+<span class="nc" id="L50">    _name = name.orElse(null);</span>
+<span class="nc" id="L51">  }</span>
+
+  @Required
+  @SensorType
+  public String getType () {
+<span class="nc" id="L56">    return _type;</span>
+  }
+  
+  @JsonSetter
+  public void setType (@Nullable final String type) {
+<span class="nc" id="L61">    _type = type;</span>
+<span class="nc" id="L62">  }</span>
+
+  public void setType (@NonNull final Optional&lt;String&gt; type) {
+<span class="nc" id="L65">    _type = type.orElse(null);</span>
+<span class="nc" id="L66">  }</span>
+
+  public String getUnit () {
+<span class="nc" id="L69">    return _unit;</span>
+  }
+  
+  @JsonSetter
+  public void setUnit (@Nullable final String unit) {
+<span class="nc" id="L74">    _unit = unit;</span>
+<span class="nc" id="L75">  }</span>
+  
+  public void setUnit (@NonNull final Optional&lt;String&gt; unit) {
+<span class="nc" id="L78">    _unit = unit.orElse(null);</span>
+<span class="nc" id="L79">  }</span>
+
+  @Required
+  @ValidApplicationEntityReference
+  public ApplicationEntityReference&lt;Node&gt; getParent () {
+<span class="nc" id="L84">    return _parent;</span>
+  }
+  
+  @JsonSetter
+  public void setParent (@Nullable final Long identifier) {
+<span class="nc" id="L89">    _parent = ApplicationEntityReference.of(Node.class, identifier);</span>
+<span class="nc" id="L90">  }</span>
+  
+  public void setParent (@Nullable final Node parent) {
+<span class="nc bnc" id="L93" title="All 2 branches missed.">    _parent = (parent == null) ? ApplicationEntityReference.empty(Node.class)</span>
+<span class="nc" id="L94">                               : ApplicationEntityReference.of(parent);</span>
+<span class="nc" id="L95">  }</span>
+
+  @Valid
+  public SensorConfiguration getConfiguration () {
+<span class="nc" id="L99">    return _configuration;</span>
+  }
+  
+  @JsonSetter
+  public void setConfiguration (@Nullable final SensorConfiguration configuration) {
+<span class="nc" id="L104">    _configuration = configuration;</span>
+<span class="nc" id="L105">  }</span>
+
+  public void setConfiguration (@NonNull final Optional&lt;SensorConfiguration&gt; configuration) {
+<span class="nc" id="L108">    _configuration = configuration.orElse(null);</span>
+<span class="nc" id="L109">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

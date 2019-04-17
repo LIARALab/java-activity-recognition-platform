@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BooleanStateBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.test.builder.state</a> &gt; <span class="el_source">BooleanStateBuilder.java</span></div><h1>BooleanStateBuilder.java</h1><pre class="source lang-java linenums">package org.liara.api.test.builder.state;
+
+import org.liara.api.data.entity.state.BooleanState;
+import org.liara.api.data.repository.local.ApplicationEntityIdentifiers;
+import org.liara.api.utils.Closures;
+import org.springframework.lang.NonNull;
+
+import groovy.lang.Closure;
+
+<span class="fc" id="L10">public class BooleanStateBuilder </span>
+       extends BaseStateBuilder&lt;BooleanStateBuilder, BooleanState&gt;
+{
+  public static BooleanStateBuilder truthy () {
+<span class="fc" id="L14">    return new BooleanStateBuilder().withValue(true);</span>
+  }
+  
+  public static BooleanStateBuilder truthy (@NonNull final Closure&lt;?&gt; closure) {
+<span class="fc" id="L18">    final BooleanStateBuilder result = new BooleanStateBuilder().withValue(true);</span>
+    
+<span class="fc" id="L20">    Closures.callAs(closure, result);</span>
+    
+<span class="fc" id="L22">    return result;</span>
+  }
+
+  public static BooleanStateBuilder truthy (@NonNull final ApplicationEntityIdentifiers identifiers) {
+<span class="nc" id="L26">    return new BooleanStateBuilder().withValue(true)</span>
+<span class="nc" id="L27">                                    .withIdentifier(identifiers.next(BooleanState.class));</span>
+  }
+  
+  public static BooleanStateBuilder falsy () {
+<span class="fc" id="L31">    return new BooleanStateBuilder().withValue(false);</span>
+  }
+  
+  public static BooleanStateBuilder falsy (@NonNull final ApplicationEntityIdentifiers identifiers) {
+<span class="nc" id="L35">    return new BooleanStateBuilder().withValue(false)</span>
+<span class="nc" id="L36">                                    .withIdentifier(identifiers.next(BooleanState.class));</span>
+  }
+  
+  public static BooleanStateBuilder falsy (@NonNull final Closure&lt;?&gt; closure) {
+<span class="fc" id="L40">    final BooleanStateBuilder result = new BooleanStateBuilder().withValue(false);</span>
+    
+<span class="fc" id="L42">    Closures.callAs(closure, result);</span>
+    
+<span class="fc" id="L44">    return result;</span>
+  }
+  
+  public static BooleanStateBuilder create (@NonNull final Closure&lt;?&gt; closure) {
+<span class="fc" id="L48">    final BooleanStateBuilder result = new BooleanStateBuilder();</span>
+<span class="fc" id="L49">    Closures.callAs(closure, result);</span>
+<span class="fc" id="L50">    return result;</span>
+  }
+  
+<span class="fc" id="L53">  private boolean _value = false;</span>
+  
+  public BooleanStateBuilder withValue (final boolean value) {
+<span class="fc" id="L56">    _value = value;</span>
+<span class="fc" id="L57">    return self();</span>
+  }
+  
+  protected void apply (@NonNull final BooleanState state) {
+<span class="fc" id="L61">    super.apply(state);</span>
+<span class="fc" id="L62">    state.setValue(_value);</span>
+<span class="fc" id="L63">  }</span>
+  
+  @Override
+  public BooleanState build () {
+<span class="fc" id="L67">    final BooleanState state = new BooleanState();</span>
+    
+<span class="fc" id="L69">    apply(state);</span>
+    
+<span class="fc" id="L71">    return state;</span>
+  }
+
+  @Override
+  public BooleanStateBuilder self () {
+<span class="fc" id="L76">    return this;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

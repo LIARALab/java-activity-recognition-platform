@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TestSchemaManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.schema</a> &gt; <span class="el_source">TestSchemaManager.java</span></div><h1>TestSchemaManager.java</h1><pre class="source lang-java linenums">package org.liara.api.data.schema;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import org.liara.api.utils.Beans;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
+
+@Service
+<span class="fc" id="L14">public class TestSchemaManager implements SchemaManager</span>
+{
+<span class="fc" id="L16">  private List&lt;Object&gt; _handledSchemas = new ArrayList&lt;&gt;();</span>
+  
+<span class="fc" id="L18">  private Map&lt;Class&lt;?&gt;, Function&lt;Object, Object&gt;&gt; _handlers = new HashMap&lt;&gt;();</span>
+
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public &lt;HandledSchema&gt; void registerHandler (
+    @NonNull final Class&lt;HandledSchema&gt; type,
+    @NonNull final Function&lt;HandledSchema, Object&gt; handler
+  ) {
+<span class="fc" id="L25">    _handlers.put(type, (Object object) -&gt; handler.apply((HandledSchema) object));</span>
+<span class="fc" id="L26">  }</span>
+  
+  public Function&lt;Object, Object&gt; getHandlerFor (@NonNull final Object schema) {
+<span class="fc" id="L29">    final Class&lt;?&gt; schemaClass = schema.getClass();</span>
+<span class="fc" id="L30">    Function&lt;Object, Object&gt; result = (Object handled) -&gt; { return null; };</span>
+<span class="fc" id="L31">    Class&lt;?&gt; handledClass = null;</span>
+    
+<span class="fc bfc" id="L33" title="All 2 branches covered.">    for (final Map.Entry&lt;Class&lt;?&gt;, Function&lt;Object, Object&gt;&gt; entry : _handlers.entrySet()) {</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">      if (entry.getKey().isAssignableFrom(schemaClass)) {</span>
+<span class="pc bpc" id="L35" title="3 of 4 branches missed.">        if (handledClass == null || handledClass.isAssignableFrom(entry.getKey())) {</span>
+<span class="fc" id="L36">          handledClass = entry.getKey();</span>
+<span class="fc" id="L37">          result = entry.getValue();</span>
+        }
+      }
+<span class="fc" id="L40">    }</span>
+    
+<span class="fc" id="L42">    return result;</span>
+  }
+  
+  @SuppressWarnings(&quot;unchecked&quot;)
+  @Override
+  public &lt;Entity&gt; Entity execute (@NonNull final Object schema) {
+<span class="fc" id="L48">    _handledSchemas.add(schema);</span>
+<span class="fc" id="L49">    final Function&lt;Object, Object&gt; handler = getHandlerFor(schema);</span>
+    
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">    if (handler == null) {</span>
+<span class="nc" id="L52">      return null;</span>
+    } else {
+<span class="fc" id="L54">      return (Entity) handler.apply(schema);</span>
+    }
+  }
+  
+  public int getHandledSchemaCount () {
+<span class="fc" id="L59">    return _handledSchemas.size();</span>
+  }
+  
+  public Object getHandledSchema (final int index) {
+<span class="fc" id="L63">    return _handledSchemas.get(index);</span>
+  }
+  
+  public Object getAt (final int index) {
+<span class="nc" id="L67">    return getHandledSchema(index);</span>
+  }
+  
+  public &lt;HandledSchema&gt; HandledSchema getHandledSchema (
+    final int index,
+    @NonNull final Class&lt;? extends HandledSchema&gt; type
+  ) {
+<span class="nc" id="L74">    return type.cast(getHandledSchema(index));</span>
+  }
+
+  
+  public &lt;HandledSchema&gt; HandledSchema getAt (
+    final int index,
+    @NonNull final Class&lt;? extends HandledSchema&gt; type
+  ) {
+<span class="nc" id="L82">    return getHandledSchema(index, type);</span>
+  }
+  
+  public boolean hasHandledSchemaOfType (
+    final int index,
+    @NonNull final Class&lt;?&gt; type
+  ) {
+<span class="fc" id="L89">    return type.isInstance(getHandledSchema(index));</span>
+  }
+  
+  public List&lt;Object&gt; getHandledSchemas () {
+<span class="nc" id="L93">    return _handledSchemas;</span>
+  }
+  
+  public void reset () {
+<span class="fc" id="L97">    _handledSchemas.clear();</span>
+<span class="fc" id="L98">  }</span>
+  
+  public boolean hasHandled (@NonNull final List&lt;Map&lt;String, ?&gt;&gt; descriptors) {
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">    if (getHandledSchemaCount() &lt; descriptors.size()) return false;</span>
+    
+<span class="fc bfc" id="L103" title="All 2 branches covered.">    for (int index = 0; index &lt; descriptors.size(); ++index) {</span>
+<span class="fc" id="L104">      final Map&lt;String, ?&gt; descriptor = descriptors.get(index);</span>
+      
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">      if (descriptor.containsKey(&quot;class&quot;)) {</span>
+<span class="fc" id="L107">        final Class&lt;?&gt; type = (Class&lt;?&gt;) descriptor.get(&quot;class&quot;);</span>
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">        if (hasHandledSchemaOfType(index, type) == false) {</span>
+<span class="nc" id="L109">          return false;</span>
+        }
+      }
+      
+<span class="pc bpc" id="L113" title="1 of 2 branches missed.">      if (Beans.lookLike(getHandledSchema(index), descriptor) == false) {</span>
+<span class="nc" id="L114">        return false;</span>
+      }
+    }
+    
+<span class="fc" id="L118">    return true;</span>
+  }
+
+  @Override
+<span class="nc" id="L122">  public void begin () { }</span>
+
+  @Override
+<span class="nc" id="L125">  public void finish () { }</span>
+
+  @Override
+<span class="nc" id="L128">  public void rollback () { }</span>
+
+  @Override
+<span class="fc" id="L131">  public void flush () { }</span>
+
+  @Override
+<span class="fc" id="L134">  public void clear () { }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

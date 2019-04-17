@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseSensorBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.test.builder.sensor</a> &gt; <span class="el_source">BaseSensorBuilder.java</span></div><h1>BaseSensorBuilder.java</h1><pre class="source lang-java linenums">package org.liara.api.test.builder.sensor;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.recognition.sensor.SensorConfiguration;
+import org.liara.api.test.builder.Builder;
+import org.liara.api.test.builder.IdentityBuilder;
+import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
+import org.liara.api.utils.Closures;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import com.google.common.collect.Streams;
+
+import groovy.lang.Closure;
+
+<span class="fc" id="L21">public abstract class BaseSensorBuilder&lt;</span>
+                        Self extends BaseSensorBuilder&lt;Self, Entity&gt;,
+                        Entity extends Sensor
+                      &gt;
+                extends BaseApplicationEntityBuilder&lt;Self, Entity&gt;
+{
+  public static SensorBuilder createMotionSensor (
+    @NonNull final Closure&lt;?&gt; closure
+  ) {
+<span class="nc" id="L30">    final SensorBuilder builder = new SensorBuilder();</span>
+<span class="nc" id="L31">    Closures.callAs(closure, builder);</span>
+<span class="nc" id="L32">    return builder;</span>
+  }
+  
+  public static SensorBuilder createMotionSensor () {
+<span class="nc" id="L36">    return new SensorBuilder();</span>
+  }
+
+<span class="fc" id="L39">  @Nullable</span>
+  private String _type = null;
+  
+<span class="fc" id="L42">  @Nullable</span>
+  private String _name = null;
+  
+<span class="fc" id="L45">  @Nullable</span>
+  private String _unit = null;
+  
+<span class="fc" id="L48">  @Nullable</span>
+  private SensorConfiguration _configuration = null;
+  
+<span class="fc" id="L51">  @NonNull</span>
+  private final Set&lt;Builder&lt;?, ? extends State&gt;&gt; _states = new HashSet&lt;&gt;();
+  
+  public Self withType (@Nullable final Class&lt;?&gt; type) {
+<span class="fc" id="L55">    _type = type.getName();</span>
+<span class="fc" id="L56">    return self();</span>
+  }
+  
+  public Self withName (@Nullable final String name) {
+<span class="fc" id="L60">    _name = name;</span>
+<span class="fc" id="L61">    return self();</span>
+  }
+  
+  public Self withUnit (@Nullable final String unit) {
+<span class="nc" id="L65">    _unit = unit;</span>
+<span class="nc" id="L66">    return self();</span>
+  }
+  
+  public Self withConfiguration (@Nullable final SensorConfiguration configuration) {
+<span class="fc" id="L70">    _configuration = configuration;</span>
+<span class="fc" id="L71">    return self();</span>
+  }
+  
+  public Self withRawStates (@NonNull final Iterable&lt;State&gt; states) {
+<span class="fc" id="L75">    Streams.stream(states).map(x -&gt; IdentityBuilder.of(x))</span>
+<span class="fc" id="L76">                          .forEach(_states::add);</span>
+<span class="fc" id="L77">    return self();</span>
+  }
+  
+  public Self withStates (@NonNull final Iterable&lt;Builder&lt;?, State&gt;&gt; states) {
+<span class="nc" id="L81">    Streams.stream(states).forEach(_states::add);</span>
+<span class="nc" id="L82">    return self();</span>
+  }
+  
+  public Self withState (@NonNull final Builder&lt;?, State&gt; state) {
+<span class="fc" id="L86">    _states.add(state);</span>
+<span class="fc" id="L87">    return self();</span>
+  }
+  
+  public Self withRawState (@NonNull final State state) {
+<span class="nc" id="L91">    _states.add(IdentityBuilder.of(state));</span>
+<span class="nc" id="L92">    return self();</span>
+  }
+  
+  public void apply (@NonNull final Entity sensor) {    
+<span class="fc" id="L96">    super.apply(sensor);</span>
+    
+<span class="fc" id="L98">    sensor.setName(_name);</span>
+<span class="fc" id="L99">    sensor.setType(_type);</span>
+<span class="fc" id="L100">    sensor.setUnit(_unit);</span>
+<span class="fc" id="L101">    sensor.setConfiguration(_configuration);</span>
+    
+<span class="fc bfc" id="L103" title="All 2 branches covered.">    for (final Builder&lt;?, ? extends State&gt; state : _states) {</span>
+<span class="fc" id="L104">      sensor.addState(state.build());</span>
+<span class="fc" id="L105">    }</span>
+<span class="fc" id="L106">  }</span>
+
+  @Override
+  public Entity buildFor (@NonNull final LocalEntityManager entityManager) {
+<span class="fc" id="L110">    final Entity result = super.buildFor(entityManager);</span>
+<span class="fc" id="L111">    entityManager.addAll(result.states());</span>
+<span class="fc" id="L112">    return result;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

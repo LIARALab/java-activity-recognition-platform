@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityCollectionMainQuery.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.query</a> &gt; <span class="el_source">EntityCollectionMainQuery.java</span></div><h1>EntityCollectionMainQuery.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.query;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Selection;
+
+import org.liara.api.collection.query.queried.QueriedEntity;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
+import org.liara.api.collection.transformation.cursor.Cursor;
+import org.springframework.lang.NonNull;
+
+public class EntityCollectionMainQuery&lt;Entity, Output&gt; extends AbstractEntityCollectionQuery&lt;Entity, Output&gt;
+{
+  @NonNull 
+  private final CriteriaQuery&lt;Output&gt; _query;
+  
+  public EntityCollectionMainQuery (
+    @NonNull final EntityManager manager,
+    @NonNull final CriteriaQuery&lt;Output&gt; query,
+    @NonNull final QueriedEntity&lt;?, Entity&gt; entity
+  ) {
+<span class="nc" id="L52">    super(manager, query, entity);</span>
+<span class="nc" id="L53">    _query = query;</span>
+<span class="nc" id="L54">  }</span>
+  
+  public EntityCollectionMainQuery&lt;Entity, Output&gt; select (
+    @NonNull final Selection&lt;? extends Output&gt; selection
+  ) {
+<span class="nc" id="L59">    _query.select(selection);</span>
+<span class="nc" id="L60">    return this;</span>
+  }
+
+  @Override
+  public EntityCollectionMainQuery&lt;Entity, Output&gt; orderBy (@NonNull final Order... o) {
+<span class="nc" id="L65">    _query.orderBy(o);</span>
+<span class="nc" id="L66">    return this;</span>
+  }
+
+  @Override
+  public EntityCollectionMainQuery&lt;Entity, Output&gt; orderBy (@NonNull final List&lt;Order&gt; o) {
+<span class="nc" id="L71">    _query.orderBy(o);</span>
+<span class="nc" id="L72">    return this;</span>
+  }
+
+  @Override
+  public List&lt;Order&gt; getOrderList () {
+<span class="nc" id="L77">    return _query.getOrderList();</span>
+  }
+
+  @Override
+  public Set&lt;ParameterExpression&lt;?&gt;&gt; getParameters () {
+<span class="nc" id="L82">    return _query.getParameters();</span>
+  }
+
+  @Override
+  public &lt;Joined&gt; EntityCollectionMainQuery&lt;Joined, Output&gt; join (@NonNull final Join&lt;Entity, Joined&gt; join) {
+<span class="nc" id="L87">    return new EntityCollectionMainQuery&lt;&gt;(</span>
+<span class="nc" id="L88">        getManager(), _query, QueriedEntity.from(join)</span>
+    );
+  }
+  
+  @Override
+  public &lt;Joined&gt; EntityCollectionMainQuery&lt;Joined, Output&gt; join (
+    @NonNull final EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join
+  ) {
+<span class="nc" id="L96">    return (EntityCollectionMainQuery&lt;Joined, Output&gt;) super.join(join);</span>
+  }
+
+  @Override
+  public &lt;Joined&gt; EntityCollectionMainQuery&lt;Joined, Output&gt; join (
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join
+  ) {
+<span class="nc" id="L103">    return join((EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt;) join);</span>
+  }
+  
+  public List&lt;Output&gt; fetchAllAndClose () {
+<span class="nc" id="L107">    final List&lt;Output&gt; result = fetchAll();</span>
+
+<span class="nc" id="L109">    getManager().close();</span>
+    
+<span class="nc" id="L111">    return result;</span>
+  }
+  
+  public Optional&lt;Output&gt; fetchFirstAndClose () {
+<span class="nc" id="L115">    final Optional&lt;Output&gt; result = fetchFirst();</span>
+    
+<span class="nc" id="L117">    getManager().close();</span>
+    
+<span class="nc" id="L119">    return result;</span>
+  }
+  
+  public Optional&lt;Output&gt; fetchOneAndClose (final int index) {
+<span class="nc" id="L123">    final Optional&lt;Output&gt; result = fetchOne(index);</span>
+    
+<span class="nc" id="L125">    getManager().close();</span>
+    
+<span class="nc" id="L127">    return result;</span>
+  }
+  
+  public List&lt;Output&gt; fetchCursorAndClose (@NonNull final Cursor cursor) {
+<span class="nc" id="L131">    final List&lt;Output&gt; result = fetchCursor(cursor);</span>
+    
+<span class="nc" id="L133">    getManager().close();</span>
+    
+<span class="nc" id="L135">    return result;</span>
+  }
+  
+
+  
+  public List&lt;Output&gt; fetchAll () {
+<span class="nc" id="L141">    final List&lt;Output&gt; result = getManager().createQuery(_query)</span>
+<span class="nc" id="L142">                                            .getResultList();</span>
+    
+<span class="nc" id="L144">    return result;</span>
+  }
+  
+  public Optional&lt;Output&gt; fetchFirst () {
+<span class="nc" id="L148">    final List&lt;Output&gt; result = getManager().createQuery(_query)</span>
+<span class="nc" id="L149">                                            .setMaxResults(1)</span>
+<span class="nc" id="L150">                                            .getResultList();</span>
+    
+<span class="nc bnc" id="L152" title="All 2 branches missed.">    if (result.size() &gt; 0) {</span>
+<span class="nc" id="L153">      return Optional.ofNullable(result.get(0));</span>
+    } else {
+<span class="nc" id="L155">      return Optional.empty();</span>
+    }
+  }
+  
+  public Optional&lt;Output&gt; fetchOne (final int index) {
+<span class="nc" id="L160">    final List&lt;Output&gt; result = getManager().createQuery(_query)</span>
+<span class="nc" id="L161">                                            .setMaxResults(1)</span>
+<span class="nc" id="L162">                                            .setFirstResult(index)</span>
+<span class="nc" id="L163">                                            .getResultList();</span>
+    
+<span class="nc bnc" id="L165" title="All 2 branches missed.">    if (result.size() &gt; 0) {</span>
+<span class="nc" id="L166">      return Optional.ofNullable(result.get(0));</span>
+    } else {
+<span class="nc" id="L168">      return Optional.empty();</span>
+    }
+  }
+  
+  public List&lt;Output&gt; fetchCursor (@NonNull final Cursor cursor) {
+<span class="nc" id="L173">    final TypedQuery&lt;Output&gt; query = getManager().createQuery(_query);</span>
+   
+<span class="nc" id="L175">    query.setFirstResult(cursor.getOffset());</span>
+    
+<span class="nc bnc" id="L177" title="All 2 branches missed.">    if (cursor.hasLimit()) {</span>
+<span class="nc" id="L178">      query.setMaxResults(cursor.getLimit());</span>
+    }
+    
+<span class="nc" id="L181">    final List&lt;Output&gt; result = query.getResultList();</span>
+    
+<span class="nc" id="L183">    return result;</span>
+  }
+
+  public Selection&lt;?&gt; getSelection () {
+<span class="nc" id="L187">    return _query.getSelection();</span>
+  }
+
+  public EntityCollectionMainQuery&lt;Entity, Output&gt; multiselect (@NonNull final List&lt;Selection&lt;?&gt;&gt; selections) {
+<span class="nc" id="L191">    _query.multiselect(selections);</span>
+<span class="nc" id="L192">    return this;</span>
+  }
+  
+  public EntityCollectionMainQuery&lt;Entity, Output&gt; multiselect (@NonNull final Selection&lt;?&gt; ...selections) {
+<span class="nc" id="L196">    _query.multiselect(selections);</span>
+<span class="nc" id="L197">    return this;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

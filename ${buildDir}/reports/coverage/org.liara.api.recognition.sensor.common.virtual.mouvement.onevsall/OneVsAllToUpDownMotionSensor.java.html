@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OneVsAllToUpDownMotionSensor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall</a> &gt; <span class="el_source">OneVsAllToUpDownMotionSensor.java</span></div><h1>OneVsAllToUpDownMotionSensor.java</h1><pre class="source lang-java linenums">package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.*;
+import org.liara.api.data.repository.BooleanStateRepository;
+import org.liara.api.data.repository.SensorRepository;
+import org.liara.api.data.schema.SchemaManager;
+import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateWasMutatedEvent;
+import org.liara.api.event.StateWillBeDeletedEvent;
+import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
+import org.liara.api.recognition.sensor.EmitStateOfType;
+import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
+import org.liara.api.recognition.sensor.VirtualSensorRunner;
+import org.liara.api.recognition.sensor.common.NativeMotionSensor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@UseSensorConfigurationOfType(OneVsAllToUpDownMotionSensorConfiguration.class)
+@EmitStateOfType(BooleanState.class)
+@Component
+@Scope(&quot;prototype&quot;)
+public class OneVsAllToUpDownMotionSensor 
+       extends AbstractVirtualSensorHandler
+{
+  @NonNull
+  private final SchemaManager _schemaManager;
+  
+  @NonNull
+  private final BooleanStateRepository _flags;
+  
+  @NonNull
+  private final SensorRepository _sensors;
+  
+  @Autowired
+  public OneVsAllToUpDownMotionSensor (
+    @NonNull final SchemaManager schemaManager,
+    @NonNull final BooleanStateRepository flags,
+    @NonNull final SensorRepository sensors
+<span class="fc" id="L49">  ) {</span>
+<span class="fc" id="L50">    _schemaManager = schemaManager;</span>
+<span class="fc" id="L51">    _flags = flags;</span>
+<span class="fc" id="L52">    _sensors = sensors;</span>
+<span class="fc" id="L53">  }</span>
+  
+  public OneVsAllToUpDownMotionSensorConfiguration getConfiguration () {
+<span class="fc" id="L56">    return getRunner().getSensor().getConfiguration().as(</span>
+      OneVsAllToUpDownMotionSensorConfiguration.class
+    );
+  }
+  
+  public Sensor getSensor () {
+<span class="fc" id="L62">    return getRunner().getSensor();</span>
+  }
+  
+  public List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; getInputSensors () {
+<span class="fc" id="L66">    return _sensors.getSensorsOfTypeIntoNode(</span>
+      NativeMotionSensor.class, 
+<span class="fc" id="L68">      getSensor().getNode().getRoot().getReference().as(Node.class)</span>
+<span class="fc" id="L69">    ).stream()</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">     .filter(sensor -&gt; getConfiguration().isIgnoredInput(sensor) == false)</span>
+<span class="fc" id="L71">     .map(Sensor::getReference)</span>
+<span class="fc" id="L72">     .collect(Collectors.toList());</span>
+  }
+
+  @Override
+  public void initialize (
+    @NonNull final VirtualSensorRunner runner
+  ) {
+<span class="fc" id="L79">    super.initialize(runner);</span>
+    
+<span class="fc" id="L81">    final List&lt;BooleanState&gt; states = _flags.findAllWithValue(getInputSensors(), true);</span>
+    
+<span class="fc" id="L83">    final OneVsAllToUpDownMotionSensorConfiguration configuration = getConfiguration();</span>
+    
+<span class="fc" id="L85">    _schemaManager.flush();</span>
+<span class="fc" id="L86">    _schemaManager.clear();</span>
+    
+<span class="fc" id="L88">    BooleanState previous = null;</span>
+    
+<span class="fc bfc" id="L90" title="All 2 branches covered.">    for (int index = 0; index &lt; states.size(); ++index) {</span>
+<span class="fc" id="L91">      final BooleanState current = states.get(index);</span>
+
+      //if (previous == null /*|| !Objects.equals(previous.getEmissionDate(), current
+      // .getEmissionDate())*/) {
+<span class="fc bfc" id="L95" title="All 4 branches covered.">      if (previous == null || !areOfSameType(previous, current)) {</span>
+<span class="fc" id="L96">        emit(current, configuration.isValidInput(current));</span>
+      }
+
+<span class="fc" id="L99">      previous = current;</span>
+
+<span class="pc bpc" id="L101" title="1 of 4 branches missed.">      if (index % 500 == 0 &amp;&amp; index != 0) {</span>
+<span class="nc" id="L102">        _schemaManager.flush();</span>
+<span class="nc" id="L103">        _schemaManager.clear();</span>
+      }
+      //}
+    }
+    
+<span class="fc" id="L108">    _schemaManager.flush();</span>
+<span class="fc" id="L109">    _schemaManager.clear();</span>
+<span class="fc" id="L110">  }</span>
+  
+  @Override
+  public void stateWasCreated (
+    @NonNull final StateWasCreatedEvent event
+  ) {
+<span class="fc" id="L116">    super.stateWasCreated(event);</span>
+    
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">    if (event.getState().getModel().getSensor().isOfType(NativeMotionSensor.class) &amp;&amp;</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">        ((BooleanState) event.getState().getModel()).getValue() &amp;&amp;</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">      getConfiguration().isIgnoredInput(event.getState().getModel()) == false</span>
+    ) {
+<span class="fc" id="L122">      onMotionStateWasCreated((BooleanState) event.getState().getModel());</span>
+    }
+<span class="fc" id="L124">  }</span>
+
+  public void onMotionStateWasCreated (
+    @NonNull final BooleanState created
+  ) {
+<span class="fc bfc" id="L129" title="All 2 branches covered.">    if (!created.getValue()) return;</span>
+    //if (isDuplicate(created)) return;
+    
+<span class="fc" id="L132">    final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors = getInputSensors();</span>
+<span class="fc" id="L133">    final Optional&lt;BooleanState&gt; previous = _flags.findPreviousWithValue(created, inputSensors, true);</span>
+<span class="fc" id="L134">    final Optional&lt;BooleanState&gt; next = _flags.findNextWithValue(created, inputSensors, true);</span>
+    
+<span class="fc bfc" id="L136" title="All 2 branches covered.">    if (previous.isPresent() == false) {</span>
+<span class="fc" id="L137">      onLeftMotionStateWasCreated(created, next);</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">    } else if (!areOfSameType(previous.get(), created)) {</span>
+<span class="fc" id="L139">      onRightMotionStateWasCreated(created, next);</span>
+    }
+<span class="fc" id="L141">  }</span>
+
+  private void onLeftMotionStateWasCreated (
+    @NonNull final BooleanState created, 
+    @NonNull final Optional&lt;BooleanState&gt; next
+  ) {
+<span class="fc bfc" id="L147" title="All 4 branches covered.">    if (next.isPresent() &amp;&amp; areOfSameType(created, next.get())) {</span>
+<span class="fc" id="L148">      move(next.get(), created);</span>
+    } else {
+<span class="fc" id="L150">      emit(created);</span>
+    }
+<span class="fc" id="L152">  }</span>
+
+  private void onRightMotionStateWasCreated (
+    @NonNull final BooleanState created, 
+    @NonNull final Optional&lt;BooleanState&gt; next
+  ) {
+<span class="fc bfc" id="L158" title="All 2 branches covered.">    if (!next.isPresent()) {</span>
+<span class="fc" id="L159">      emit(created);</span>
+<span class="fc bfc" id="L160" title="All 2 branches covered.">    } else if (areOfSameType(created, next.get())) {</span>
+<span class="fc" id="L161">      move(next.get(), created);</span>
+    } else {
+<span class="fc" id="L163">      emit(created);</span>
+<span class="fc" id="L164">      emit(next.get());</span>
+    }
+<span class="fc" id="L166">  }</span>
+
+  private boolean areOfSameType (
+    @NonNull final BooleanState left, 
+    @NonNull final BooleanState right
+  ) {
+<span class="fc" id="L172">    return getConfiguration().isValidInput(</span>
+      left
+<span class="fc bfc" id="L174" title="All 2 branches covered.">    ) == getConfiguration().isValidInput(right);</span>
+  }
+
+  @Override
+  public void stateWasMutated (
+    @NonNull final StateWasMutatedEvent event
+  ) {
+<span class="fc" id="L181">    super.stateWasMutated(event);</span>
+    
+<span class="fc" id="L183">    if (</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">      event.getNewValue().getModel().getSensor().isOfType(NativeMotionSensor.class) &amp;&amp;</span>
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">      getConfiguration().isIgnoredInput(event.getNewValue().getModel()) == false</span>
+    ) {
+<span class="fc" id="L187">      onMotionStateWasMutated((BooleanStateSnapshot) event.getOldValue(), (BooleanState) event.getNewValue().getModel()</span>
+      );
+    }
+<span class="fc" id="L190">  }</span>
+
+  public void onMotionStateWasMutated (
+    @NonNull final BooleanStateSnapshot base, 
+    @NonNull final BooleanState updated
+  ) {
+<span class="fc" id="L196">    final Optional&lt;BooleanState&gt; correlation = _flags.findFirstWithCorrelation(</span>
+<span class="fc" id="L197">      &quot;base&quot;, updated.getReference(), getSensor().getReference()</span>
+    );
+    
+<span class="fc bfc" id="L200" title="All 2 branches covered.">    if (correlation.isPresent()) {</span>
+<span class="fc" id="L201">      onCorrelledMotionStateWasMutated(base, updated);</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">    } else if (updated.getValue()) {</span>
+<span class="fc" id="L203">      onMotionStateWasCreated(updated);</span>
+    }
+<span class="fc" id="L205">  }</span>
+
+  private void onCorrelledMotionStateWasMutated (
+    @NonNull final BooleanStateSnapshot base, 
+    @NonNull final BooleanState updated
+  ) {
+<span class="fc" id="L211">    final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors = getInputSensors();</span>
+<span class="fc" id="L212">    final Optional&lt;BooleanState&gt; previous = _flags.findPreviousWithValue(base.getEmittionDate(), inputSensors, true);</span>
+<span class="fc" id="L213">    final Optional&lt;BooleanState&gt; next = _flags.findNextWithValue(base.getEmittionDate(), inputSensors, true);</span>
+    
+<span class="fc bfc" id="L215" title="All 4 branches covered.">    if (previous.isPresent() &amp;&amp; Objects.equals(previous.get(), updated)) {</span>
+<span class="fc" id="L216">      move(updated, updated);</span>
+    } else {
+<span class="fc" id="L218">      onRightCorreledMotionStateWasMutated(updated, next);</span>
+    }
+<span class="fc" id="L220">  }</span>
+  
+  private void onRightCorreledMotionStateWasMutated (
+    @NonNull final BooleanState updated, 
+    @NonNull final Optional&lt;BooleanState&gt; next
+  ) {
+<span class="fc bfc" id="L226" title="All 2 branches covered.">    if (next.isPresent() == false) {</span>
+<span class="fc" id="L227">      delete(updated);</span>
+<span class="fc" id="L228">      onMotionStateWasCreated(updated);</span>
+<span class="fc bfc" id="L229" title="All 2 branches covered.">    } else if (Objects.equals(next.get(), updated)) {</span>
+<span class="fc" id="L230">      move(updated, updated);</span>
+<span class="fc bfc" id="L231" title="All 2 branches covered.">    } else if (areOfSameType(next.get(), updated)) {</span>
+<span class="fc" id="L232">      move(updated, next.get());</span>
+<span class="fc" id="L233">      onMotionStateWasCreated(updated);</span>
+    } else {
+<span class="fc" id="L235">      delete(updated);</span>
+<span class="fc" id="L236">      delete(next.get());</span>
+<span class="fc" id="L237">      onMotionStateWasCreated(updated);</span>
+    }
+<span class="fc" id="L239">  }</span>
+  
+  @Override
+  public void stateWillBeDeleted (
+    @NonNull final StateWillBeDeletedEvent event
+  ) {
+<span class="fc" id="L245">    super.stateWillBeDeleted(event);</span>
+    
+<span class="pc bpc" id="L247" title="1 of 2 branches missed.">    if (event.getState().getState().is(BooleanState.class)) {</span>
+<span class="fc" id="L248">      final BooleanState state = _flags.find(event.getState().getState().as(BooleanState.class)).get();</span>
+      
+<span class="fc" id="L250">      if (</span>
+<span class="pc bpc" id="L251" title="1 of 2 branches missed.">        state.getSensor().isOfType(NativeMotionSensor.class) &amp;&amp; </span>
+<span class="fc bfc" id="L252" title="All 2 branches covered.">        state.getValue()</span>
+      ) {
+<span class="fc" id="L254">        onMotionStateWillBeDeleted(state);</span>
+      }
+    }    
+<span class="fc" id="L257">  }</span>
+  
+  public void onMotionStateWillBeDeleted (@NonNull final BooleanState state) {
+<span class="fc" id="L260">    if (_flags.findFirstWithCorrelation(</span>
+<span class="fc" id="L261">      &quot;base&quot;, state.getReference(), getSensor().getReference()</span>
+<span class="fc bfc" id="L262" title="All 2 branches covered.">    ).isPresent() == false) return;</span>
+    
+<span class="fc" id="L264">    final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputs = getInputSensors();</span>
+<span class="fc" id="L265">    final Optional&lt;BooleanState&gt; previous = _flags.findPreviousWithValue(</span>
+<span class="fc" id="L266">      state.getEmissionDate(), inputs, true</span>
+    );
+    
+<span class="fc" id="L269">    final Optional&lt;BooleanState&gt; next = _flags.findNextWithValue(</span>
+<span class="fc" id="L270">      state.getEmissionDate(), inputs, true</span>
+    );
+    
+<span class="fc bfc" id="L273" title="All 2 branches covered.">    if (previous.isPresent() == false) {</span>
+<span class="fc" id="L274">      onLeftMotionStateWillBeDeleted(state, next);</span>
+    } else {
+<span class="fc" id="L276">      onRightMotionStateWillBeDeleted(state, next);</span>
+    }
+<span class="fc" id="L278">  }</span>
+
+  private void onRightMotionStateWillBeDeleted (
+    @NonNull final BooleanState state, 
+    @NonNull final Optional&lt;BooleanState&gt; next
+  ) {
+<span class="fc bfc" id="L284" title="All 2 branches covered.">    if (next.isPresent() == false) {</span>
+<span class="fc" id="L285">      delete(state);</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">    } else if (areOfSameType(state, next.get())) {</span>
+<span class="fc" id="L287">      move(state, next.get());</span>
+    } else {
+<span class="fc" id="L289">      delete(state);</span>
+<span class="fc" id="L290">      delete(next.get());</span>
+    }
+<span class="fc" id="L292">  }</span>
+
+  private void onLeftMotionStateWillBeDeleted (
+    @NonNull final BooleanState state, 
+    @NonNull final Optional&lt;BooleanState&gt; next
+  ) {
+<span class="fc bfc" id="L298" title="All 2 branches covered.">    if (next.isPresent() == false) {</span>
+<span class="fc" id="L299">      delete(state);</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">    } else if (areOfSameType(state, next.get())) {</span>
+<span class="fc" id="L301">      move(state, next.get());</span>
+    } else {
+<span class="fc" id="L303">      delete(state);</span>
+    }
+<span class="fc" id="L305">  }</span>
+
+  private void delete (@NonNull final BooleanState state) {
+<span class="fc" id="L308">    _schemaManager.execute(new StateDeletionSchema(</span>
+<span class="fc" id="L309">      _flags.findFirstWithCorrelation(</span>
+<span class="fc" id="L310">        &quot;base&quot;, state.getReference(), getSensor().getReference()</span>
+<span class="fc" id="L311">      ).get()</span>
+    ));
+<span class="fc" id="L313">  }</span>
+
+  private void move (
+    @NonNull final BooleanState from, 
+    @NonNull final BooleanState to
+  ) {
+<span class="fc" id="L319">    final State toMove = _flags.findFirstWithCorrelation(</span>
+<span class="fc" id="L320">      &quot;base&quot;, from.getReference(), getSensor().getReference()</span>
+<span class="fc" id="L321">    ).get();</span>
+
+<span class="fc" id="L323">    final BooleanStateMutationSchema mutation = new BooleanStateMutationSchema();</span>
+<span class="fc" id="L324">    mutation.setState(toMove);</span>
+<span class="fc" id="L325">    mutation.setEmissionDate(to.getEmissionDate());</span>
+<span class="fc bfc" id="L326" title="All 2 branches covered.">    if (!Objects.equals(from, to)) {</span>
+<span class="fc" id="L327">      mutation.correlate(&quot;base&quot;, to);</span>
+    }
+<span class="fc" id="L329">    _schemaManager.execute(mutation);</span>
+<span class="fc" id="L330">  }</span>
+
+  private void emit (@NonNull final BooleanState created) {
+<span class="fc" id="L333">    emit(created, getConfiguration().isValidInput(created));</span>
+<span class="fc" id="L334">  }</span>
+  
+  private void emit (@NonNull final State state, final boolean up) {
+<span class="fc" id="L337">    final BooleanStateCreationSchema creation = new BooleanStateCreationSchema();</span>
+<span class="fc" id="L338">    creation.setEmissionDate(state.getEmissionDate());</span>
+<span class="fc" id="L339">    creation.setSensor(getSensor());</span>
+<span class="fc" id="L340">    creation.setValue(up);</span>
+<span class="fc" id="L341">    creation.correlate(&quot;base&quot;, state);</span>
+    
+<span class="fc" id="L343">    _schemaManager.execute(creation);</span>
+<span class="fc" id="L344">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

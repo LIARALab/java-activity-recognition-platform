@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractVirtualSensorHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.recognition.sensor</a> &gt; <span class="el_source">AbstractVirtualSensorHandler.java</span></div><h1>AbstractVirtualSensorHandler.java</h1><pre class="source lang-java linenums">package org.liara.api.recognition.sensor;
+
+import org.liara.api.event.NodeWasCreatedEvent;
+import org.liara.api.event.NodeWillBeCreatedEvent;
+import org.liara.api.event.SensorWasCreatedEvent;
+import org.liara.api.event.SensorWillBeCreatedEvent;
+import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateWasMutatedEvent;
+import org.liara.api.event.StateWillBeCreatedEvent;
+import org.liara.api.event.StateWillBeMutatedEvent;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+<span class="fc" id="L14">public abstract class AbstractVirtualSensorHandler implements VirtualSensorHandler</span>
+{
+<span class="fc" id="L16">  @Nullable</span>
+  private VirtualSensorRunner _runner = null;
+
+  @Override
+  public void initialize (@NonNull final VirtualSensorRunner runner) {
+<span class="fc" id="L21">    _runner = runner;</span>
+<span class="fc" id="L22">  }</span>
+
+  @Override
+  public void resume (@NonNull final VirtualSensorRunner runner) {
+<span class="nc" id="L26">    _runner = runner;</span>
+<span class="nc" id="L27">  }</span>
+
+  @Override
+  public void stop () {
+<span class="nc" id="L31">    _runner = null;</span>
+<span class="nc" id="L32">  }</span>
+
+  @Override
+  public void pause () {
+<span class="nc" id="L36">    _runner = null;</span>
+<span class="nc" id="L37">  }</span>
+
+  @Override
+<span class="nc" id="L40">  public void sensorWillBeCreated (@NonNull final SensorWillBeCreatedEvent event) { }</span>
+
+  @Override
+<span class="nc" id="L43">  public void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) { }</span>
+
+  @Override
+<span class="nc" id="L46">  public void nodeWillBeCreated (@NonNull final NodeWillBeCreatedEvent event) { }</span>
+
+  @Override
+<span class="nc" id="L49">  public void nodeWasCreated (@NonNull final NodeWasCreatedEvent event) { }</span>
+
+  @Override
+<span class="nc" id="L52">  public void stateWillBeCreated (@NonNull final StateWillBeCreatedEvent event) { }</span>
+
+  @Override
+<span class="fc" id="L55">  public void stateWasCreated (@NonNull final StateWasCreatedEvent event) { }</span>
+
+  @Override
+<span class="nc" id="L58">  public void stateWillBeMutated (@NonNull final StateWillBeMutatedEvent event) { }</span>
+
+  @Override
+<span class="fc" id="L61">  public void stateWasMutated (@NonNull final StateWasMutatedEvent event) { }</span>
+
+  public VirtualSensorRunner getRunner () {
+<span class="fc" id="L64">    return _runner;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

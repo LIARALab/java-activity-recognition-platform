@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>APIRequestFreeCursorParser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.request.parser.cursor</a> &gt; <span class="el_source">APIRequestFreeCursorParser.java</span></div><h1>APIRequestFreeCursorParser.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+/**
+ * Copyright 2018 Cedric DEMONGIVERT
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
+ * files (the &quot;Software&quot;), to deal in the Software without restriction, including without limitation the rights to use, copy, 
+ * modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software 
+ * is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE 
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR 
+ * IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package org.liara.api.request.parser.cursor;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.liara.api.collection.transformation.cursor.Cursor;
+import org.liara.api.request.APIRequest;
+import org.liara.api.request.parser.APIDocumentedRequestParser;
+import org.liara.api.request.parser.APIRequestParser;
+import org.springframework.lang.NonNull;
+
+import com.fasterxml.classmate.TypeResolver;
+
+import springfox.documentation.builders.ParameterBuilder;
+import springfox.documentation.schema.ModelRef;
+import springfox.documentation.service.Parameter;
+
+/**
+ * A parser that takes a &quot;first&quot; or &quot;all&quot; parameter and an &quot;after&quot; parameter and
+ * return a cursor from them.
+ * 
+ * It allow the client to get any slice of data from a collection without any
+ * restriction.
+ * 
+ * @author C&amp;eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
+ */
+<span class="nc" id="L63">public class APIRequestFreeCursorParser implements APIRequestParser&lt;Cursor&gt;, APIDocumentedRequestParser</span>
+{
+  @Override
+  public Cursor parse (@NonNull final APIRequest request) {
+<span class="nc" id="L67">    int offset = 0;</span>
+<span class="nc" id="L68">    int limit = 10;</span>
+
+<span class="nc bnc" id="L70" title="All 2 branches missed.">    if (request.contains(&quot;after&quot;)) {</span>
+<span class="nc" id="L71">      offset = Integer.parseInt(request.getValue(&quot;after&quot;, 0).trim());</span>
+    }
+
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    if (request.contains(&quot;first&quot;)) {</span>
+<span class="nc" id="L75">      limit = Integer.parseInt(request.getValue(&quot;first&quot;, 0).trim());</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">    } else if (request.contains(&quot;all&quot;)) {</span>
+<span class="nc" id="L77">      final String value = request.getValue(&quot;all&quot;, 0).trim();</span>
+
+<span class="nc bnc" id="L79" title="All 4 branches missed.">      if (value.equals(&quot;&quot;) || value.equals(&quot;true&quot;)) {</span>
+<span class="nc" id="L80">        return Cursor.ALL.setOffset(offset);</span>
+      }
+    }
+
+<span class="nc" id="L84">    return new Cursor(offset, limit);</span>
+  }
+
+  @Override
+  public List&lt;Parameter&gt; getHandledParametersDocumentation (@NonNull final List&lt;APIDocumentedRequestParser&gt; parents) {
+<span class="nc" id="L89">    final TypeResolver resolver = new TypeResolver();</span>
+    
+<span class="nc" id="L91">    return Arrays.asList(</span>
+      new ParameterBuilder()
+<span class="nc" id="L93">        .name(&quot;first&quot;)</span>
+<span class="nc" id="L94">        .allowMultiple(false)</span>
+<span class="nc" id="L95">        .required(false)</span>
+<span class="nc" id="L96">        .defaultValue(&quot;10&quot;)</span>
+<span class="nc" id="L97">        .type(resolver.resolve(Long.class))</span>
+<span class="nc" id="L98">        .parameterType(&quot;query&quot;)</span>
+<span class="nc" id="L99">        .pattern(&quot;^\\d+$&quot;)</span>
+<span class="nc" id="L100">        .modelRef(new ModelRef(&quot;long&quot;))</span>
+<span class="nc" id="L101">        .description(String.join(&quot;&quot;, </span>
+          &quot;Maximum number of elements to display. Must be a positive &quot;,
+          &quot;integer and can't be used in conjunction with \&quot;all\&quot;.&quot;
+         ))
+<span class="nc" id="L105">        .build(),</span>
+      new ParameterBuilder()
+<span class="nc" id="L107">        .name(&quot;all&quot;)</span>
+<span class="nc" id="L108">        .allowMultiple(false)</span>
+<span class="nc" id="L109">        .required(false)</span>
+<span class="nc" id="L110">        .defaultValue(&quot;false&quot;)</span>
+<span class="nc" id="L111">        .type(resolver.resolve(Boolean.class))</span>
+<span class="nc" id="L112">        .modelRef(new ModelRef(&quot;boolean&quot;))</span>
+<span class="nc" id="L113">        .parameterType(&quot;query&quot;)</span>
+<span class="nc" id="L114">        .pattern(&quot;^(true|false|0|1)$&quot;)</span>
+<span class="nc" id="L115">        .description(String.join(&quot;&quot;, </span>
+          &quot;Display all remaining elements. Can't be used in conjunction&quot;,
+          &quot;with \&quot;first\&quot;.&quot;
+         ))
+<span class="nc" id="L119">        .build(),</span>
+      new ParameterBuilder()
+<span class="nc" id="L121">        .name(&quot;after&quot;)</span>
+<span class="nc" id="L122">        .allowMultiple(false)</span>
+<span class="nc" id="L123">        .required(false)</span>
+<span class="nc" id="L124">        .defaultValue(&quot;0&quot;)</span>
+<span class="nc" id="L125">        .type(resolver.resolve(Long.class))</span>
+<span class="nc" id="L126">        .modelRef(new ModelRef(&quot;long&quot;))</span>
+<span class="nc" id="L127">        .parameterType(&quot;query&quot;)</span>
+<span class="nc" id="L128">        .pattern(&quot;^\\d+$&quot;)</span>
+<span class="nc" id="L129">        .description(String.join(&quot;&quot;, </span>
+          &quot;Number of elements to skip.&quot;
+         ))
+<span class="nc" id="L132">        .build()</span>
+    );
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

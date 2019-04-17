@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DatabaseNumericStateRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository.database</a> &gt; <span class="el_source">DatabaseNumericStateRepository.java</span></div><h1>DatabaseNumericStateRepository.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository.database;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.NumericState;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.repository.NumericStateRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Scope;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import java.time.ZonedDateTime;
+import java.util.*;
+
+@Component
+@Scope(&quot;prototype&quot;)
+@Primary
+public class DatabaseNumericStateRepository
+  implements NumericStateRepository
+{
+  private DatabaseTimeSeriesRepository&lt;State&gt; _states;
+
+  @Autowired
+  public DatabaseNumericStateRepository (
+    @NonNull final EntityManager entityManager
+  )
+<span class="nc" id="L30">  {</span>
+<span class="nc" id="L31">    _states = new DatabaseTimeSeriesRepository&lt;&gt;(entityManager, State.class);</span>
+<span class="nc" id="L32">  }</span>
+
+  private @NonNull
+  List&lt;NumericState&gt; toNumericStateList (@NonNull final List&lt;State&gt; states) {
+<span class="nc" id="L36">    final List&lt;NumericState&gt; result = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L38">    states.forEach(state -&gt; {</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">      if (state instanceof NumericState) result.add((NumericState) state);</span>
+<span class="nc" id="L40">    });</span>
+
+<span class="nc" id="L42">    return result;</span>
+  }
+
+  @Override
+  public @NonNull
+  List&lt;NumericState&gt; findAllAt (
+    @NonNull final ZonedDateTime time, @NonNull final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; sensors
+  )
+  {
+<span class="nc" id="L51">    return toNumericStateList(_states.findAllAt(time, sensors));</span>
+  }
+
+  @Override
+  public Optional&lt;NumericState&gt; find (@NonNull final ApplicationEntityReference&lt;NumericState&gt; identifier) {
+<span class="nc" id="L56">    return find(identifier.getIdentifier());</span>
+  }
+
+  @Override
+  public Optional&lt;NumericState&gt; find (@NonNull final Long identifier) {
+<span class="nc" id="L61">    final Optional&lt;State&gt; result = _states.find(identifier);</span>
+
+<span class="nc bnc" id="L63" title="All 2 branches missed.">    if (result.isPresent()) {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">      return result.get() instanceof NumericState ? Optional.of((NumericState) result.get()) : Optional.empty();</span>
+    } else {
+<span class="nc" id="L66">      return Optional.empty();</span>
+    }
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findAll () {
+<span class="nc" id="L72">    final List&lt;State&gt;        partialResult = _states.findAll();</span>
+<span class="nc" id="L73">    final List&lt;NumericState&gt; result        = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L75">    partialResult.forEach(state -&gt; {</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">      if (state instanceof NumericState) result.add((NumericState) state);</span>
+<span class="nc" id="L77">    });</span>
+
+<span class="nc" id="L79">    return result;</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findPrevious (
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, int count
+  )
+  {
+<span class="nc" id="L87">    return toNumericStateList(_states.findPrevious(date, sensor, count));</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findNext (
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, final int count
+  )
+  {
+<span class="nc" id="L95">    return toNumericStateList(_states.findNext(date, sensor, count));</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; find (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, final int offset, final int count
+  )
+  {
+<span class="nc" id="L103">    return toNumericStateList(_states.find(sensor, offset, count));</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findAll (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  )
+  {
+<span class="nc" id="L111">    return toNumericStateList(_states.findAll(sensor));</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findAll (
+    @NonNull final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; sensors
+  )
+  {
+<span class="nc" id="L119">    return toNumericStateList(_states.findAll(sensors));</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findWithCorrelation (
+    @NonNull final String name,
+    @NonNull final ApplicationEntityReference&lt;? extends State&gt; correlated,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  )
+  {
+<span class="nc" id="L129">    return toNumericStateList(_states.findWithCorrelation(name, correlated, sensor));</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findWithCorrelations (
+    @NonNull final Map&lt;String, ApplicationEntityReference&lt;? extends State&gt;&gt; correlations,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  )
+  {
+<span class="nc" id="L138">    return toNumericStateList(_states.findWithCorrelations(correlations, sensor));</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findWithAnyCorrelation (
+    @NonNull final Collection&lt;String&gt; keys,
+    @NonNull final ApplicationEntityReference&lt;? extends State&gt; correlated,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  )
+  {
+<span class="nc" id="L148">    return toNumericStateList(_states.findWithAnyCorrelation(keys, correlated, sensor));</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findPrevious (
+    @NonNull final ZonedDateTime date,
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors,
+    final int count
+  )
+  {
+<span class="nc" id="L158">    return toNumericStateList(_states.findPrevious(date, inputSensors, count));</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findNext (
+    @NonNull final ZonedDateTime date,
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors,
+    final int count
+  )
+  {
+<span class="nc" id="L168">    return toNumericStateList(_states.findNext(date, inputSensors, count));</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findAllNext (
+    @NonNull final ZonedDateTime date, @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  )
+  {
+<span class="nc" id="L176">    return toNumericStateList(_states.findAllNext(date, inputSensors));</span>
+  }
+
+  @Override
+  public List&lt;NumericState&gt; findAllPrevious (
+    @NonNull final ZonedDateTime date, @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  )
+  {
+<span class="nc" id="L184">    return toNumericStateList(_states.findAllPrevious(date, inputSensors));</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

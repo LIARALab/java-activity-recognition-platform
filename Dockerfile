@@ -11,9 +11,9 @@ ENV DATABASE_USERNAME ${DATABASE_USERNAME}
 ENV DATABASE_PASSWORD ${DATABASE_PASSWORD}
 
 RUN yum install wget pwgen findutils -y && \
-    wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn/java/jdk/11.0.3+12/37f5e150db5247ab9333b11c1dddcd30/jdk-11.0.3_linux-x64_bin.rpm && \
-    rpm -ivh jdk-11.0.3_linux-x64_bin.rpm && \
-    rm -f jdk-11.0.3_linux-x64_bin.rpm
+    wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/12.0.1+12/69cfe15208a647278a19ef0990eea691/jdk-12.0.1_linux-x64_bin.rpm && \
+    rpm -ivh jdk-12.0.1_linux-x64_bin.rpm && \
+    rm -f jdk-12.0.1_linux-x64_bin.rpm
 
 RUN groupadd application && \
 	useradd -d /home/application -m -g application -p `pwgen -s 20` application && \

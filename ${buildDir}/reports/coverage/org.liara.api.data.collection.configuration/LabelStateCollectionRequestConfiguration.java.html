@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LabelStateCollectionRequestConfiguration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.collection.configuration</a> &gt; <span class="el_source">LabelStateCollectionRequestConfiguration.java</span></div><h1>LabelStateCollectionRequestConfiguration.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.data.collection.configuration;
+
+import org.liara.api.collection.Operators;
+import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
+import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.LabelState;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
+import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessorFactory;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessorFactory;
+import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
+import org.liara.api.request.validator.APIRequestValidator;
+import org.springframework.lang.NonNull;
+
+import javax.persistence.criteria.Join;
+import java.util.Arrays;
+import java.util.List;
+
+<span class="nc" id="L47">public final class LabelStateCollectionRequestConfiguration</span>
+  implements CollectionRequestConfiguration&lt;LabelState&gt;
+{
+<span class="nc" id="L50">  @NonNull</span>
+<span class="nc" id="L51">  private final SimpleEntityFieldSelector&lt;LabelState, Join&lt;LabelState, Node&gt;&gt; _nodeJoin = root -&gt; root.join(&quot;_node&quot;);</span>
+  
+<span class="nc" id="L53">  @NonNull</span>
+<span class="nc" id="L54">  private final SimpleEntityFieldSelector&lt;LabelState, Join&lt;LabelState, Sensor&gt;&gt; _sensorJoin = root -&gt; root.join(</span>
+    &quot;_sensor&quot;);
+  
+  @Override
+  public APIRequestEntityCollectionOperatorParser&lt;LabelState&gt; createFilterParser () {
+<span class="nc" id="L59">    return new APIRequestEntityCollectionConjunctionOperatorParser&lt;&gt;(</span>
+<span class="nc" id="L60">      Arrays.asList(</span>
+<span class="nc" id="L61">        APIRequestEntityFilterParserFactory.integer(</span>
+<span class="nc" id="L62">          &quot;identifier&quot;, (root) -&gt; root.get(&quot;_identifier&quot;)</span>
+        ),
+<span class="nc" id="L64">        APIRequestEntityFilterParserFactory.datetime(</span>
+<span class="nc" id="L65">          &quot;creationDate&quot;, (root) -&gt; root.get(&quot;_creationDate&quot;)</span>
+        ),
+<span class="nc" id="L67">        APIRequestEntityFilterParserFactory.datetime(</span>
+<span class="nc" id="L68">          &quot;updateDate&quot;, (root) -&gt; root.get(&quot;_updateDate&quot;)</span>
+        ),
+<span class="nc" id="L70">        APIRequestEntityFilterParserFactory.datetime(</span>
+<span class="nc" id="L71">          &quot;deletionDate&quot;, (root) -&gt; root.get(&quot;_deletionDate&quot;)</span>
+        ),
+<span class="nc" id="L73">        APIRequestEntityFilterParserFactory.datetime(</span>
+<span class="nc" id="L74">          &quot;start&quot;, (root) -&gt; root.get(&quot;_start&quot;)</span>
+        ),
+<span class="nc" id="L76">        APIRequestEntityFilterParserFactory.datetime(</span>
+<span class="nc" id="L77">          &quot;end&quot;, (root) -&gt; root.get(&quot;_start&quot;)</span>
+        ),
+<span class="nc" id="L79">        APIRequestEntityFilterParserFactory.datetime(</span>
+<span class="nc" id="L80">          &quot;emissionDate&quot;, (root) -&gt; root.get(&quot;_emissionDate&quot;)</span>
+        ),
+<span class="nc" id="L82">        APIRequestEntityFilterParserFactory.duration(&quot;duration&quot;, LabelState.DURATION_SELECTOR</span>
+        ),
+<span class="nc" id="L84">        APIRequestEntityFilterParserFactory.text(</span>
+<span class="nc" id="L85">          &quot;tag&quot;, root -&gt; root.get(&quot;_tag&quot;)</span>
+        ),
+<span class="nc" id="L87">        APIRequestEntityFilterParserFactory.callback(</span>
+<span class="nc" id="L88">          &quot;duration&quot;, request -&gt; Operators.notNull(&quot;_end&quot;)</span>
+        ),
+<span class="nc" id="L90">        APIRequestEntityFilterParserFactory.datetimeInRange(</span>
+          &quot;date&quot;, 
+<span class="nc" id="L92">          (root) -&gt; root.get(&quot;_start&quot;), </span>
+<span class="nc" id="L93">          (root) -&gt; root.get(&quot;_end&quot;)</span>
+        ),
+<span class="nc" id="L95">        APIRequestEntityFilterParserFactory.joinCollection(</span>
+          &quot;node&quot;, _nodeJoin, NodeCollection.class
+        ),
+<span class="nc" id="L98">        APIRequestEntityFilterParserFactory.joinCollection(</span>
+          &quot;sensor&quot;, _sensorJoin, SensorCollection.class
+        )
+     )
+    );
+  }
+
+  @Override
+  public List&lt;APIRequestValidator&gt; createFilteringValidators () {
+<span class="nc" id="L107">    return Arrays.asList(</span>
+<span class="nc" id="L108">      APIRequestFilterValidatorFactory.integer(&quot;identifier&quot;),</span>
+<span class="nc" id="L109">      APIRequestFilterValidatorFactory.datetime(&quot;creationDate&quot;),</span>
+<span class="nc" id="L110">      APIRequestFilterValidatorFactory.datetime(&quot;updateDate&quot;),</span>
+<span class="nc" id="L111">      APIRequestFilterValidatorFactory.datetime(&quot;deletionDate&quot;),</span>
+<span class="nc" id="L112">      APIRequestFilterValidatorFactory.datetime(&quot;start&quot;),</span>
+<span class="nc" id="L113">      APIRequestFilterValidatorFactory.datetime(&quot;end&quot;),</span>
+<span class="nc" id="L114">      APIRequestFilterValidatorFactory.datetime(&quot;emissionDate&quot;),</span>
+<span class="nc" id="L115">      APIRequestFilterValidatorFactory.duration(&quot;duration&quot;),</span>
+<span class="nc" id="L116">      APIRequestFilterValidatorFactory.text(&quot;tag&quot;),</span>
+<span class="nc" id="L117">      APIRequestFilterValidatorFactory.datetimeInRange(&quot;date&quot;),</span>
+<span class="nc" id="L118">      APIRequestFilterValidatorFactory.includeCollection(&quot;node&quot;, NodeCollection.class),</span>
+<span class="nc" id="L119">      APIRequestFilterValidatorFactory.includeCollection(&quot;sensor&quot;, SensorCollection.class)</span>
+    );
+  }
+
+  @Override
+  public List&lt;APIRequestOrderingProcessor&lt;LabelState&gt;&gt; createOrderingProcessors () {
+<span class="nc" id="L125">    return Arrays.asList(</span>
+<span class="nc" id="L126">      APIRequestOrderingProcessorFactory.field(</span>
+<span class="nc" id="L127">        &quot;identifier&quot;, (root) -&gt; root.get(&quot;_identifier&quot;)</span>
+      ),
+<span class="nc" id="L129">      APIRequestOrderingProcessorFactory.field(</span>
+<span class="nc" id="L130">        &quot;creationDate&quot;, (root) -&gt; root.get(&quot;_creationDate&quot;)</span>
+      ),
+<span class="nc" id="L132">      APIRequestOrderingProcessorFactory.field(</span>
+<span class="nc" id="L133">        &quot;updateDate&quot;, (root) -&gt; root.get(&quot;_updateDate&quot;)</span>
+      ),
+<span class="nc" id="L135">      APIRequestOrderingProcessorFactory.field(</span>
+<span class="nc" id="L136">        &quot;deletionDate&quot;, (root) -&gt; root.get(&quot;_deletionDate&quot;)</span>
+      ),
+<span class="nc" id="L138">      APIRequestOrderingProcessorFactory.field(</span>
+<span class="nc" id="L139">        &quot;start&quot;, (root) -&gt; root.get(&quot;_start&quot;)</span>
+      ),
+<span class="nc" id="L141">      APIRequestOrderingProcessorFactory.field(</span>
+<span class="nc" id="L142">        &quot;end&quot;, (root) -&gt; root.get(&quot;_end&quot;)</span>
+      ),
+<span class="nc" id="L144">      APIRequestOrderingProcessorFactory.field(</span>
+<span class="nc" id="L145">        &quot;emissionDate&quot;, (root) -&gt; root.get(&quot;_emissionDate&quot;)</span>
+      ),
+<span class="nc" id="L147">      APIRequestOrderingProcessorFactory.field(</span>
+<span class="nc" id="L148">        &quot;emissionDate&quot;, (root) -&gt; root.get(&quot;_tag&quot;)</span>
+      ),
+<span class="nc" id="L150">      APIRequestOrderingProcessorFactory.field(</span>
+        &quot;duration&quot;,
+<span class="nc" id="L152">        (query, queried) -&gt; LabelState.DURATION_SELECTOR.select(query, queried)</span>
+      ),
+<span class="nc" id="L154">      APIRequestOrderingProcessorFactory.field(</span>
+<span class="nc" id="L155">        &quot;date&quot;, (root) -&gt; root.get(&quot;_start&quot;)</span>
+      ),
+<span class="nc" id="L157">      APIRequestOrderingProcessorFactory.joinCollection(</span>
+        &quot;node&quot;, _nodeJoin, NodeCollection.class
+      ),
+<span class="nc" id="L160">      APIRequestOrderingProcessorFactory.joinCollection(</span>
+        &quot;sensor&quot;, _sensorJoin, SensorCollection.class
+      )
+    );
+  }
+
+  @Override
+  public List&lt;APIRequestGroupingProcessor&lt;LabelState&gt;&gt; createGroupingProcessors () {
+<span class="nc" id="L168">    return Arrays.asList(</span>
+<span class="nc" id="L169">      APIRequestGroupingProcessorFactory.expression(&quot;identifier&quot;, (root) -&gt; root.get(&quot;_identifier&quot;)),</span>
+<span class="nc" id="L170">      APIRequestGroupingProcessorFactory.expression(&quot;creationDate&quot;, (root) -&gt; root.get(&quot;_creationDate&quot;)),</span>
+<span class="nc" id="L171">      APIRequestGroupingProcessorFactory.expression(&quot;updateDate&quot;, (root) -&gt; root.get(&quot;_updateDate&quot;)),</span>
+<span class="nc" id="L172">      APIRequestGroupingProcessorFactory.expression(&quot;deletionDate&quot;, (root) -&gt; root.get(&quot;_deletionDate&quot;)),</span>
+<span class="nc" id="L173">      APIRequestGroupingProcessorFactory.expression(&quot;start&quot;, (root) -&gt; root.get(&quot;_start&quot;)),</span>
+<span class="nc" id="L174">      APIRequestGroupingProcessorFactory.expression(&quot;end&quot;, (root) -&gt; root.get(&quot;_end&quot;)),</span>
+<span class="nc" id="L175">      APIRequestGroupingProcessorFactory.expression(</span>
+        &quot;emissionDate&quot;,
+<span class="nc" id="L177">        (root) -&gt; root.get(&quot;_emissionDate&quot;)</span>
+      ),
+<span class="nc" id="L179">      APIRequestGroupingProcessorFactory.expression(&quot;tag&quot;, (root) -&gt; root.get(&quot;_tag&quot;)),</span>
+<span class="nc" id="L180">      APIRequestGroupingProcessorFactory.expression(</span>
+        &quot;emissionDate:date&quot;,
+<span class="nc" id="L182">        (query, root) -&gt; query.getManager().getCriteriaBuilder().function(&quot;DATE_FORMAT&quot;,</span>
+          String.class,
+<span class="nc" id="L184">          root.get(&quot;_emissionDate&quot;),</span>
+<span class="nc" id="L185">          query.getManager().getCriteriaBuilder().literal(&quot;%Y-%m-%d&quot;)</span>
+        )
+      ),
+<span class="nc" id="L188">      APIRequestGroupingProcessorFactory.expression(</span>
+        &quot;duration&quot;,
+<span class="nc" id="L190">        (query, queried) -&gt; LabelState.DURATION_SELECTOR.select(query, queried)</span>
+      ),
+<span class="nc" id="L192">      APIRequestGroupingProcessorFactory.expression(&quot;nights&quot;,</span>
+<span class="nc" id="L193">        (query, queried) -&gt; LabelState.NIGHTS_SELECTOR.select(query, queried)</span>
+      ),
+<span class="nc" id="L195">      APIRequestGroupingProcessorFactory.joinCollection(&quot;node&quot;, _nodeJoin, NodeCollection.class),</span>
+<span class="nc" id="L196">      APIRequestGroupingProcessorFactory.joinCollection(&quot;sensor&quot;, _sensorJoin, SensorCollection.class)</span>
+    );
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

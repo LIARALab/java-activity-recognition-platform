@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CollectionRequestConfiguration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.configuration</a> &gt; <span class="el_source">CollectionRequestConfiguration.java</span></div><h1>CollectionRequestConfiguration.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.configuration;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+
+import org.liara.api.collection.EntityCollection;
+import org.liara.api.collection.transformation.cursor.Cursor;
+import org.liara.api.collection.transformation.cursor.CursorTransformation;
+import org.liara.api.collection.transformation.grouping.EntityCollectionGroupTransformation;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.request.APIRequest;
+import org.liara.api.request.parser.APIRequestParser;
+import org.liara.api.request.parser.cursor.APIRequestFreeCursorParser;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.operator.ordering.ComposedAPIRequestOrderingParser;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.transformation.grouping.ComposedAPIRequestGroupingParser;
+import org.liara.api.request.validator.APIRequestFreeCursorValidator;
+import org.liara.api.request.validator.APIRequestValidator;
+import org.liara.api.request.validator.error.APIRequestError;
+import org.liara.api.request.validator.error.InvalidAPIRequestException;
+import org.springframework.aop.framework.AopProxyUtils;
+import org.springframework.lang.NonNull;
+
+public interface CollectionRequestConfiguration&lt;Entity&gt;
+{
+  public static &lt;Entity&gt; CollectionRequestConfiguration&lt;Entity&gt; fromClass(
+    @NonNull final Class&lt;? extends CollectionRequestConfiguration&lt;Entity&gt;&gt; clazz
+  ) {
+    try {
+<span class="nc" id="L57">      return (CollectionRequestConfiguration&lt;Entity&gt;) clazz.newInstance();</span>
+<span class="nc" id="L58">    } catch (final Exception e) {</span>
+<span class="nc" id="L59">      throw new Error(String.join(&quot;&quot;, </span>
+        &quot;Unnable to instanciate the collection configuration &quot;,
+<span class="nc" id="L61">        String.valueOf(clazz),</span>
+        &quot; does the class has a public constructor without parameters ?&quot;
+      ));
+    }
+  }
+  
+  public static CollectionRequestConfiguration&lt;?&gt; fromRawClass(
+    @NonNull final Class&lt;? extends CollectionRequestConfiguration&lt;?&gt;&gt; clazz
+  ) {
+    try {
+<span class="nc" id="L71">      return (CollectionRequestConfiguration&lt;?&gt;) clazz.newInstance();</span>
+<span class="nc" id="L72">    } catch (final Exception e) {</span>
+<span class="nc" id="L73">      throw new Error(String.join(&quot;&quot;, </span>
+        &quot;Unnable to instanciate the collection configuration &quot;,
+<span class="nc" id="L75">        String.valueOf(clazz),</span>
+        &quot; does the class has a public constructor without parameters ?&quot;
+      ));
+    }
+  }
+  
+  /**
+   * Return the default configuration declared for a given collection type.
+   * 
+   * @param clazz A collection type.
+   * 
+   * @return The default configuration declared for the given collection type.
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public static &lt;Entity&gt; CollectionRequestConfiguration&lt;Entity&gt; getDefaultConfigurationOf (
+    @NonNull final Class&lt;?&gt; clazz
+  ) {
+<span class="nc bnc" id="L92" title="All 2 branches missed.">    if (clazz.isAnnotationPresent(DefaultCollectionRequestConfiguration.class)) {</span>
+<span class="nc" id="L93">      final DefaultCollectionRequestConfiguration defaultCollection = clazz.getAnnotation(DefaultCollectionRequestConfiguration.class);</span>
+      
+      try {
+<span class="nc" id="L96">        return (CollectionRequestConfiguration&lt;Entity&gt;) defaultCollection.value().newInstance();</span>
+<span class="nc" id="L97">      } catch (final Exception e) {</span>
+<span class="nc" id="L98">        throw new Error(String.join(&quot;&quot;, </span>
+          &quot;Unnable to instanciate the collection configuration &quot;,
+<span class="nc" id="L100">          String.valueOf(defaultCollection.value()),</span>
+          &quot; does the class has a public constructor without parameters ?&quot;
+        ));
+      }
+    } else {
+<span class="nc" id="L105">      return new EmptyCollectionRequestConfiguration&lt;&gt;();</span>
+    }
+  }
+  
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public static &lt;Entity&gt; Class&lt;? extends CollectionRequestConfiguration&lt;Entity&gt;&gt; getDefaultClass (
+    @NonNull final Class&lt;?&gt; clazz
+  ) {
+<span class="nc bnc" id="L113" title="All 2 branches missed.">    if (clazz.isAnnotationPresent(DefaultCollectionRequestConfiguration.class)) {</span>
+<span class="nc" id="L114">      final DefaultCollectionRequestConfiguration defaultCollection = clazz.getAnnotation(DefaultCollectionRequestConfiguration.class);</span>
+<span class="nc" id="L115">       return (Class&lt;? extends CollectionRequestConfiguration&lt;Entity&gt;&gt;) defaultCollection.value();</span>
+    } else {
+<span class="nc" id="L117">      return (Class&lt;? extends CollectionRequestConfiguration&lt;Entity&gt;&gt;) new EmptyCollectionRequestConfiguration&lt;Entity&gt;().getClass();</span>
+    }
+  }
+  
+  public static &lt;Entity&gt; CollectionRequestConfiguration&lt;Entity&gt; getDefaultConfigurationOf (
+    @NonNull final EntityCollection&lt;Entity&gt; collection
+  ) {
+<span class="nc" id="L124">    return getDefaultConfigurationOf(AopProxyUtils.ultimateTargetClass(collection));</span>
+  }
+  
+  public static void validate (
+    @NonNull final Collection&lt;APIRequestValidator&gt; validators, 
+    @NonNull final APIRequest request
+  ) throws InvalidAPIRequestException {
+<span class="nc" id="L131">    final List&lt;APIRequestError&gt; errors = new ArrayList&lt;&gt;();</span>
+    
+<span class="nc bnc" id="L133" title="All 2 branches missed.">    for (final APIRequestValidator validator : validators) {</span>
+<span class="nc" id="L134">      errors.addAll(validator.validate(request));</span>
+<span class="nc" id="L135">    }</span>
+    
+<span class="nc bnc" id="L137" title="All 2 branches missed.">    if (errors.size() &gt; 0) {</span>
+<span class="nc" id="L138">      throw new InvalidAPIRequestException(request, errors);</span>
+    }
+<span class="nc" id="L140">  }</span>
+  
+  public default CursorTransformation getCursor (
+    @NonNull final APIRequest request
+  ) throws InvalidAPIRequestException {
+<span class="nc" id="L145">    return CursorTransformation.from(createCursorParser().parse(request));</span>
+  }
+  
+  public default EntityCollectionOperator&lt;Entity&gt; getOperator (
+    @NonNull final APIRequest request
+  ) {
+<span class="nc" id="L151">    final EntityCollectionOperator&lt;Entity&gt; filter = createFilterParser().parse(request);</span>
+<span class="nc" id="L152">    final EntityCollectionOperator&lt;Entity&gt; ordering = createOrderingParser().parse(request);</span>
+    
+<span class="nc" id="L154">    return filter.apply(ordering);</span>
+  }
+  
+
+  public default EntityCollectionGroupTransformation&lt;Entity&gt; getGrouping (
+    @NonNull final APIRequest request
+  ) {
+<span class="nc" id="L161">    return createGroupingParser().parse(request);</span>
+  }
+  
+  public default void validate (@NonNull final APIRequest request) throws InvalidAPIRequestException {
+<span class="nc" id="L165">    final List&lt;APIRequestValidator&gt; validators = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L166">    validators.addAll(createFilteringValidators());</span>
+<span class="nc" id="L167">    validators.addAll(createOrderingValidators());</span>
+<span class="nc" id="L168">    validators.addAll(createCursorValidators());</span>
+    
+<span class="nc" id="L170">    CollectionRequestConfiguration.validate(validators, request);</span>
+<span class="nc" id="L171">  }</span>
+  
+  public APIRequestEntityCollectionOperatorParser&lt;Entity&gt; createFilterParser ();
+  
+  public default APIRequestParser&lt;Cursor&gt; createCursorParser () {
+<span class="nc" id="L176">    return new APIRequestFreeCursorParser();</span>
+  }
+  
+  public default APIRequestEntityCollectionOperatorParser&lt;Entity&gt; createOrderingParser () {
+<span class="nc" id="L180">    return new ComposedAPIRequestOrderingParser&lt;&gt;(createOrderingProcessors());</span>
+  }
+  
+  public List&lt;APIRequestOrderingProcessor&lt;Entity&gt;&gt; createOrderingProcessors ();
+  
+  public default APIRequestParser&lt;EntityCollectionGroupTransformation&lt;Entity&gt;&gt; createGroupingParser () {
+<span class="nc" id="L186">    return new ComposedAPIRequestGroupingParser&lt;&gt;(</span>
+<span class="nc" id="L187">        createGroupingProcessors()</span>
+    );
+  }
+  
+  public List&lt;APIRequestGroupingProcessor&lt;Entity&gt;&gt; createGroupingProcessors ();
+
+  public default Collection&lt;APIRequestValidator&gt; createCursorValidators () {
+<span class="nc" id="L194">    return Arrays.asList(new APIRequestFreeCursorValidator ());</span>
+  }
+  
+  public default Collection&lt;APIRequestValidator&gt; createOrderingValidators () {
+<span class="nc" id="L198">    return Collections.emptyList();</span>
+  }
+  
+  public default Collection&lt;APIRequestValidator&gt; createFilteringValidators () {
+<span class="nc" id="L202">    return Collections.emptyList();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

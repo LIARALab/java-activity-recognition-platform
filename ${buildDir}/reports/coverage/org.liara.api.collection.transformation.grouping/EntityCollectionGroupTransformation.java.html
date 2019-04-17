@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityCollectionGroupTransformation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.transformation.grouping</a> &gt; <span class="el_source">EntityCollectionGroupTransformation.java</span></div><h1>EntityCollectionGroupTransformation.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.transformation.grouping;
+
+import java.util.Arrays;
+
+import javax.persistence.Tuple;
+
+import org.liara.api.collection.query.EntityCollectionMainQuery;
+import org.liara.api.collection.view.EntityCollectionAggregation;
+import org.liara.api.collection.view.EntityCollectionGrouping;
+import org.springframework.lang.NonNull;
+
+import com.google.common.collect.ImmutableList;
+
+public interface EntityCollectionGroupTransformation&lt;Entity&gt;
+{
+  public void apply (
+    @NonNull final EntityCollectionMainQuery&lt;Entity, Tuple&gt; query
+  );
+  
+  default public EntityCollectionGrouping&lt;Entity&gt; apply (
+    @NonNull final EntityCollectionAggregation&lt;Entity, ?&gt; aggregation
+  ) {
+<span class="nc" id="L44">    return new EntityCollectionGrouping&lt;&gt;(aggregation, this);</span>
+  }
+  
+  default public EntityCollectionGroupTransformation&lt;Entity&gt; apply (
+    @NonNull final EntityCollectionGroupTransformation&lt;Entity&gt; group
+  ) {
+<span class="nc bnc" id="L50" title="All 2 branches missed.">    if (group instanceof EntityCollectionMultipleGroupingTransformation) {</span>
+<span class="nc" id="L51">      final ImmutableList.Builder&lt;EntityCollectionGroupTransformation&lt;Entity&gt;&gt; builder = ImmutableList.builder();</span>
+<span class="nc" id="L52">      builder.addAll((EntityCollectionMultipleGroupingTransformation&lt;Entity&gt;) group);</span>
+<span class="nc" id="L53">      builder.add(this);</span>
+<span class="nc" id="L54">      return new EntityCollectionMultipleGroupingTransformation&lt;&gt;(builder.build());</span>
+    } else {
+<span class="nc" id="L56">      return new EntityCollectionMultipleGroupingTransformation&lt;&gt;(</span>
+<span class="nc" id="L57">        Arrays.asList(group, this)</span>
+      );
+    }
+  }
+  
+  default public EntityCollectionGrouping&lt;Entity&gt; apply (
+    @NonNull final EntityCollectionGrouping&lt;Entity&gt; group
+  ) {
+<span class="nc" id="L65">    return new EntityCollectionGrouping&lt;&gt;(</span>
+<span class="nc" id="L66">      group.getAggregation(), </span>
+<span class="nc" id="L67">      apply(group.getGroupTransformation())</span>
+    );
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

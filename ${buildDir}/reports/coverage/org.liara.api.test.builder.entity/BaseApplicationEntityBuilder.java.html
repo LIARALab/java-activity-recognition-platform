@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseApplicationEntityBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.test.builder.entity</a> &gt; <span class="el_source">BaseApplicationEntityBuilder.java</span></div><h1>BaseApplicationEntityBuilder.java</h1><pre class="source lang-java linenums">package org.liara.api.test.builder.entity;
+
+import java.time.ZonedDateTime;
+
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.test.builder.Builder;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+<span class="fc" id="L11">public abstract class BaseApplicationEntityBuilder&lt;</span>
+                        Self extends BaseApplicationEntityBuilder&lt;Self, Entity&gt;, 
+                        Entity extends ApplicationEntity
+                      &gt;
+                implements Builder&lt;Self, Entity&gt;
+{
+  @Nullable
+  private Long _identifier;
+  
+  @Nullable
+  private ZonedDateTime _creationDate;
+  
+  @Nullable
+  private ZonedDateTime _updateDate;
+  
+  @Nullable
+  private ZonedDateTime _deletionDate;
+  
+  public Self withIdentifier (@Nullable final Long identifier) {
+<span class="nc" id="L30">    _identifier = identifier;</span>
+<span class="nc" id="L31">    return self();</span>
+  }
+  
+  public Self withDeletionDate (@Nullable final ZonedDateTime deletionDate) {
+<span class="nc" id="L35">    _deletionDate = deletionDate;</span>
+<span class="nc" id="L36">    return self();</span>
+  }
+  
+  public Self withUpdateDate (@Nullable final ZonedDateTime updateDate) {
+<span class="nc" id="L40">    _updateDate = updateDate;</span>
+<span class="nc" id="L41">    return self();</span>
+  }
+  
+  public Self withCreationDate (@Nullable final ZonedDateTime creationDate) {
+<span class="nc" id="L45">    _creationDate = creationDate;</span>
+<span class="nc" id="L46">    return self();</span>
+  }
+  
+  protected void apply (@NonNull final ApplicationEntity entity) {
+<span class="fc" id="L50">    entity.setIdentifier(_identifier);</span>
+<span class="fc" id="L51">    entity.setCreationDate(_creationDate);</span>
+<span class="fc" id="L52">    entity.setUpdateDate(_updateDate);</span>
+<span class="fc" id="L53">    entity.setDeletionDate(_deletionDate);</span>
+<span class="fc" id="L54">  }</span>
+  
+  public abstract Entity build ();
+
+  public Entity buildFor (@NonNull final LocalEntityManager entityManager) {
+<span class="fc" id="L59">    final Entity result = build();</span>
+<span class="fc" id="L60">    entityManager.add(result);</span>
+<span class="fc" id="L61">    return result;</span>
+  }
+  
+  public abstract Self self ();
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

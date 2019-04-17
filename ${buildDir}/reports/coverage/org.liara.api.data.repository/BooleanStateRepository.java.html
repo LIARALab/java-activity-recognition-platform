@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BooleanStateRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository</a> &gt; <span class="el_source">BooleanStateRepository.java</span></div><h1>BooleanStateRepository.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.BooleanState;
+import org.springframework.lang.NonNull;
+
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+public interface BooleanStateRepository extends TimeSeriesRepository&lt;BooleanState&gt;
+{
+  default Optional&lt;BooleanState&gt; findPreviousWithValue (
+    @NonNull final BooleanState created, 
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; inputSensors,
+    final boolean value
+  ) {
+<span class="nc" id="L20">    return findPreviousWithValue(</span>
+      created,
+<span class="nc" id="L22">      Collections.singletonList(inputSensors),</span>
+      value
+    );
+  }
+
+  default Optional&lt;BooleanState&gt; findPreviousWithValue (
+    @NonNull final BooleanState created, @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors,
+    final boolean value
+  ) {
+<span class="fc" id="L31">    final List&lt;BooleanState&gt; states = findPreviousWithValue(</span>
+      created,
+      inputSensors,
+      value,
+      1
+    );
+<span class="fc bfc" id="L37" title="All 2 branches covered.">    return states.size() &gt; 0 ? Optional.of(states.get(0)) : Optional.empty();</span>
+  }
+
+  default List&lt;BooleanState&gt; findPreviousWithValue (
+    @NonNull final BooleanState created,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; inputSensor,
+    final boolean value,
+    final int count
+  )
+  {
+<span class="nc" id="L47">    return findPreviousWithValue(</span>
+      created,
+<span class="nc" id="L49">      Collections.singletonList(inputSensor),</span>
+      value,
+      count
+    );
+  }
+
+  List&lt;BooleanState&gt; findPreviousWithValue (
+    @NonNull final BooleanState created,
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors, final boolean value, final int count
+  );
+
+  default Optional&lt;BooleanState&gt; findPreviousWithValue (
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference&lt;Sensor&gt; inputSensors,
+    final boolean value
+  ) {
+<span class="nc" id="L64">    return findPreviousWithValue(</span>
+      date,
+<span class="nc" id="L66">      Collections.singletonList(inputSensors),</span>
+      value
+    );
+  }
+
+  default Optional&lt;BooleanState&gt; findPreviousWithValue (
+    @NonNull final ZonedDateTime emittionDate, 
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors,
+    final boolean value
+  ) {
+<span class="fc" id="L76">    final List&lt;BooleanState&gt; result = findPreviousWithValue(emittionDate, inputSensors, value, 1);</span>
+    
+<span class="fc bfc" id="L78" title="All 2 branches covered.">    if (result.size() &lt;= 0) return Optional.empty();</span>
+<span class="fc" id="L79">    else return Optional.ofNullable(result.get(0));</span>
+  }
+
+  default List&lt;BooleanState&gt; findPreviousWithValue (
+    @NonNull final ZonedDateTime date,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; inputSensor,
+    final boolean value,
+    final int count
+  ) {
+<span class="nc" id="L88">    return findPreviousWithValue(</span>
+      date,
+<span class="nc" id="L90">      Collections.singletonList(inputSensor),</span>
+      value,
+      count
+    );
+  }
+
+  List&lt;BooleanState&gt; findPreviousWithValue (
+    @NonNull final ZonedDateTime date, @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors,
+    final boolean value,
+    final int count
+  );
+
+  default Optional&lt;BooleanState&gt; findNextWithValue (
+    @NonNull final BooleanState created,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; inputSensors,
+    final boolean value
+  ) {
+<span class="nc" id="L107">    return findNextWithValue(</span>
+      created,
+<span class="nc" id="L109">      Collections.singletonList(inputSensors),</span>
+      value
+    );
+  }
+
+  default Optional&lt;BooleanState&gt; findNextWithValue (
+    @NonNull final BooleanState created,
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors, final boolean value
+  )
+  {
+<span class="fc" id="L119">    final List&lt;BooleanState&gt; result = findNextWithValue(</span>
+      created,
+      inputSensors,
+      value,
+      1
+    );
+<span class="fc bfc" id="L125" title="All 2 branches covered.">    return result.size() &gt; 0 ? Optional.of(result.get(0)) : Optional.empty();</span>
+  }
+
+  default List&lt;BooleanState&gt; findNextWithValue (
+    @NonNull final BooleanState created,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; inputSensor,
+    final boolean value,
+    final int count
+  ) {
+<span class="nc" id="L134">    return findNextWithValue(</span>
+      created,
+<span class="nc" id="L136">      Collections.singletonList(inputSensor),</span>
+      value,
+      count
+    );
+  }
+
+  List&lt;BooleanState&gt; findNextWithValue (
+    @NonNull final BooleanState created,
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors,
+    final boolean value,
+    final int count
+  );
+
+  default Optional&lt;BooleanState&gt; findNextWithValue (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; inputSensors,
+    final boolean value
+  ) {
+<span class="nc" id="L154">    return findNextWithValue(date, Collections.singletonList(inputSensors), value);</span>
+  }
+
+  default Optional&lt;BooleanState&gt; findNextWithValue (
+    @NonNull final ZonedDateTime emittionDate, 
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors,
+    final boolean value
+  ) {
+<span class="fc" id="L162">    final List&lt;BooleanState&gt; result = findNextWithValue(emittionDate, inputSensors, value, 1);</span>
+    
+<span class="fc bfc" id="L164" title="All 2 branches covered.">    if (result.size() &lt;= 0) return Optional.empty();</span>
+<span class="fc" id="L165">    else return Optional.ofNullable(result.get(0));</span>
+  }
+
+  default List&lt;BooleanState&gt; findNextWithValue (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; inputSensor,
+    final boolean value,
+    final int count
+  ) {
+<span class="nc" id="L174">    return findNextWithValue(</span>
+      date, 
+<span class="nc" id="L176">      Collections.singletonList(inputSensor), </span>
+      value, 
+      count
+    );
+  }
+
+  List&lt;BooleanState&gt; findNextWithValue (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors,
+    final boolean value,
+    final int count
+  );
+
+  List&lt;BooleanState&gt; findAllWithValue (
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors, 
+    final boolean value
+  );
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StateSequenceBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.test.builder.state</a> &gt; <span class="el_source">StateSequenceBuilder.java</span></div><h1>StateSequenceBuilder.java</h1><pre class="source lang-java linenums">package org.liara.api.test.builder.state;
+
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.repository.local.LocalEntityManager;
+import org.liara.api.test.builder.Builder;
+import org.liara.api.utils.Closures;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import groovy.lang.Closure;
+
+<span class="fc" id="L19">public class StateSequenceBuilder implements Builder&lt;StateSequenceBuilder, List&lt;State&gt;&gt;</span>
+{
+  public static StateSequenceBuilder create (@NonNull final Closure&lt;?&gt; configurator) {
+<span class="fc" id="L22">    final StateSequenceBuilder result = new StateSequenceBuilder();</span>
+<span class="fc" id="L23">    Closures.callAs(configurator, result);</span>
+<span class="fc" id="L24">    return result;</span>
+  }
+  
+  public static StateSequenceBuilder create () {
+<span class="nc" id="L28">    final StateSequenceBuilder result = new StateSequenceBuilder();</span>
+<span class="nc" id="L29">    return result;</span>
+  }
+  
+<span class="fc" id="L32">  @Nullable</span>
+  private BaseStateBuilder&lt;?, ? extends State&gt; _beforeLastDefinedState = null;
+  
+<span class="fc" id="L35">  @Nullable</span>
+  private BaseStateBuilder&lt;?, ? extends State&gt; _lastDefinedState = null;
+
+<span class="fc" id="L38">  @NonNull</span>
+  private final List&lt;BaseStateBuilder&lt;?, ? extends State&gt;&gt; _states = new ArrayList&lt;&gt;();
+  
+  public &lt;SubBuilder extends BaseStateBuilder&lt;?, ? extends State&gt;&gt; StateSequenceBuilder with (
+    @NonNull final SubBuilder builder
+  ) {
+<span class="fc" id="L44">    _states.add(builder);</span>
+<span class="fc" id="L45">    _beforeLastDefinedState = _lastDefinedState;</span>
+<span class="fc" id="L46">    _lastDefinedState = builder;</span>
+<span class="fc" id="L47">    return self();</span>
+  }
+  
+  public &lt;SubBuilder extends BaseStateBuilder&lt;?, ? extends State&gt;&gt; StateSequenceBuilder andWith (
+    @NonNull final SubBuilder builder
+  ) {
+<span class="fc" id="L53">    return with(builder);</span>
+  }
+  
+  public StateSequenceBuilder after (
+    final int duration,
+    @NonNull final TemporalUnit unit
+  ) {
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">    if (_beforeLastDefinedState == null) {</span>
+<span class="nc" id="L61">      throw new IllegalStateException(String.join(</span>
+        &quot;&quot;,
+        &quot;Invalid invocation of after : the current sensor builder &quot;,
+        &quot;does not have any previous state registered in.&quot;
+      ));
+    }
+    
+<span class="fc" id="L68">    _lastDefinedState.withEmittionDate(</span>
+<span class="fc" id="L69">      _beforeLastDefinedState.getEmittionDate().plus(duration, unit)</span>
+    );
+    
+<span class="fc" id="L72">    return self();</span>
+  }
+  
+  public StateSequenceBuilder afterMilliseconds (final int duration) {
+<span class="nc" id="L76">    return after(duration, ChronoUnit.MILLIS);</span>
+  }
+  
+  public StateSequenceBuilder afterSeconds (final int duration) {
+<span class="nc" id="L80">    return after(duration, ChronoUnit.SECONDS);</span>
+  }
+  
+  public StateSequenceBuilder afterMinutes (final int duration) {
+<span class="fc" id="L84">    return after(duration, ChronoUnit.MINUTES);</span>
+  }
+  
+  public StateSequenceBuilder afterHours (final int duration) {
+<span class="fc" id="L88">    return after(duration, ChronoUnit.HOURS);</span>
+  }
+  
+  public StateSequenceBuilder afterDays (final int duration) {
+<span class="nc" id="L92">    return after(duration, ChronoUnit.DAYS);</span>
+  }
+  
+  public StateSequenceBuilder afterMonths (final int duration) {
+<span class="nc" id="L96">    return after(duration, ChronoUnit.MONTHS);</span>
+  }
+  
+  public StateSequenceBuilder afterYears (final int duration) {
+<span class="nc" id="L100">    return after(duration, ChronoUnit.YEARS);</span>
+  }
+  
+  public StateSequenceBuilder at (@NonNull final ZonedDateTime date) {
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">    if (_lastDefinedState == null) {</span>
+<span class="nc" id="L105">      throw new IllegalStateException(String.join(</span>
+        &quot;&quot;,
+        &quot;Invalid call to at : the current builder instance does not &quot;,
+        &quot;have any state added yet.&quot;
+      ));
+    }
+    
+<span class="fc" id="L112">    _lastDefinedState.withEmittionDate(date);</span>
+    
+<span class="fc" id="L114">    return self();</span>
+  }
+
+  @Override
+  public List&lt;State&gt; build () {
+<span class="fc" id="L119">    return _states.stream().map(BaseStateBuilder::build)</span>
+<span class="fc" id="L120">                           .collect(Collectors.toList());</span>
+  }
+  
+  public List&lt;State&gt; buildFor (@NonNull final LocalEntityManager manager) {
+<span class="fc" id="L124">    final List&lt;State&gt; result = build();</span>
+<span class="fc" id="L125">    manager.addAll(result);</span>
+<span class="fc" id="L126">    return result;</span>
+  }
+
+  @Override
+  public StateSequenceBuilder self () {
+<span class="fc" id="L131">    return this;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

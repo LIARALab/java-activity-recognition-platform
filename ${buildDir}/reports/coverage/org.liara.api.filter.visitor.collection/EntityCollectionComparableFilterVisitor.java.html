@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityCollectionComparableFilterVisitor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.filter.visitor.collection</a> &gt; <span class="el_source">EntityCollectionComparableFilterVisitor.java</span></div><h1>EntityCollectionComparableFilterVisitor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.filter.visitor.collection;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+
+import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.filter.ast.BetweenFilterNode;
+import org.liara.api.filter.ast.CommonFilterNodeType;
+import org.liara.api.filter.ast.CompositeFilterNode;
+import org.liara.api.filter.ast.ConjunctionFilterNode;
+import org.liara.api.filter.ast.DisjunctionFilterNode;
+import org.liara.api.filter.ast.EqualToFilterNode;
+import org.liara.api.filter.ast.FilterNode;
+import org.liara.api.filter.ast.GreaterThanFilterNode;
+import org.liara.api.filter.ast.GreaterThanOrEqualToFilterNode;
+import org.liara.api.filter.ast.LessThanFilterNode;
+import org.liara.api.filter.ast.LessThanOrEqualToFilterNode;
+import org.liara.api.filter.ast.NotFilterNode;
+import org.liara.api.filter.ast.PredicateFilterNode;
+import org.liara.api.filter.visitor.AnnotationBasedFilterASTVisitor;
+import org.liara.api.filter.visitor.VisitCommonFilterNode;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+public class EntityCollectionComparableFilterVisitor&lt;Entity, Value extends Comparable&lt;? super Value&gt;&gt; extends AnnotationBasedFilterASTVisitor implements EntityCollectionFilterVisitor&lt;Entity, Value&gt;
+{
+<span class="nc" id="L52">  @NonNull</span>
+  private final List&lt;Predicate&gt; _stack = new ArrayList&lt;&gt;();
+  
+<span class="nc" id="L55">  @Nullable</span>
+  private EntityCollectionQuery&lt;Entity, ?&gt; _query = null;
+
+  @NonNull
+  private final EntityFieldSelector&lt;Entity, Expression&lt;Value&gt;&gt; _field;
+  
+  public EntityCollectionComparableFilterVisitor (
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;Value&gt;&gt; field
+<span class="nc" id="L63">  ) {</span>
+<span class="nc" id="L64">    _field = field;</span>
+<span class="nc" id="L65">  }</span>
+  
+  @Override
+  public Predicate filter (
+    @NonNull final EntityCollectionQuery&lt;Entity, ?&gt; query, 
+    @NonNull final PredicateFilterNode predicate
+  ) {
+<span class="nc" id="L72">    _query = query;</span>
+<span class="nc" id="L73">    visit(predicate);</span>
+<span class="nc" id="L74">    _query = null;</span>
+<span class="nc" id="L75">    return _stack.remove(0);</span>
+  }
+  
+  @VisitCommonFilterNode(type = CommonFilterNodeType.CONJUNCTION)
+  public void visit (@NonNull final ConjunctionFilterNode conjunction) {    
+<span class="nc" id="L80">    final List&lt;Predicate&gt; predicates = this.visitComposite(conjunction);</span>
+<span class="nc" id="L81">    _stack.add(</span>
+<span class="nc" id="L82">      _query.getManager().getCriteriaBuilder().and(</span>
+<span class="nc" id="L83">        predicates.toArray(new Predicate[predicates.size()])</span>
+      )
+    );
+<span class="nc" id="L86">  }</span>
+  
+  @VisitCommonFilterNode(type = CommonFilterNodeType.DISJUNCTION)
+  public void visit (@NonNull final DisjunctionFilterNode disjunction) {
+<span class="nc" id="L90">    final List&lt;Predicate&gt; predicates = this.visitComposite(disjunction);</span>
+<span class="nc" id="L91">    _stack.add(</span>
+<span class="nc" id="L92">      _query.getManager().getCriteriaBuilder().or(</span>
+<span class="nc" id="L93">        predicates.toArray(new Predicate[predicates.size()])</span>
+      )
+    );
+<span class="nc" id="L96">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.GREATHER_THAN)
+  public void visit (@NonNull final GreaterThanFilterNode&lt;Value&gt; predicate) {
+<span class="nc" id="L100">    _stack.add(</span>
+<span class="nc" id="L101">      _query.getManager().getCriteriaBuilder().greaterThan(</span>
+<span class="nc" id="L102">        _field.select(_query),</span>
+<span class="nc" id="L103">        predicate.getMinimum()</span>
+       )
+    );
+<span class="nc" id="L106">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.GREATHER_THAN_OR_EQUAL_TO)
+  public void visit (@NonNull final GreaterThanOrEqualToFilterNode&lt;Value&gt; predicate) {
+<span class="nc" id="L110">    _stack.add(</span>
+<span class="nc" id="L111">      _query.getManager().getCriteriaBuilder().greaterThanOrEqualTo(</span>
+<span class="nc" id="L112">        _field.select(_query), </span>
+<span class="nc" id="L113">        predicate.getMinimum()</span>
+      )
+    );
+<span class="nc" id="L116">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.LESS_THAN)
+  public void visit (@NonNull final LessThanFilterNode&lt;Value&gt; predicate) {
+<span class="nc" id="L120">    _stack.add(</span>
+<span class="nc" id="L121">      _query.getManager().getCriteriaBuilder().lessThan(</span>
+<span class="nc" id="L122">        _field.select(_query), predicate.getMaximum()</span>
+      )
+    );
+<span class="nc" id="L125">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.LESS_THAN_OR_EQUAL_TO)
+  public void visit (@NonNull final LessThanOrEqualToFilterNode&lt;Value&gt; predicate) {
+<span class="nc" id="L129">    _stack.add(</span>
+<span class="nc" id="L130">      _query.getManager().getCriteriaBuilder().lessThanOrEqualTo(</span>
+<span class="nc" id="L131">        _field.select(_query), predicate.getMaximum()</span>
+      )
+    );
+<span class="nc" id="L134">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.EQUAL_TO)
+  public void visit (@NonNull final EqualToFilterNode&lt;Value&gt; predicate) {
+<span class="nc" id="L138">    _stack.add(</span>
+<span class="nc" id="L139">      _query.getManager().getCriteriaBuilder().equal(</span>
+<span class="nc" id="L140">        _field.select(_query), </span>
+<span class="nc" id="L141">        predicate.getValue()</span>
+      )
+    );
+<span class="nc" id="L144">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.BETWEEN)
+  public void visit (@NonNull final BetweenFilterNode&lt;Value&gt; predicate) {
+<span class="nc" id="L148">    _stack.add(</span>
+<span class="nc" id="L149">      _query.getManager().getCriteriaBuilder().between(</span>
+<span class="nc" id="L150">        _field.select(_query), </span>
+<span class="nc" id="L151">        predicate.getMinimum(), </span>
+<span class="nc" id="L152">        predicate.getMaximum()</span>
+      )
+    );
+<span class="nc" id="L155">  }</span>
+
+  @VisitCommonFilterNode(type = CommonFilterNodeType.NOT)
+  public void visit (@NonNull final NotFilterNode predicate) {
+<span class="nc" id="L159">    predicate.getChild(0).invit(this);</span>
+<span class="nc" id="L160">    _stack.set(</span>
+<span class="nc" id="L161">      _stack.size() - 1, </span>
+<span class="nc" id="L162">      _query.getManager().getCriteriaBuilder().not(</span>
+<span class="nc" id="L163">        _stack.get(_stack.size() - 1)</span>
+      )
+    );
+<span class="nc" id="L166">  }</span>
+  
+  private List&lt;Predicate&gt; visitComposite (@NonNull final CompositeFilterNode&lt;PredicateFilterNode&gt; composite) {
+<span class="nc bnc" id="L169" title="All 2 branches missed.">    for (final PredicateFilterNode predicate : composite) {</span>
+<span class="nc" id="L170">      predicate.invit(this);</span>
+<span class="nc" id="L171">    }</span>
+    
+<span class="nc" id="L173">    final List&lt;Predicate&gt; result = new ArrayList&lt;&gt;(composite.getChildCount());</span>
+    
+<span class="nc bnc" id="L175" title="All 2 branches missed.">    for (int index = 0; index &lt; composite.getChildCount(); ++index) {</span>
+<span class="nc" id="L176">      result.add(0, _stack.remove(_stack.size() - 1));</span>
+    }
+    
+<span class="nc" id="L179">    return result;</span>
+  }
+  
+  public void visitDefault (@NonNull final FilterNode node) {
+<span class="nc" id="L183">    throw new Error(&quot;Unhandled node &quot; + node);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

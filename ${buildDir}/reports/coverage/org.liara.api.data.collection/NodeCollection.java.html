@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NodeCollection.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.collection</a> &gt; <span class="el_source">NodeCollection.java</span></div><h1>NodeCollection.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.data.collection;
+
+import org.liara.api.collection.EntityCollection;
+import org.liara.api.collection.configuration.DefaultCollectionRequestConfiguration;
+import org.liara.api.collection.query.queried.QueriedEntity;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
+import org.liara.api.data.entity.node.Node;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaBuilder;
+
+@Component
+@DefaultCollectionRequestConfiguration(NodeCollectionRequestConfiguration.class)
+public class NodeCollection extends EntityCollection&lt;Node&gt;
+{     
+  @Autowired
+  public NodeCollection (
+    @NonNull final EntityManager entityManager
+<span class="nc" id="L45">  ) { super(entityManager, Node.class); }</span>
+
+  public NodeCollection (
+    @NonNull final NodeCollection toCopy  
+<span class="nc" id="L49">  ) { super(toCopy); }</span>
+  
+  public NodeCollection (
+    @NonNull final NodeCollection collection,
+    @NonNull final EntityCollectionConjunctionOperator&lt;Node&gt; operator
+<span class="nc" id="L54">  ) { super(collection, operator); }</span>
+  
+  public NodeCollection deepChildrenOf (@NonNull final Node node) {
+<span class="nc" id="L57">    final EntityCollectionOperator&lt;Node&gt; operator = query -&gt; {</span>
+<span class="nc" id="L58">      final QueriedEntity&lt;?, Node&gt; queried = query.getEntity();</span>
+<span class="nc" id="L59">      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L60">      query.andWhere(</span>
+<span class="nc" id="L61">        builder.greaterThan(</span>
+<span class="nc" id="L62">          queried.get(&quot;_coordinates&quot;).get(&quot;_start&quot;),</span>
+<span class="nc" id="L63">          node.getCoordinates().getStart()</span>
+        )
+      );
+<span class="nc" id="L66">      query.andWhere(</span>
+<span class="nc" id="L67">        builder.lessThan(</span>
+<span class="nc" id="L68">          queried.get(&quot;_coordinates&quot;).get(&quot;_end&quot;),</span>
+<span class="nc" id="L69">          node.getCoordinates().getEnd()</span>
+        )
+      );
+<span class="nc" id="L72">    };</span>
+    
+<span class="nc" id="L74">    return apply(operator);</span>
+  }
+  
+  public NodeCollection directChildrenOf (@NonNull final Node node) {
+<span class="nc" id="L78">    final EntityCollectionOperator&lt;Node&gt; operator = query -&gt; {</span>
+<span class="nc" id="L79">      final QueriedEntity&lt;?, Node&gt; queried = query.getEntity();</span>
+<span class="nc" id="L80">      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L81">      query.andWhere(</span>
+<span class="nc" id="L82">        builder.equal(</span>
+<span class="nc" id="L83">          queried.get(&quot;_coordinates&quot;).get(&quot;_depth&quot;),</span>
+<span class="nc" id="L84">          node.getCoordinates().getDepth() + 1</span>
+        )
+      );
+<span class="nc" id="L87">    };</span>
+    
+<span class="nc" id="L89">    return deepChildrenOf(node).apply(operator);</span>
+  }
+  
+  @Override
+  public NodeCollection apply (@NonNull final EntityCollectionOperator&lt;Node&gt; operator) {
+<span class="nc" id="L94">    return new NodeCollection(this, getOperator().conjugate(operator));</span>
+  }
+
+  public NodeCollection parentsOf (@NonNull final Node node) {
+<span class="nc" id="L98">    final EntityCollectionOperator&lt;Node&gt; operator = query -&gt; {</span>
+<span class="nc" id="L99">      final QueriedEntity&lt;?, Node&gt; queried = query.getEntity();</span>
+<span class="nc" id="L100">      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+      
+<span class="nc" id="L102">      query.andWhere(builder.and(</span>
+<span class="nc" id="L103">        builder.lessThan(</span>
+<span class="nc" id="L104">          queried.get(&quot;_coordinates&quot;).get(&quot;_start&quot;),</span>
+<span class="nc" id="L105">          node.getCoordinates().getStart()</span>
+        ),
+<span class="nc" id="L107">        builder.greaterThan(</span>
+<span class="nc" id="L108">          queried.get(&quot;_coordinates&quot;).get(&quot;_end&quot;),</span>
+<span class="nc" id="L109">          node.getCoordinates().getEnd()</span>
+        )
+      ));
+<span class="nc" id="L112">    };</span>
+    
+<span class="nc" id="L114">    return apply(operator);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

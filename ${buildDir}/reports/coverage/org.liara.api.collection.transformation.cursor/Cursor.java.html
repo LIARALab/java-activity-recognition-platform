@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Cursor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.transformation.cursor</a> &gt; <span class="el_source">Cursor.java</span></div><h1>Cursor.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.transformation.cursor;
+
+import org.springframework.lang.NonNull;
+
+/**
+ * A cursor that select a range of entities in a collection.
+ * 
+ * @author C&amp;eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
+ */
+public final class Cursor
+{
+  /**
+   * A cursor that select an entire collection of entities.
+   */
+<span class="nc" id="L36">  @NonNull public static final Cursor ALL = new Cursor (0, Integer.MAX_VALUE);</span>
+  
+  /**
+   * The default application cursor. Skip 0 entities and display 10 entities from the given collection.
+   */
+<span class="nc" id="L41">  @NonNull public static final Cursor DEFAULT = new Cursor (0, 10);</span>
+  
+  /**
+   * An empty cursor. Skip 0 entities and do not display any entities from the given collection.
+   */
+<span class="nc" id="L46">  @NonNull public static final Cursor EMPTY = new Cursor (0, 0);</span>
+  
+  private final int _offset;
+  private final int _limit;
+  
+  /**
+   * Create a new empty cursor. Skip 0 entities and do not display any entities from the given collection.
+   */
+<span class="nc" id="L54">  public Cursor () {</span>
+<span class="nc" id="L55">    _offset = 0;</span>
+<span class="nc" id="L56">    _limit = 0;</span>
+<span class="nc" id="L57">  }</span>
+  
+  /**
+   * Create a cursor that skip 0 entities and limit entities to display.
+   * 
+   * @param limit Maximum number of entities to display.
+   */
+<span class="nc" id="L64">  public Cursor (final int limit) {</span>
+<span class="nc" id="L65">    _offset = 0;</span>
+<span class="nc" id="L66">    _limit = limit;</span>
+<span class="nc" id="L67">  }</span>
+  
+  /**
+   * Create a cursor that skip a given amount of entities and also limit entities to display.
+   * 
+   * @param offset Amount of entities to skip.
+   * @param limit Maximum number of entities to display.
+   */
+<span class="nc" id="L75">  public Cursor (final int offset, final int limit) {</span>
+<span class="nc" id="L76">    _offset = offset;</span>
+<span class="nc" id="L77">    _limit = limit;</span>
+<span class="nc" id="L78">  }</span>
+  
+  /**
+   * Create a copy of a given cursor.
+   * 
+   * @param cursor The cursor instance to copy.
+   */
+<span class="nc" id="L85">  public Cursor (@NonNull final Cursor cursor) {</span>
+<span class="nc" id="L86">    _offset = cursor.getOffset();</span>
+<span class="nc" id="L87">    _limit = cursor.getLimit();</span>
+<span class="nc" id="L88">  }</span>
+  
+  /**
+   * @return The amount of entities to skip.
+   */
+  public int getOffset () {
+<span class="nc" id="L94">    return _offset;</span>
+  }
+  
+  /**
+   * Return a new cursor based on this one with a new offset value.
+   * 
+   * @param offset The new amount of entities to skip.
+   * @return An updated cursor instance with the given offset.
+   */
+  public Cursor setOffset (final int offset) {
+<span class="nc" id="L104">    return new Cursor (offset, _limit);</span>
+  }
+  
+  /**
+   * @return The maximum number of entities to display.
+   */
+  public int getLimit () {
+<span class="nc" id="L111">    return _limit;</span>
+  }
+  
+  /**
+   * Return a new cursor based on this one with a new limit value.
+   * 
+   * @param limit The new maximum number of entities to display.
+   * @return An updated cursor instance with the given limit.
+   */
+  public Cursor setLimit (final int limit) {
+<span class="nc" id="L121">    return new Cursor(_offset, limit);</span>
+  }
+  
+  /**
+   * Return a new cursor based on this one without any limits.
+   * 
+   * @return An updated cursor instance that does not limit the number of entities to display.
+   */
+  public Cursor unlimit () {
+<span class="nc" id="L130">    return new Cursor(_offset, Integer.MAX_VALUE);</span>
+  }
+  
+  /**
+   * Return a new cursor based on this one without any skipped entities.
+   * 
+   * @return An updated cursor instance that does not skip any entities.
+   */
+  public Cursor unskip () {
+<span class="nc" id="L139">    return new Cursor(0, _limit);</span>
+  }
+  
+  /**
+   * @return True if the given cursor limit the number of entities to display.
+   */
+  public boolean hasLimit () {
+<span class="nc bnc" id="L146" title="All 2 branches missed.">    return _limit != Integer.MAX_VALUE;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

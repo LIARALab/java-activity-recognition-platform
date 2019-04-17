@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DateTimeFilterValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.filter.validator</a> &gt; <span class="el_source">DateTimeFilterValidator.java</span></div><h1>DateTimeFilterValidator.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.filter.validator;
+
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.liara.api.filter.parser.DateTimeFilterParser;
+import org.springframework.lang.NonNull;
+
+<span class="nc" id="L35">public class DateTimeFilterValidator implements FilterValidator</span>
+{
+  @NonNull
+<span class="nc" id="L38">  public static final Pattern  PREDICATE_PATTERN   = Pattern</span>
+<span class="nc" id="L39">    .compile(DateTimeFilterParser.PREDICATE_PATTERN.pattern().replaceAll(&quot;\\(\\?\\&lt;[a-zA-Z]*?\\&gt;&quot;, &quot;(&quot;));</span>
+
+  @NonNull
+<span class="nc" id="L42">  private static final Pattern CONJUNCTION_PATTERN = Pattern</span>
+<span class="nc" id="L43">    .compile(String.join(&quot;&quot;, &quot;(&quot;, PREDICATE_PATTERN.pattern(), &quot;)&quot;, &quot;(,(&quot;, PREDICATE_PATTERN.pattern(), &quot;))*&quot;));</span>
+
+  @NonNull
+<span class="nc" id="L46">  private static final Pattern FILTER_PATTERN      = Pattern.compile(</span>
+<span class="nc" id="L47">    String.join(&quot;&quot;, &quot;^&quot;, &quot;(&quot;, CONJUNCTION_PATTERN.pattern(), &quot;)&quot;, &quot;(;(&quot;, CONJUNCTION_PATTERN.pattern(), &quot;))*&quot;, &quot;$&quot;)</span>
+  );
+
+  @Override
+  public String getBestMatchPattern () {
+<span class="nc" id="L52">    return FILTER_PATTERN.pattern();</span>
+  }
+
+  @Override
+  public List&lt;String&gt; validate (@NonNull final String value)
+  {
+<span class="nc bnc" id="L58" title="All 2 branches missed.">    if (!FILTER_PATTERN.matcher(value).find()) {</span>
+<span class="nc" id="L59">      return createWrongFilterFormatError();</span>
+    } else {
+<span class="nc" id="L61">      return assertContainsValidDates(value);</span>
+    }
+  }
+  
+  private List&lt;String&gt; createWrongFilterFormatError () {
+<span class="nc" id="L66">    return Arrays.asList(</span>
+<span class="nc" id="L67">      String.join(</span>
+        &quot;\\r\\n&quot;,
+        &quot;The given value does not match the date filter structure :&quot;,
+        &quot;&quot;,
+        &quot;date-filter: disjunction&quot;,
+        &quot;&quot;,
+        &quot;disjunction: conjunction(;conjunction)*&quot;,
+        &quot;&quot;,
+        &quot;conjunction: predicate(,predicate)*&quot;,
+        &quot;&quot;,
+        &quot;predicate: gt:date # Greather than&quot;,
+        &quot;         | gte:date # Greather than or equal to&quot;,
+        &quot;         | lt:date # Less than&quot;,
+        &quot;         | lte:date # Less than or equal to&quot;,
+        &quot;         | dateRange # Between&quot;,
+        &quot;         | !dateRange # Not between&quot;,
+        &quot;         | date # Equal&quot;,
+        &quot;         | !date # Not equal&quot;,
+        &quot;&quot;,
+        &quot;date: \\(date-std\\)&quot;,
+        &quot;    | \\(date-format\\)\\(date-value\\)&quot;,
+        &quot;&quot;,
+        &quot;dateRange: (\\(date-format\\))?\\(date-value\\):\\(date-value\\)&quot;,
+        &quot;&quot;,
+        &quot;date-std: @see java.time.format.DateTimeFormatter uuuu-MM-dd'T'HH:mm:ss.SSS&quot;,
+        &quot;&quot;,
+        &quot;date-format: @see java.time.format.DateTimeFormatter&quot;,
+        &quot;&quot;,
+        &quot;date-value: (.*?)&quot;
+      )
+    );
+  }
+
+  private List&lt;String&gt; assertContainsValidDates (@NonNull final String value) {
+<span class="nc" id="L101">    final List&lt;String&gt; result = new ArrayList&lt;&gt;();</span>
+    
+<span class="nc" id="L103">    Arrays.stream(value.split(&quot;;&quot;))</span>
+<span class="nc" id="L104">          .forEach(token -&gt; validateConjunction(result, token.trim()));</span>
+    
+<span class="nc" id="L106">    return result;</span>
+  }
+
+  private void validateConjunction (@NonNull final List&lt;String&gt; errors, @NonNull final String value)
+  {
+<span class="nc" id="L111">    Arrays.stream(value.split(&quot;,&quot;))</span>
+<span class="nc" id="L112">          .forEach(token -&gt; validatePredicate(errors, token.trim()));</span>
+<span class="nc" id="L113">  }</span>
+
+
+  private void validatePredicate (@NonNull final List&lt;String&gt; errors, @NonNull final String value)
+  {
+<span class="nc" id="L118">    final Matcher matcher = DateTimeFilterParser.PREDICATE_PATTERN.matcher(value);</span>
+<span class="nc" id="L119">    matcher.matches();</span>
+<span class="nc" id="L120">    matcher.groupCount();</span>
+
+<span class="nc" id="L122">    String result = null;</span>
+
+<span class="nc bnc" id="L124" title="All 2 branches missed.">    if ((result = matcher.group(&quot;greaterThan&quot;)) != null) {</span>
+<span class="nc" id="L125">      this.validateGreaterThan(errors, result);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">    } else if ((result = matcher.group(&quot;greaterThanOrEqualTo&quot;)) != null) {</span>
+<span class="nc" id="L127">      this.validateGreaterThanOrEqualTo(errors, result);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">    } else if ((result = matcher.group(&quot;lessThan&quot;)) != null) {</span>
+<span class="nc" id="L129">      this.validateLessThan(errors, result);</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">    } else if ((result = matcher.group(&quot;lessThanOrEqualTo&quot;)) != null) {</span>
+<span class="nc" id="L131">      this.validateLessThanOrEqualTo(errors, result);</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">    } else if ((result = matcher.group(&quot;between&quot;)) != null) {</span>
+<span class="nc" id="L133">      this.validateBetween(errors, result);</span>
+<span class="nc bnc" id="L134" title="All 2 branches missed.">    } else if ((result = matcher.group(&quot;notBetween&quot;)) != null) {</span>
+<span class="nc" id="L135">      this.validateNotBetweenThan(errors, result);</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">    } else if ((result = matcher.group(&quot;equalTo&quot;)) != null) {</span>
+<span class="nc" id="L137">      this.validateEqualTo(errors, result);</span>
+    } else {
+<span class="nc" id="L139">      this.validateNotEqualTo(errors, matcher.group(&quot;notEqualTo&quot;));</span>
+    }
+<span class="nc" id="L141">  }</span>
+
+  private void validateNotEqualTo (
+    @NonNull final List&lt;String&gt; errors, 
+    @NonNull final String result
+  ) {
+<span class="nc" id="L147">    validateEqualTo(errors, result.substring(1));</span>
+<span class="nc" id="L148">  }</span>
+
+  private void validateEqualTo (
+    @NonNull final List&lt;String&gt; errors,
+    @NonNull final String result
+  ) {
+<span class="nc" id="L154">    this.validateDate(errors, result);</span>
+<span class="nc" id="L155">  }</span>
+
+  private void validateNotBetweenThan (
+    @NonNull final List&lt;String&gt; errors, 
+    @NonNull final String result
+  ) {
+<span class="nc" id="L161">    this.validateBetween(errors, result.substring(1));</span>
+<span class="nc" id="L162">  }</span>
+
+  private void validateBetween (
+    @NonNull final List&lt;String&gt; errors,
+    @NonNull final String result
+  ) {
+<span class="nc" id="L168">    final Matcher matcher = DateTimeFilterParser.BETWEEN_PATTERN.matcher(result);</span>
+<span class="nc" id="L169">    matcher.matches();</span>
+<span class="nc" id="L170">    matcher.groupCount();</span>
+    
+<span class="nc" id="L172">    final String dateFormat = matcher.group(&quot;dateFormat&quot;);</span>
+<span class="nc" id="L173">    final String firstDateValue = matcher.group(&quot;firstDateValue&quot;);</span>
+<span class="nc" id="L174">    final String secondDateValue = matcher.group(&quot;secondDateValue&quot;);</span>
+
+<span class="nc bnc" id="L176" title="All 2 branches missed.">    final String pattern = (dateFormat == null) ? DateTimeFilterParser.DEFAULT_DATE_FORMAT_PATTERN : dateFormat;</span>
+    
+<span class="nc" id="L178">    this.validateParsedDate(errors, pattern, firstDateValue);</span>
+<span class="nc" id="L179">    this.validateParsedDate(errors, pattern, secondDateValue);</span>
+<span class="nc" id="L180">  }</span>
+
+  private void validateLessThanOrEqualTo (
+    @NonNull final List&lt;String&gt; errors,
+    @NonNull final String result
+  ) {
+<span class="nc" id="L186">    validateDate(errors, result.split(&quot;lte:&quot;)[1]);</span>
+<span class="nc" id="L187">  }</span>
+
+  private void validateLessThan (
+    @NonNull final List&lt;String&gt; errors,
+    @NonNull final String result
+  ) {
+<span class="nc" id="L193">    validateDate(errors, result.split(&quot;lt:&quot;)[1]);</span>
+<span class="nc" id="L194">  }</span>
+
+  private void validateGreaterThanOrEqualTo (
+    @NonNull final List&lt;String&gt; errors,
+    @NonNull final String result
+  ) {
+<span class="nc" id="L200">    validateDate(errors, result.split(&quot;gte:&quot;)[1]);</span>
+<span class="nc" id="L201">  }</span>
+
+  private void validateGreaterThan (
+    @NonNull final List&lt;String&gt; errors,
+    @NonNull final String result
+  ) {
+<span class="nc" id="L207">    validateDate(errors, result.split(&quot;gt:&quot;)[1]);</span>
+<span class="nc" id="L208">  }</span>
+  
+  private void validateDate (
+    @NonNull final List&lt;String&gt; errors,
+    @NonNull final String date
+  ) {
+<span class="nc" id="L214">    final Matcher matcher = DateTimeFilterParser.DATE_PATTERN.matcher(date);</span>
+<span class="nc" id="L215">    matcher.matches();</span>
+<span class="nc" id="L216">    matcher.groupCount();</span>
+
+<span class="nc" id="L218">    final String standardDate = matcher.group(&quot;standardDate&quot;);</span>
+<span class="nc" id="L219">    final String dateFormat = matcher.group(&quot;dateFormat&quot;);</span>
+<span class="nc" id="L220">    final String dateValue = matcher.group(&quot;dateValue&quot;);</span>
+    
+<span class="nc bnc" id="L222" title="All 2 branches missed.">    if (standardDate != null) {</span>
+<span class="nc" id="L223">      validateParsedDate(errors, DateTimeFilterParser.DEFAULT_DATE_FORMAT_PATTERN, standardDate);</span>
+    } else {
+<span class="nc" id="L225">      validateParsedDate(errors, dateFormat, dateValue);</span>
+    }
+<span class="nc" id="L227">  }</span>
+
+  private void validateParsedDate (
+    @NonNull final List&lt;String&gt; errors,
+    @NonNull final String pattern,
+    @NonNull final String date
+  ) {
+<span class="nc" id="L234">   DateTimeFormatter format = DateTimeFormatter.ofPattern(pattern);</span>
+    
+    try {
+<span class="nc" id="L237">      format.parse(date);</span>
+<span class="nc" id="L238">    } catch (final DateTimeParseException e) {</span>
+<span class="nc" id="L239">      errors.add(createInvalidDateValueError(date, pattern));</span>
+<span class="nc" id="L240">    } catch (final IllegalArgumentException e) {</span>
+<span class="nc" id="L241">      errors.add(createInvalidDateFormatError(pattern));</span>
+<span class="nc" id="L242">    }</span>
+<span class="nc" id="L243">  }</span>
+
+  private String createInvalidDateFormatError (@NonNull final String dateFormat) {
+<span class="nc" id="L246">    return String.join(</span>
+      &quot;&quot;,
+      &quot;The custom date format \&quot;&quot;, dateFormat, &quot;\&quot; is not a valid DateTime format&quot;,
+      &quot; see java.time.format.DateTimeFormatter documentation for more information about&quot;,
+      &quot; this error.&quot;
+    );
+  }
+
+  private String createInvalidDateValueError (
+    @NonNull final String dateValue,
+    @NonNull final String dateFormat
+  ) {
+<span class="nc" id="L258">    return String.join(</span>
+      &quot;&quot;,
+      &quot;The given date value \&quot;&quot;, dateValue, &quot;\&quot; does not match the given format&quot;,
+      &quot; \&quot;&quot;, dateFormat, &quot;\&quot; see java.time.format.DateTimeFormatter documentation for more information about&quot; + 
+      &quot; this error.&quot;
+    );
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityCollection.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection</a> &gt; <span class="el_source">EntityCollection.java</span></div><h1>EntityCollection.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.metamodel.EntityType;
+
+import org.liara.api.collection.query.EntityCollectionMainQuery;
+import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.transformation.operator.EntityCollectionConjunctionOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.collection.view.View;
+import org.springframework.lang.NonNull;
+
+/**
+ * A collection of entity.
+ *
+ * @author C&amp;eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
+ *
+ * @param &lt;Entity&gt; Type of entity in the collection.
+ */
+public class EntityCollection&lt;Entity&gt;
+       implements View&lt;List&lt;Entity&gt;&gt;
+{ 
+  /**
+   * Manager related to this collection.
+   */
+  @NonNull
+  private final EntityManager _entityManager;
+  
+  /**
+   * Type of entity selected by this collection.
+   */
+  @NonNull
+  private final Class&lt;Entity&gt; _contentType;
+  
+  /**
+   * Operator to apply to a query in order to select the collection content.
+   */
+  @NonNull
+  private final EntityCollectionConjunctionOperator&lt;Entity&gt; _operator;
+  
+  /**
+   * Create a collection for a given type and a given manager.
+   * 
+   * @param entity Entity type to store.
+   * @param entityManagerFactory Entity Manager that manage the given type.
+   */
+  public EntityCollection (
+    @NonNull final EntityManager entityManager,
+    @NonNull final Class&lt;Entity&gt; entity
+<span class="nc" id="L77">  ) {</span>
+<span class="nc" id="L78">    _entityManager = entityManager;</span>
+<span class="nc" id="L79">    _contentType = entity;</span>
+<span class="nc" id="L80">    _operator = new EntityCollectionConjunctionOperator&lt;&gt;();</span>
+<span class="nc" id="L81">  }</span>
+  
+  /**
+   * Create a copy of another collection.
+   * 
+   * @param collection Collection to copy.
+   */
+  public EntityCollection (
+    @NonNull final EntityCollection&lt;Entity&gt; collection
+<span class="nc" id="L90">  ) {</span>
+<span class="nc" id="L91">    _entityManager = collection._entityManager;</span>
+<span class="nc" id="L92">    _contentType = collection.getEntityType();</span>
+<span class="nc" id="L93">    _operator = new EntityCollectionConjunctionOperator&lt;&gt;(collection.getOperator().iterator());</span>
+<span class="nc" id="L94">  }</span>
+  
+  /**
+   * Create a copy of another collection and change the collection operator.
+   * 
+   * @param collection Collection to copy.
+   * @param operator New operator to apply.
+   */
+  public EntityCollection (
+    @NonNull final EntityCollection&lt;Entity&gt; collection,
+    @NonNull final EntityCollectionConjunctionOperator&lt;Entity&gt; operator
+<span class="nc" id="L105">  ) {</span>
+<span class="nc" id="L106">    _entityManager = collection._entityManager;</span>
+<span class="nc" id="L107">    _contentType = collection.getEntityType();</span>
+<span class="nc" id="L108">    _operator = operator;</span>
+<span class="nc" id="L109">  }</span>
+  
+  /**
+   * Try to find an entity of this collection by using it's identifier.
+   * 
+   * @param identifier Identifier of the entity to find.
+   * @return An optional value with the fetched entity if exists or empty otherwise.
+   */
+  public &lt;Identifier&gt; Optional&lt;Entity&gt; findByIdentifier (
+    @NonNull final Identifier identifier
+  ) {
+<span class="nc" id="L120">    final EntityCollectionMainQuery&lt;Entity, Entity&gt; query = createCollectionQuery(getEntityType());</span>
+<span class="nc" id="L121">    query.select(query.getEntity());</span>
+    
+<span class="nc" id="L123">    final EntityType&lt;Entity&gt; entityType = query.getManager()</span>
+<span class="nc" id="L124">                                               .getMetamodel()</span>
+<span class="nc" id="L125">                                               .entity(getEntityType());</span>
+    
+<span class="nc" id="L127">    query.andWhere(</span>
+<span class="nc" id="L128">      query.getManager().getCriteriaBuilder().equal(</span>
+<span class="nc" id="L129">        query.getEntity().get(entityType.getId(identifier.getClass())), </span>
+        identifier
+      )
+    );
+    
+<span class="nc" id="L134">    return query.fetchFirst();</span>
+  }
+  
+  public &lt;Identifier&gt; boolean containsEntityWithIdentifier (
+    @NonNull final Identifier identifier
+  ) {
+<span class="nc" id="L140">    return findByIdentifier(identifier).isPresent();</span>
+  }
+  
+  public &lt;Identifier&gt; boolean containsEntitiesWithIdentifiers (
+    @NonNull final Iterable&lt;Identifier&gt; identifiers
+  ) {
+<span class="nc" id="L146">    final Set&lt;Identifier&gt; identifiersToFind = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L147">    identifiers.forEach(identifiersToFind::add);</span>
+<span class="nc" id="L148">    return containsEntitiesWithIdentifiers(identifiersToFind);</span>
+  }
+  
+  public &lt;Identifier&gt; boolean containsEntitiesWithIdentifiers (
+    @NonNull final Set&lt;Identifier&gt; identifiers
+  ) {    
+<span class="nc bnc" id="L154" title="All 2 branches missed.">    if (identifiers.size() &lt;= 0) {</span>
+<span class="nc" id="L155">      return true;</span>
+    } else {
+<span class="nc" id="L157">      final EntityCollectionMainQuery&lt;Entity, Long&gt; query = createCollectionQuery(Long.class);</span>
+<span class="nc" id="L158">      query.select(query.getManager().getCriteriaBuilder().count(query.getEntity()));</span>
+      
+<span class="nc" id="L160">      final EntityType&lt;Entity&gt; entityType = query.getManager()</span>
+<span class="nc" id="L161">                                                 .getMetamodel()</span>
+<span class="nc" id="L162">                                                 .entity(getEntityType());</span>
+      
+<span class="nc" id="L164">      query.andWhere(</span>
+<span class="nc" id="L165">        query.getEntity().get(</span>
+<span class="nc" id="L166">          entityType.getId(</span>
+<span class="nc" id="L167">            identifiers.iterator().next().getClass()</span>
+          )
+<span class="nc" id="L169">        ).in(identifiers)</span>
+      );
+      
+<span class="nc bnc" id="L172" title="All 2 branches missed.">      return query.fetchFirst().get() == identifiers.size();</span>
+    }
+  }
+  
+  /**
+   * Try to find an entity of this collection by using it's identifier.
+   * 
+   * @param identifier Identifier of the entity to find.
+   * @return An optional value with the fetched entity if exists or empty otherwise.
+   * 
+   * @throws EntityNotFoundException If the requested entity does not exists in this collection.
+   */
+  public &lt;Identifier&gt; Entity findByIdentifierOrFail (
+    @NonNull final Identifier identifier
+  ) throws EntityNotFoundException {
+<span class="nc" id="L187">    final Optional&lt;Entity&gt; entity = findByIdentifier(identifier);</span>
+    
+<span class="nc bnc" id="L189" title="All 2 branches missed.">    if (entity.isPresent()) {</span>
+<span class="nc" id="L190">      return entity.get();</span>
+    } else {
+<span class="nc" id="L192">      throw new EntityNotFoundException();</span>
+    }
+  }
+
+  /**
+   * Return an operator to apply to a given query in order to select all entities of this collection.
+   * 
+   * @return An operator to apply to a given query in order to select all entities of this collection.
+   */
+  public EntityCollectionConjunctionOperator&lt;Entity&gt; getOperator ()  {
+<span class="nc" id="L202">    return _operator;</span>
+  }
+  
+  /**
+   * Apply an operator to this collection and return a new updated instance of this collection.
+   * 
+   * @param operator Operator to apply to this collection.
+   * 
+   * @return A new updated instance of this collection.
+   */
+  public EntityCollection&lt;Entity&gt; apply (
+    @NonNull final EntityCollectionOperator&lt;Entity&gt; operator
+  ) {
+<span class="nc" id="L215">    return new EntityCollection&lt;&gt;(this, _operator.conjugate(operator));</span>
+  }
+  
+  /**
+   * Create a collection query that select all entities of this collection and return a result of a given type.
+   * 
+   * @param result Result type of the query.
+   * 
+   * @return A filtered query that select all entities of this collection and return a result of a given type.
+   */
+  public &lt;Result&gt; EntityCollectionMainQuery&lt;Entity, Result&gt; createCollectionQuery (
+    @NonNull final Class&lt;Result&gt; result
+  ) {
+<span class="nc" id="L228">    final CriteriaQuery&lt;Result&gt; query = _entityManager.getCriteriaBuilder().createQuery(result);</span>
+<span class="nc" id="L229">    final EntityCollectionMainQuery&lt;Entity, Result&gt; collectionQuery = EntityCollectionQuery.from(</span>
+<span class="nc" id="L230">      _entityManager, query, query.from(getEntityType())</span>
+    );
+    
+<span class="nc" id="L233">    _operator.apply(collectionQuery);</span>
+    
+<span class="nc" id="L235">    return collectionQuery;</span>
+  }
+  
+  /**
+   * Alias of createCollectionQuery(getEntityType()).
+   * 
+   * @return A filtered query that select all entities of this collection and return a result of a given type.
+   */
+  public EntityCollectionMainQuery&lt;Entity, Entity&gt; createCollectionQuery () {
+<span class="nc" id="L244">    return createCollectionQuery(getEntityType());</span>
+  }
+  
+  /**
+   * Return the number of elements selected by this collection.
+   * 
+   * @return The number of elements selected by this collection.
+   */
+  public long getSize () {
+<span class="nc" id="L253">    final EntityCollectionMainQuery&lt;Entity, Long&gt; query = createCollectionQuery(Long.class);</span>
+<span class="nc" id="L254">    query.select(</span>
+<span class="nc" id="L255">      query.getManager()</span>
+<span class="nc" id="L256">           .getCriteriaBuilder()</span>
+<span class="nc" id="L257">           .count(query.getEntity())</span>
+    );
+    
+<span class="nc" id="L260">    return query.fetchFirst().get().longValue();</span>
+  }
+
+  @Override
+  public List&lt;Entity&gt; get () {
+<span class="nc" id="L265">    final EntityCollectionMainQuery&lt;Entity, Entity&gt; query = createCollectionQuery(getEntityType());</span>
+<span class="nc" id="L266">    query.select(query.getEntity());</span>
+    
+<span class="nc" id="L268">    return query.fetchAll();</span>
+  }
+  
+  /**
+   * Return an element of this collection.
+   * 
+   * @param index Index of the element to retrieve, starting at 0.
+   * 
+   * @return The element at the given index.
+   * 
+   * @throws IndexOutOfBoundsException If the index is less than 0 or greather or equal to the collection size.
+   */
+  public Entity get (final long index) throws IndexOutOfBoundsException {
+<span class="nc bnc" id="L281" title="All 2 branches missed.">    if (index &lt; 0) {</span>
+<span class="nc" id="L282">      throw new IndexOutOfBoundsException(&quot;Invalid index : the given number is less than 0.&quot;);</span>
+    } else {
+<span class="nc" id="L284">      final long size = getSize();</span>
+      
+<span class="nc bnc" id="L286" title="All 2 branches missed.">      if (index &gt;= size) {</span>
+<span class="nc" id="L287">        throw new IndexOutOfBoundsException(&quot;Invalid index : the given number is greather than or equal to&quot; + size + &quot;.&quot;);</span>
+      }
+      
+<span class="nc" id="L290">      final EntityCollectionMainQuery&lt;Entity, Entity&gt; query = createCollectionQuery(getEntityType());</span>
+<span class="nc" id="L291">      query.select(query.getEntity());</span>
+      
+      /**
+       * @todo Check long limit.
+       */
+<span class="nc" id="L296">      return query.fetchOne((int) index).get();</span>
+    }
+  }
+  
+  public Optional&lt;Entity&gt; first () {
+<span class="nc" id="L301">    final EntityCollectionMainQuery&lt;Entity, Entity&gt; query = createCollectionQuery();    </span>
+<span class="nc" id="L302">    return query.fetchOne(0);</span>
+  }
+  
+  /**
+   * Return the content type of this collection.
+   * 
+   * @return The content type of this collection.
+   */
+  public Class&lt;Entity&gt; getEntityType () {
+<span class="nc" id="L311">    return _contentType;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

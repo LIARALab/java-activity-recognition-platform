@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DoubleStateCollectionController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.controller.rest</a> &gt; <span class="el_source">DoubleStateCollectionController.java</span></div><h1>DoubleStateCollectionController.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.controller.rest;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.liara.api.collection.EntityNotFoundException;
+import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
+import org.liara.api.data.collection.DoubleStateCollection;
+import org.liara.api.data.entity.state.DoubleState;
+import org.liara.api.request.validator.error.InvalidAPIRequestException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.lang.NonNull;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+
+@RestController
+@Api(
+    tags = {
+      &quot;state&lt;double&gt;&quot;
+    },
+    description = &quot;&quot;,
+    produces = &quot;application/json&quot;,
+    consumes = &quot;application/json&quot;,
+    protocols = &quot;http&quot;
+)
+<span class="nc" id="L55">public final class DoubleStateCollectionController extends BaseRestController</span>
+{
+  @Autowired
+  @NonNull
+  private DoubleStateCollection _collection;
+
+  @GetMapping(&quot;/states&lt;double&gt;/count&quot;)
+  public ResponseEntity&lt;Object&gt; count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+<span class="nc" id="L63">    return aggregate(</span>
+      _collection, request, 
+<span class="nc" id="L65">      EntityCountAggregationTransformation.create()</span>
+    );
+  }
+
+  @GetMapping(&quot;/states&lt;double&gt;&quot;)
+  @ApiImplicitParams(
+    {
+      @ApiImplicitParam(
+          name = &quot;first&quot;,
+          value = &quot;Maximum number of elements to display. Must be a positive integer and can't be used in conjunction with \&quot;all\&quot;.&quot;,
+          required = false,
+          allowMultiple = false,
+          defaultValue = &quot;10&quot;,
+          dataType = &quot;unsigned int&quot;,
+          paramType = &quot;query&quot;
+      ),
+      @ApiImplicitParam(
+          name = &quot;all&quot;,
+          value = &quot;Display all remaining elements. Can't be used in conjunction with \&quot;first\&quot;.&quot;,
+          required = false,
+          allowMultiple = false,
+          defaultValue = &quot;false&quot;,
+          dataType = &quot;boolean&quot;,
+          paramType = &quot;query&quot;
+      ),
+      @ApiImplicitParam(
+          name = &quot;after&quot;,
+          value = &quot;Number of elements to skip.&quot;,
+          required = false,
+          allowMultiple = false,
+          defaultValue = &quot;0&quot;,
+          dataType = &quot;unsigned int&quot;,
+          paramType = &quot;query&quot;
+      )
+    }
+  )
+  public ResponseEntity&lt;List&lt;DoubleState&gt;&gt; index (@NonNull final HttpServletRequest request)
+    throws InvalidAPIRequestException
+  {
+<span class="nc" id="L104">    return indexCollection(_collection, request);</span>
+  }
+
+  @GetMapping(&quot;/states&lt;double&gt;/{identifier}&quot;)
+  public DoubleState get (@PathVariable final long identifier) throws EntityNotFoundException {
+<span class="nc" id="L109">    return _collection.findByIdentifierOrFail(identifier);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

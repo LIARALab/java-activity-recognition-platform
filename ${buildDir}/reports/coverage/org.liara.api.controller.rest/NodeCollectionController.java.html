@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NodeCollectionController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.controller.rest</a> &gt; <span class="el_source">NodeCollectionController.java</span></div><h1>NodeCollectionController.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.controller.rest;
+
+import io.swagger.annotations.Api;
+import org.liara.api.collection.EntityNotFoundException;
+import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
+import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.data.collection.SensorCollection;
+import org.liara.api.data.collection.configuration.NodeCollectionRequestConfiguration;
+import org.liara.api.data.collection.configuration.SensorCollectionRequestConfiguration;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.node.NodeCreationSchema;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.schema.SchemaManager;
+import org.liara.api.documentation.ParametersFromConfiguration;
+import org.liara.api.request.validator.error.InvalidAPIRequestException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
+import java.util.List;
+
+@RestController
+@Api(
+    tags = {
+      &quot;node&quot;
+    },
+    description = &quot;&quot;,
+    produces = &quot;application/json&quot;,
+    consumes = &quot;application/json&quot;,
+    protocols = &quot;http&quot;
+)
+/**
+ * A controller for all API endpoints that read, write or update information about nodes.
+ * 
+ * @author C&amp;eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
+ */
+<span class="nc" id="L63">public final class NodeCollectionController extends BaseRestController</span>
+{
+  @Autowired
+  @NonNull
+  private SchemaManager _schemaManager;
+  
+  @Autowired
+  @NonNull
+  private NodeCollection _collection;
+  
+  @Autowired
+  @NonNull
+  private SensorCollection _sensors;
+
+  /**
+   * Count all nodes in the application.
+   * 
+   * This method also allow the user to filter and group counted nodes by categories.
+   * 
+   * For more information about all allowed options, take a look to the NodeCollection request configuration
+   * class.
+   * 
+   * @param request The related HTTP request.
+   * 
+   * @return An HTTP response with the user requested data.
+   * 
+   * @throws InvalidAPIRequestException When the user request is invalid / malformed.
+   */
+  @GetMapping(&quot;/nodes/count&quot;)
+  @ParametersFromConfiguration(
+    value = NodeCollectionRequestConfiguration.class,
+    orderable = false
+  )
+  public ResponseEntity&lt;Object&gt; count (@NonNull final HttpServletRequest request) throws InvalidAPIRequestException {
+<span class="nc" id="L97">    return aggregate(</span>
+      _collection, request, 
+<span class="nc" id="L99">      EntityCountAggregationTransformation.create()</span>
+    );
+  }
+
+  /**
+   * Fetch nodes from the application.
+   * 
+   * Allow the user to filter, paginate and sort returned nodes.
+   * 
+   * For more information about all allowed options, take a look to the NodeCollection request configuration
+   * class.
+   * 
+   * @param request
+   * @return
+   * @throws InvalidAPIRequestException
+   */
+  @GetMapping(&quot;/nodes&quot;)
+  @ParametersFromConfiguration(
+    value = NodeCollectionRequestConfiguration.class,
+    groupable = false
+  )
+  public ResponseEntity&lt;List&lt;Node&gt;&gt; index (@NonNull final HttpServletRequest request)
+    throws InvalidAPIRequestException
+  {
+<span class="nc" id="L123">    return indexCollection(_collection, request);</span>
+  }
+  
+  @PostMapping(&quot;/nodes&quot;)
+  public ResponseEntity&lt;Void&gt; create (
+    @NonNull final HttpServletRequest request,
+    @NonNull @Valid @RequestBody final NodeCreationSchema schema
+  )
+  {
+<span class="nc" id="L132">    final Node node = _schemaManager.execute(schema);</span>
+    
+<span class="nc" id="L134">    final HttpHeaders headers = new HttpHeaders();</span>
+<span class="nc" id="L135">    headers.add(&quot;Location&quot;, request.getRequestURI() + &quot;/&quot; + node.getIdentifier());</span>
+    
+<span class="nc" id="L137">    return new ResponseEntity&lt;&gt;(headers, HttpStatus.CREATED);</span>
+  }
+
+  @GetMapping(&quot;/nodes/{identifier}&quot;)
+  public Node get (@PathVariable final long identifier) throws EntityNotFoundException {
+<span class="nc" id="L142">    return _collection.findByIdentifierOrFail(identifier);</span>
+  }
+
+  @GetMapping(&quot;/nodes/{identifier}/sensors&quot;)
+  @ParametersFromConfiguration(
+    value = SensorCollectionRequestConfiguration.class,
+    groupable = false
+  )
+  public ResponseEntity&lt;List&lt;Sensor&gt;&gt; getSensors (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+<span class="nc" id="L154">    final Node node = _collection.findByIdentifierOrFail(identifier);</span>
+
+<span class="nc" id="L156">    return indexCollection(_sensors.in(node), request);</span>
+  }
+  
+  @GetMapping(&quot;/nodes/{identifier}/sensors/count&quot;)
+  @ParametersFromConfiguration(
+    value = SensorCollectionRequestConfiguration.class,
+    orderable = false
+  )
+  public ResponseEntity&lt;Object&gt; countSensors (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+<span class="nc" id="L168">    final Node node = _collection.findByIdentifierOrFail(identifier);</span>
+<span class="nc" id="L169">    return aggregate(_sensors.in(node), request, new EntityCountAggregationTransformation&lt;&gt;());</span>
+  }
+  
+  @GetMapping(&quot;/nodes/{nodeIdentifier}/sensors/{sensorIdentifier}&quot;)
+  public Sensor getSensor (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long nodeIdentifier,
+    @PathVariable final long sensorIdentifier
+  )
+  throws EntityNotFoundException
+  {
+<span class="nc" id="L180">    final Node node = _collection.findByIdentifierOrFail(nodeIdentifier);</span>
+
+<span class="nc" id="L182">    return _sensors.in(node).findByIdentifierOrFail(sensorIdentifier);</span>
+  }
+
+  @GetMapping(&quot;/nodes/{identifier}/deepSensors&quot;)
+  @ParametersFromConfiguration(
+    value = SensorCollectionRequestConfiguration.class,
+    groupable = false
+  )
+  public ResponseEntity&lt;List&lt;Sensor&gt;&gt; getDeepSensors (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+<span class="nc" id="L194">    final Node node = _collection.findByIdentifierOrFail(identifier);</span>
+
+<span class="nc" id="L196">    return indexCollection(_sensors.deepIn(node), request);</span>
+  }
+  
+  @GetMapping(&quot;/nodes/{identifier}/deepSensors/count&quot;)
+  @ParametersFromConfiguration(
+    value = SensorCollectionRequestConfiguration.class,
+    orderable = false
+  )
+  public ResponseEntity&lt;Object&gt; countDeepSensors (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+<span class="nc" id="L208">    final Node node = _collection.findByIdentifierOrFail(identifier);</span>
+<span class="nc" id="L209">    return aggregate(_sensors.deepIn(node), request, new EntityCountAggregationTransformation&lt;&gt;());</span>
+  }
+  
+  @GetMapping(&quot;/nodes/{nodeIdentifier}/deepSensors/{sensorIdentifier}&quot;)
+  public Sensor getDeepSensor (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long nodeIdentifier,
+    @PathVariable final long sensorIdentifier
+  )
+  throws EntityNotFoundException
+  {
+<span class="nc" id="L220">    final Node node = _collection.findByIdentifierOrFail(nodeIdentifier);</span>
+
+<span class="nc" id="L222">    return _sensors.deepIn(node).findByIdentifierOrFail(sensorIdentifier);</span>
+  }
+
+  @GetMapping(&quot;/nodes/{identifier}/children&quot;)
+  @ParametersFromConfiguration(
+    value = NodeCollectionRequestConfiguration.class,
+    groupable = false
+  )
+  public ResponseEntity&lt;List&lt;Node&gt;&gt; getDirectChildren (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+<span class="nc" id="L234">    final Node node = _collection.findByIdentifierOrFail(identifier);</span>
+<span class="nc" id="L235">    return indexCollection(_collection.directChildrenOf(node), request);</span>
+  }
+
+  @GetMapping(&quot;/nodes/{identifier}/parents&quot;)
+  @ParametersFromConfiguration(value = NodeCollectionRequestConfiguration.class, groupable = false)
+  public ResponseEntity&lt;List&lt;Node&gt;&gt; getParents (
+    @NonNull final HttpServletRequest request, @PathVariable final long identifier
+  )
+  throws EntityNotFoundException, InvalidAPIRequestException
+  {
+<span class="nc" id="L245">    final Node node = _collection.findByIdentifierOrFail(identifier);</span>
+<span class="nc" id="L246">    return indexCollection(_collection.parentsOf(node), request);</span>
+  }
+
+  @GetMapping(&quot;/nodes/{identifier}/parents/count&quot;)
+  @ParametersFromConfiguration(value = NodeCollectionRequestConfiguration.class, groupable = false)
+  public ResponseEntity&lt;Object&gt; countParents (
+    @NonNull final HttpServletRequest request, @PathVariable final long identifier
+  )
+  throws EntityNotFoundException, InvalidAPIRequestException
+  {
+<span class="nc" id="L256">    final Node node = _collection.findByIdentifierOrFail(identifier);</span>
+<span class="nc" id="L257">    return aggregate(_collection.parentsOf(node), request, new EntityCountAggregationTransformation&lt;&gt;());</span>
+  }
+  
+  @GetMapping(&quot;/nodes/{identifier}/children/count&quot;)
+  @ParametersFromConfiguration(
+    value = NodeCollectionRequestConfiguration.class,
+    orderable = false
+  )
+  public ResponseEntity&lt;Object&gt; countDirectChildren (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+<span class="nc" id="L269">    final Node node = _collection.findByIdentifierOrFail(identifier);</span>
+<span class="nc" id="L270">    return aggregate(_collection.directChildrenOf(node), request, new EntityCountAggregationTransformation&lt;&gt;());</span>
+  }
+  
+  @GetMapping(&quot;/nodes/{nodeIdentifier}/children/{childrenIdentifer}&quot;)
+  public Node getDirectChild (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long nodeIdentifier,
+    @PathVariable final long childrenIdentifer
+  )
+  throws EntityNotFoundException
+  {
+<span class="nc" id="L281">    final Node node = _collection.findByIdentifierOrFail(nodeIdentifier);</span>
+<span class="nc" id="L282">    return _collection.directChildrenOf(node).findByIdentifierOrFail(childrenIdentifer);</span>
+  }
+  
+  @GetMapping(&quot;/nodes/{identifier}/allChildren&quot;)
+  @ParametersFromConfiguration(
+    value = NodeCollectionRequestConfiguration.class,
+    groupable = false
+  )
+  public ResponseEntity&lt;List&lt;Node&gt;&gt; getDeepChildren (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+<span class="nc" id="L294">    final Node node = _collection.findByIdentifierOrFail(identifier);</span>
+<span class="nc" id="L295">    return indexCollection(_collection.deepChildrenOf(node), request);</span>
+  }
+  
+  @GetMapping(&quot;/nodes/{identifier}/allChildren/count&quot;)
+  @ParametersFromConfiguration(
+    value = NodeCollectionRequestConfiguration.class,
+    orderable = false
+  )
+  public ResponseEntity&lt;Object&gt; countDeepChildren (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException, InvalidAPIRequestException {
+<span class="nc" id="L307">    final Node node = _collection.findByIdentifierOrFail(identifier);</span>
+<span class="nc" id="L308">    return aggregate(_collection.deepChildrenOf(node), request, new EntityCountAggregationTransformation&lt;&gt;());</span>
+  }
+  
+  @GetMapping(&quot;/nodes/{nodeIdentifier}/allChildren/{childrenIdentifer}&quot;)
+  public Node getDeepChild (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long nodeIdentifier,
+    @PathVariable final long childrenIdentifer
+  )
+  throws EntityNotFoundException
+  {
+<span class="nc" id="L319">    final Node node = _collection.findByIdentifierOrFail(nodeIdentifier);</span>
+<span class="nc" id="L320">    return _collection.deepChildrenOf(node).findByIdentifierOrFail(childrenIdentifer);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

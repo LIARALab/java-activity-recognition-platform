@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LocalApplicationEntityRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository.local</a> &gt; <span class="el_source">LocalApplicationEntityRepository.java</span></div><h1>LocalApplicationEntityRepository.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository.local;
+
+import com.google.common.collect.Streams;
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.repository.ApplicationEntityRepository;
+import org.springframework.lang.NonNull;
+
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
+
+public class LocalApplicationEntityRepository&lt;Entity extends ApplicationEntity&gt; 
+       extends BaseLocalRepository
+       implements ApplicationEntityRepository&lt;Entity&gt;
+{
+  @NonNull
+  final Class&lt;Entity&gt; _type;
+  
+  public static &lt;StoredEntity extends ApplicationEntity&gt; LocalApplicationEntityRepository&lt;StoredEntity&gt; from (
+    @NonNull final LocalEntityManager parent,
+    @NonNull final Class&lt;StoredEntity&gt; type
+  ) {
+<span class="fc" id="L25">    final LocalApplicationEntityRepository&lt;StoredEntity&gt; result = new LocalApplicationEntityRepository&lt;&gt;(type);</span>
+<span class="fc" id="L26">    result.setParent(parent);</span>
+<span class="fc" id="L27">    return result;</span>
+  }
+  
+  public LocalApplicationEntityRepository (
+    @NonNull final Class&lt;Entity&gt; type
+  ) {
+<span class="fc" id="L33">    super();</span>
+<span class="fc" id="L34">    _type = type;</span>
+<span class="fc" id="L35">  }</span>
+  
+  @Override
+  public Optional&lt;Entity&gt; find (
+    @NonNull final ApplicationEntityReference&lt;Entity&gt; reference
+  ) {
+<span class="fc" id="L41">    return find(reference.getIdentifier());</span>
+  }
+
+  @Override
+  public Optional&lt;Entity&gt; find (@NonNull final Long identifier) {
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">    if (getParent() == null) return Optional.empty();</span>
+<span class="fc" id="L47">    return getParent().find(_type, identifier);</span>
+  }
+
+  @Override
+  public List&lt;Entity&gt; findAll () {
+<span class="pc bpc" id="L52" title="1 of 2 branches missed.">    if (getParent() == null) return Collections.emptyList();</span>
+<span class="fc" id="L53">    return getParent().findAll(_type);</span>
+  }
+
+  public void addAll (@NonNull final Iterable&lt;Entity&gt; entities) {
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">    if (getParent() != null) {</span>
+<span class="fc" id="L58">      getParent().addAll(entities);</span>
+    }
+<span class="fc" id="L60">  }</span>
+  
+  public void addAll (@NonNull final Iterator&lt;Entity&gt; entities) {
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">    if (getParent() != null) {</span>
+<span class="fc" id="L64">      getParent().addAll(entities);</span>
+    }
+<span class="fc" id="L66">  }</span>
+  
+  public void removeAll (@NonNull final Iterable&lt;Entity&gt; entities) {
+<span class="fc" id="L69">    Streams.stream(entities).forEach(this::remove);</span>
+<span class="fc" id="L70">  }</span>
+  
+  public void removeAll (@NonNull final Iterator&lt;Entity&gt; entities) {
+<span class="fc" id="L73">    Streams.stream(entities).forEach(this::remove);</span>
+<span class="fc" id="L74">  }</span>
+  
+  public boolean contains (@NonNull final Entity entity) {
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">    if (getParent() == null) return false;</span>
+<span class="fc" id="L78">    return getParent().contains(_type, entity.getIdentifier());</span>
+  }
+  
+  public boolean contains (@NonNull final Long identifier) {
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">    if (getParent() == null) return false;</span>
+<span class="fc" id="L83">    return getParent().contains(_type, identifier);</span>
+  }
+  
+  public void clear () {
+<span class="fc" id="L87">    getParent().clear(_type);</span>
+<span class="fc" id="L88">  }</span>
+  
+  public int size () {
+<span class="fc" id="L91">    return getParent().size(_type);</span>
+  }
+
+  @Override
+  protected void entityWasAdded (@NonNull final ApplicationEntity entity) {
+<span class="fc" id="L96">    super.entityWasAdded(entity);</span>
+    
+<span class="pc bpc" id="L98" title="1 of 4 branches missed.">    if (_type.isAssignableFrom(entity.getClass()) &amp;&amp; getParent() != null) {</span>
+<span class="fc" id="L99">      trackedEntityWasAdded(_type.cast(entity));</span>
+    }
+<span class="fc" id="L101">  }</span>
+  
+  protected void trackedEntityWasAdded (@NonNull final Entity entity) {
+    
+<span class="fc" id="L105">  }</span>
+
+  @Override
+  protected void entityWasRemoved (@NonNull final ApplicationEntity entity) {
+<span class="fc" id="L109">    super.entityWasRemoved(entity);</span>
+    
+<span class="pc bpc" id="L111" title="1 of 4 branches missed.">    if (_type.isAssignableFrom(entity.getClass()) &amp;&amp; getParent() != null) {</span>
+<span class="fc" id="L112">      trackedEntityWasRemoved(_type.cast(entity));</span>
+    }
+<span class="fc" id="L114">  }</span>
+
+  protected void trackedEntityWasRemoved (@NonNull final Entity entity) {
+    
+<span class="fc" id="L118">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

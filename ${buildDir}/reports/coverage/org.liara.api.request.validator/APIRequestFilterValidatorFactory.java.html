@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>APIRequestFilterValidatorFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.request.validator</a> &gt; <span class="el_source">APIRequestFilterValidatorFactory.java</span></div><h1>APIRequestFilterValidatorFactory.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.request.validator;
+
+import org.liara.api.collection.EntityCollection;
+import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.filter.validator.BooleanFilterValidator;
+import org.liara.api.filter.validator.DateTimeFilterValidator;
+import org.liara.api.filter.validator.DoubleFilterValidator;
+import org.liara.api.filter.validator.DurationFilterValidator;
+import org.liara.api.filter.validator.IntegerFilterValidator;
+import org.liara.api.filter.validator.TextFilterValidator;
+import org.springframework.lang.NonNull;
+
+<span class="nc" id="L34">public final class APIRequestFilterValidatorFactory</span>
+{
+  public static APIRequestFilterValidator booleanValue (@NonNull final String parameter) {
+<span class="nc" id="L37">    return new APIRequestFilterValidator(parameter, new BooleanFilterValidator());</span>
+  }
+  
+  public static APIRequestFilterValidator integer (@NonNull final String parameter) {
+<span class="nc" id="L41">    return new APIRequestFilterValidator(parameter, new IntegerFilterValidator());</span>
+  }
+  
+  public static APIRequestFilterValidator realDouble (@NonNull final String parameter) {
+<span class="nc" id="L45">    return new APIRequestFilterValidator(parameter, new DoubleFilterValidator());</span>
+  }
+  
+  public static APIRequestFilterValidator datetime (@NonNull final String parameter) {
+<span class="nc" id="L49">    return new APIRequestFilterValidator(parameter, new DateTimeFilterValidator());</span>
+  }
+
+  public static APIRequestFilterValidator datetimeInRange (@NonNull final String parameter) {
+<span class="nc" id="L53">    return new APIRequestFilterValidator(parameter, new DateTimeFilterValidator());</span>
+  }
+  
+  public static APIRequestFilterValidator duration (@NonNull final String parameter) {
+<span class="nc" id="L57">    return new APIRequestFilterValidator(parameter, new DurationFilterValidator());</span>
+  }
+  
+  public static APIRequestFilterValidator text (@NonNull final String parameter) {
+<span class="nc" id="L61">    return new APIRequestFilterValidator(parameter, new TextFilterValidator());</span>
+  }
+  
+  public static APIRequestValidator includeConfiguration (
+    @NonNull final String parameter, 
+    @NonNull final Class&lt;? extends CollectionRequestConfiguration&lt;?&gt;&gt; configuration
+  ) {
+<span class="nc" id="L68">    return new APISubRequestValidator(</span>
+      parameter, 
+      configuration
+    );
+  }
+  
+  public static APIRequestValidator includeCollection (
+    @NonNull final String parameter, 
+    @NonNull final Class&lt;? extends EntityCollection&lt;?&gt;&gt; configuration
+  ) {
+<span class="nc" id="L78">    return new APISubRequestValidator(</span>
+      parameter, 
+<span class="nc" id="L80">      CollectionRequestConfiguration.getDefaultClass(configuration)</span>
+    );
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

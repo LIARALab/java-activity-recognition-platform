@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SensorWasCreatedEvent.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.event</a> &gt; <span class="el_source">SensorWasCreatedEvent.java</span></div><h1>SensorWasCreatedEvent.java</h1><pre class="source lang-java linenums">package org.liara.api.event;
+
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.sensor.SensorSnapshot;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.lang.NonNull;
+
+public class SensorWasCreatedEvent extends ApplicationEvent
+{
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 784473504749676317L;
+  
+  @NonNull
+  private final SensorSnapshot _sensor;
+  
+  /**
+   * 
+   * @param source
+   * @param sensor
+   */
+  public SensorWasCreatedEvent(
+    @NonNull final Object source,
+    @NonNull final Sensor sensor
+  ) {
+<span class="nc" id="L27">    super(source);</span>
+<span class="nc" id="L28">    _sensor = sensor.snapshot();</span>
+<span class="nc" id="L29">  }</span>
+
+  public SensorSnapshot getSensor () {
+<span class="nc" id="L32">    return _sensor;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

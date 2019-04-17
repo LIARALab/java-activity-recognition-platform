@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LocalEntityManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository.local</a> &gt; <span class="el_source">LocalEntityManager.java</span></div><h1>LocalEntityManager.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository.local;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.WeakHashMap;
+
+import javax.persistence.Entity;
+
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.springframework.lang.NonNull;
+
+import com.google.common.collect.Streams;
+
+<span class="fc" id="L21">public class LocalEntityManager</span>
+{
+<span class="fc" id="L23">  @NonNull</span>
+  private final Map&lt;Class&lt;? extends ApplicationEntity&gt;, Map&lt;Long, ApplicationEntity&gt;&gt; _entities = new HashMap&lt;&gt;();
+  
+<span class="fc" id="L26">  @NonNull</span>
+<span class="fc" id="L27">  private final Set&lt;LocalEntityManagerListener&gt; _listeners = Collections.newSetFromMap(</span>
+    new WeakHashMap&lt;LocalEntityManagerListener, Boolean&gt;()
+  );
+  
+<span class="fc" id="L31">  @NonNull</span>
+  private final ApplicationEntityIdentifiers _identifiers = new ApplicationEntityIdentifiers();
+  
+  public &lt;SearchedEntity extends ApplicationEntity&gt; Optional&lt;SearchedEntity&gt; find (
+    @NonNull final Class&lt;SearchedEntity&gt; type, 
+    @NonNull final Long identifier
+  ) {
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">    if (_entities.containsKey(type)) {</span>
+<span class="fc bfc" id="L39" title="All 2 branches covered.">      if (_entities.get(type).containsKey(identifier)) {</span>
+<span class="fc" id="L40">        return Optional.ofNullable(</span>
+<span class="fc" id="L41">          type.cast(_entities.get(type).get(identifier))</span>
+        );
+      }
+    }
+    
+<span class="fc" id="L46">    return Optional.empty();</span>
+  }
+  
+  public &lt;SearchedEntity extends ApplicationEntity&gt; Optional&lt;? extends SearchedEntity&gt; find (
+    @NonNull final ApplicationEntityReference&lt;SearchedEntity&gt; reference
+  ) {
+<span class="fc" id="L52">    return find(reference.getType(), reference.getIdentifier());</span>
+  }
+  
+  public &lt;SearchedEntity extends ApplicationEntity&gt; SearchedEntity getAt (
+    @NonNull final ApplicationEntityReference&lt;SearchedEntity&gt; reference
+  ) {
+<span class="fc" id="L58">    return find(reference.getType(), reference.getIdentifier()).get();</span>
+  }
+  
+  public &lt;SearchedEntity extends ApplicationEntity&gt; List&lt;SearchedEntity&gt; findAll (
+    @NonNull final Class&lt;SearchedEntity&gt; type
+  ) {
+<span class="fc bfc" id="L64" title="All 2 branches covered.">    if (!_entities.containsKey(type)) return Collections.emptyList();</span>
+    
+<span class="fc" id="L66">    final List&lt;SearchedEntity&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L67">    _entities.get(type).values().forEach(x -&gt; result.add(type.cast(x)));</span>
+<span class="fc" id="L68">    return result;</span>
+  }
+  
+  public &lt;SearchedEntity extends ApplicationEntity&gt; List&lt;SearchedEntity&gt; getAt (
+    @NonNull final Class&lt;SearchedEntity&gt; type
+  ) {
+<span class="nc" id="L74">    return findAll(type);</span>
+  }
+ 
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public void add (@NonNull final ApplicationEntity entity) {
+<span class="fc bfc" id="L79" title="All 2 branches covered.">    if (!contains(entity)) {</span>
+<span class="fc" id="L80">      Class&lt;? extends ApplicationEntity&gt; type = entity.getClass();</span>
+      
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">      if (type.isAnnotationPresent(Entity.class)) {</span>
+<span class="fc" id="L83">        entity.setIdentifier(_identifiers.next(entity));</span>
+      }
+      
+<span class="fc bfc" id="L86" title="All 2 branches covered.">      while (type.isAnnotationPresent(Entity.class)) {</span>
+<span class="fc" id="L87">        register(type, entity);</span>
+<span class="fc" id="L88">        type = (Class&lt;? extends ApplicationEntity&gt;) type.getSuperclass();</span>
+      }
+      
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">      if (type != entity.getClass()) {</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">        for (final LocalEntityManagerListener listener : _listeners) {</span>
+<span class="fc" id="L93">          listener.add(entity);</span>
+<span class="fc" id="L94">        }</span>
+      }
+    }
+<span class="fc" id="L97">  }</span>
+  
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public void merge (@NonNull final ApplicationEntity entity) {      
+<span class="fc" id="L101">    Class&lt;? extends ApplicationEntity&gt; type = entity.getClass();</span>
+    
+<span class="fc bfc" id="L103" title="All 2 branches covered.">    while (type.isAnnotationPresent(Entity.class)) {</span>
+<span class="fc" id="L104">      register(type, entity);</span>
+<span class="fc" id="L105">      type = (Class&lt;? extends ApplicationEntity&gt;) type.getSuperclass();</span>
+    }
+    
+<span class="pc bpc" id="L108" title="1 of 2 branches missed.">    if (type != entity.getClass()) {</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">      for (final LocalEntityManagerListener listener : _listeners) {</span>
+<span class="fc" id="L110">        listener.add(entity);</span>
+<span class="fc" id="L111">      }</span>
+    }
+<span class="fc" id="L113">  }</span>
+  
+  private void register (
+    @NonNull final Class&lt;? extends ApplicationEntity&gt; type,
+    @NonNull final ApplicationEntity entity
+  ) {
+<span class="fc bfc" id="L119" title="All 2 branches covered.">    if (!_entities.containsKey(type)) {</span>
+<span class="fc" id="L120">      _entities.put(type, new HashMap&lt;&gt;());</span>
+    }
+    
+<span class="fc" id="L123">    _entities.get(type).put(entity.getIdentifier(), entity);</span>
+<span class="fc" id="L124">  }</span>
+
+  public void addAll (@NonNull final Iterable&lt;? extends ApplicationEntity&gt; entities) {
+<span class="fc" id="L127">    Streams.stream(entities).forEach(this::add);</span>
+<span class="fc" id="L128">  }</span>
+  
+  public void addAll (@NonNull final Iterator&lt;? extends ApplicationEntity&gt; entities) {
+<span class="fc" id="L131">    Streams.stream(entities).forEach(this::add);</span>
+<span class="fc" id="L132">  }</span>
+  
+  public void addListener (@NonNull final LocalEntityManagerListener listener) {
+<span class="fc bfc" id="L135" title="All 2 branches covered.">    if (!_listeners.contains(listener)) {</span>
+<span class="fc" id="L136">      _listeners.add(listener);</span>
+<span class="fc" id="L137">      listener.setParent(this);</span>
+      
+<span class="fc" id="L139">      _entities.values().stream().forEach(submap -&gt; {</span>
+<span class="fc" id="L140">        submap.values().stream().forEach(listener::add);</span>
+<span class="fc" id="L141">      });</span>
+    }
+<span class="fc" id="L143">  }</span>
+  
+  public void removeListener (@NonNull final LocalEntityManagerListener listener) {
+<span class="nc bnc" id="L146" title="All 2 branches missed.">    if (_listeners.contains(listener)) {      </span>
+<span class="nc" id="L147">      _listeners.remove(listener);</span>
+<span class="nc" id="L148">      listener.setParent(null);</span>
+      
+<span class="nc" id="L150">      _entities.values().stream().forEach(submap -&gt; {</span>
+<span class="nc" id="L151">        submap.values().stream().forEach(listener::add);</span>
+<span class="nc" id="L152">      });</span>
+    }
+<span class="nc" id="L154">  }</span>
+  
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public void remove (@NonNull final ApplicationEntity entity) {    
+<span class="fc bfc" id="L158" title="All 2 branches covered.">    if (contains(entity)) {</span>
+<span class="fc" id="L159">      Class&lt;? extends ApplicationEntity&gt; type = entity.getClass();</span>
+      
+<span class="fc bfc" id="L161" title="All 2 branches covered.">      while (type.isAnnotationPresent(Entity.class)) {</span>
+<span class="fc" id="L162">        unregister(type, entity);</span>
+<span class="fc" id="L163">        type = (Class&lt;? extends ApplicationEntity&gt;) type.getSuperclass();</span>
+      }
+      
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">      if (type != entity.getClass()) {</span>
+<span class="fc bfc" id="L167" title="All 2 branches covered.">        for (final LocalEntityManagerListener listener : _listeners) {</span>
+<span class="fc" id="L168">          listener.remove(entity);</span>
+<span class="fc" id="L169">        }</span>
+      }
+      
+<span class="fc" id="L172">      entity.setIdentifier(null);</span>
+    }
+<span class="fc" id="L174">  }</span>
+  
+  private void unregister (
+    @NonNull final Class&lt;? extends ApplicationEntity&gt; type, 
+    @NonNull final ApplicationEntity entity
+  ) {
+<span class="fc" id="L180">    _entities.get(type).remove(entity.getIdentifier());</span>
+    
+<span class="fc bfc" id="L182" title="All 2 branches covered.">    if (_entities.get(type).size() &lt;= 0) {</span>
+<span class="fc" id="L183">      _entities.remove(type);</span>
+    }
+<span class="fc" id="L185">  }</span>
+
+  public void removeAll (@NonNull final Iterable&lt;? extends ApplicationEntity&gt; entities) {
+<span class="nc" id="L188">    Streams.stream(entities).forEach(this::remove);</span>
+<span class="nc" id="L189">  }</span>
+  
+  public void removeAll (@NonNull final Iterator&lt;? extends ApplicationEntity&gt; entities) {
+<span class="nc" id="L192">    Streams.stream(entities).forEach(this::remove);</span>
+<span class="nc" id="L193">  }</span>
+  
+  public boolean contains (@NonNull final ApplicationEntity entity) {
+<span class="fc" id="L196">    return contains(entity.getClass(), entity.getIdentifier());</span>
+  }
+
+  public boolean contains (
+    @NonNull final Class&lt;? extends ApplicationEntity&gt; type, 
+    @NonNull final Long identifier
+  ) {
+<span class="fc bfc" id="L203" title="All 2 branches covered.">    return _entities.containsKey(type) </span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">        &amp;&amp; _entities.get(type).containsKey(identifier);</span>
+  }
+  
+  public void clear () {
+<span class="nc" id="L208">    final Iterator&lt;Class&lt;? extends ApplicationEntity&gt;&gt; types = _entities.keySet().iterator();</span>
+    
+<span class="nc bnc" id="L210" title="All 2 branches missed.">    while (types.hasNext()) {</span>
+<span class="nc" id="L211">      clear(types.next());</span>
+    }
+    
+<span class="nc" id="L214">    _entities.clear();</span>
+<span class="nc" id="L215">  }</span>
+
+  public void clear (@NonNull final Class&lt;? extends ApplicationEntity&gt; type) {
+<span class="pc bpc" id="L218" title="1 of 4 branches missed.">    while (_entities.containsKey(type) &amp;&amp; !_entities.get(type).isEmpty()) {</span>
+<span class="fc" id="L219">      remove(_entities.get(type).entrySet().iterator().next().getValue());</span>
+    }
+<span class="fc" id="L221">  }</span>
+  
+  public int size () {
+<span class="nc" id="L224">    int result = 0;</span>
+    
+<span class="nc bnc" id="L226" title="All 2 branches missed.">    for (final Map&lt;Long, ? extends ApplicationEntity&gt; entries : _entities.values()) {</span>
+<span class="nc" id="L227">      result += entries.size();</span>
+<span class="nc" id="L228">    }</span>
+    
+<span class="nc" id="L230">    return result;</span>
+  }
+
+  public int size (@NonNull final Class&lt;? extends ApplicationEntity&gt; type) {
+<span class="fc bfc" id="L234" title="All 2 branches covered.">    if (_entities.containsKey(type)) {</span>
+<span class="fc" id="L235">      return _entities.get(type).size();</span>
+    } else {
+<span class="fc" id="L237">      return 0;</span>
+    }
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

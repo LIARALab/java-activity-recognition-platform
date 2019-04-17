@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SensorCreationSchemaDeserializer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.sensor</a> &gt; <span class="el_source">SensorCreationSchemaDeserializer.java</span></div><h1>SensorCreationSchemaDeserializer.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.sensor;
+
+import java.io.IOException;
+
+import org.liara.api.recognition.sensor.SensorConfiguration;
+import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jackson.JsonComponent;
+import org.springframework.context.ApplicationContext;
+import org.springframework.lang.NonNull;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
+
+@JsonComponent
+public class SensorCreationSchemaDeserializer extends JsonDeserializer&lt;SensorCreationSchema&gt;
+{ 
+  private final ApplicationContext _context;
+
+  @Autowired
+  public SensorCreationSchemaDeserializer (
+    @NonNull final ApplicationContext context
+  ) {
+<span class="nc" id="L30">    super();</span>
+<span class="nc" id="L31">    _context = context;</span>
+<span class="nc" id="L32">  }</span>
+  
+  @Override
+  public SensorCreationSchema deserialize (
+    @NonNull final JsonParser parser, 
+    @NonNull final DeserializationContext context
+  ) throws IOException, JsonProcessingException {
+<span class="nc" id="L39">    final ObjectMapper mapper = (ObjectMapper) parser.getCodec();</span>
+    
+<span class="nc" id="L41">    final TreeNode treeNode = mapper.readTree(parser);</span>
+    
+<span class="nc bnc" id="L43" title="All 2 branches missed.">    if (treeNode.isObject()) {</span>
+<span class="nc" id="L44">      final ObjectNode node = (ObjectNode) treeNode;</span>
+      final TreeNode configuration;
+      
+<span class="nc bnc" id="L47" title="All 2 branches missed.">      if (node.has(&quot;configuration&quot;)) {      </span>
+<span class="nc" id="L48">        configuration = node.get(&quot;configuration&quot;);</span>
+      } else {
+<span class="nc" id="L50">        configuration = null;</span>
+      }
+      
+<span class="nc" id="L53">      final SensorCreationSchema result = deserializeSchema(node);</span>
+      
+<span class="nc" id="L55">      result.setConfiguration(deserializeConfiguration(result, configuration, mapper));</span>
+      
+<span class="nc" id="L57">      return result;</span>
+<span class="nc bnc" id="L58" title="All 4 branches missed.">    } else if (treeNode.isValueNode() &amp;&amp; ((ValueNode) treeNode).isNull()) {</span>
+<span class="nc" id="L59">      return null;</span>
+    } else {
+<span class="nc" id="L61">      throw new Error(String.join(</span>
+        &quot;&quot;, 
+        &quot;Unnable to parse a SensorCreationSchema from the provided json : &quot;,
+        &quot;the provided json is nor an object nor a null value.&quot;
+      ));
+    }
+  }
+
+  private SensorCreationSchema deserializeSchema (@NonNull final ObjectNode node) {
+<span class="nc" id="L70">    final SensorCreationSchema result = _context.getBean(SensorCreationSchema.class);</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">    result.setName((node.hasNonNull(&quot;name&quot;)) ? node.get(&quot;name&quot;).asText() : null);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    result.setType((node.hasNonNull(&quot;type&quot;)) ? node.get(&quot;type&quot;).asText() : null);</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">    result.setUnit((node.hasNonNull(&quot;unit&quot;)) ? node.get(&quot;unit&quot;).asText() : null);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    result.setParent((node.hasNonNull(&quot;parent&quot;)) ? node.get(&quot;parent&quot;).asLong() : null);</span>
+<span class="nc" id="L75">    return result;</span>
+  }
+
+  private SensorConfiguration deserializeConfiguration (
+    @NonNull final SensorCreationSchema result,
+    @NonNull final TreeNode configuration,
+    @NonNull final ObjectMapper mapper
+  ) {
+    try {
+<span class="nc" id="L84">      final Class&lt;?&gt; sensorType = Class.forName(result.getType());</span>
+<span class="nc" id="L85">      final UseSensorConfigurationOfType annotation = sensorType.getAnnotation(UseSensorConfigurationOfType.class);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">      if (annotation == null) {</span>
+<span class="nc" id="L87">        return null;</span>
+<span class="nc bnc" id="L88" title="All 6 branches missed.">      } else if (configuration == null || (configuration.isValueNode() &amp;&amp; ((ValueNode) configuration).isNull())) {</span>
+<span class="nc" id="L89">        return annotation.value().newInstance(); </span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">      } else if (configuration.isObject()) {</span>
+<span class="nc" id="L91">        return mapper.treeToValue(configuration, annotation.value());</span>
+      } else {
+<span class="nc" id="L93">        throw new Error(&quot;Invalid configuration node type.&quot;);</span>
+      }
+<span class="nc" id="L95">    } catch (final Exception exception) {</span>
+<span class="nc" id="L96">      return null;</span>
+    }
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DatabaseNestedSetTree.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.tree</a> &gt; <span class="el_source">DatabaseNestedSetTree.java</span></div><h1>DatabaseNestedSetTree.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.tree;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
+
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class DatabaseNestedSetTree&lt;TreeNode extends NestedSetTreeNode&lt;TreeNode&gt;&gt; 
+       implements NestedSetTree&lt;TreeNode&gt;
+{
+  @NonNull
+  private final EntityManager _entityManager;
+  
+  @NonNull
+  private final Class&lt;TreeNode&gt; _entity;
+  
+  @Autowired
+  public DatabaseNestedSetTree(
+    @NonNull final EntityManager entityManager,
+    @NonNull final Class&lt;TreeNode&gt; entity
+<span class="nc" id="L26">  ) {</span>
+<span class="nc" id="L27">    _entityManager = entityManager;</span>
+<span class="nc" id="L28">    _entity = entity;</span>
+<span class="nc" id="L29">  }</span>
+
+  @Override
+  public void addNode (@NonNull final TreeNode node) {
+<span class="nc" id="L33">    addNode(node, null);</span>
+<span class="nc" id="L34">  }</span>
+
+  @Override
+  public void addNode (@NonNull final TreeNode node, @NonNull final TreeNode parent) {
+<span class="nc bnc" id="L38" title="All 2 branches missed.">    if (parent != null) {</span>
+<span class="nc" id="L39">      _entityManager.createQuery(</span>
+<span class="nc" id="L40">        String.join(</span>
+          &quot;&quot;, 
+<span class="nc" id="L42">          &quot;UPDATE &quot;, _entity.getName(), &quot; node &quot;, </span>
+          &quot;SET node._coordinates._start = node._coordinates._start + 2 &quot;,
+          &quot;WHERE node._coordinates._start &gt; :parentSetEnd&quot;
+        )
+<span class="nc" id="L46">      ).setParameter(&quot;parentSetEnd&quot;, parent.getCoordinates().getEnd())</span>
+<span class="nc" id="L47">       .executeUpdate();</span>
+      
+<span class="nc" id="L49">      _entityManager.createQuery(</span>
+<span class="nc" id="L50">        String.join(</span>
+          &quot;&quot;, 
+<span class="nc" id="L52">          &quot;UPDATE &quot;, _entity.getName(), &quot; node &quot;, </span>
+          &quot;SET node._coordinates._end = node._coordinates._end + 2 &quot;,
+          &quot;WHERE node._coordinates._end &gt;= :parentSetEnd&quot;
+        )
+<span class="nc" id="L56">      ).setParameter(&quot;parentSetEnd&quot;, parent.getCoordinates().getEnd())</span>
+<span class="nc" id="L57">       .executeUpdate();</span>
+    }
+    
+<span class="nc" id="L60">    _entityManager.persist(node);</span>
+    
+<span class="nc" id="L62">    final Query childCoordinatesQuery = _entityManager.createQuery(</span>
+<span class="nc" id="L63">      String.join(</span>
+        &quot;&quot;, 
+<span class="nc" id="L65">        &quot;UPDATE &quot;, _entity.getName(), &quot; node &quot;, </span>
+        &quot;   SET node._coordinates._end = :childSetEnd, &quot;,
+        &quot;       node._coordinates._start = :childSetStart, &quot;,
+        &quot;       node._coordinates._depth = :childSetDepth &quot;,
+        &quot; WHERE node._identifier = :childIdentifier&quot;
+      )
+<span class="nc" id="L71">    ).setParameter(&quot;childIdentifier&quot;, node.getIdentifier());</span>
+    
+<span class="nc bnc" id="L73" title="All 2 branches missed.">    if (parent != null) {</span>
+<span class="nc" id="L74">      childCoordinatesQuery</span>
+<span class="nc" id="L75">        .setParameter(&quot;childSetEnd&quot;, parent.getCoordinates().getEnd() - 1)</span>
+<span class="nc" id="L76">        .setParameter(&quot;childSetStart&quot;, parent.getCoordinates().getEnd() - 2)</span>
+<span class="nc" id="L77">        .setParameter(&quot;childSetDepth&quot;, parent.getCoordinates().getDepth() + 1);</span>
+    } else {
+<span class="nc" id="L79">      childCoordinatesQuery</span>
+<span class="nc" id="L80">        .setParameter(&quot;childSetEnd&quot;, getSetEnd() + 1)</span>
+<span class="nc" id="L81">        .setParameter(&quot;childSetStart&quot;, getSetEnd())</span>
+<span class="nc" id="L82">        .setParameter(&quot;childSetDepth&quot;, 1);</span>
+    }
+    
+<span class="nc" id="L85">    childCoordinatesQuery.executeUpdate();</span>
+<span class="nc" id="L86">  }</span>
+
+  @Override
+  public void clear () {
+<span class="nc" id="L90">    _entityManager.createQuery(String.join(&quot;&quot;, &quot;DELETE &quot;, _entity.getName())).executeUpdate();</span>
+<span class="nc" id="L91">  }</span>
+
+  @Override
+  public boolean contains (@NonNull final TreeNode node) {
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    if (node.getIdentifier() == null) return false;</span>
+    
+<span class="nc bnc" id="L97" title="All 2 branches missed.">    return _entityManager.find(_entity, node.getIdentifier()) != null;</span>
+  }
+
+  @Override
+  public Set&lt;TreeNode&gt; getAllChildrenOf (@NonNull final TreeNode node) {
+<span class="nc" id="L102">    final TypedQuery&lt;TreeNode&gt; query = _entityManager.createQuery(</span>
+<span class="nc" id="L103">      String.join(</span>
+        &quot;&quot;, 
+        &quot;SELECT node &quot;,
+<span class="nc" id="L106">        &quot;  FROM &quot;, _entity.getName(), &quot; node &quot;,</span>
+        &quot; WHERE node._coordinates._start &gt; :parentSetStart &quot;,
+        &quot;   AND node._coordinates._end &lt; :parentSetEnd &quot;
+      ),
+      _entity
+<span class="nc" id="L111">    ).setParameter(&quot;parentSetStart&quot;, node.getCoordinates().getStart())</span>
+<span class="nc" id="L112">     .setParameter(&quot;parentSetEnd&quot;, node.getCoordinates().getEnd());</span>
+    
+<span class="nc" id="L114">    return new HashSet&lt;TreeNode&gt;(query.getResultList());</span>
+  }
+
+  @Override
+  public Set&lt;TreeNode&gt; getChildrenOf (@NonNull final TreeNode node) {
+<span class="nc" id="L119">    final TypedQuery&lt;TreeNode&gt; query = _entityManager.createQuery(</span>
+<span class="nc" id="L120">      String.join(</span>
+        &quot;&quot;, 
+        &quot;SELECT node &quot;,
+<span class="nc" id="L123">        &quot;  FROM &quot;, _entity.getName(), &quot; node &quot;,</span>
+        &quot; WHERE node._coordinates._start &gt; :parentSetStart &quot;,
+        &quot;   AND node._coordinates._end &lt; :parentSetEnd &quot;,
+        &quot;   AND node._coordinates._depth = :parentDepth + 1&quot;
+      ),
+      _entity
+<span class="nc" id="L129">    ).setParameter(&quot;parentSetStart&quot;, node.getCoordinates().getStart())</span>
+<span class="nc" id="L130">     .setParameter(&quot;parentSetEnd&quot;, node.getCoordinates().getEnd())</span>
+<span class="nc" id="L131">     .setParameter(&quot;parentDepth&quot;, node.getCoordinates().getDepth());</span>
+    
+<span class="nc" id="L133">    return new HashSet&lt;TreeNode&gt;(query.getResultList());</span>
+  }
+  
+  @Override
+  public NestedSetCoordinates getCoordinates () {
+<span class="nc" id="L138">    return new NestedSetCoordinates(getSetStart(), getSetEnd(), getDepth());</span>
+  }
+
+  @Override
+  public NestedSetCoordinates getCoordinatesOf (@NonNull final TreeNode node) {
+<span class="nc" id="L143">    final List&lt;NestedSetCoordinates&gt; results = _entityManager.createQuery(</span>
+<span class="nc" id="L144">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT node._coordinates &quot;,
+<span class="nc" id="L147">        &quot;  FROM &quot;, _entity.getName(), &quot; node &quot;,</span>
+        &quot; WHERE node._identifier = :identifier&quot;
+      ), NestedSetCoordinates.class
+<span class="nc" id="L150">    ).setParameter(&quot;identifier&quot;, node.getIdentifier())</span>
+<span class="nc" id="L151">     .getResultList();</span>
+    
+<span class="nc bnc" id="L153" title="All 2 branches missed.">    return results.size() &lt;= 0 ? null : results.get(0);</span>
+  }
+
+  @Override
+  public int getDepth () {
+<span class="nc" id="L158">    return 0;</span>
+  }
+
+  @Override
+  public int getDepthOf (@NonNull final TreeNode node) {
+<span class="nc" id="L163">    return _entityManager.createQuery(</span>
+<span class="nc" id="L164">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT node._coordinates._depth &quot;,
+<span class="nc" id="L167">        &quot;  FROM &quot;, _entity.getName(), &quot; node &quot;,</span>
+        &quot; WHERE identifier = :identifier&quot;
+      ), Integer.class
+<span class="nc" id="L170">    ).setParameter(&quot;identifier&quot;, node.getIdentifier())</span>
+<span class="nc" id="L171">     .getFirstResult();</span>
+  }
+
+  @Override
+  public TreeNode getNode (@NonNull final Long identifier) {
+<span class="nc" id="L176">    return _entityManager.find(_entity, identifier);</span>
+  }
+
+  @Override
+  public Set&lt;TreeNode&gt; getNodes () {
+<span class="nc" id="L181">    final TypedQuery&lt;TreeNode&gt; query = _entityManager.createQuery(</span>
+<span class="nc" id="L182">      String.join(&quot;&quot;, &quot;SELECT node FROM &quot;, _entity.getName(), &quot; node&quot;),</span>
+      _entity
+    );
+<span class="nc" id="L185">    final Set&lt;TreeNode&gt; result = new HashSet&lt;TreeNode&gt;(query.getResultList());</span>
+<span class="nc" id="L186">    return result;</span>
+  }
+
+  @Override
+  public TreeNode getParentOf (@NonNull final TreeNode node) {    
+<span class="nc" id="L191">    final TypedQuery&lt;TreeNode&gt; query = _entityManager.createQuery(</span>
+<span class="nc" id="L192">      String.join(</span>
+        &quot;&quot;, 
+        &quot;SELECT node &quot;,
+<span class="nc" id="L195">        &quot;  FROM &quot;, _entity.getName(), &quot; node &quot;,</span>
+        &quot; WHERE node._coordinates._start &lt; :childSetStart &quot;,
+        &quot;   AND node._coordinates._end &gt; :childSetEnd &quot;,
+        &quot;   AND node._coordinates._depth = :childDepth - 1&quot;
+      ),
+      _entity
+<span class="nc" id="L201">    ).setParameter(&quot;childSetStart&quot;, node.getCoordinates().getStart())</span>
+<span class="nc" id="L202">     .setParameter(&quot;childSetEnd&quot;, node.getCoordinates().getEnd())</span>
+<span class="nc" id="L203">     .setParameter(&quot;childDepth&quot;, node.getCoordinates().getDepth());</span>
+    
+<span class="nc" id="L205">    final List&lt;TreeNode&gt; result = query.getResultList();</span>
+    
+<span class="nc bnc" id="L207" title="All 2 branches missed.">    return result.size() == 0 ? null : result.get(0);</span>
+  }
+
+  @Override
+  public Set&lt;TreeNode&gt; getParentsOf (@NonNull final TreeNode node) {
+<span class="nc" id="L212">    final TypedQuery&lt;TreeNode&gt; query = _entityManager.createQuery(</span>
+<span class="nc" id="L213">      String.join(</span>
+        &quot;&quot;, 
+        &quot;SELECT node &quot;,
+<span class="nc" id="L216">        &quot;  FROM &quot;, _entity.getName(), &quot; node &quot;,</span>
+        &quot; WHERE node._coordinates._start &lt; :childSetStart &quot;,
+        &quot;   AND node._coordinates._end &gt; :childSetEnd &quot;
+      ),
+      _entity
+<span class="nc" id="L221">    ).setParameter(&quot;childSetStart&quot;, node.getCoordinates().getStart())</span>
+<span class="nc" id="L222">     .setParameter(&quot;childSetEnd&quot;, node.getCoordinates().getEnd());</span>
+    
+<span class="nc" id="L224">    final Set&lt;TreeNode&gt; result = new HashSet&lt;TreeNode&gt;(query.getResultList());</span>
+    
+<span class="nc" id="L226">    return result;</span>
+  }
+
+  @Override
+  public int getSetEnd () {
+<span class="nc" id="L231">    final TypedQuery&lt;Integer&gt; query = _entityManager.createQuery(</span>
+<span class="nc" id="L232">      String.join(&quot;&quot;, &quot;SELECT MAX(node._coordinates._end) + 1 FROM &quot;, _entity.getName(), &quot; node&quot;),</span>
+      Integer.class
+    );
+    
+<span class="nc" id="L236">    final List&lt;Integer&gt; result = query.getResultList();</span>
+    
+<span class="nc bnc" id="L238" title="All 2 branches missed.">    return (result.size() &lt;= 0) ? 1 : result.get(0).intValue();</span>
+  }
+
+  @Override
+  public int getSetEndOf (@NonNull final TreeNode node) {
+<span class="nc" id="L243">    return _entityManager.createQuery(</span>
+<span class="nc" id="L244">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT node._coordinates._end &quot;,
+<span class="nc" id="L247">        &quot;  FROM &quot;, _entity.getName(), &quot; node &quot;,</span>
+        &quot; WHERE identifier = :identifier&quot;
+      ), Integer.class
+<span class="nc" id="L250">    ).setParameter(&quot;identifier&quot;, node.getIdentifier())</span>
+<span class="nc" id="L251">     .getFirstResult();</span>
+  }
+
+  @Override
+  public int getSetStart () {
+<span class="nc" id="L256">    return 0;</span>
+  }
+
+  @Override
+  public int getSetStartOf (@NonNull final TreeNode node) {    
+<span class="nc" id="L261">    return _entityManager.createQuery(</span>
+<span class="nc" id="L262">      String.join(</span>
+        &quot;&quot;,
+        &quot;SELECT node._coordinates._start &quot;,
+<span class="nc" id="L265">        &quot;  FROM &quot;, _entity.getName(), &quot; node &quot;,</span>
+        &quot; WHERE identifier = :identifier&quot;
+      ), Integer.class
+<span class="nc" id="L268">    ).setParameter(&quot;identifier&quot;, node.getIdentifier())</span>
+<span class="nc" id="L269">     .getFirstResult();</span>
+  }
+
+  @Override
+  public void removeNode (@NonNull final TreeNode node) {    
+<span class="nc" id="L274">    _entityManager.createQuery(</span>
+<span class="nc" id="L275">      String.join(</span>
+        &quot;&quot;, 
+<span class="nc" id="L277">        &quot;UPDATE &quot;, _entity.getName(), &quot; &quot;, </span>
+        &quot;SET _coordinates._start = _coordinates._start - :removedLength, &quot;,
+        &quot;    _coordinates._end = _coordinates._end - :removedLength, &quot;,
+        &quot;WHERE _coordinates._start &gt; :removedSetEnd&quot;
+      )
+<span class="nc" id="L282">    ).setParameter(&quot;removedLength&quot;, node.getCoordinates().getSize())</span>
+<span class="nc" id="L283">     .setParameter(&quot;removedSetEnd&quot;, node.getCoordinates().getEnd())</span>
+<span class="nc" id="L284">     .executeUpdate();</span>
+    
+<span class="nc" id="L286">    _entityManager.createQuery(</span>
+<span class="nc" id="L287">      String.join(</span>
+        &quot;&quot;, 
+<span class="nc" id="L289">        &quot;UPDATE &quot;, _entity.getName(), &quot; &quot;, </span>
+        &quot;SET _coordinates._end = _coordinates._end - :removedLength, &quot;,
+        &quot;WHERE _coordinates._end &gt; :removedSetEnd &quot;,
+        &quot;  AND _coordinates._start &lt; :removedSetStart&quot;
+      )
+<span class="nc" id="L294">    ).setParameter(&quot;removedLength&quot;, node.getCoordinates().getSize())</span>
+<span class="nc" id="L295">     .setParameter(&quot;removedSetEnd&quot;, node.getCoordinates().getEnd())</span>
+<span class="nc" id="L296">     .setParameter(&quot;removedSetStart&quot;, node.getCoordinates().getStart())</span>
+<span class="nc" id="L297">     .executeUpdate();</span>
+    
+<span class="nc" id="L299">    _entityManager.createQuery(</span>
+<span class="nc" id="L300">      String.join(</span>
+        &quot;&quot;, 
+<span class="nc" id="L302">        &quot;DELETE &quot;, _entity.getName(), &quot; node &quot;, </span>
+        &quot;WHERE node._coordinates._end &lt;= :removedSetEnd &quot;,
+        &quot;  AND node._coordinates._start &gt;= :removedSetStart&quot;
+      )
+<span class="nc" id="L306">    ).setParameter(&quot;removedSetStart&quot;, node.getCoordinates().getStart())</span>
+<span class="nc" id="L307">     .setParameter(&quot;removedSetEnd&quot;, node.getCoordinates().getEnd())</span>
+<span class="nc" id="L308">     .executeUpdate();</span>
+<span class="nc" id="L309">  }</span>
+
+  @Override
+  public long getSize () {    
+<span class="nc" id="L313">    return _entityManager.createQuery(</span>
+<span class="nc" id="L314">      String.join(&quot;&quot;, &quot;SELECT COUNT(node) FROM &quot;, _entity.getName(), &quot; node&quot;), </span>
+      Long.class
+<span class="nc" id="L316">    ).getSingleResult().longValue();</span>
+  }
+
+  @Override
+  public TreeNode getRoot (@NonNull final TreeNode node) {
+<span class="nc" id="L321">    return _entityManager.createQuery(</span>
+<span class="nc" id="L322">      String.join(</span>
+        &quot;&quot;,
+<span class="nc" id="L324">        &quot;SELECT node FROM &quot;, _entity.getName(), &quot; node &quot;,</span>
+        &quot; WHERE node._coordinates._end &gt;= :childSetEnd &quot;,
+        &quot;   AND node._coordinates._start &lt;= :childSetStart &quot;, &quot;   AND node._coordinates._depth = 1&quot;
+      ), _entity)
+<span class="nc" id="L328">                         .setParameter(</span>
+                           &quot;childSetEnd&quot;,
+<span class="nc" id="L330">                           node.getCoordinates()</span>
+<span class="nc" id="L331">                               .getEnd()</span>
+                         )
+<span class="nc" id="L333">                         .setParameter(</span>
+                           &quot;childSetStart&quot;,
+<span class="nc" id="L335">                           node.getCoordinates()</span>
+<span class="nc" id="L336">                               .getStart()</span>
+<span class="nc" id="L337">                         ).getSingleResult();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

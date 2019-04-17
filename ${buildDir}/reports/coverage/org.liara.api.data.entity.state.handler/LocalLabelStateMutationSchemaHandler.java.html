@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LocalLabelStateMutationSchemaHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.state.handler</a> &gt; <span class="el_source">LocalLabelStateMutationSchemaHandler.java</span></div><h1>LocalLabelStateMutationSchemaHandler.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.state.handler;
+
+import org.liara.api.data.entity.state.LabelState;
+import org.liara.api.data.entity.state.LabelStateMutationSchema;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.repository.local.LocalEntityManager;
+import org.springframework.lang.NonNull;
+
+public class LocalLabelStateMutationSchemaHandler
+  extends LocalStateMutationSchemaHandler&lt;LabelStateMutationSchema&gt;
+{
+  @NonNull
+  private final LocalEntityManager _manager;
+
+  public LocalLabelStateMutationSchemaHandler (
+    @NonNull final LocalEntityManager manager
+  ) {
+<span class="fc" id="L18">    super(manager);</span>
+<span class="fc" id="L19">    _manager = manager;</span>
+<span class="fc" id="L20">  }</span>
+
+  public void apply (@NonNull final LabelStateMutationSchema schema, @NonNull final LabelState state) {
+<span class="fc" id="L23">    super.apply(schema, state);</span>
+<span class="fc bfc" id="L24" title="All 2 branches covered.">    if (schema.getStart() != null) state.setStart(schema.getStart());</span>
+<span class="fc bfc" id="L25" title="All 2 branches covered.">    if (schema.getEnd() != null) state.setEnd(schema.getEnd());</span>
+<span class="pc bpc" id="L26" title="1 of 2 branches missed.">    if (schema.getTag() != null) state.setTag(schema.getTag());</span>
+<span class="fc" id="L27">  }</span>
+
+  public State resolve (@NonNull final LabelStateMutationSchema input) {
+<span class="fc" id="L30">    final LabelState result = (LabelState) _manager.find(input.getState()).get();</span>
+<span class="fc" id="L31">    _manager.remove(result);</span>
+<span class="fc" id="L32">    apply(input, result);</span>
+<span class="fc" id="L33">    return result;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

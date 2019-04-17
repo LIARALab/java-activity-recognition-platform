@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityCollectionSubquery.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.query</a> &gt; <span class="el_source">EntityCollectionSubquery.java</span></div><h1>EntityCollectionSubquery.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.query;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.CollectionJoin;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.ListJoin;
+import javax.persistence.criteria.MapJoin;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Selection;
+import javax.persistence.criteria.SetJoin;
+import javax.persistence.criteria.Subquery;
+
+import org.liara.api.collection.query.queried.QueriedEntity;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
+import org.springframework.lang.NonNull;
+
+public class      EntityCollectionSubquery&lt;Entity, Result&gt; 
+       extends    AbstractEntityCollectionQuery&lt;Entity, Result&gt;
+       implements Expression&lt;Result&gt;
+{
+  @NonNull
+  private final Subquery&lt;Result&gt; _query;
+  
+  public EntityCollectionSubquery(
+    @NonNull final EntityManager manager, 
+    @NonNull final Subquery&lt;Result&gt; query, 
+    @NonNull final QueriedEntity&lt;?, Entity&gt; entity
+  ) {
+<span class="nc" id="L61">    super (manager, query, entity);</span>
+<span class="nc" id="L62">    _query = query;</span>
+<span class="nc" id="L63">  }</span>
+
+  @Override
+  public EntityCollectionQuery&lt;Entity, Result&gt; orderBy (@NonNull final Order... o) {
+<span class="nc" id="L67">    return this;</span>
+  }
+
+  @Override
+  public EntityCollectionQuery&lt;Entity, Result&gt; orderBy (@NonNull final List&lt;Order&gt; o) {
+<span class="nc" id="L72">    return this;</span>
+  }
+
+  @Override
+  public List&lt;Order&gt; getOrderList () {
+<span class="nc" id="L77">    return new ArrayList&lt;&gt;();</span>
+  }
+  
+  @Override
+  public Set&lt;ParameterExpression&lt;?&gt;&gt; getParameters () {
+<span class="nc" id="L82">    return Collections.emptySet();</span>
+  }
+
+  @Override
+  public &lt;Joined&gt; EntityCollectionSubquery&lt;Joined, Result&gt; join (@NonNull final Join&lt;Entity, Joined&gt; join) {
+<span class="nc" id="L87">    return new EntityCollectionSubquery&lt;&gt;(getManager(), _query, QueriedEntity.from(join));</span>
+  }
+  
+  @Override
+  public &lt;Joined&gt; EntityCollectionSubquery&lt;Joined, Result&gt; join (
+    @NonNull final EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join
+  ) {
+<span class="nc" id="L94">    return (EntityCollectionSubquery&lt;Joined, Result&gt;) super.join(join);</span>
+  }
+
+  @Override
+  public &lt;Joined&gt; EntityCollectionSubquery&lt;Joined, Result&gt; join (
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join
+  ) {
+<span class="nc" id="L101">    return join((EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt;) join);</span>
+  }
+
+  @Override
+  public Predicate isNull () {
+<span class="nc" id="L106">    return _query.isNull();</span>
+  }
+
+  @Override
+  public Predicate isNotNull () {
+<span class="nc" id="L111">    return _query.isNotNull();</span>
+  }
+
+  @Override
+  public Predicate in (@NonNull final Object... values) {
+<span class="nc" id="L116">    return _query.in(values);</span>
+  }
+
+  @Override
+  public Predicate in (@NonNull final Expression&lt;?&gt;... values) {
+<span class="nc" id="L121">    return _query.in(values);</span>
+  }
+
+  @Override
+  public Predicate in (@NonNull final Collection&lt;?&gt; values) {
+<span class="nc" id="L126">    return _query.in(values);</span>
+  }
+
+  @Override
+  public Predicate in (@NonNull final Expression&lt;Collection&lt;?&gt;&gt; values) {
+<span class="nc" id="L131">    return _query.in(values);</span>
+  }
+
+  @Override
+  public &lt;X&gt; Expression&lt;X&gt; as (@NonNull final Class&lt;X&gt; type) {
+<span class="nc" id="L136">    return _query.as(type);</span>
+  }
+
+  @Override
+  public Selection&lt;Result&gt; alias (@NonNull final String name) {
+<span class="nc" id="L141">    return _query.alias(name);</span>
+  }
+
+  @Override
+  public boolean isCompoundSelection () {
+<span class="nc" id="L146">    return _query.isCompoundSelection();</span>
+  }
+
+  @Override
+  public List&lt;Selection&lt;?&gt;&gt; getCompoundSelectionItems () {
+<span class="nc" id="L151">    return _query.getCompoundSelectionItems();</span>
+  }
+
+  @Override
+  public Class&lt;? extends Result&gt; getJavaType () {
+<span class="nc" id="L156">    return _query.getJavaType();</span>
+  }
+
+  @Override
+  public String getAlias () {
+<span class="nc" id="L161">    return _query.getAlias();</span>
+  }
+
+  public &lt;Related&gt; QueriedEntity&lt;?, Related&gt; correlate (@NonNull final QueriedEntity&lt;?, Related&gt; related) {
+<span class="nc" id="L165">    return related.correlate(_query);</span>
+  }
+  
+  public &lt;Y&gt; Root&lt;Y&gt; correlate (@NonNull final Root&lt;Y&gt; parentRoot) {
+<span class="nc" id="L169">    return _query.correlate(parentRoot);</span>
+  }
+
+  public &lt;X, Y&gt; Join&lt;X, Y&gt; correlate (@NonNull final Join&lt;X, Y&gt; parentJoin) {
+<span class="nc" id="L173">    return _query.correlate(parentJoin);</span>
+  }
+
+  public &lt;X, Y&gt; CollectionJoin&lt;X, Y&gt; correlate (@NonNull final CollectionJoin&lt;X, Y&gt; parentCollection) {
+<span class="nc" id="L177">    return _query.correlate(parentCollection);</span>
+  }
+
+  public &lt;X, Y&gt; SetJoin&lt;X, Y&gt; correlate (@NonNull final SetJoin&lt;X, Y&gt; parentSet) {
+<span class="nc" id="L181">    return _query.correlate(parentSet);</span>
+  }
+
+  public &lt;X, Y&gt; ListJoin&lt;X, Y&gt; correlate (@NonNull final ListJoin&lt;X, Y&gt; parentList) {
+<span class="nc" id="L185">    return _query.correlate(parentList);</span>
+  }
+
+  public &lt;X, K, V&gt; MapJoin&lt;X, K, V&gt; correlate (@NonNull final MapJoin&lt;X, K, V&gt; parentMap) {
+<span class="nc" id="L189">    return _query.correlate(parentMap);</span>
+  }
+
+  /**
+   * Return the underlying subquery.
+   * 
+   * @return The underlying subquery.
+   */
+  public Subquery&lt;Result&gt; getSubquery () {
+<span class="nc" id="L198">    return _query;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

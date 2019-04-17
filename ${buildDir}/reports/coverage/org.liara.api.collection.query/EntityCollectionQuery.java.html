@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityCollectionQuery.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.query</a> &gt; <span class="el_source">EntityCollectionQuery.java</span></div><h1>EntityCollectionQuery.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.query;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.AbstractQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.ParameterExpression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+import javax.persistence.metamodel.EntityType;
+
+import org.liara.api.collection.query.queried.QueriedEntity;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
+import org.springframework.lang.NonNull;
+
+/**
+ * A query over a colllection of a particular entity.
+ * 
+ * @author C&amp;eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
+ *
+ * @param &lt;Entity&gt; The targeted entity.
+ */
+public interface EntityCollectionQuery&lt;Entity, Output&gt;
+{   
+  /**
+   * Wrap the given query into an EntityCollectionQuery.
+   * 
+   * @param manager
+   * @param query
+   * @param entity
+   * @return
+   */
+  public static &lt;Entity, Result&gt; EntityCollectionMainQuery&lt;Entity, Result&gt; from (
+    @NonNull final EntityManager manager,
+    @NonNull final CriteriaQuery&lt;Result&gt; query, 
+    @NonNull final Root&lt;Entity&gt; entity
+  ) {
+<span class="nc" id="L69">    return new EntityCollectionMainQuery&lt;&gt;(manager, query, QueriedEntity.from(entity));</span>
+  }
+
+  /**
+   * Wrap the given query into an EntityCollectionQuery.
+   * 
+   * @param manager
+   * @param query
+   * @param entity
+   * @return
+   */
+  public static &lt;Entity, Result&gt; EntityCollectionSubquery&lt;Entity, Result&gt; from (
+    @NonNull final EntityManager manager, 
+    @NonNull final Subquery&lt;Result&gt; query, 
+    @NonNull final Root&lt;Entity&gt; entity
+  ) {
+<span class="nc" id="L85">    return new EntityCollectionSubquery&lt;&gt;(manager, query, QueriedEntity.from(entity));</span>
+  }
+  
+  /**
+   * Return the type of the queried entity.
+   * 
+   * @return The type of the queried entity.
+   */
+  public default Class&lt;Entity&gt; getEntityType () {
+<span class="nc" id="L94">    return getEntity().getModel().getBindableJavaType();</span>
+  }
+  
+  /**
+   * Return the queried entity.
+   * 
+   * @return The queried entity.
+   */
+  public QueriedEntity&lt;?, Entity&gt; getEntity ();
+  
+  /**
+   * Return this query's related entity manager instance.
+   * 
+   * @return This query's related entity manager instance.
+   */
+  public EntityManager getManager ();
+
+  /**
+   * @see AbstractQuery#from(Class)
+   */
+  public &lt;X&gt; Root&lt;X&gt; from (@NonNull final Class&lt;X&gt; entityClass);
+
+  /**
+   * @see AbstractQuery#from(EntityType)
+   */
+  public &lt;X&gt; Root&lt;X&gt; from (@NonNull final EntityType&lt;X&gt; entity);
+
+  /**
+   * @see AbstractQuery#getRoots()
+   */
+  public Set&lt;Root&lt;?&gt;&gt; getRoots ();
+
+  /**
+   * @see AbstractQuery#where(Expression)
+   */
+  public EntityCollectionQuery&lt;Entity, Output&gt; where (@NonNull final Expression&lt;Boolean&gt; restriction);
+  
+  /**
+   * Create an EntityCollectionQuery on the given join.
+   * 
+   * @param join Join to apply.
+   * 
+   * @return An EntityCollectionQuery on the given join.
+   */
+  public &lt;Joined&gt; EntityCollectionQuery&lt;Joined, Output&gt; join (@NonNull final Join&lt;Entity, Joined&gt; join);
+  
+  /**
+   * Create an EntityCollectionQuery on the given join.
+   * 
+   * @param join Join to apply.
+   * 
+   * @return An EntityCollectionQuery on the given join.
+   */
+  public &lt;Joined&gt; EntityCollectionQuery&lt;Joined, Output&gt; join (@NonNull final EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join);
+  
+  /**
+   * Create an EntityCollectionQuery on the given join.
+   * 
+   * @param join Join to apply.
+   * 
+   * @return An EntityCollectionQuery on the given join.
+   */
+  public &lt;Joined&gt; EntityCollectionQuery&lt;Joined, Output&gt; join (@NonNull final SimpleEntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join);
+  
+  /**
+   * Create a subquery.
+   * 
+   * @param joined Target entity of the subquery.
+   * @param result Result type of the subquery.
+   * 
+   * @return A sub query for the given configuration.
+   */
+  public &lt;Joined, Result&gt; EntityCollectionSubquery&lt;Joined, Result&gt; subquery (
+      @NonNull final Class&lt;Joined&gt; joined,
+      @NonNull final Class&lt;Result&gt; result
+  );
+
+  /**
+   * Allow to chain restrictions with a and criteria.
+   * 
+   * If this query does not have any restriction yet, a call to andWhere will be the same
+   * as a call to where.
+   * 
+   * @param restriction Restriction to chain.
+   * @return The current query.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; andWhere (@NonNull final Expression&lt;Boolean&gt; restriction) {
+<span class="nc" id="L181">    final Predicate current = getRestriction();</span>
+    
+<span class="nc bnc" id="L183" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L184">      return where(restriction);</span>
+    } else {
+<span class="nc" id="L186">      final CriteriaBuilder builder = getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L187">      return where(builder.and(current, restriction));</span>
+    }    
+  }
+  
+  /**
+   * Allow to chain restrictions with a or criteria.
+   * 
+   * If this query does not have any restriction yet, a call to orWhere will do nothing.
+   * 
+   * @param restriction Restriction to chain.
+   * @return The current query.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; orWhere (@NonNull final Expression&lt;Boolean&gt; restriction) {
+<span class="nc" id="L200">    final Predicate current = getRestriction();</span>
+    
+<span class="nc bnc" id="L202" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L203">      return this;</span>
+    } else {
+<span class="nc" id="L205">      final CriteriaBuilder builder = getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L206">      return where(builder.or(current, restriction));</span>
+    }
+  }
+
+  /**
+   * @see AbstractQuery#where(Predicate...)
+   */
+  public EntityCollectionQuery&lt;Entity, Output&gt; where (@NonNull final Predicate... restrictions);
+  
+  /**
+   * Allow to chain restrictions with a and criteria.
+   * 
+   * If this query does not have any restriction yet, a call to andWhere will be the same
+   * as a call to where.
+   * 
+   * @param restrictions Restrictions to chain.
+   * @return The current query.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; andWhere (@NonNull final Predicate... restrictions) {
+<span class="nc" id="L225">    final Predicate current = getRestriction();</span>
+    
+<span class="nc bnc" id="L227" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L228">      return where(restrictions);</span>
+    } else {
+<span class="nc" id="L230">      final CriteriaBuilder builder = getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L231">      return where(builder.and(current, builder.and(restrictions)));</span>
+    }
+  }
+  
+  /**
+   * Allow to chain restrictions with a or criteria.
+   * 
+   * If this query does not have any restriction yet, a call to orWhere will do nothing.
+   * 
+   * @param restrictions Restrictions to chain.
+   * @return The current query.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; orWhere (@NonNull final Predicate... restrictions) {
+<span class="nc" id="L244">    final Predicate current = getRestriction();</span>
+    
+<span class="nc bnc" id="L246" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L247">      return this;</span>
+    } else {
+<span class="nc" id="L249">      final CriteriaBuilder builder = getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L250">      return this.where(builder.or(current, builder.or(restrictions)));</span>
+    }
+  }
+  
+  /**
+   * @see AbstractQuery#getRestriction()
+   */
+  public Predicate getRestriction ();
+
+  /**
+   * @see AbstractQuery#groupBy(Expression...)
+   */
+  public EntityCollectionQuery&lt;Entity, Output&gt; groupBy (@NonNull final Expression&lt;?&gt;... grouping);
+  
+  /**
+   * Allow you to chain group by clauses.
+   * 
+   * @param grouping The group by clauses to add to the previous ones.
+   * 
+   * @return The current query instance.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; andGroupBy (@NonNull final Expression&lt;?&gt;... grouping) {
+<span class="nc" id="L272">    final List&lt;Expression&lt;?&gt;&gt; groups = new ArrayList&lt;&gt;(getGroupList());</span>
+<span class="nc" id="L273">    groups.addAll(Arrays.asList(grouping));</span>
+    
+<span class="nc" id="L275">    return this.groupBy(groups);</span>
+  }
+
+  /**
+   * @see AbstractQuery#groupBy(List)
+   */
+  public EntityCollectionQuery&lt;Entity, Output&gt; groupBy (@NonNull final List&lt;Expression&lt;?&gt;&gt; grouping);
+  
+  /**
+   * Allow you to chain group by clauses.
+   * 
+   * @param grouping The group by clauses to add to the previous ones.
+   * 
+   * @return The current query instance.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; andGroupBy (@NonNull final List&lt;Expression&lt;?&gt;&gt; grouping) {
+<span class="nc" id="L291">    final List&lt;Expression&lt;?&gt;&gt; groups = new ArrayList&lt;&gt;(getGroupList());</span>
+<span class="nc" id="L292">    groups.addAll(grouping);</span>
+    
+<span class="nc" id="L294">    return this.groupBy(groups);</span>
+  }
+  
+  /**
+   * @see AbstractQuery#getGroupList()
+   */
+  public List&lt;Expression&lt;?&gt;&gt; getGroupList ();
+
+  /**
+   * @see AbstractQuery#having(Expression)
+   */
+  public EntityCollectionQuery&lt;Entity, Output&gt; having (@NonNull final Expression&lt;Boolean&gt; restriction);
+
+  /**
+   * Allows you to chain group restrictions with a and criteria.
+   * 
+   * If this query does not have any group restriction yet, a call to andHaving will do the same
+   * action as a call to having.
+   * 
+   * @param restriction Restriction to chain.
+   * @return The current query.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; andHaving (@NonNull final Expression&lt;Boolean&gt; restriction) {
+<span class="nc" id="L317">    final Predicate current = getGroupRestriction();</span>
+    
+<span class="nc bnc" id="L319" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L320">      return having(restriction);</span>
+    } else {
+<span class="nc" id="L322">      final CriteriaBuilder builder = getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L323">      return having(builder.and(current, restriction));</span>
+    }    
+  }
+  
+  /**
+   * Allows you to chain group restrictions with a or criteria.
+   * 
+   * If this query does not have any group restriction yet, a call to orHaving will do nothing.
+   * 
+   * @param restriction Restriction to chain.
+   * @return The current query.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; orHaving (@NonNull final Expression&lt;Boolean&gt; restriction) {
+<span class="nc" id="L336">    final Predicate current = getGroupRestriction();</span>
+    
+<span class="nc bnc" id="L338" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L339">      return this;</span>
+    } else {
+<span class="nc" id="L341">      final CriteriaBuilder builder = getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L342">      return having(builder.or(current, restriction));</span>
+    }
+  }
+
+  /**
+   * @see AbstractQuery#having(Predicate...)
+   */
+  public EntityCollectionQuery&lt;Entity, Output&gt; having (@NonNull final Predicate... restrictions);
+
+  /**
+   * Allows you to chain group restrictions with a and criteria.
+   * 
+   * If this query does not have any group restriction yet, a call to andHaving will do the same
+   * action as a call to having.
+   * 
+   * @param restrictions Restrictions to chain.
+   * @return The current query.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; andHaving (@NonNull final Predicate... restrictions) {
+<span class="nc" id="L361">    final Predicate current = getGroupRestriction();</span>
+    
+<span class="nc bnc" id="L363" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L364">      return having(restrictions);</span>
+    } else {
+<span class="nc" id="L366">      final CriteriaBuilder builder = getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L367">      return having(builder.and(current, builder.and(restrictions)));</span>
+    }    
+  }
+
+  /**
+   * Allows you to chain group restrictions with a or criteria.
+   * 
+   * If this query does not have any group restriction yet, a call to orHaving will do nothing.
+   * 
+   * @param restrictions Restrictions to chain.
+   * @return The current query.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; orHaving (@NonNull final Predicate... restrictions) {
+<span class="nc" id="L380">    final Predicate current = getGroupRestriction();</span>
+    
+<span class="nc bnc" id="L382" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L383">      return this;</span>
+    } else {
+<span class="nc" id="L385">      final CriteriaBuilder builder = getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L386">      return having(builder.or(current, builder.or(restrictions)));</span>
+    }
+  }
+
+  /**
+   * @see AbstractQuery#getGroupRestriction()
+   */
+  public Predicate getGroupRestriction ();
+
+  /**
+   * If the underlying query can't be ordered, a call to this method will do nothing.
+   * 
+   * @see CriteriaQuery#orderBy(Order...)
+   */
+  public EntityCollectionQuery&lt;Entity, Output&gt; orderBy (@NonNull final Order... o);
+  
+  /**
+   * Allow you to chain ordering clauses.
+   * 
+   * If the underlying query can't be ordered, a call to this method will do nothing.
+   * 
+   * @param o New ordering clauses to add to the previous ones.
+   * 
+   * @return The current query.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; andOrderBy (@NonNull final Order... o) {
+<span class="nc" id="L412">    final List&lt;Order&gt; orders = new ArrayList&lt;&gt;(getOrderList());</span>
+<span class="nc" id="L413">    orders.addAll(Arrays.asList(o));</span>
+    
+<span class="nc" id="L415">    return orderBy(orders);</span>
+  }
+
+  /**
+   * If the underlying query can't be ordered, a call to this method will do nothing.
+   * 
+   * @see CriteriaQuery#orderBy(List)
+   */
+  public EntityCollectionQuery&lt;Entity, Output&gt; orderBy (@NonNull final List&lt;Order&gt; o);
+
+  /**
+   * Allow you to chain ordering clauses.
+   * 
+   * If the underlying query can't be ordered, a call to this method will do nothing.
+   * 
+   * @param o New ordering clauses to add to the previous ones.
+   * 
+   * @return The current query.
+   */
+  public default EntityCollectionQuery&lt;Entity, Output&gt; andOrderBy (@NonNull final List&lt;Order&gt; o) {
+<span class="nc" id="L435">    final List&lt;Order&gt; orders = new ArrayList&lt;&gt;(getOrderList());</span>
+<span class="nc" id="L436">    orders.addAll(o);</span>
+    
+<span class="nc" id="L438">    return orderBy(orders);</span>
+  }
+  
+  public List&lt;Order&gt; getOrderList ();
+  
+  public EntityCollectionQuery&lt;Entity, Output&gt; distinct (final boolean distinct);
+
+  public boolean isDistinct ();
+
+  public Set&lt;ParameterExpression&lt;?&gt;&gt; getParameters ();
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

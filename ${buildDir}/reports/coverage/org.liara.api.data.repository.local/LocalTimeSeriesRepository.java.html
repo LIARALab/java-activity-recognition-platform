@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LocalTimeSeriesRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository.local</a> &gt; <span class="el_source">LocalTimeSeriesRepository.java</span></div><h1>LocalTimeSeriesRepository.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository.local;
+
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.repository.TimeSeriesRepository;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class LocalTimeSeriesRepository&lt;TimeState extends State&gt;
+       extends LocalApplicationEntityRepository&lt;TimeState&gt;
+       implements TimeSeriesRepository&lt;TimeState&gt;
+{
+  @Override
+  public List&lt;TimeState&gt; findAllAt (
+    @NonNull final ZonedDateTime time, @NonNull final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; sensors
+  )
+  {
+<span class="nc" id="L24">    final List&lt;TimeState&gt; result = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L26" title="All 2 branches missed.">    for (final ApplicationEntityReference&lt;Sensor&gt; sensor : sensors) {</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">      if (_statesBySensors.containsKey(sensor.getIdentifier())) {</span>
+<span class="nc" id="L28">        final Set&lt;Entry&lt;TimeState&gt;&gt; valid = _statesBySensors.get(sensor.getIdentifier())</span>
+<span class="nc" id="L29">                                                            .tailSet(new Entry&lt;&gt;(time), true)</span>
+<span class="nc" id="L30">                                                            .headSet(new Entry&lt;&gt;(time), true);</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        for (final Entry&lt;TimeState&gt; entry : valid) { result.add(entry.getState()); }</span>
+      }
+<span class="nc" id="L33">    }</span>
+
+<span class="nc" id="L35">    result.sort(Comparator.comparing(ApplicationEntity::getIdentifier));</span>
+<span class="nc" id="L36">    return result;</span>
+  }
+  
+<span class="fc" id="L39">  @NonNull</span>
+  private final Map&lt;Long, TreeSet&lt;Entry&lt;TimeState&gt;&gt;&gt; _statesBySensors = new HashMap&lt;&gt;();
+  
+<span class="fc" id="L42">  @NonNull</span>
+  private final Map&lt;String, Map&lt;Long, Set&lt;Long&gt;&gt;&gt; _correlations = new HashMap&lt;&gt;();
+
+  public static &lt;TimeState extends State&gt; LocalTimeSeriesRepository&lt;TimeState&gt; create (
+    @NonNull final LocalEntityManager entityManager,
+    @NonNull final Class&lt;TimeState&gt; type
+  ) {
+<span class="fc" id="L49">    final LocalTimeSeriesRepository&lt;TimeState&gt; result = new LocalTimeSeriesRepository&lt;&gt;(type);</span>
+<span class="fc" id="L50">    result.setParent(entityManager);</span>
+<span class="fc" id="L51">    return result;</span>
+  }
+  
+  public LocalTimeSeriesRepository(@NonNull final Class&lt;TimeState&gt; type) {
+<span class="fc" id="L55">    super(type);</span>
+<span class="fc" id="L56">  }</span>
+  
+  private int sortByDateAscending (@NonNull final TimeState left, @NonNull final TimeState right) {
+<span class="fc" id="L59">    return left.getEmissionDate().compareTo(right.getEmissionDate());</span>
+  }
+  
+  private int sortByDateDescending (@NonNull final TimeState left, @NonNull final TimeState right) {
+<span class="fc" id="L63">    return -sortByDateAscending(left, right);</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findAllPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="fc bfc" id="L71" title="All 2 branches covered.">    if (!_statesBySensors.containsKey(sensor.getIdentifier())) {</span>
+<span class="fc" id="L72">      return Collections.emptyList();</span>
+    }
+    
+<span class="fc" id="L75">    final List&lt;TimeState&gt; result = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L77">    _statesBySensors.get(sensor.getIdentifier())</span>
+<span class="fc" id="L78">                    .headSet(new Entry&lt;&gt;(date), false)</span>
+<span class="fc" id="L79">                    .stream().forEach(x -&gt; result.add(x.getState()));</span>
+    
+<span class="fc" id="L81">    Collections.sort(result, this::sortByDateDescending);</span>
+    
+<span class="fc" id="L83">    return result;</span>
+  }
+
+  private static class Entry&lt;TimeState extends State&gt;
+    implements Comparable&lt;Entry&lt;TimeState&gt;&gt;
+  {
+    @NonNull
+    private final ZonedDateTime _emittion;
+
+    @Nullable
+    private final TimeState _state;
+
+<span class="fc" id="L95">    public Entry (@NonNull final TimeState state) {</span>
+<span class="fc" id="L96">      _state = state;</span>
+<span class="fc" id="L97">      _emittion = state.getEmissionDate();</span>
+<span class="fc" id="L98">    }</span>
+
+<span class="fc" id="L100">    public Entry (@NonNull final ZonedDateTime emittion) {</span>
+<span class="fc" id="L101">      _state = null;</span>
+<span class="fc" id="L102">      _emittion = emittion;</span>
+<span class="fc" id="L103">    }</span>
+
+    @Override
+    public int compareTo (@NonNull final Entry&lt;TimeState&gt; other) {
+<span class="fc" id="L107">      return this.getEmittion().compareTo(other.getEmittion());</span>
+    }
+
+    public ZonedDateTime getEmittion () {
+<span class="fc" id="L111">      return _emittion;</span>
+    }
+
+    public TimeState getState () {
+<span class="fc" id="L115">      return _state;</span>
+    }
+
+    @Override
+    public boolean equals (@NonNull final Object object) {
+<span class="nc bnc" id="L120" title="All 2 branches missed.">      if (object == this) return true;</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">      if (object == null) return false;</span>
+
+<span class="nc bnc" id="L123" title="All 2 branches missed.">      if (object instanceof Entry) {</span>
+<span class="nc" id="L124">        final Entry&lt;?&gt; other = (Entry) object;</span>
+
+<span class="nc" id="L126">        return Objects.equals(_emittion, other.getEmittion());</span>
+      } else {
+<span class="nc" id="L128">        return false;</span>
+      }
+    }
+
+    @Override
+    public int hashCode () {
+<span class="nc" id="L134">      return Objects.hash(_emittion);</span>
+    }
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, 
+    final int count
+  ) {
+<span class="fc" id="L144">    final List&lt;TimeState&gt; result = findAllPrevious(date, sensor);</span>
+    
+<span class="fc bfc" id="L146" title="All 2 branches covered.">    if (count &lt; result.size()) {</span>
+<span class="fc" id="L147">      return result.subList(0, count);</span>
+    } else {
+<span class="fc" id="L149">      return result;</span>
+    }
+  }
+  
+  @Override
+  public List&lt;TimeState&gt; findAllNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="fc bfc" id="L158" title="All 2 branches covered.">    if (!_statesBySensors.containsKey(sensor.getIdentifier())) {</span>
+<span class="fc" id="L159">      return Collections.emptyList();</span>
+    }
+    
+<span class="fc" id="L162">    final List&lt;TimeState&gt; result = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L164">    _statesBySensors.get(sensor.getIdentifier())</span>
+<span class="fc" id="L165">                    .tailSet(new Entry&lt;&gt;(date), false)</span>
+<span class="fc" id="L166">                    .stream().forEach(x -&gt; result.add(x.getState()));</span>
+    
+<span class="fc" id="L168">    return result;</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, 
+    final int count
+  ) {
+<span class="fc" id="L177">    final List&lt;TimeState&gt; result = findAllNext(date, sensor);</span>
+    
+<span class="fc bfc" id="L179" title="All 2 branches covered.">    if (count &lt; result.size()) {</span>
+<span class="fc" id="L180">      return result.subList(0, count);</span>
+    } else {
+<span class="fc" id="L182">      return result;</span>
+    }
+  }
+
+  @Override
+  public List&lt;TimeState&gt; find (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, 
+    final int offset, 
+    final int count
+  ) {
+<span class="fc" id="L192">    final List&lt;TimeState&gt; result = findAll(sensor);</span>
+    
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">    if (offset + count &gt;= result.size()) {</span>
+<span class="nc" id="L195">      return result.subList(offset, result.size());</span>
+    }
+    
+<span class="fc" id="L198">    return result.subList(offset, offset + count);</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findAll (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="fc bfc" id="L205" title="All 2 branches covered.">    if (!_statesBySensors.containsKey(sensor.getIdentifier())) {</span>
+<span class="fc" id="L206">      return Collections.emptyList();</span>
+    }
+    
+<span class="fc" id="L209">    final List&lt;TimeState&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L210">    _statesBySensors.get(</span>
+<span class="fc" id="L211">      sensor.getIdentifier()</span>
+<span class="fc" id="L212">    ).stream().forEach(x -&gt; result.add(x.getState()));</span>
+    
+<span class="fc" id="L214">    return result;</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findWithCorrelation (
+    @NonNull final String name,
+    @NonNull final ApplicationEntityReference&lt;? extends State&gt; correlated,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">    if (!_correlations.containsKey(name)) {</span>
+<span class="nc" id="L224">      return Collections.emptyList();</span>
+    }
+    
+<span class="fc bfc" id="L227" title="All 2 branches covered.">    if (!_correlations.get(name).containsKey(correlated.getIdentifier())) {</span>
+<span class="fc" id="L228">      return Collections.emptyList();</span>
+    }
+    
+<span class="fc" id="L231">    final List&lt;TimeState&gt; results = new ArrayList&lt;&gt;();</span>
+    
+<span class="fc bfc" id="L233" title="All 2 branches covered.">    for (final Long potentialResult : _correlations.get(name).get(correlated.getIdentifier())) {</span>
+<span class="fc" id="L234">      final TimeState state = find(potentialResult).get();</span>
+      
+<span class="fc bfc" id="L236" title="All 2 branches covered.">      if (state.getSensorIdentifier() == sensor.getIdentifier()) {</span>
+<span class="fc" id="L237">        results.add(state);</span>
+      }
+<span class="fc" id="L239">    }</span>
+    
+<span class="fc" id="L241">    return results;</span>
+  }
+  
+  public Set&lt;TimeState&gt; findWithCorrelation (
+    @NonNull final String name
+  ) {
+<span class="pc bpc" id="L247" title="1 of 2 branches missed.">    if (!_correlations.containsKey(name)) {</span>
+<span class="nc" id="L248">      return Collections.emptySet();</span>
+    }
+    
+<span class="fc" id="L251">    final Set&lt;Long&gt; results = new HashSet&lt;&gt;();</span>
+    
+<span class="fc" id="L253">    _correlations.get(name).values().forEach(results::addAll);</span>
+    
+<span class="fc" id="L255">    return results.stream()</span>
+<span class="fc" id="L256">                  .map(this::find)</span>
+<span class="fc" id="L257">                  .map(Optional::get)</span>
+<span class="fc" id="L258">                  .collect(Collectors.toSet());                 </span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findWithCorrelations (
+    @NonNull final Map&lt;String, ApplicationEntityReference&lt;? extends State&gt;&gt; correlations,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="fc" id="L266">    Set&lt;Long&gt; potentialResults = null;</span>
+    
+<span class="fc bfc" id="L268" title="All 2 branches covered.">    for (final Map.Entry&lt;String, ApplicationEntityReference&lt;? extends State&gt;&gt; correlation : correlations.entrySet()) {</span>
+<span class="pc bpc" id="L269" title="1 of 2 branches missed.">      if (!_correlations.containsKey(correlation.getKey())) {</span>
+<span class="nc" id="L270">        return Collections.emptyList();</span>
+      }
+      
+<span class="pc bpc" id="L273" title="1 of 2 branches missed.">      if (!_correlations.get(correlation.getKey()).containsKey(correlation.getValue().getIdentifier())) {</span>
+<span class="nc" id="L274">        return Collections.emptyList();</span>
+      }
+      
+<span class="fc bfc" id="L277" title="All 2 branches covered.">      if (potentialResults == null) {</span>
+<span class="fc" id="L278">        potentialResults = new HashSet&lt;&gt;(</span>
+<span class="fc" id="L279">          _correlations.get(correlation.getKey())</span>
+<span class="fc" id="L280">                       .get(correlation.getValue().getIdentifier())</span>
+        );
+      } else {
+<span class="fc" id="L283">        potentialResults.retainAll(</span>
+<span class="fc" id="L284">          _correlations.get(correlation.getKey())</span>
+<span class="fc" id="L285">                       .get(correlation.getValue().getIdentifier())</span>
+        );
+      }
+<span class="fc" id="L288">    }</span>
+    
+<span class="pc bpc" id="L290" title="1 of 2 branches missed.">    if (potentialResults.size() &lt;= 0) {</span>
+<span class="nc" id="L291">      return Collections.emptyList();</span>
+    }
+    
+<span class="fc" id="L294">    final List&lt;TimeState&gt; results = new ArrayList&lt;&gt;();</span>
+    
+<span class="fc bfc" id="L296" title="All 2 branches covered.">    for (final Long potentialResult : potentialResults) {</span>
+<span class="fc" id="L297">      final TimeState state = find(potentialResult).get();</span>
+      
+<span class="fc bfc" id="L299" title="All 2 branches covered.">      if (state.getSensorIdentifier() == sensor.getIdentifier()) {</span>
+<span class="fc" id="L300">        results.add(state);</span>
+      }
+<span class="fc" id="L302">    }</span>
+    
+<span class="fc" id="L304">    return results;</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findWithAnyCorrelation (
+    @NonNull final Collection&lt;String&gt; keys,
+    @NonNull final ApplicationEntityReference&lt;? extends State&gt; correlated,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  )
+  {
+<span class="fc" id="L314">    final Set&lt;Long&gt; potentialResults = new HashSet&lt;&gt;();</span>
+    
+<span class="fc bfc" id="L316" title="All 2 branches covered.">    for (final String key : keys) {</span>
+<span class="pc bpc" id="L317" title="1 of 2 branches missed.">      if (!_correlations.containsKey(key)) {</span>
+<span class="nc" id="L318">        return Collections.emptyList();</span>
+      }
+      
+<span class="fc bfc" id="L321" title="All 2 branches covered.">      if (_correlations.get(key).containsKey(correlated.getIdentifier())) {</span>
+<span class="fc" id="L322">        potentialResults.addAll(_correlations.get(key).get(correlated.getIdentifier()));</span>
+      }
+<span class="fc" id="L324">    }</span>
+    
+<span class="fc bfc" id="L326" title="All 2 branches covered.">    if (potentialResults.size() &lt;= 0) {</span>
+<span class="fc" id="L327">      return Collections.emptyList();</span>
+    }
+    
+<span class="fc" id="L330">    final List&lt;TimeState&gt; results = new ArrayList&lt;&gt;();</span>
+    
+<span class="fc bfc" id="L332" title="All 2 branches covered.">    for (final Long potentialResult : potentialResults) {</span>
+<span class="fc" id="L333">      final TimeState state = find(potentialResult).get();</span>
+      
+<span class="fc bfc" id="L335" title="All 2 branches covered.">      if (state.getSensorIdentifier() == sensor.getIdentifier()) {</span>
+<span class="fc" id="L336">        results.add(state);</span>
+      }
+<span class="fc" id="L338">    }</span>
+    
+<span class="fc" id="L340">    return results;</span>
+  }
+
+  @Override
+  protected void trackedEntityWasAdded (@NonNull final TimeState entity) {
+<span class="fc bfc" id="L345" title="All 2 branches covered.">    if (isRegistered(entity)) return;</span>
+    
+<span class="fc bfc" id="L347" title="All 2 branches covered.">    if (!_statesBySensors.containsKey(entity.getSensorIdentifier())) {</span>
+<span class="fc" id="L348">      _statesBySensors.put(entity.getSensorIdentifier(), new TreeSet&lt;Entry&lt;TimeState&gt;&gt;());</span>
+    }
+    
+<span class="fc" id="L351">    _statesBySensors.get(entity.getSensorIdentifier()).add(new Entry&lt;&gt;(entity));</span>
+    
+<span class="fc bfc" id="L353" title="All 2 branches covered.">    for (final Map.Entry&lt;String, State&gt; correlation : entity.correlations()) {</span>
+<span class="fc bfc" id="L354" title="All 2 branches covered.">      if (!_correlations.containsKey(correlation.getKey())) {</span>
+<span class="fc" id="L355">        _correlations.put(correlation.getKey(), new HashMap&lt;&gt;());</span>
+      }
+      
+<span class="fc" id="L358">      final Map&lt;Long, Set&lt;Long&gt;&gt; correlationsByKey = _correlations.get(correlation.getKey());</span>
+      
+<span class="fc bfc" id="L360" title="All 2 branches covered.">      if (!correlationsByKey.containsKey(correlation.getValue().getIdentifier())) {</span>
+<span class="fc" id="L361">        correlationsByKey.put(correlation.getValue().getIdentifier(), new HashSet&lt;&gt;());</span>
+      }
+      
+<span class="fc" id="L364">      correlationsByKey.get(correlation.getValue().getIdentifier()).add(</span>
+<span class="fc" id="L365">        entity.getIdentifier()</span>
+      );
+<span class="fc" id="L367">    }</span>
+<span class="fc" id="L368">  }</span>
+
+  @Override
+  protected void trackedEntityWasRemoved (@NonNull final TimeState entity) {
+<span class="fc bfc" id="L372" title="All 2 branches covered.">    if (!isRegistered(entity)) return;</span>
+    
+<span class="fc" id="L374">    _statesBySensors.get(entity.getSensorIdentifier()).remove(new Entry&lt;&gt;(entity));</span>
+    
+<span class="fc bfc" id="L376" title="All 2 branches covered.">    if (_statesBySensors.get(entity.getSensorIdentifier()).size() &lt;= 0) {</span>
+<span class="fc" id="L377">      _statesBySensors.remove(entity.getSensorIdentifier());</span>
+    }
+    
+<span class="fc bfc" id="L380" title="All 2 branches covered.">    for (final Map.Entry&lt;String, State&gt; correlation : entity.correlations()) {</span>
+<span class="fc" id="L381">      decorrelate(entity, correlation.getKey(), correlation.getValue());</span>
+<span class="fc" id="L382">    }</span>
+    
+<span class="fc" id="L384">    super.remove(entity);</span>
+<span class="fc" id="L385">  }</span>
+  
+  private void decorrelate (
+    @NonNull final TimeState state, 
+    @NonNull final String key, 
+    @NonNull final State correlation
+  ) {
+<span class="pc bpc" id="L392" title="2 of 4 branches missed.">    if (_correlations.containsKey(key) &amp;&amp; _correlations.get(key).containsKey(correlation.getIdentifier())) {</span>
+<span class="fc" id="L393">      _correlations.get(key)</span>
+<span class="fc" id="L394">                   .get(correlation.getIdentifier())</span>
+<span class="fc" id="L395">                   .remove(state.getIdentifier());</span>
+      
+<span class="pc bpc" id="L397" title="1 of 2 branches missed.">      if (_correlations.get(key).get(correlation.getIdentifier()).size() &lt;= 0) {</span>
+<span class="fc" id="L398">      _correlations.get(key).remove(correlation.getIdentifier());</span>
+      }
+      
+<span class="fc bfc" id="L401" title="All 2 branches covered.">      if (_correlations.get(key).size() &lt;= 0) {</span>
+<span class="fc" id="L402">      _correlations.remove(key);</span>
+      }
+    }
+<span class="fc" id="L405">  }</span>
+  
+  private boolean isRegistered (@NonNull final TimeState entity) {
+<span class="fc bfc" id="L408" title="All 2 branches covered.">    return _statesBySensors.containsKey(entity.getSensorIdentifier())</span>
+<span class="fc bfc" id="L409" title="All 2 branches covered.">        &amp;&amp; _statesBySensors.get(entity.getSensorIdentifier()).contains(new Entry&lt;State&gt;(entity));</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findAll (@NonNull final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; sensors) {
+<span class="fc" id="L414">    final List&lt;TimeState&gt; result = new ArrayList&lt;TimeState&gt;();</span>
+<span class="fc" id="L415">    final Set&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; uniqueSensors = new HashSet&lt;&gt;(sensors);</span>
+    
+<span class="fc" id="L417">    uniqueSensors.stream().map(this::findAll).forEach(states -&gt; result.addAll(states));</span>
+    
+<span class="fc" id="L419">    Collections.sort(result, this::sortByDateAscending);</span>
+    
+<span class="fc" id="L421">    return result;</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findPrevious (
+    @NonNull final ZonedDateTime date,
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors, 
+    final int count
+  ) {
+<span class="nc" id="L430">    final List&lt;TimeState&gt; result = new ArrayList&lt;&gt;(count * inputSensors.size());</span>
+    
+<span class="nc" id="L432">    new HashSet&lt;&gt;(</span>
+        inputSensors
+<span class="nc" id="L434">    ).stream().map(reference -&gt; findPrevious(date, reference, count))</span>
+<span class="nc" id="L435">     .forEach(result::addAll);</span>
+    
+<span class="nc" id="L437">    Collections.sort(result, this::sortByDateDescending);</span>
+    
+<span class="nc" id="L439">    return result.subList(0, count);</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findNext (
+    @NonNull final ZonedDateTime date,
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors, 
+    final int count
+  ) {
+<span class="nc" id="L448">    final List&lt;TimeState&gt; result = new ArrayList&lt;&gt;(count * inputSensors.size());</span>
+    
+<span class="nc" id="L450">    new HashSet&lt;&gt;(</span>
+        inputSensors
+<span class="nc" id="L452">    ).stream().map(reference -&gt; findNext(date, reference, count))</span>
+<span class="nc" id="L453">     .forEach(result::addAll);</span>
+    
+<span class="nc" id="L455">    Collections.sort(result, this::sortByDateAscending);</span>
+    
+<span class="nc" id="L457">    return result.subList(0, count);</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findAllNext (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  ) {
+<span class="fc" id="L465">    final List&lt;TimeState&gt; result = new ArrayList&lt;&gt;();</span>
+    
+<span class="fc" id="L467">    inputSensors.stream()</span>
+<span class="fc" id="L468">                .map(x -&gt; this.findAllNext(date, x))</span>
+<span class="fc" id="L469">                .forEach(x -&gt; result.addAll(x));</span>
+    
+<span class="fc" id="L471">    Collections.sort(result, this::sortByDateAscending);</span>
+    
+<span class="fc" id="L473">    return result;</span>
+  }
+
+  @Override
+  public List&lt;TimeState&gt; findAllPrevious (
+    @NonNull final ZonedDateTime date, 
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  ) {
+<span class="fc" id="L481">    final List&lt;TimeState&gt; result = new ArrayList&lt;&gt;();</span>
+    
+<span class="fc" id="L483">    inputSensors.stream()</span>
+<span class="fc" id="L484">                .map(x -&gt; this.findAllPrevious(date, x))</span>
+<span class="fc" id="L485">                .forEach(x -&gt; result.addAll(x));</span>
+    
+<span class="fc" id="L487">    Collections.sort(result, this::sortByDateDescending);</span>
+    
+<span class="fc" id="L489">    return result;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

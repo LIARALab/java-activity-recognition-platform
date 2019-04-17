@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MaxDurationSensor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.recognition.sensor.common.virtual.maxduration</a> &gt; <span class="el_source">MaxDurationSensor.java</span></div><h1>MaxDurationSensor.java</h1><pre class="source lang-java linenums">package org.liara.api.recognition.sensor.common.virtual.maxduration;
+
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.LabelState;
+import org.liara.api.data.entity.state.LabelStateCreationSchema;
+import org.liara.api.data.entity.state.LabelStateSnapshot;
+import org.liara.api.data.entity.state.StateDeletionSchema;
+import org.liara.api.data.repository.LabelRepository;
+import org.liara.api.data.repository.SensorRepository;
+import org.liara.api.data.schema.SchemaManager;
+import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateWasMutatedEvent;
+import org.liara.api.event.StateWillBeDeletedEvent;
+import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
+import org.liara.api.recognition.sensor.EmitStateOfType;
+import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
+import org.liara.api.recognition.sensor.VirtualSensorRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
+
+@UseSensorConfigurationOfType(MaxDurationSensorConfiguration.class)
+@EmitStateOfType(LabelState.class)
+@Component
+@Scope(&quot;prototype&quot;)
+public class MaxDurationSensor
+  extends AbstractVirtualSensorHandler
+{
+  @NonNull
+  private final SchemaManager _schemaManager;
+
+  @NonNull
+  private final LabelRepository _activations;
+
+  @NonNull
+  private final SensorRepository _sensors;
+
+  @NonNull
+  private final LabelRepository _activities;
+
+  @Autowired
+  public MaxDurationSensor (
+    @NonNull final SchemaManager schemaManager,
+    @NonNull final LabelRepository activations,
+    @NonNull final LabelRepository activities,
+    @NonNull final SensorRepository sensors
+  )
+<span class="nc" id="L53">  {</span>
+<span class="nc" id="L54">    _schemaManager = schemaManager;</span>
+<span class="nc" id="L55">    _activations = activations;</span>
+<span class="nc" id="L56">    _sensors = sensors;</span>
+<span class="nc" id="L57">    _activities = activities;</span>
+<span class="nc" id="L58">  }</span>
+
+  public MaxDurationSensorConfiguration getConfiguration () {
+<span class="nc" id="L61">    return getRunner().getSensor().getConfiguration().as(MaxDurationSensorConfiguration.class);</span>
+  }
+
+  public Sensor getSensor () {
+<span class="nc" id="L65">    return getRunner().getSensor();</span>
+  }
+
+  public Sensor getInputSensor () {
+<span class="nc" id="L69">    return _sensors.getAt(getConfiguration().getInputSensor());</span>
+  }
+
+  @Override
+  public void initialize (@NonNull final VirtualSensorRunner runner) {
+<span class="nc" id="L74">    super.initialize(runner);</span>
+
+<span class="nc" id="L76">    final List&lt;LabelState&gt; states = _activations.findWithDurationGreatherThan(</span>
+<span class="nc" id="L77">      getConfiguration().getInputSensor(),</span>
+<span class="nc" id="L78">                                                                                   getConfiguration().getMaxDuration()</span>
+    );
+
+<span class="nc" id="L81">    final LabelStateCreationSchema schema = new LabelStateCreationSchema();</span>
+
+<span class="nc bnc" id="L83" title="All 2 branches missed.">    for (final LabelState state : states) {</span>
+<span class="nc" id="L84">      schema.clear();</span>
+<span class="nc" id="L85">      schema.setStart(state.getStart());</span>
+<span class="nc" id="L86">      schema.setEnd(state.getEnd());</span>
+<span class="nc" id="L87">      schema.setTag(getConfiguration().getTag());</span>
+<span class="nc" id="L88">      schema.setEmissionDate(state.getEmissionDate());</span>
+<span class="nc" id="L89">      schema.setSensor(getSensor());</span>
+<span class="nc" id="L90">      schema.correlate(&quot;base&quot;, state);</span>
+
+<span class="nc" id="L92">      _schemaManager.execute(schema);</span>
+<span class="nc" id="L93">    }</span>
+<span class="nc" id="L94">  }</span>
+
+  @Override
+  public void stateWasCreated (@NonNull final StateWasCreatedEvent event) {
+<span class="nc" id="L98">    super.stateWasCreated(event);</span>
+
+<span class="nc bnc" id="L100" title="All 2 branches missed.">    if (event.getState().getSensor().equals(getConfiguration().getInputSensor())) {</span>
+<span class="nc" id="L101">      final LabelStateSnapshot stateSnapshot = (LabelStateSnapshot) event.getState();</span>
+
+<span class="nc" id="L103">      if (Duration.between(stateSnapshot.getStart(), stateSnapshot.getEnd())</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                  .compareTo(getConfiguration().getMaxDuration()) &gt; 0) {</span>
+<span class="nc" id="L105">        emit(stateSnapshot.getModel());</span>
+      }
+    }
+<span class="nc" id="L108">  }</span>
+
+  @Override
+  public void stateWasMutated (@NonNull final StateWasMutatedEvent event) {
+<span class="nc" id="L112">    super.stateWasMutated(event);</span>
+
+<span class="nc bnc" id="L114" title="All 2 branches missed.">    if (event.getNewValue().getSensor().equals(getConfiguration().getInputSensor())) {</span>
+<span class="nc" id="L115">      final LabelStateSnapshot oldSnapshot = (LabelStateSnapshot) event.getOldValue();</span>
+<span class="nc" id="L116">      final LabelStateSnapshot newSnapshot = (LabelStateSnapshot) event.getNewValue();</span>
+
+<span class="nc" id="L118">      final Duration oldDuration = Duration.between(oldSnapshot.getStart(), oldSnapshot.getEnd());</span>
+<span class="nc" id="L119">      final Duration newDuration = Duration.between(newSnapshot.getStart(), newSnapshot.getEnd());</span>
+
+<span class="nc bnc" id="L121" title="All 2 branches missed.">      if ((oldDuration.compareTo(getConfiguration().getMaxDuration()) &gt; 0) !=</span>
+<span class="nc bnc" id="L122" title="All 4 branches missed.">          (newDuration.compareTo(getConfiguration().getMaxDuration()) &gt; 0)) {</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">        if (newDuration.compareTo(getConfiguration().getMaxDuration()) &gt; 0) {</span>
+<span class="nc" id="L124">          emit(newSnapshot.getModel());</span>
+        } else {
+<span class="nc" id="L126">          delete(newSnapshot.getModel());</span>
+        }
+      }
+    }
+<span class="nc" id="L130">  }</span>
+
+  @Override
+  public void stateWillBeDeleted (@NonNull final StateWillBeDeletedEvent event) {
+<span class="nc" id="L134">    final Optional&lt;LabelState&gt; activation = _activations.find(event.getState()</span>
+<span class="nc" id="L135">                                                                        .getState().as(LabelState.class));</span>
+
+<span class="nc bnc" id="L137" title="All 2 branches missed.">    if (activation.isPresent() &amp;&amp;</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">        activation.get().getSensor().getReference().equals(getConfiguration().getInputSensor())) {</span>
+<span class="nc" id="L139">      final Duration duration = Duration.between(activation.get().getStart(), activation.get().getEnd());</span>
+
+<span class="nc bnc" id="L141" title="All 2 branches missed.">      if (duration.compareTo(getConfiguration().getMaxDuration()) &gt; 0) {</span>
+<span class="nc" id="L142">        delete(activation.get());</span>
+      }
+    }
+<span class="nc" id="L145">  }</span>
+
+  private void emit (@NonNull final LabelState state) {
+<span class="nc" id="L148">    final LabelStateCreationSchema schema = new LabelStateCreationSchema();</span>
+
+<span class="nc" id="L150">    schema.setStart(state.getStart());</span>
+<span class="nc" id="L151">    schema.setEnd(state.getEnd());</span>
+<span class="nc" id="L152">    schema.setTag(getConfiguration().getTag());</span>
+<span class="nc" id="L153">    schema.setEmissionDate(state.getEmissionDate());</span>
+<span class="nc" id="L154">    schema.setSensor(getSensor());</span>
+<span class="nc" id="L155">    schema.correlate(&quot;base&quot;, state);</span>
+
+<span class="nc" id="L157">    _schemaManager.execute(schema);</span>
+<span class="nc" id="L158">  }</span>
+
+  private void delete (@NonNull final LabelState state) {
+<span class="nc" id="L161">    final StateDeletionSchema schema = new StateDeletionSchema();</span>
+
+<span class="nc" id="L163">    schema.setState(_activities.findFirstWithCorrelation(&quot;base&quot;, state.getReference(), getSensor().getReference())</span>
+<span class="nc" id="L164">                               .get());</span>
+
+<span class="nc" id="L166">    _schemaManager.execute(schema);</span>
+<span class="nc" id="L167">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

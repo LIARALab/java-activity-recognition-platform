@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityCollectionConjunctionOperator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.transformation.operator</a> &gt; <span class="el_source">EntityCollectionConjunctionOperator.java</span></div><h1>EntityCollectionConjunctionOperator.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.transformation.operator;
+
+import java.util.Iterator;
+import java.util.List;
+
+import org.liara.api.collection.query.EntityCollectionQuery;
+import org.springframework.lang.NonNull;
+
+import com.google.common.collect.ImmutableList;
+
+/**
+ * An operator that is a list of operators to conjugate.
+ * 
+ * @author C&amp;eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
+ *
+ * @param &lt;Entity&gt; Targeted entity of this operator.
+ */
+public class EntityCollectionConjunctionOperator&lt;Entity&gt; 
+       implements EntityCollectionOperator&lt;Entity&gt;, 
+                  Iterable&lt;EntityCollectionOperator&lt;Entity&gt;&gt;
+{
+  @NonNull
+  private final List&lt;EntityCollectionOperator&lt;Entity&gt;&gt; _operators;
+
+  /**
+   * Create an empty conjunction operator. (Do nothing).
+   */
+<span class="nc" id="L49">  public EntityCollectionConjunctionOperator () {</span>
+<span class="nc" id="L50">    _operators = ImmutableList.of();</span>
+<span class="nc" id="L51">  }</span>
+  
+  /**
+   * Create a conjunction of the given operators (Preserve the order)
+   * 
+   * @param operators Operators to conjugate.
+   */
+  public EntityCollectionConjunctionOperator (
+    @NonNull final Iterator&lt;EntityCollectionOperator&lt;Entity&gt;&gt; operators
+<span class="nc" id="L60">  ) {</span>
+<span class="nc" id="L61">    _operators = ImmutableList.copyOf(operators);</span>
+<span class="nc" id="L62">  }</span>
+  
+  /**
+   * Create a conjunction of the given operators (Preserve the order)
+   * 
+   * @param operators Operators to conjugate.
+   */
+  public EntityCollectionConjunctionOperator (
+    @NonNull final Iterable&lt;EntityCollectionOperator&lt;Entity&gt;&gt; operators
+<span class="nc" id="L71">  ) {</span>
+<span class="nc" id="L72">    _operators = ImmutableList.copyOf(operators);</span>
+<span class="nc" id="L73">  }</span>
+  
+  /**
+   * Create a conjunction of the given operators (Preserve the order)
+   * 
+   * @param operators Operators to conjugate.
+   */
+  public EntityCollectionConjunctionOperator (
+    @NonNull final EntityCollectionOperator&lt;Entity&gt;[] operators
+<span class="nc" id="L82">  ) {</span>
+<span class="nc" id="L83">    _operators = ImmutableList.copyOf(operators);</span>
+<span class="nc" id="L84">  }</span>
+  
+  /**
+   * Create a conjunction of the given operators (Preserve the order)
+   * 
+   * @param operators Operators to conjugate.
+   */
+  public EntityCollectionConjunctionOperator (
+    @NonNull final ImmutableList&lt;EntityCollectionOperator&lt;Entity&gt;&gt; operators
+<span class="nc" id="L93">  ) {</span>
+<span class="nc" id="L94">    _operators = operators;</span>
+<span class="nc" id="L95">  }</span>
+  
+  /**
+   * Create a conjunction of the given operators (Preserve the order)
+   * 
+   * @param operator Operators to conjugate.
+   */
+  public EntityCollectionConjunctionOperator (
+    @NonNull final EntityCollectionOperator&lt;Entity&gt; operator
+<span class="nc" id="L104">  ) {</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">    if (operator instanceof EntityCollectionConjunctionOperator) {</span>
+<span class="nc" id="L106">      final EntityCollectionConjunctionOperator&lt;Entity&gt; conjunction = (EntityCollectionConjunctionOperator&lt;Entity&gt;) operator;</span>
+<span class="nc" id="L107">      _operators = ImmutableList.copyOf(conjunction);</span>
+<span class="nc" id="L108">    } else {</span>
+<span class="nc" id="L109">      _operators = ImmutableList.of(operator);</span>
+    }
+<span class="nc" id="L111">  }</span>
+  
+  
+  /**
+   * @see EntityCollectionOperator#apply(EntityCollectionQuery)
+   */
+  @Override
+  public void apply (@NonNull final EntityCollectionQuery&lt;Entity, ?&gt; query) {
+<span class="nc bnc" id="L119" title="All 2 branches missed.">    for (final EntityCollectionOperator&lt;Entity&gt; operator : _operators) {</span>
+<span class="nc" id="L120">      operator.apply(query);</span>
+<span class="nc" id="L121">    }</span>
+<span class="nc" id="L122">  }</span>
+
+  /**
+   * @see Iterable#iterator()
+   */
+  @Override
+  public Iterator&lt;EntityCollectionOperator&lt;Entity&gt;&gt; iterator () {
+<span class="nc" id="L129">    return _operators.iterator();</span>
+  }
+  
+  /**
+   * Return conjuged operators.
+   * 
+   * @return Conjuged operators.
+   */
+  public List&lt;EntityCollectionOperator&lt;Entity&gt;&gt; getOperators () {
+<span class="nc" id="L138">    return _operators;</span>
+  }
+  
+  public EntityCollectionConjunctionOperator&lt;Entity&gt; conjugate (
+    @NonNull final EntityCollectionOperator&lt;Entity&gt; operator
+  ) {
+<span class="nc" id="L144">    final ImmutableList.Builder&lt;EntityCollectionOperator&lt;Entity&gt;&gt; builder = ImmutableList.builder();</span>
+<span class="nc" id="L145">    return new EntityCollectionConjunctionOperator&lt;&gt;(</span>
+<span class="nc" id="L146">      builder.addAll(_operators).add(operator).build()</span>
+    );
+  }
+
+  @Override
+  public String toString () {
+<span class="nc" id="L152">    StringBuilder builder = new StringBuilder();</span>
+<span class="nc" id="L153">    builder.append(&quot;EntityCollectionConjunctionOperator [&quot;);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">    if (_operators != null) {</span>
+<span class="nc" id="L155">      builder.append(&quot;_operators=&quot;);</span>
+<span class="nc" id="L156">      builder.append(_operators);</span>
+    }
+<span class="nc" id="L158">    builder.append(&quot;]&quot;);</span>
+<span class="nc" id="L159">    return builder.toString();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

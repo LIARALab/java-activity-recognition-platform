@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NodeSnapshot.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.node</a> &gt; <span class="el_source">NodeSnapshot.java</span></div><h1>NodeSnapshot.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.node;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.liara.api.data.entity.ApplicationEntitySnapshot;
+import org.liara.api.data.entity.tree.ImmutableNestedSetCoordinates;
+import org.liara.api.data.entity.tree.NestedSetCoordinates;
+import org.springframework.context.annotation.Scope;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Streams;
+
+@Component
+@Scope(&quot;prototype&quot;)
+public class NodeSnapshot extends ApplicationEntitySnapshot
+{
+  @NonNull
+  private final String     _name;
+
+  @NonNull
+  private final String     _type;
+
+  @NonNull
+  private final NestedSetCoordinates _coordinates;
+
+  @NonNull
+  private final List&lt;Long&gt; _sensors;
+
+  public NodeSnapshot (@NonNull final Node model) {
+<span class="nc" id="L33">    super(model);</span>
+    
+<span class="nc" id="L35">    _name = model.getName();</span>
+<span class="nc" id="L36">    _type = model.getType();</span>
+<span class="nc" id="L37">    _coordinates = new ImmutableNestedSetCoordinates(model.getCoordinates());</span>
+<span class="nc" id="L38">    _sensors = Collections.unmodifiableList(</span>
+<span class="nc" id="L39">      Streams.stream(model.sensors())</span>
+<span class="nc" id="L40">             .map(x -&gt; x.getIdentifier())</span>
+<span class="nc" id="L41">             .collect(Collectors.toList())</span>
+    );
+<span class="nc" id="L43">  }</span>
+
+  public NodeSnapshot (@NonNull final NodeSnapshot toCopy) {
+<span class="nc" id="L46">    super(toCopy);</span>
+
+<span class="nc" id="L48">    _name = toCopy.getName();</span>
+<span class="nc" id="L49">    _type = toCopy.getType();</span>
+<span class="nc" id="L50">    _coordinates = toCopy.getCoordinates();</span>
+<span class="nc" id="L51">    _sensors = Collections.unmodifiableList(toCopy.getSensors());</span>
+<span class="nc" id="L52">  }</span>
+  
+  public String getName () {
+<span class="nc" id="L55">    return _name;</span>
+  }
+  
+  public String getType () {
+<span class="nc" id="L59">    return _type;</span>
+  }
+  
+  public NestedSetCoordinates getCoordinates () {
+<span class="nc" id="L63">    return _coordinates;</span>
+  }
+  
+  public List&lt;Long&gt; getSensors () {
+<span class="nc" id="L67">    return _sensors;</span>
+  }
+  
+  @Override
+  public NodeSnapshot clone () {
+<span class="nc" id="L72">    return new NodeSnapshot(this);</span>
+  }
+  
+  @Override
+  public Node getModel () {
+<span class="nc" id="L77">    return (Node) super.getModel();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MaxDurationSensorConfiguration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.recognition.sensor.common.virtual.maxduration</a> &gt; <span class="el_source">MaxDurationSensorConfiguration.java</span></div><h1>MaxDurationSensorConfiguration.java</h1><pre class="source lang-java linenums">package org.liara.api.recognition.sensor.common.virtual.maxduration;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.recognition.sensor.SensorConfiguration;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import java.time.Duration;
+
+public class MaxDurationSensorConfiguration
+  implements SensorConfiguration
+{
+  @Nullable
+  private ApplicationEntityReference&lt;Sensor&gt; _inputSensor;
+
+  @Nullable
+  private Duration _maxDuration;
+
+  @Nullable
+  private String _tag;
+
+<span class="nc" id="L23">  public MaxDurationSensorConfiguration () {</span>
+<span class="nc" id="L24">    _inputSensor = null;</span>
+<span class="nc" id="L25">    _maxDuration = null;</span>
+<span class="nc" id="L26">    _tag = &quot;FAILURE&quot;;</span>
+<span class="nc" id="L27">  }</span>
+
+<span class="nc" id="L29">  public MaxDurationSensorConfiguration (@NonNull final MaxDurationSensorConfiguration toCopy) {</span>
+<span class="nc" id="L30">    _inputSensor = toCopy.getInputSensor();</span>
+<span class="nc" id="L31">    _maxDuration = toCopy.getMaxDuration();</span>
+<span class="nc" id="L32">    _tag = toCopy.getTag();</span>
+<span class="nc" id="L33">  }</span>
+
+  public Duration getMaxDuration () {
+<span class="nc" id="L36">    return _maxDuration;</span>
+  }
+
+  public void setMaxDuration (@Nullable final Duration maxDuration) {
+<span class="nc" id="L40">    _maxDuration = maxDuration;</span>
+<span class="nc" id="L41">  }</span>
+
+  public ApplicationEntityReference&lt;Sensor&gt; getInputSensor () {
+<span class="nc" id="L44">    return _inputSensor;</span>
+  }
+
+  public void setInputSensor (@Nullable final ApplicationEntityReference&lt;Sensor&gt; inputSensor) {
+<span class="nc" id="L48">    _inputSensor = inputSensor;</span>
+<span class="nc" id="L49">  }</span>
+
+  public String getTag () {
+<span class="nc" id="L52">    return _tag;</span>
+  }
+
+  public void setTag (@Nullable final String tag) {
+<span class="nc" id="L56">    _tag = tag;</span>
+<span class="nc" id="L57">  }</span>
+
+  @Override
+  public MaxDurationSensorConfiguration clone () {
+<span class="nc" id="L61">    return new MaxDurationSensorConfiguration(this);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

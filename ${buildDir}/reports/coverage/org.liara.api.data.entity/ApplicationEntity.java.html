@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationEntity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity</a> &gt; <span class="el_source">ApplicationEntity.java</span></div><h1>ApplicationEntity.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.liara.api.utils.Beans;
+import org.springframework.lang.NonNull;
+
+import javax.annotation.Nullable;
+import javax.persistence.*;
+import java.time.ZonedDateTime;
+import java.util.Map;
+import java.util.Objects;
+
+/**
+ * Base class for all application entities.
+ * 
+ * This base class support a standard application identifier field, and
+ * declare usual entities lifecycle timestamps fields.
+ * 
+ * @author C&amp;eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
+ */
+@MappedSuperclass
+public class ApplicationEntity
+       implements Cloneable
+{
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name = &quot;identifier&quot;, nullable = false, updatable = false, unique = true)
+  @Nullable
+  private Long          _identifier;
+
+  @Column(name = &quot;created_at&quot;, nullable = false, updatable = false, unique = false, precision = 6)
+  @ColumnDefault(value = &quot;CURRENT_TIMESTAMP&quot;)
+  @Nullable
+  private ZonedDateTime _creationDate;
+
+  @Column(name = &quot;updated_at&quot;, nullable = false, updatable = true, unique = false, precision = 6)
+  @ColumnDefault(value = &quot;CURRENT_TIMESTAMP&quot;)
+  @UpdateTimestamp
+  @Nullable
+  private ZonedDateTime _updateDate;
+
+  @Column(name = &quot;deleted_at&quot;, nullable = true, updatable = true, unique = false, precision = 6)
+  @Nullable
+  private ZonedDateTime _deletionDate;
+  
+  /**
+   * Instanciate a new empty application entity.
+   */
+<span class="fc" id="L52">  public ApplicationEntity () {</span>
+<span class="fc" id="L53">    _identifier = null;</span>
+<span class="fc" id="L54">    _creationDate = null;</span>
+<span class="fc" id="L55">    _updateDate = null;</span>
+<span class="fc" id="L56">    _deletionDate = null;</span>
+<span class="fc" id="L57">  }</span>
+
+  /**
+   * Instanciate a clone of another application entity.
+   *
+   * @param toCopy Application entity to clone.
+   */
+<span class="nc" id="L64">  public ApplicationEntity (@NonNull final ApplicationEntity toCopy) {</span>
+<span class="nc" id="L65">    _identifier = toCopy.getIdentifier();</span>
+<span class="nc" id="L66">    _creationDate = toCopy.getCreationDate();</span>
+<span class="nc" id="L67">    _updateDate = toCopy.getUpdateDate();</span>
+<span class="nc" id="L68">    _deletionDate = toCopy.getDeletionDate();</span>
+<span class="nc" id="L69">  }</span>
+  
+  /**
+   * Entity identifier. 
+   * 
+   * Unique for all entities into a given collection, an unsaved entity will
+   * return a null identifier.
+   * 
+   * @return The entity identifier, unique for each entities into a given collection.
+   */
+  public Long getIdentifier () {
+<span class="fc bfc" id="L80" title="All 2 branches covered.">    return _identifier == null ? null : _identifier.longValue();</span>
+  }
+  
+  public void setIdentifier (@NonNull final Long identifier) {
+<span class="fc" id="L84">    _identifier = identifier;</span>
+<span class="fc" id="L85">  }</span>
+
+  /**
+   * Return the date of the first insertion of this entity into the application database.
+   * 
+   * This getter will return null if the entity was not already inserted into the database. The creation 
+   * date is automatically initialized at the first entity insertion into the database. 
+   * 
+   * This date use by default the time zone of the server that run the application.
+   *
+   * @return The date of the first insertion of this entity into the application database.
+   */
+  @JsonFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;)
+  public ZonedDateTime getCreationDate () {
+<span class="fc" id="L99">    return _creationDate;</span>
+  }
+  
+  public void setCreationDate (@NonNull final ZonedDateTime date) {
+<span class="fc" id="L103">    _creationDate = date;</span>
+<span class="fc" id="L104">  }</span>
+
+  /**
+   * Return the date of deletion of this entity from the application database.
+   * 
+   * This date allow the application to support soft-delete functionality : in order to not erase
+   * entities from the database, the application ignore entries with a non-null deletion date by default.
+   * 
+   * The deletion date is automatically initialized after a call of delete method, and automatically removed 
+   * after a call of the restore method. Do not forget to update the current entity and all entities impacted 
+   * by a deletion or a restoration operation.
+   * 
+   * This date use by default the time zone of the server that run the application.
+   *
+   * @return The date of deletion of this entity from the application database.
+   */
+  @JsonFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;)
+  public ZonedDateTime getDeletionDate () {
+<span class="fc" id="L122">    return _deletionDate;</span>
+  }
+  
+  public void setDeletionDate (@Nullable final ZonedDateTime date) {
+<span class="fc" id="L126">    _deletionDate = date;</span>
+<span class="fc" id="L127">  }</span>
+
+  /**
+   * Return the last update date of this entity into the database.
+   * 
+   * Return the date of the last mutation of this entity into the database. This date is
+   * a read-only field automatically setted before any insertion or update operations.
+   * 
+   * If the entity was not already inserted into the application database, this getter will
+   * return null.
+   * 
+   * This date use by default the time zone of the server that run the application.
+   * 
+   * @return The date of the last mutation of this entity into the database.
+   */
+  @JsonFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;)
+  public ZonedDateTime getUpdateDate () {
+<span class="fc" id="L144">    return _updateDate;</span>
+  }
+  
+  public void setUpdateDate (@Nullable final ZonedDateTime updateDate) {
+<span class="fc" id="L148">    _updateDate = updateDate;</span>
+<span class="fc" id="L149">  }</span>
+
+  @JsonIgnore
+  public ApplicationEntityReference&lt;? extends ApplicationEntity&gt; getReference () {
+<span class="nc" id="L153">    return ApplicationEntityReference.of(this);</span>
+  }
+
+  /**
+   * @see Object#hashCode()
+   */
+  @Override
+  public int hashCode () {
+<span class="fc bfc" id="L161" title="All 2 branches covered.">    if (getIdentifier() == null) return super.hashCode();</span>
+<span class="fc" id="L162">    else return Objects.hash(getClass(), getIdentifier());</span>
+  }
+
+  /**
+   * @see Object#equals(Object)
+   */
+  @Override
+  public boolean equals (@Nullable final Object object) {
+<span class="fc bfc" id="L170" title="All 2 branches covered.">    if (this == object) return true;</span>
+<span class="fc bfc" id="L171" title="All 2 branches covered.">    if (object == null) return false;</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">    if (!getClass().isAssignableFrom(object.getClass())) return false;</span>
+<span class="fc" id="L173">    ApplicationEntity other = (ApplicationEntity) object;</span>
+    
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">    if (getIdentifier() == null) return false;</span>
+<span class="fc" id="L176">    else return Objects.equals(getIdentifier(), other.getIdentifier());</span>
+  }
+  
+  public boolean lookLike (@NonNull final Map&lt;String, ?&gt; values) {
+<span class="nc" id="L180">    return Beans.lookLike(this, values);</span>
+  }
+  
+  public ApplicationEntitySnapshot snapshot () {
+<span class="nc" id="L184">    return new ApplicationEntitySnapshot(this);</span>
+  }
+
+  @Override
+  protected ApplicationEntity clone () {
+<span class="nc" id="L189">    return new ApplicationEntity(this);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

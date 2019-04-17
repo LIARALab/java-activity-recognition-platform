@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityAggregationTransformation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.transformation.aggregation</a> &gt; <span class="el_source">EntityAggregationTransformation.java</span></div><h1>EntityAggregationTransformation.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.transformation.aggregation;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.criteria.Selection;
+
+import org.liara.api.collection.EntityCollection;
+import org.liara.api.collection.query.EntityCollectionMainQuery;
+import org.liara.api.collection.transformation.Transformation;
+import org.liara.api.collection.view.EntityCollectionAggregation;
+import org.springframework.lang.NonNull;
+
+public interface EntityAggregationTransformation&lt;Entity, AggregationResult&gt;
+       extends   Transformation&lt;
+                   EntityCollection&lt;Entity&gt;, 
+                   EntityCollectionAggregation&lt;Entity, AggregationResult&gt;
+                 &gt;
+{ 
+  /**
+   * Return the type of this aggregation.
+   * 
+   * @return The type of this aggregation.
+   */
+  public Class&lt;AggregationResult&gt; getAggregationType ();
+  
+  /**
+   * Return the expected aggregation.
+   * 
+   * @param query Query to aggregate.
+   * @return The expected aggregation.
+   */
+  public Selection&lt;AggregationResult&gt; aggregate (
+    @NonNull final EntityCollectionMainQuery&lt;Entity, ?&gt; query
+  );
+  
+  /**
+   * Apply the current operator to the given query.
+   * 
+   * @param query Query to update.
+   */
+  default public void apply (
+    @NonNull final EntityCollectionMainQuery&lt;Entity, ?&gt; query
+  ) {
+<span class="nc" id="L66">    final Selection&lt;?&gt; selection = query.getSelection();</span>
+    
+<span class="nc bnc" id="L68" title="All 2 branches missed.">    if (selection == null) {</span>
+<span class="nc" id="L69">      query.multiselect(aggregate(query));</span>
+    } else {
+<span class="nc" id="L71">      final List&lt;Selection&lt;?&gt;&gt; selections = new ArrayList&lt;&gt;(selection.getCompoundSelectionItems());</span>
+<span class="nc" id="L72">      selections.add(selection);</span>
+<span class="nc" id="L73">      query.multiselect(selections);</span>
+    }
+<span class="nc" id="L75">  }</span>
+  
+  @Override
+  public default EntityCollectionAggregation&lt;Entity, AggregationResult&gt; apply (
+    @NonNull final EntityCollection&lt;Entity&gt; input
+  ) {
+<span class="nc" id="L81">    return new EntityCollectionAggregation&lt;&gt;(input, this);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

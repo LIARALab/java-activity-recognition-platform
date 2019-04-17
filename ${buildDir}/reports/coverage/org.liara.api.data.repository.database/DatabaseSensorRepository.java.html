@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DatabaseSensorRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository.database</a> &gt; <span class="el_source">DatabaseSensorRepository.java</span></div><h1>DatabaseSensorRepository.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository.database;
+
+import java.util.List;
+
+import javax.persistence.EntityManager;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.repository.SensorRepository;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Scope;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
+
+@Component
+@Scope(&quot;prototype&quot;)
+@Primary
+public class DatabaseSensorRepository
+       extends DatabaseApplicationEntityRepository&lt;Sensor&gt;
+       implements SensorRepository
+{
+  @NonNull
+  private final EntityManager _entityManager;
+  
+  public DatabaseSensorRepository(
+    @NonNull final EntityManager entityManager
+  ) {
+<span class="nc" id="L29">    super(entityManager, Sensor.class);</span>
+<span class="nc" id="L30">    _entityManager = entityManager;</span>
+<span class="nc" id="L31">  }</span>
+
+  @Override
+  public List&lt;Sensor&gt; getSensorsOfType (
+    @NonNull final String type
+  ) {
+<span class="nc" id="L37">    return _entityManager.createQuery(</span>
+<span class="nc" id="L38">      String.join(</span>
+        &quot;&quot;, 
+<span class="nc" id="L40">        &quot;SELECT sensor FROM &quot;, Sensor.class.getName(), &quot; sensor &quot;,</span>
+        &quot; WHERE sensor._type = :type&quot;
+      ), Sensor.class
+<span class="nc" id="L43">    ).setParameter(&quot;type&quot;, type)</span>
+<span class="nc" id="L44">     .getResultList();</span>
+  }
+
+  @Override
+  public List&lt;Sensor&gt; getSensorsOfTypeIntoNode (
+    @NonNull final String type, 
+    @NonNull final ApplicationEntityReference&lt;Node&gt; nodeReference
+  ) {
+<span class="nc" id="L52">    final Node node = _entityManager.find(Node.class, nodeReference.getIdentifier());</span>
+    
+<span class="nc" id="L54">    return _entityManager.createQuery(</span>
+<span class="nc" id="L55">      String.join(</span>
+        &quot;&quot;, 
+<span class="nc" id="L57">        &quot;SELECT sensor FROM &quot;, Sensor.class.getName(), &quot; sensor &quot;,</span>
+        &quot; WHERE sensor._type = :type &quot;,
+        &quot;   AND sensor._node IN :nodes&quot;
+      ), Sensor.class
+<span class="nc" id="L61">    ).setParameter(&quot;type&quot;, type)</span>
+<span class="nc" id="L62">     .setParameter(&quot;nodes&quot;, node.getAllChildren())</span>
+<span class="nc" id="L63">     .getResultList();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

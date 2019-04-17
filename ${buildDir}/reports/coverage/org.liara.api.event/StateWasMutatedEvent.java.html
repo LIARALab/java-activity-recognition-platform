@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StateWasMutatedEvent.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.event</a> &gt; <span class="el_source">StateWasMutatedEvent.java</span></div><h1>StateWasMutatedEvent.java</h1><pre class="source lang-java linenums">package org.liara.api.event;
+
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.entity.state.StateSnapshot;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.lang.NonNull;
+
+public class StateWasMutatedEvent extends ApplicationEvent
+{  
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 8116556813252780522L;
+  
+  @NonNull
+  private final StateSnapshot _oldValue;
+  
+  @NonNull
+  private final StateSnapshot _newValue;
+  
+  /**
+   * 
+   * @param source
+   * @param state
+   */
+  public StateWasMutatedEvent(
+    @NonNull final Object source,
+    @NonNull final StateSnapshot oldValue,
+    @NonNull final State newValue
+  ) {
+<span class="fc" id="L31">    super(source);</span>
+<span class="fc" id="L32">    _oldValue = oldValue;</span>
+<span class="fc" id="L33">    _newValue = newValue.snapshot();</span>
+<span class="fc" id="L34">  }</span>
+
+  public StateSnapshot getNewValue () {
+<span class="fc" id="L37">    return _newValue;</span>
+  }
+  
+  public StateSnapshot getOldValue () {
+<span class="fc" id="L41">    return _oldValue;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

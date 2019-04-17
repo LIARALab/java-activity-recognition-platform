@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Operators.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection</a> &gt; <span class="el_source">Operators.java</span></div><h1>Operators.java</h1><pre class="source lang-java linenums">package org.liara.api.collection;
+
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.collection.transformation.operator.ordering.EntityCollectionExpressionOrderingOperator;
+import org.liara.api.collection.transformation.operator.ordering.EntityCollectionOrderingOperator;
+import org.liara.api.data.entity.ApplicationEntity;
+import org.springframework.lang.NonNull;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import javax.persistence.metamodel.SingularAttribute;
+import java.util.List;
+
+<span class="nc" id="L16">public final class Operators</span>
+{
+  public static &lt;Entity extends ApplicationEntity&gt; EntityCollectionOperator&lt;Entity&gt; except (@NonNull final Entity entity) {
+<span class="nc" id="L19">    return (query) -&gt; {</span>
+<span class="nc" id="L20">      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L21">      query.andWhere(</span>
+<span class="nc" id="L22">        builder.not(</span>
+<span class="nc" id="L23">          builder.equal(</span>
+<span class="nc" id="L24">            query.getEntity().get(&quot;_identifier&quot;),</span>
+<span class="nc" id="L25">            entity.getIdentifier()</span>
+          )
+        )
+      );
+<span class="nc" id="L29">    };</span>
+  }
+  
+  public static &lt;Entity&gt; EntityCollectionOperator&lt;Entity&gt; orderAscendingBy (
+    @NonNull final String field
+  ) {
+<span class="nc" id="L35">    return Operators.orderAscendingBy(entity -&gt; entity.get(field));</span>
+  }
+  
+  public static &lt;Entity, Field&gt; EntityCollectionOperator&lt;Entity&gt; orderAscendingBy (
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Expression&lt;Field&gt;&gt; field
+  ) {
+<span class="nc" id="L41">    return new EntityCollectionExpressionOrderingOperator&lt;&gt;(</span>
+        field, 
+        EntityCollectionOrderingOperator.Direction.ASC
+    );
+  }
+
+  public static &lt;Entity, Field&gt; EntityCollectionOperator&lt;Entity&gt; orderAscendingBy (
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;Field&gt;&gt; field
+  ) {
+<span class="nc" id="L50">    return new EntityCollectionExpressionOrderingOperator&lt;&gt;(</span>
+        field, 
+        EntityCollectionOrderingOperator.Direction.ASC
+    );
+  }
+  
+  public static &lt;Entity&gt; EntityCollectionOperator&lt;Entity&gt; orderDescendingBy (
+    @NonNull final String field
+  ) {
+<span class="nc" id="L59">    return Operators.orderDescendingBy(entity -&gt; entity.get(field));</span>
+  }
+  
+  public static &lt;Entity, Field&gt; EntityCollectionOperator&lt;Entity&gt; orderDescendingBy (
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Expression&lt;Field&gt;&gt; field
+  ) {
+<span class="nc" id="L65">    return new EntityCollectionExpressionOrderingOperator&lt;&gt;(</span>
+        field, 
+        EntityCollectionOrderingOperator.Direction.DESC
+    );
+  }
+
+  public static &lt;Entity, Field&gt; EntityCollectionOperator&lt;Entity&gt; orderDescendingBy (
+    @NonNull final EntityFieldSelector&lt;Entity, Expression&lt;Field&gt;&gt; field
+  ) {
+<span class="nc" id="L74">    return new EntityCollectionExpressionOrderingOperator&lt;&gt;(</span>
+        field, 
+        EntityCollectionOrderingOperator.Direction.DESC
+    );
+  } 
+  
+  public static &lt;Entity&gt; EntityCollectionOperator&lt;Entity&gt; notNull (
+    @NonNull final String field
+  ) {
+<span class="nc" id="L83">    return query -&gt; {</span>
+<span class="nc" id="L84">      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L85">      query.andWhere(builder.isNotNull(query.getEntity().get(field)));</span>
+<span class="nc" id="L86">    };</span>
+  }
+  
+  public static &lt;Entity, Field&gt; EntityCollectionOperator&lt;Entity&gt; notNull (
+    @NonNull final SingularAttribute&lt;? super Entity, Field&gt; field
+  ) {
+<span class="nc" id="L92">    return query -&gt; {</span>
+<span class="nc" id="L93">      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L94">      query.andWhere(builder.isNotNull(query.getEntity().get(field)));</span>
+<span class="nc" id="L95">    };</span>
+  }
+
+  public static &lt;Entity, Value&gt; EntityCollectionOperator&lt;Entity&gt; equal (
+    @NonNull final String field, 
+    @NonNull final Value value
+  ) {
+<span class="nc" id="L102">    return query -&gt; {</span>
+<span class="nc" id="L103">      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L104">      query.andWhere(builder.equal(query.getEntity().get(field), value));</span>
+<span class="nc" id="L105">    };</span>
+  }
+
+  public static &lt;Entity&gt; EntityCollectionOperator&lt;Entity&gt; in (
+    @NonNull final List&lt;Entity&gt; allowed
+  ) {
+<span class="nc" id="L111">    return query -&gt; {</span>
+<span class="nc" id="L112">      query.andWhere(query.getEntity().in(allowed));</span>
+<span class="nc" id="L113">    };</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

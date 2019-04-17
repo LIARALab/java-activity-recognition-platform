@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnnotationBasedSchemaManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.schema</a> &gt; <span class="el_source">AnnotationBasedSchemaManager.java</span></div><h1>AnnotationBasedSchemaManager.java</h1><pre class="source lang-java linenums">package org.liara.api.data.schema;
+
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.ContextStartedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Service;
+
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
+
+@Service
+@Primary
+public class AnnotationBasedSchemaManager implements SchemaManager
+{
+  @NonNull
+  private final ApplicationContext _context;
+  
+  @NonNull
+  private final EntityManager _entityManager;
+  
+  @Nullable
+  private EntityManager _current;
+  
+  @NonNull
+  private final EntityManagerFactory _entityManagerFactory;
+  
+<span class="nc" id="L37">  @NonNull</span>
+<span class="nc" id="L38">  private final BiMap&lt;Class&lt;?&gt;, String&gt; _handlers = HashBiMap.create();</span>
+  
+<span class="nc" id="L40">  @NonNull</span>
+  private final Map&lt;Class&lt;?&gt;, Class&lt;?&gt;&gt; _handlerSolutions = new HashMap&lt;&gt;();
+  
+  @Autowired
+  public AnnotationBasedSchemaManager (
+    @NonNull final ApplicationContext context
+<span class="nc" id="L46">  ) {</span>
+<span class="nc" id="L47">    _context = context;</span>
+<span class="nc" id="L48">    _entityManager = context.getBean(EntityManager.class);</span>
+<span class="nc" id="L49">    _entityManagerFactory = context.getBean(EntityManagerFactory.class);</span>
+<span class="nc" id="L50">    _current = null;</span>
+<span class="nc" id="L51">  }</span>
+  
+  @EventListener
+  public void captureHandlers (@NonNull final ContextStartedEvent event) {
+<span class="nc" id="L55">    captureHandlers();</span>
+<span class="nc" id="L56">  }</span>
+  
+  @EventListener
+  public void captureHandlers (@NonNull final ContextRefreshedEvent event) {
+<span class="nc" id="L60">    captureHandlers();</span>
+<span class="nc" id="L61">  }</span>
+  
+  private void captureHandlers () {
+<span class="nc" id="L64">    _handlers.clear();</span>
+<span class="nc" id="L65">    _handlerSolutions.clear();</span>
+    
+<span class="nc" id="L67">    final String[] handlerNames = _context.getBeanNamesForAnnotation(SchemaHandler.class);</span>
+    
+<span class="nc bnc" id="L69" title="All 2 branches missed.">    for (final String handlerName : handlerNames) {</span>
+<span class="nc" id="L70">      final Class&lt;?&gt;[] handleds = _context.getType(handlerName).getAnnotation(SchemaHandler.class).value();</span>
+      
+<span class="nc bnc" id="L72" title="All 2 branches missed.">      for (final Class&lt;?&gt; handled : handleds) {</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">        if (_handlers.containsKey(handled)) {</span>
+<span class="nc" id="L74">          throw new Error(String.join(</span>
+            &quot;&quot;,
+<span class="nc" id="L76">            &quot;Unnable to initialize &quot;, this.getClass().toString(), &quot; because &quot;,</span>
+<span class="nc" id="L77">            &quot;two handler class was registered for the schema class &quot;, handled.toString(),</span>
+<span class="nc" id="L78">            &quot; : &quot;, _context.getType(handlerName).toString(), &quot; and &quot;,</span>
+<span class="nc" id="L79">            _context.getType(_handlers.get(handled)).toString()</span>
+          ));
+        } else {
+<span class="nc" id="L82">          _handlers.put(handled, handlerName);</span>
+<span class="nc" id="L83">          _handlerSolutions.put(handled, handled);</span>
+        }
+      }
+    }
+<span class="nc" id="L87">  }</span>
+  
+  public void begin () {
+<span class="nc bnc" id="L90" title="All 2 branches missed.">    if (_current != null) {</span>
+<span class="nc" id="L91">      finish();</span>
+    }
+    
+<span class="nc" id="L94">    _current = _entityManagerFactory.createEntityManager();</span>
+<span class="nc" id="L95">    _current.getTransaction().begin();</span>
+<span class="nc" id="L96">  }</span>
+  
+  public void finish () {
+<span class="nc" id="L99">    _current.getTransaction().commit();</span>
+<span class="nc" id="L100">    _current.close();</span>
+<span class="nc" id="L101">    _current = null;</span>
+<span class="nc" id="L102">  }</span>
+  
+  public void rollback () {
+<span class="nc" id="L105">    _current.getTransaction().rollback();</span>
+<span class="nc" id="L106">    _current.close();</span>
+<span class="nc" id="L107">    _current = null;</span>
+<span class="nc" id="L108">  }</span>
+
+  @Override
+  public &lt;Entity&gt; Entity execute (@NonNull final Object schema) {
+<span class="nc" id="L112">    assertIsValidSchema(schema);</span>
+    
+<span class="nc" id="L114">    final String handlerName = findHandlerForSchemaOrFail(schema);</span>
+<span class="nc" id="L115">    final Method method = getHandlerMethodOrFail(handlerName);</span>
+    
+<span class="nc" id="L117">    final Object handler = _context.getBean(handlerName);</span>
+        
+<span class="nc" id="L119">    final Object result = executeOrFail(method, handler, schema);</span>
+    
+<span class="nc" id="L121">    return castOrFail(result);</span>
+  }
+
+  private Object executeOrFail (
+    @NonNull final Method method, 
+    @NonNull final Object handler, 
+    @NonNull final Object schema
+  ) {
+    try {
+<span class="nc bnc" id="L130" title="All 2 branches missed.">      return method.invoke(</span>
+        handler,
+        _current == null ? _entityManager : _current,
+        schema
+      );
+<span class="nc" id="L135">    } catch (final Exception exception) {</span>
+<span class="nc" id="L136">      throw new Error(String.join(</span>
+        &quot;&quot;,
+<span class="nc" id="L138">        &quot;Unable to execute the given schema &quot;, schema.getClass().toString(),</span>
+<span class="nc" id="L139">        &quot; with the handler &quot;, handler.getClass().toString(), &quot; because the call to&quot;,</span>
+        &quot; the handler method as failed.&quot;
+      ), exception);
+    }
+  }
+
+  @SuppressWarnings(&quot;unchecked&quot;)
+  private &lt;Entity&gt; Entity castOrFail (@NonNull final Object result) {
+    try {
+<span class="nc" id="L148">      return (Entity) result;</span>
+<span class="nc" id="L149">    } catch (final ClassCastException exception) {</span>
+<span class="nc" id="L150">      throw new Error(String.join(</span>
+        &quot;&quot;,
+        &quot;Invalid return type requested for the result of the &quot;,
+        &quot;execution of the given schema.&quot;
+      ), exception);
+    }
+  }
+
+  protected Method getHandlerMethodOrFail (@NonNull final String handlerName) {
+<span class="nc" id="L159">    final Class&lt;?&gt; handledSchema = _handlers.inverse().get(handlerName);</span>
+    
+    try {
+<span class="nc" id="L162">      return _context.getType(handlerName).getMethod(&quot;handle&quot;, EntityManager.class, handledSchema);</span>
+<span class="nc" id="L163">    } catch (final Exception exception) {</span>
+<span class="nc" id="L164">      throw new Error(String.join(</span>
+        &quot;&quot;, 
+        &quot;Invalid schema handler of type &quot;, handlerName,
+<span class="nc" id="L167">        &quot; for schemas of type &quot;, handledSchema.toString(),</span>
+        &quot; because the given handler does not declare a valid public&quot;,
+        &quot; method that accept an unique parameter of type &quot;,
+<span class="nc" id="L170">        handledSchema.toString(), &quot;.&quot;</span>
+      ), exception);
+    }
+  }
+
+  protected String findHandlerForSchemaOrFail (@NonNull final Object schema) {
+<span class="nc" id="L176">    final Class&lt;?&gt; schemaClass = schema.getClass();</span>
+    
+<span class="nc bnc" id="L178" title="All 2 branches missed.">    if (_handlerSolutions.containsKey(schemaClass)) {</span>
+<span class="nc" id="L179">      return _handlers.get(_handlerSolutions.get(schemaClass));</span>
+    }
+    
+<span class="nc" id="L182">    String result = null;</span>
+<span class="nc" id="L183">    Class&lt;?&gt; resultHandledSchemaClass = null;</span>
+    
+<span class="nc bnc" id="L185" title="All 2 branches missed.">    for (final Map.Entry&lt;Class&lt;?&gt;, String&gt; entry : _handlers.entrySet()) {</span>
+<span class="nc" id="L186">      final Class&lt;?&gt; handledSchemaClass = entry.getKey();</span>
+<span class="nc" id="L187">      final String handler = entry.getValue();</span>
+<span class="nc" id="L188">      if (</span>
+<span class="nc bnc" id="L189" title="All 4 branches missed.">        handledSchemaClass.isAssignableFrom(schemaClass) &amp;&amp; (</span>
+          resultHandledSchemaClass == null || 
+<span class="nc bnc" id="L191" title="All 2 branches missed.">          resultHandledSchemaClass.isAssignableFrom(handledSchemaClass)</span>
+        )
+      ) {
+<span class="nc" id="L194">        result = handler;</span>
+<span class="nc" id="L195">        resultHandledSchemaClass = handledSchemaClass;</span>
+      }
+<span class="nc" id="L197">    }</span>
+    
+<span class="nc bnc" id="L199" title="All 2 branches missed.">    if (result == null) {</span>
+<span class="nc" id="L200">      throw new Error(String.join(</span>
+        &quot;&quot;, 
+        &quot;Unnable to execute the given schema of type &quot;,
+<span class="nc" id="L203">        schema.getClass().toString(), &quot; because it does &quot;,</span>
+        &quot;not exists a registered handler hable to handle this &quot;,
+        &quot;schema class.&quot;
+      ));
+    }
+    
+<span class="nc" id="L209">    _handlerSolutions.put(schemaClass, resultHandledSchemaClass);</span>
+<span class="nc" id="L210">    return result;</span>
+  }
+
+  protected void assertIsValidSchema (
+    @NonNull final Object schema
+  ) {
+<span class="nc bnc" id="L216" title="All 2 branches missed.">    if (schema.getClass().getAnnotation(Schema.class) == null) {</span>
+<span class="nc" id="L217">      throw new Error(String.join(</span>
+        &quot;&quot;, 
+        &quot;Unnable to execute the given object of type &quot;,
+<span class="nc" id="L220">        schema.getClass().toString(), &quot; because the given&quot;,</span>
+        &quot; instance is not a valid schema class : a valid schema&quot;,
+        &quot; class must be annotated with a schema annotation.&quot;
+      ));
+    }
+<span class="nc" id="L225">  }</span>
+
+  @Override
+  public void flush () {
+<span class="nc bnc" id="L229" title="All 2 branches missed.">    if (_current == null) {</span>
+<span class="nc" id="L230">      _entityManager.flush();</span>
+<span class="nc" id="L231">    } else _current.flush();</span>
+<span class="nc" id="L232">  }</span>
+
+  @Override
+  public void clear () {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">    if (_current == null) {</span>
+<span class="nc" id="L237">      _entityManager.clear();</span>
+<span class="nc" id="L238">    } else _current.clear();</span>
+<span class="nc" id="L239">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

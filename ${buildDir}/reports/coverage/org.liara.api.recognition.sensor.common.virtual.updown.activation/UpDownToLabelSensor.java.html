@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UpDownToLabelSensor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.recognition.sensor.common.virtual.updown.activation</a> &gt; <span class="el_source">UpDownToLabelSensor.java</span></div><h1>UpDownToLabelSensor.java</h1><pre class="source lang-java linenums">package org.liara.api.recognition.sensor.common.virtual.updown.activation;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.*;
+import org.liara.api.data.repository.BooleanStateRepository;
+import org.liara.api.data.repository.LabelRepository;
+import org.liara.api.data.repository.NodeRepository;
+import org.liara.api.data.schema.SchemaManager;
+import org.liara.api.event.StateWasCreatedEvent;
+import org.liara.api.event.StateWasMutatedEvent;
+import org.liara.api.event.StateWillBeDeletedEvent;
+import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
+import org.liara.api.recognition.sensor.EmitStateOfType;
+import org.liara.api.recognition.sensor.UseSensorConfigurationOfType;
+import org.liara.api.recognition.sensor.VirtualSensorRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+@UseSensorConfigurationOfType(UpDownToLabelSensorConfiguration.class)
+@EmitStateOfType(LabelState.class)
+@Component
+@Scope(&quot;prototype&quot;)
+public class UpDownToLabelSensor 
+       extends AbstractVirtualSensorHandler
+{
+  @NonNull
+  private final SchemaManager _manager;
+  
+  @NonNull
+  private final LabelRepository _outputs;
+  
+  @NonNull
+  private final BooleanStateRepository _inputs;
+  
+  @NonNull
+  private final NodeRepository _nodes;
+  
+  @Autowired
+  public UpDownToLabelSensor (
+    @NonNull final SchemaManager manager,
+    @NonNull final BooleanStateRepository inputs, @NonNull final LabelRepository outputs,
+    @NonNull final NodeRepository nodes
+<span class="fc" id="L52">  ) {</span>
+<span class="fc" id="L53">    _manager = manager;</span>
+<span class="fc" id="L54">    _inputs = inputs;</span>
+<span class="fc" id="L55">    _outputs = outputs;</span>
+<span class="fc" id="L56">    _nodes = nodes;</span>
+<span class="fc" id="L57">  }</span>
+
+  public UpDownToLabelSensorConfiguration getConfiguration () {
+<span class="fc" id="L60">    return getRunner().getSensor().getConfiguration().as(UpDownToLabelSensorConfiguration.class</span>
+    );
+  }
+  
+  public Sensor getSensor () {
+<span class="fc" id="L65">    return getRunner().getSensor();</span>
+  }
+  
+  public ApplicationEntityReference&lt;Sensor&gt; getInputSensor () {
+<span class="fc" id="L69">    return getConfiguration().getInputSensor();</span>
+  }
+
+  @Override
+  public void initialize (
+    @NonNull final VirtualSensorRunner runner
+  ) {
+<span class="fc" id="L76">    super.initialize(runner);</span>
+    
+<span class="fc" id="L78">    final List&lt;BooleanState&gt; initializationStates = _inputs.findAll(getInputSensor());</span>
+<span class="fc" id="L79">    LabelState               current              = null;</span>
+    
+<span class="fc" id="L81">    _manager.flush();</span>
+<span class="fc" id="L82">    _manager.clear();</span>
+    
+<span class="fc bfc" id="L84" title="All 2 branches covered.">    for (int index = 0; index &lt; initializationStates.size(); ++index) {</span>
+<span class="fc" id="L85">      current = initialize(current, initializationStates.get(index));</span>
+    }
+<span class="fc" id="L87">  }</span>
+
+  private LabelState initialize (
+    @Nullable final LabelState current, 
+    @NonNull final BooleanState next
+  ) {
+<span class="fc bfc" id="L93" title="All 4 branches covered.">    if (next.getValue() &amp;&amp; current == null) {</span>
+<span class="fc" id="L94">      return begin(next); </span>
+<span class="fc bfc" id="L95" title="All 4 branches covered.">    } else if (!next.getValue() &amp;&amp; current != null) {</span>
+<span class="fc" id="L96">      finish(current, next);</span>
+<span class="fc" id="L97">      return null;</span>
+    } else {
+<span class="fc" id="L99">      return current;</span>
+    }
+  }
+
+  @Override
+  public void stateWasCreated (
+    @NonNull final StateWasCreatedEvent event
+  ) {
+<span class="fc" id="L107">    super.stateWasCreated(event);</span>
+    
+<span class="fc" id="L109">    if (</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">      Objects.equals(</span>
+<span class="fc" id="L111">        event.getState().getSensor(), </span>
+<span class="fc" id="L112">        getInputSensor()</span>
+      )
+    ) {
+<span class="fc" id="L115">      inputStateWasCreated((BooleanState) event.getState().getModel());</span>
+    }
+<span class="fc" id="L117">  }</span>
+
+  public void inputStateWasCreated (@NonNull final BooleanState current) {
+<span class="fc" id="L120">    final Optional&lt;LabelState&gt; previous = _outputs.findAt(</span>
+<span class="fc" id="L121">      current.getEmissionDate(),</span>
+<span class="fc" id="L122">      getSensor().getReference()</span>
+    );
+    
+<span class="fc bfc" id="L125" title="All 4 branches covered.">    if (previous.isPresent() &amp;&amp; previous.get().contains(current)) {</span>
+<span class="fc" id="L126">      onInnerInput(previous.get(), current);</span>
+    } else {
+<span class="fc" id="L128">      onAloneInput(current);</span>
+    }
+<span class="fc" id="L130">  }</span>
+
+  private void onAloneInput (
+    @NonNull final BooleanState current
+  ) {
+<span class="fc bfc" id="L135" title="All 2 branches covered.">    if (!current.getValue()) return;</span>
+    
+<span class="fc" id="L137">    final Optional&lt;BooleanState&gt; next = _inputs.findNext(current);</span>
+
+<span class="fc bfc" id="L139" title="All 2 branches covered.">    if (!next.isPresent()) {</span>
+<span class="fc" id="L140">      begin(current);</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">    } else if (next.get().getValue()) {</span>
+<span class="fc" id="L142">      begin(</span>
+        current, 
+<span class="fc" id="L144">        _outputs.findWithCorrelation(</span>
+<span class="fc" id="L145">          &quot;start&quot;, next.get().getReference(), </span>
+<span class="fc" id="L146">          getSensor().getReference()</span>
+<span class="fc" id="L147">        ).get(0)</span>
+      );
+    } else {
+<span class="fc" id="L150">      create(current, next.get());</span>
+    }
+<span class="fc" id="L152">  }</span>
+
+  private void onInnerInput (
+    @NonNull final LabelState previous,
+    @NonNull final BooleanState current
+  ) {
+<span class="fc bfc" id="L158" title="All 2 branches covered.">    if (current.getValue()) return;</span>
+
+<span class="fc" id="L160">    final State                  endState  = previous.getCorrelation(&quot;end&quot;);</span>
+<span class="fc" id="L161">    final Optional&lt;BooleanState&gt; nextState = _inputs.findNext(current);</span>
+    
+<span class="fc" id="L163">    finish(previous, current);</span>
+    
+<span class="fc bfc" id="L165" title="All 2 branches covered.">    if (endState == null) {</span>
+<span class="fc bfc" id="L166" title="All 2 branches covered.">      if (nextState.isPresent()) {</span>
+<span class="fc" id="L167">        begin(nextState.get());</span>
+      }
+<span class="pc bpc" id="L169" title="1 of 4 branches missed.">    } else if (nextState.isPresent() &amp;&amp; !Objects.equals(nextState.get(), endState)) {</span>
+<span class="fc" id="L170">      create(nextState.get(), endState);</span>
+    }
+<span class="fc" id="L172">  }</span>
+
+  @Override
+  public void stateWasMutated (
+    @NonNull final StateWasMutatedEvent event
+  ) {
+<span class="fc" id="L178">    super.stateWasMutated(event);</span>
+    
+<span class="pc bpc" id="L180" title="1 of 2 branches missed.">    if (Objects.equals(event.getNewValue().getSensor(), getInputSensor())) {</span>
+<span class="fc" id="L181">      inputStateWasMutated((BooleanStateSnapshot) event.getOldValue(), (BooleanState) event.getNewValue().getModel()</span>
+      );
+    }
+<span class="fc" id="L184">  }</span>
+  
+  public void inputStateWasMutated (
+    @NonNull final BooleanStateSnapshot previous,
+    @NonNull final BooleanState next
+  ) {
+<span class="fc" id="L190">    final Optional&lt;LabelState&gt; correlated = _outputs.findFirstWithAnyCorrelation(</span>
+<span class="fc" id="L191">      Arrays.asList(&quot;start&quot;, &quot;end&quot;), </span>
+<span class="fc" id="L192">      next.getReference(), getSensor().getReference()</span>
+    );
+
+<span class="fc bfc" id="L195" title="All 2 branches covered.">    if (!correlated.isPresent()) {</span>
+<span class="fc" id="L196">      inputStateWasCreated(next);</span>
+<span class="fc" id="L197">    } else if (</span>
+<span class="fc bfc" id="L198" title="All 2 branches covered.">             !Objects.equals(next.getEmissionDate(), previous.getEmittionDate()) &amp;&amp;</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">      next.getValue() == previous.getValue()</span>
+    ) {
+<span class="fc" id="L201">      onBoundaryLocationChange(correlated.get(), next);</span>
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">    } else if (next.getValue() != previous.getValue()) {</span>
+<span class="fc" id="L203">      onBoundaryTypeChange(correlated.get(), next);     </span>
+    }
+<span class="fc" id="L205">  }</span>
+
+  private void onBoundaryLocationChange (
+    @NonNull final LabelState correlated,
+    @NonNull final BooleanState changed
+  ) {
+<span class="fc bfc" id="L211" title="All 2 branches covered.">    if (changed.equals(correlated.getCorrelation(&quot;start&quot;))) {</span>
+<span class="fc" id="L212">      onStartBoundaryLocationChange(correlated, changed);</span>
+    } else {
+<span class="fc" id="L214">      onEndBoundaryLocationChange(correlated, changed);</span>
+    }
+<span class="fc" id="L216">  }</span>
+
+  private void onEndBoundaryLocationChange (
+    @NonNull final LabelState correlated,
+    @NonNull final BooleanState changed
+  ) {
+<span class="fc" id="L222">    final BooleanState next = _inputs.findNext(</span>
+<span class="fc" id="L223">      correlated.getEnd(), </span>
+<span class="fc" id="L224">      ApplicationEntityReference.of(changed.getSensor())</span>
+<span class="fc" id="L225">    ).orElse(null);</span>
+    
+<span class="fc" id="L227">    final BooleanState previous = _inputs.findPrevious(</span>
+<span class="fc" id="L228">      correlated.getEnd(), </span>
+<span class="fc" id="L229">      ApplicationEntityReference.of(changed.getSensor())</span>
+<span class="fc" id="L230">    ).orElse(null);</span>
+    
+<span class="fc bfc" id="L232" title="All 4 branches covered.">    if (Objects.equals(next, changed) || Objects.equals(previous, changed)) {</span>
+<span class="fc" id="L233">      finish(correlated, changed);</span>
+    } else  {
+<span class="fc" id="L235">      resolveHardEndMutation(correlated, changed, next);</span>
+    }
+<span class="fc" id="L237">  }</span>
+
+  private void onStartBoundaryLocationChange (
+    @NonNull final LabelState correlated,
+    @NonNull final BooleanState changed
+  ) {
+<span class="fc" id="L243">    final BooleanState next = _inputs.findNext(</span>
+<span class="fc" id="L244">      correlated.getStart(),</span>
+<span class="fc" id="L245">      changed.getSensor().getReference()</span>
+<span class="fc" id="L246">    ).orElse(null);</span>
+   
+<span class="fc" id="L248">    final BooleanState previous = _inputs.findPrevious(</span>
+<span class="fc" id="L249">      correlated.getStart(),</span>
+<span class="fc" id="L250">      changed.getSensor().getReference()</span>
+<span class="fc" id="L251">    ).orElse(null);</span>
+    
+<span class="fc bfc" id="L253" title="All 4 branches covered.">    if (Objects.equals(next, changed) || Objects.equals(previous, changed)) {</span>
+<span class="fc" id="L254">      begin(changed, correlated);</span>
+    } else  {
+<span class="fc" id="L256">      resolveHardStartMutation(correlated, changed, next);</span>
+    }
+<span class="fc" id="L258">  }</span>
+
+  private void onBoundaryTypeChange (
+    @NonNull final LabelState correlated,
+    @NonNull final BooleanState changed
+  ) {    
+<span class="fc bfc" id="L264" title="All 2 branches covered.">    if (Objects.equals(changed, correlated.getCorrelation(&quot;start&quot;))) {</span>
+<span class="fc" id="L265">      onStartBoundaryTypeChange(correlated, changed);</span>
+    } else {
+<span class="fc" id="L267">      onEndBoundaryTypeChange(correlated, changed);</span>
+    }
+<span class="fc" id="L269">  }</span>
+
+  private void onEndBoundaryTypeChange (
+    @NonNull final LabelState correlated,
+    @NonNull final BooleanState changed
+  ) {
+<span class="fc" id="L275">    final BooleanState next = _inputs.findNext((BooleanState) correlated.getCorrelation(&quot;end&quot;)).orElse(null);</span>
+<span class="fc" id="L276">    resolveHardEndMutation(correlated, changed, next);</span>
+<span class="fc" id="L277">  }</span>
+
+  private void onStartBoundaryTypeChange (
+    @NonNull final LabelState correlated,
+    @NonNull final BooleanState changed
+  ) {
+<span class="fc" id="L283">    final BooleanState next = _inputs.findNext(</span>
+<span class="fc" id="L284">      correlated.getStart(), </span>
+<span class="fc" id="L285">      changed.getSensor().getReference()</span>
+<span class="fc" id="L286">    ).orElse(null);</span>
+<span class="fc" id="L287">    resolveHardStartMutation(correlated, changed, next);</span>
+<span class="fc" id="L288">  }</span>
+
+  private void resolveHardStartMutation (
+    @NonNull final LabelState correlated,
+    @NonNull final BooleanState changed,
+    @Nullable final BooleanState next
+  ) {
+<span class="pc bpc" id="L295" title="1 of 4 branches missed.">    if (next != null &amp;&amp; next.getValue()) {</span>
+<span class="fc" id="L296">      begin(next, correlated);</span>
+    } else {
+<span class="fc" id="L298">      delete(correlated);</span>
+    }
+    
+<span class="fc" id="L301">    inputStateWasCreated(changed);</span>
+<span class="fc" id="L302">  }</span>
+
+
+  private void resolveHardEndMutation (
+    @NonNull final LabelState correlated,
+    @NonNull final BooleanState changed,
+    @Nullable final BooleanState next
+  ) {
+<span class="pc bpc" id="L310" title="1 of 4 branches missed.">    if (next != null &amp;&amp; next.getValue()) {</span>
+<span class="fc" id="L311">      merge(correlated, _outputs.findFirstWithAnyCorrelation(</span>
+<span class="fc" id="L312">        Arrays.asList(&quot;start&quot;, &quot;end&quot;),</span>
+<span class="fc" id="L313">        ApplicationEntityReference.of(next), </span>
+<span class="fc" id="L314">        ApplicationEntityReference.of(getSensor())</span>
+<span class="fc" id="L315">      ).get());</span>
+    } else {
+<span class="fc" id="L317">      finish(correlated, next);</span>
+    }
+    
+<span class="fc" id="L320">    inputStateWasCreated(changed);</span>
+<span class="fc" id="L321">  }</span>
+
+  @Override
+  public void stateWillBeDeleted (
+    @NonNull final StateWillBeDeletedEvent event
+  ) {
+<span class="fc" id="L327">    super.stateWillBeDeleted(event);</span>
+    
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">    if (event.getState().getState().is(BooleanState.class)) {</span>
+<span class="fc" id="L330">      final BooleanState state = _inputs.find(event.getState().getState().as(BooleanState.class)).get();</span>
+      
+<span class="pc bpc" id="L332" title="1 of 2 branches missed.">      if (state.getSensorIdentifier() == getInputSensor().getIdentifier()) {</span>
+<span class="fc" id="L333">        inputStateWillBeDeleted(state);</span>
+      }
+    }
+<span class="fc" id="L336">  }</span>
+
+  public void inputStateWillBeDeleted (
+    @NonNull final BooleanState state
+  ) {
+<span class="fc" id="L341">    final Optional&lt;LabelState&gt; correlated = _outputs.findFirstWithAnyCorrelation(</span>
+<span class="fc" id="L342">      Arrays.asList(&quot;start&quot;, &quot;end&quot;),</span>
+<span class="fc" id="L343">      ApplicationEntityReference.of(state), </span>
+<span class="fc" id="L344">      ApplicationEntityReference.of(getSensor())</span>
+    );
+    
+<span class="fc bfc" id="L347" title="All 2 branches covered.">    if (correlated.isPresent()) {</span>
+<span class="fc" id="L348">      onBoundaryDeletion(correlated.get(), state);</span>
+    }
+<span class="fc" id="L350">  }</span>
+
+  private void onBoundaryDeletion (
+    @NonNull final LabelState correlated,
+    @NonNull final BooleanState state
+  ) {
+<span class="fc" id="L356">    final BooleanState next = _inputs.findNext(state).orElse(null);</span>
+
+<span class="fc bfc" id="L358" title="All 2 branches covered.">    if (Objects.equals(correlated.getCorrelation(&quot;end&quot;), state)) {</span>
+<span class="fc bfc" id="L359" title="All 4 branches covered.">      if (next != null &amp;&amp; next.getValue()) {</span>
+<span class="fc" id="L360">        merge(correlated, _outputs.findFirstWithAnyCorrelation(</span>
+<span class="fc" id="L361">          Arrays.asList(&quot;start&quot;, &quot;end&quot;),</span>
+<span class="fc" id="L362">          ApplicationEntityReference.of(next), </span>
+<span class="fc" id="L363">          ApplicationEntityReference.of(getSensor())</span>
+<span class="fc" id="L364">        ).get());</span>
+      } else {
+<span class="fc" id="L366">        finish(correlated, next);</span>
+      }
+    } else {
+<span class="pc bpc" id="L369" title="1 of 4 branches missed.">      if (next != null &amp;&amp; next.getValue()) {</span>
+<span class="fc" id="L370">        begin(next, correlated);</span>
+      } else {
+<span class="fc" id="L372">        delete(correlated);</span>
+      }
+    }
+<span class="fc" id="L375">  }</span>
+
+  private void merge (
+    @NonNull final LabelState left, @NonNull final LabelState right
+  ) {
+<span class="fc" id="L380">    final State end = right.getCorrelation(&quot;end&quot;);</span>
+<span class="fc" id="L381">    delete(right);</span>
+<span class="fc" id="L382">    finish(left, end);</span>
+<span class="fc" id="L383">  }</span>
+
+  private void delete (@NonNull final LabelState right) {
+<span class="fc" id="L386">    final StateDeletionSchema deletion = new StateDeletionSchema(right);</span>
+<span class="fc" id="L387">    _manager.execute(deletion);</span>
+<span class="fc" id="L388">  }</span>
+
+  private void finish (
+    @NonNull final LabelState current,
+    @Nullable final State next
+  ) {
+<span class="fc" id="L394">    final LabelStateMutationSchema mutation = new LabelStateMutationSchema();</span>
+    
+<span class="fc bfc" id="L396" title="All 2 branches covered.">    if (next == null) {</span>
+<span class="fc" id="L397">      mutation.setEnd(null);</span>
+<span class="fc" id="L398">      mutation.decorrelate(&quot;end&quot;);</span>
+    } else {
+<span class="fc" id="L400">      mutation.setEnd(next.getEmissionDate());</span>
+<span class="fc" id="L401">      mutation.correlate(&quot;end&quot;, next);</span>
+    }
+    
+<span class="fc" id="L404">    mutation.setState(current.getIdentifier());</span>
+    
+<span class="fc" id="L406">    _manager.execute(mutation);</span>
+<span class="fc" id="L407">  }</span>
+
+  private LabelState begin (@NonNull final State start) {
+<span class="fc" id="L410">    return create(start, null);</span>
+  }
+
+  private LabelState create (
+    @NonNull final State start, 
+    @Nullable final State end
+  ) {
+<span class="fc" id="L417">    final LabelStateCreationSchema creation = new LabelStateCreationSchema();</span>
+<span class="fc" id="L418">    creation.setEmissionDate(start.getEmissionDate());</span>
+<span class="fc" id="L419">    creation.setTag(getConfiguration().getLabel());</span>
+<span class="fc" id="L420">    creation.setSensor(getSensor());</span>
+<span class="fc" id="L421">    creation.setStart(start.getEmissionDate());</span>
+<span class="fc" id="L422">    creation.correlate(&quot;start&quot;, start);</span>
+    
+<span class="fc bfc" id="L424" title="All 2 branches covered.">    if (end != null) {</span>
+<span class="fc" id="L425">      creation.setEnd(end.getEmissionDate());</span>
+<span class="fc" id="L426">      creation.correlate(&quot;end&quot;, end);</span>
+    }
+    
+<span class="fc" id="L429">    return _manager.execute(creation);</span>
+  }
+  
+  private void begin (
+    @NonNull final BooleanState current, @NonNull final LabelState state
+  ) {
+<span class="fc" id="L435">    final LabelStateMutationSchema schema = new LabelStateMutationSchema();</span>
+<span class="fc" id="L436">    schema.setState(state.getIdentifier());</span>
+<span class="fc" id="L437">    schema.setStart(current.getEmissionDate());</span>
+<span class="fc" id="L438">    schema.setEmissionDate(current.getEmissionDate());</span>
+<span class="fc" id="L439">    schema.correlate(&quot;start&quot;, current);</span>
+    
+<span class="fc" id="L441">    _manager.execute(schema);</span>
+<span class="fc" id="L442">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

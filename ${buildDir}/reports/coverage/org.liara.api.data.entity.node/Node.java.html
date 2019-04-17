@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Node.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.node</a> &gt; <span class="el_source">Node.java</span></div><h1>Node.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.data.entity.node;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.liara.api.data.collection.NodeCollection;
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.tree.NestedSetCoordinates;
+import org.liara.api.data.entity.tree.NestedSetTree;
+import org.liara.api.data.entity.tree.NestedSetTreeNode;
+import org.liara.api.data.schema.UseCreationSchema;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import javax.persistence.*;
+import java.util.*;
+
+@Entity
+@Table(name = &quot;nodes&quot;)
+@UseCreationSchema(NodeCreationSchema.class)
+@JsonPropertyOrder({ &quot;identifier&quot;, &quot;name&quot;, &quot;type&quot;, &quot;coordinates&quot; })
+public class      Node 
+       extends    ApplicationEntity 
+       implements NestedSetTreeNode&lt;Node&gt;
+{
+  @NonNull
+  @Column(name = &quot;name&quot;, nullable = false, updatable = true, unique = false)
+  private String                _name;
+
+  @NonNull
+  @Column(name = &quot;type&quot;, nullable = false, updatable = false, unique = false)
+  private String                _type;
+
+<span class="pc" id="L56">  @NonNull</span>
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = &quot;_node&quot;)
+  private Set&lt;Sensor&gt;          _sensors = new HashSet&lt;&gt;();
+
+  @NonNull
+  @Transient
+  private NestedSetTree&lt;Node&gt; _tree;
+  
+  @Nullable
+  @Embedded
+  private NestedSetCoordinates _coordinates;
+  
+  public static Node createLocal () {
+<span class="fc" id="L69">    final Node result = new Node();</span>
+<span class="fc" id="L70">    result._tree = null;</span>
+<span class="fc" id="L71">    return result;</span>
+  }
+  
+<span class="fc" id="L74">  protected Node () {</span>
+<span class="fc" id="L75">    _tree = DatabaseNodeTree.getInstance();</span>
+<span class="fc" id="L76">    _name = null;</span>
+<span class="fc" id="L77">    _type = null;</span>
+<span class="fc" id="L78">    _coordinates = new NestedSetCoordinates();</span>
+<span class="fc" id="L79">  }</span>
+  
+<span class="nc" id="L81">  public Node (@NonNull final NodeCreationSchema schema) {</span>
+<span class="nc" id="L82">    _tree = DatabaseNodeTree.getInstance();</span>
+<span class="nc" id="L83">    _name = schema.getName();</span>
+<span class="nc" id="L84">    _type = schema.getType();</span>
+<span class="nc" id="L85">    _coordinates = new NestedSetCoordinates();</span>
+<span class="nc" id="L86">  }</span>
+  
+  /**
+   * Create a new node from a creation schema.
+   * 
+   * @param schema Schema to use in order to create this node.
+   * @param collection Future collection of this node.
+   */
+  public Node (
+    @NonNull final NodeCreationSchema schema,
+    @NonNull final NodeCollection collection
+<span class="nc" id="L97">  ) {</span>
+<span class="nc" id="L98">    _name = schema.getName();</span>
+<span class="nc" id="L99">    _type = schema.getType();</span>
+<span class="nc" id="L100">  }</span>
+  
+  /**
+   * Return the type of this node.
+   * 
+   * A type is a generic name linked to a class that allows to do special operations on this node.
+   * 
+   * @return The type of this node.
+   */
+  public String getType () {
+<span class="nc" id="L110">    return _type;</span>
+  }
+  
+  public void setType (@NonNull final Class&lt;?&gt; type) {
+<span class="nc" id="L114">    _type = type.getName();</span>
+<span class="nc" id="L115">  }</span>
+  
+  public void setType (@NonNull final String type) {
+<span class="fc" id="L118">    _type = type;</span>
+<span class="fc" id="L119">  }</span>
+
+  /**
+   * Return the name of this node.
+   * 
+   * It's only a label in order to easily know what this node represents.
+   * 
+   * @return The name of this node.
+   */
+  public String getName () {
+<span class="fc" id="L129">    return _name;</span>
+  }
+
+  /**
+   * Rename this node.
+   * 
+   * @param name The new name to apply to this node.
+   */
+  public void setName (@NonNull final String name) {
+<span class="fc" id="L138">    _name = name;</span>
+<span class="fc" id="L139">  }</span>
+  
+  /**
+   * Return all sensors directly attached to this node.
+   * 
+   * @return All sensors directly attached to this node.
+   */
+  @JsonIgnore
+  public Iterable&lt;Sensor&gt; sensors () {
+<span class="fc" id="L148">    return Collections.unmodifiableSet(_sensors);</span>
+  }
+  
+  @JsonIgnore
+  public Set&lt;Sensor&gt; getSensors () {
+<span class="fc" id="L153">    return Collections.unmodifiableSet(_sensors);</span>
+  }
+  
+  /**
+   * Add a sensor to this node.
+   * 
+   * @param sensor A sensor to add to this node.
+   */
+  public void addSensor (@NonNull final Sensor sensor) {
+<span class="fc bfc" id="L162" title="All 2 branches covered.">    if (!_sensors.contains(sensor)) {</span>
+<span class="fc" id="L163">      _sensors.add(sensor);</span>
+<span class="fc" id="L164">      sensor.setNode(this);</span>
+    }
+<span class="fc" id="L166">  }</span>
+  
+  /**
+   * Remove a sensor from this node.
+   * 
+   * @param sensor A sensor to remove from this node.
+   */
+  public void removeSensor (@NonNull final Sensor sensor) {
+<span class="nc bnc" id="L174" title="All 2 branches missed.">    if (_sensors.contains(sensor)) {</span>
+<span class="nc" id="L175">      _sensors.remove(sensor);</span>
+<span class="nc" id="L176">      sensor.setNode(null);</span>
+    }
+<span class="nc" id="L178">  }</span>
+  
+  public boolean hasSensor (@NonNull final Sensor sensor) {
+<span class="nc" id="L181">    return _sensors.contains(sensor);</span>
+  }
+  
+  @Override
+  public NodeSnapshot snapshot () {
+<span class="nc" id="L186">    return new NodeSnapshot(this);</span>
+  }
+
+  @Override
+  @JsonIgnore
+  public NestedSetTree&lt;Node&gt; getTree () {
+<span class="fc" id="L192">    return _tree;</span>
+  }
+
+  @Override
+  public void setTree (@Nullable final NestedSetTree&lt;Node&gt; tree) {
+<span class="fc bfc" id="L197" title="All 2 branches covered.">    if (!Objects.equals(_tree, tree)) {</span>
+<span class="fc bfc" id="L198" title="All 2 branches covered.">      if (!Objects.equals(_tree, null)) {</span>
+<span class="fc" id="L199">        final NestedSetTree&lt;Node&gt; oldTree = _tree;</span>
+<span class="fc" id="L200">        _tree = null;</span>
+<span class="fc" id="L201">        oldTree.removeNode(this);</span>
+      }
+      
+<span class="fc" id="L204">      _tree = tree;</span>
+      
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">      if (!Objects.equals(_tree, null)) {</span>
+<span class="fc" id="L207">        _tree.addNode(this);</span>
+      }
+    }
+<span class="fc" id="L210">  }</span>
+
+  @Override
+  public NestedSetCoordinates getCoordinates () {
+<span class="nc bnc" id="L214" title="All 2 branches missed.">    if (_tree == null) {</span>
+<span class="nc" id="L215">      return new NestedSetCoordinates();</span>
+    } else {
+<span class="nc" id="L217">      return _tree.getCoordinatesOf(this);</span>
+    }
+  }
+
+  @Override
+  @JsonIgnore
+  public Set&lt;Node&gt; getChildren () {
+<span class="fc" id="L224">    return _tree.getChildrenOf(this);</span>
+  }
+  
+  @JsonIgnore
+  public Iterable&lt;Node&gt; children () {
+<span class="fc" id="L229">    return getChildren();</span>
+  }
+
+  @Override
+  @JsonIgnore
+  public Set&lt;Node&gt; getAllChildren () {
+<span class="nc" id="L235">    return _tree.getAllChildrenOf(this);</span>
+  }
+  
+  public List&lt;Node&gt; getChildrenWithName (@NonNull final String name) {
+<span class="nc" id="L239">    final List&lt;Node&gt; results = new ArrayList&lt;&gt;();</span>
+    
+<span class="nc bnc" id="L241" title="All 2 branches missed.">    for (final Node node : getChildren()) {</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">      if (node.getName().equals(name)) {</span>
+<span class="nc" id="L243">        results.add(node);</span>
+      }
+<span class="nc" id="L245">    }</span>
+    
+<span class="nc" id="L247">    return results;</span>
+  }
+  
+  public Optional&lt;Node&gt; getFirstChildWithName (@NonNull final String name) {
+<span class="pc bpc" id="L251" title="1 of 2 branches missed.">    for (final Node node : getChildren()) {</span>
+<span class="fc bfc" id="L252" title="All 2 branches covered.">      if (node.getName().equals(name)) {</span>
+<span class="fc" id="L253">        return Optional.ofNullable(node);</span>
+      }
+<span class="fc" id="L255">    }</span>
+    
+<span class="nc" id="L257">    return Optional.empty();</span>
+  }
+  
+  public List&lt;Sensor&gt; getSensorsWithName (@NonNull final String name) {
+<span class="nc" id="L261">    final List&lt;Sensor&gt; results = new ArrayList&lt;&gt;();</span>
+    
+<span class="nc bnc" id="L263" title="All 2 branches missed.">    for (final Sensor sensor : _sensors) {</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">      if (sensor.getName().equals(name)) {</span>
+<span class="nc" id="L265">        results.add(sensor);</span>
+      }
+<span class="nc" id="L267">    }</span>
+    
+<span class="nc" id="L269">    return results;</span>
+  }
+ 
+  public Optional&lt;Sensor&gt; getFirstSensorWithName (@NonNull final List&lt;String&gt; name) {
+<span class="fc" id="L273">    Optional&lt;Node&gt; parent = Optional.ofNullable(this);</span>
+    
+<span class="pc bpc" id="L275" title="1 of 4 branches missed.">    for (int index = 0; index &lt; name.size() - 1 &amp;&amp; parent.isPresent(); ++index) {</span>
+<span class="fc" id="L276">      parent = parent.get().getFirstChildWithName(name.get(index));</span>
+    }
+    
+<span class="pc bpc" id="L279" title="1 of 2 branches missed.">    if (parent.isPresent()) {</span>
+<span class="fc" id="L280">      return parent.get().getFirstSensorWithName(name.get(name.size() - 1));</span>
+    } else {
+<span class="nc" id="L282">      return Optional.empty(); </span>
+    }
+  }
+  
+  public Optional&lt;Sensor&gt; getFirstSensorWithName (@NonNull final String name) {
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">    for (final Sensor sensor : _sensors) {</span>
+<span class="fc bfc" id="L288" title="All 2 branches covered.">      if (sensor.getName().equals(name)) {</span>
+<span class="fc" id="L289">        return Optional.ofNullable(sensor);</span>
+      }
+<span class="fc" id="L291">    }</span>
+    
+<span class="nc" id="L293">    return Optional.empty();</span>
+  }
+
+  @Override
+  public void addChild (@NonNull final Node node) {
+<span class="fc" id="L298">    _tree.addNode(node, this);</span>
+<span class="fc" id="L299">  }</span>
+
+  @Override
+  public void removeChild (@NonNull final Node node) {
+<span class="nc" id="L303">    _tree.removeNode(node);</span>
+<span class="nc" id="L304">  }</span>
+
+  @Override
+  @JsonIgnore
+  public Node getParent () {
+<span class="fc" id="L309">    return _tree.getParentOf(this);</span>
+  }
+
+  @Override
+  public void setParent (@NonNull final Node node) {
+<span class="nc" id="L314">    _tree.addNode(this, node);</span>
+<span class="nc" id="L315">  }  </span>
+  
+  @Override
+  public ApplicationEntityReference&lt;? extends Node&gt; getReference () {
+<span class="fc" id="L319">    return ApplicationEntityReference.of(this);</span>
+  }
+
+  @JsonIgnore
+  public Node getRoot () {
+<span class="fc" id="L324">    return _tree.getRoot(this);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

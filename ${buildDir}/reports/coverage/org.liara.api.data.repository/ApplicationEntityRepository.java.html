@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationEntityRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository</a> &gt; <span class="el_source">ApplicationEntityRepository.java</span></div><h1>ApplicationEntityRepository.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository;
+
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.springframework.lang.NonNull;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface ApplicationEntityRepository&lt;Entity extends ApplicationEntity&gt;
+{
+  Optional&lt;Entity&gt; find (
+    @NonNull final ApplicationEntityReference&lt;Entity&gt; reference
+  );
+
+  Optional&lt;Entity&gt; find (
+    @NonNull final Long identifier
+  );
+
+  default Entity getAt (@NonNull final ApplicationEntityReference&lt;Entity&gt; reference) {
+<span class="nc" id="L21">    return find(reference).get();</span>
+  }
+
+  List&lt;Entity&gt; findAll ();
+
+  default List&lt;Entity&gt; getAt () {
+<span class="nc" id="L27">    return findAll();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

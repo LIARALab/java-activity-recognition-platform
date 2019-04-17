@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Sensor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.sensor</a> &gt; <span class="el_source">Sensor.java</span></div><h1>Sensor.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.sensor;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.node.Node;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.schema.UseCreationSchema;
+import org.liara.api.database.SensorConfigurationConverter;
+import org.liara.api.recognition.sensor.EmitStateOfType;
+import org.liara.api.recognition.sensor.SensorConfiguration;
+import org.liara.api.recognition.sensor.VirtualSensorHandler;
+import org.liara.api.recognition.sensor.common.NativeSensor;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import javax.persistence.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+@Table(name = &quot;sensors&quot;)
+@UseCreationSchema(SensorCreationSchema.class)
+@JsonPropertyOrder({ &quot;identifier&quot;, &quot;name&quot;, &quot;type&quot;, &quot;node_identifier&quot;, &quot;configuration&quot; })
+public class      Sensor 
+       extends    ApplicationEntity
+{
+  @Column(name = &quot;name&quot;, nullable = false, updatable = true, unique = false)
+  private String        _name;
+  
+  @Column(name = &quot;type&quot;, nullable = false, updatable = true, unique = false)
+  private String        _type;
+  
+  @Column(name = &quot;unit&quot;, nullable = true, updatable = true, unique = false)
+  private String        _unit;
+
+  @OneToMany(
+    mappedBy=&quot;_sensor&quot;, 
+    cascade = CascadeType.ALL, 
+    orphanRemoval = false,
+    fetch = FetchType.LAZY
+  )
+  private Set&lt;State&gt; _states;
+
+  @ManyToOne(optional = false)
+  @JoinColumn(name = &quot;node_identifier&quot;, nullable = false, unique = false, updatable = false)
+  private Node    _node;
+  
+  @Convert(converter = SensorConfigurationConverter.class)
+  @Column(name = &quot;configuration&quot;, nullable = false, updatable = false, unique = false)
+  private SensorConfiguration _configuration;
+  
+  @Column(name = &quot;is_virtual_sensor&quot;, nullable = false, updatable = true, unique = false)
+  private boolean _virtual;
+
+<span class="fc" id="L58">  public Sensor () {</span>
+<span class="fc" id="L59">    _name = null;</span>
+<span class="fc" id="L60">    _type = null;</span>
+<span class="fc" id="L61">    _unit = null;</span>
+<span class="fc" id="L62">    _states = new HashSet&lt;&gt;();</span>
+<span class="fc" id="L63">    _node = null;</span>
+<span class="fc" id="L64">    _configuration = null;</span>
+<span class="fc" id="L65">  }</span>
+
+  public String getName () {
+<span class="fc" id="L68">    return _name;</span>
+  }
+
+  public void setName (@NonNull final String name) {
+<span class="fc" id="L72">    _name = name;</span>
+<span class="fc" id="L73">  }</span>
+  
+  @PrePersist
+  public void willBeCreated () {
+<span class="nc" id="L77">    _virtual = isVirtual();</span>
+<span class="nc" id="L78">  }</span>
+  
+  @PreUpdate
+  public void willBeUpdated () {
+<span class="nc" id="L82">    _virtual = isVirtual();</span>
+<span class="nc" id="L83">  }</span>
+
+  @JsonIgnore
+  public Node getNode () {
+<span class="fc" id="L87">    return _node;</span>
+  }
+  
+  /**
+   * Change the parent node of this sensor.
+   * 
+   * @param node The new parent node of this sensor.
+   */
+  public void setNode (@Nullable final Node node) {
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">    if (node != _node) {</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">      if (_node != null) {</span>
+<span class="nc" id="L98">        final Node oldNode = _node;</span>
+<span class="nc" id="L99">        _node = null;</span>
+<span class="nc" id="L100">        oldNode.removeSensor(this);</span>
+      }
+      
+<span class="fc" id="L103">      _node = node;</span>
+      
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">      if (_node != null) {</span>
+<span class="fc" id="L106">        _node.addSensor(this);</span>
+      }
+    }
+<span class="fc" id="L109">  }</span>
+  
+  public Long getNodeIdentifier () {
+<span class="fc" id="L112">    return _node.getIdentifier();</span>
+  }
+
+  @JsonIgnore
+  public Set&lt;State&gt; getStates () {
+<span class="fc" id="L117">    return Collections.unmodifiableSet(_states);</span>
+  }
+  
+  @JsonIgnore
+  public Iterable&lt;State&gt; states () {
+<span class="fc" id="L122">    return getStates();</span>
+  }
+  
+  public void addState (@NonNull final State state) {
+<span class="fc bfc" id="L126" title="All 2 branches covered.">    if (!_states.contains(state)) {</span>
+<span class="fc" id="L127">      _states.add(state);</span>
+<span class="fc" id="L128">      state.setSensor(this);</span>
+    }
+<span class="fc" id="L130">  }</span>
+  
+  public void removeState (@NonNull final State state) {
+<span class="nc bnc" id="L133" title="All 2 branches missed.">    if (_states.contains(state)) {</span>
+<span class="nc" id="L134">      _states.remove(state);</span>
+<span class="nc" id="L135">      state.setSensor(null);</span>
+    }
+<span class="nc" id="L137">  }</span>
+
+  public String getType () {
+<span class="fc" id="L140">    return _type;</span>
+  }
+  
+  @JsonIgnore
+  public Class&lt;?&gt; getTypeClass () {
+    try {
+<span class="fc" id="L146">      return Class.forName(_type);</span>
+<span class="nc" id="L147">    } catch (final ClassNotFoundException exception) {</span>
+<span class="nc" id="L148">      throw new Error(&quot;Invalid sensor type &quot; + _type + &quot;, no class found for the given type.&quot;);</span>
+    }
+  }
+  
+  @JsonIgnore
+  public Class&lt;? extends State&gt; getStateClass () {
+<span class="nc" id="L154">    final Class&lt;?&gt; typeClass = this.getTypeClass();</span>
+<span class="nc" id="L155">    final EmitStateOfType annotation = typeClass.getAnnotation(EmitStateOfType.class);</span>
+    
+<span class="nc bnc" id="L157" title="All 2 branches missed.">    if (annotation == null) {</span>
+<span class="nc" id="L158">      throw new Error(String.join(</span>
+        &quot;&quot;,
+        &quot;Unnable to retrieve the emitted state type of this sensor because the &quot;,
+<span class="nc" id="L161">        &quot;type of this sensor &quot;, typeClass.toString(), &quot; does not declare any &quot;,</span>
+<span class="nc" id="L162">        EmitStateOfType.class.toString(), &quot; annotation.&quot;</span>
+      ));
+    } else {
+<span class="nc" id="L165">      return annotation.value();</span>
+    }
+  }
+  
+  public boolean isVirtual () {
+<span class="fc" id="L170">    return VirtualSensorHandler.class.isAssignableFrom(getTypeClass());</span>
+  }
+  
+  public boolean isNative () {
+<span class="nc" id="L174">    return NativeSensor.class.isAssignableFrom(getTypeClass());</span>
+  }
+  
+  public void setType (@NonNull final String type) {
+<span class="fc" id="L178">    _type = type;</span>
+<span class="fc" id="L179">  }</span>
+
+  public String getUnit () {
+<span class="nc" id="L182">    return _unit;</span>
+  }
+  
+  public void setUnit (@NonNull final String unit) {
+<span class="fc" id="L186">    _unit = unit;</span>
+<span class="fc" id="L187">  }</span>
+  
+  public SensorConfiguration getConfiguration () {
+<span class="fc" id="L190">    return _configuration;</span>
+  }
+  
+  public void setConfiguration (@Nullable final SensorConfiguration configuration) {
+<span class="fc" id="L194">    _configuration = configuration;</span>
+<span class="fc" id="L195">  }</span>
+  
+  @Override
+  public SensorSnapshot snapshot () {
+<span class="nc" id="L199">    return new SensorSnapshot(this);</span>
+  }  
+  
+  @Override
+  public ApplicationEntityReference&lt;Sensor&gt; getReference () {
+<span class="fc" id="L204">    return ApplicationEntityReference.of(this);</span>
+  }
+
+  public boolean isOfType (@NonNull final Class&lt;?&gt; type) {
+<span class="fc" id="L208">    return type.isAssignableFrom(getTypeClass());</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

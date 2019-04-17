@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NodeCreationSchema.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.node</a> &gt; <span class="el_source">NodeCreationSchema.java</span></div><h1>NodeCreationSchema.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.data.entity.node;
+
+import java.util.Optional;
+
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.schema.Schema;
+import org.liara.api.validation.ValidApplicationEntityReference;
+import org.liara.api.validation.Required;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import com.fasterxml.jackson.annotation.JsonSetter;
+
+@Schema(Node.class)
+<span class="nc" id="L36">public final class NodeCreationSchema</span>
+{
+<span class="nc" id="L38">  @Nullable</span>
+  @Required
+  private String _name = null;
+  
+<span class="nc" id="L42">  @Nullable</span>
+  @Required
+  private String _type = null;
+  
+<span class="nc" id="L46">  @NonNull</span>
+  @ValidApplicationEntityReference
+<span class="nc" id="L48">  private ApplicationEntityReference&lt;Node&gt; _parent = ApplicationEntityReference.empty(Node.class);</span>
+  
+  /**
+   * Return the name that will be assigned to the created node.
+   * 
+   * @return The name that will be assigned to the created node.
+   */
+  public String getName () {
+<span class="nc" id="L56">    return _name;</span>
+  }
+  
+  /**
+   * Set the name that will be assigned to the created node.
+   * 
+   * @param name The name that will be assigned to the created node.
+   */
+  @JsonSetter
+  public void setName (@Nullable final String name) {
+<span class="nc" id="L66">    _name = name;</span>
+<span class="nc" id="L67">  }</span>
+
+  /**
+   * Set the name that will be assigned to the created node.
+   * 
+   * @param name The name that will be assigned to the created node.
+   */
+  public void setName (@NonNull final Optional&lt;String&gt; name) {
+<span class="nc" id="L75">    _name = name.orElse(null);</span>
+<span class="nc" id="L76">  }</span>
+  
+  /**
+   * Return the type that will be assigned to the created node.
+   * 
+   * @return The type that will be assigned to the created node.
+   */
+  public String getType () {
+<span class="nc" id="L84">    return _type;</span>
+  }
+  
+  @JsonSetter
+  public void setType (@Nullable final String type) {
+<span class="nc" id="L89">    _type = type;</span>
+<span class="nc" id="L90">  }</span>
+
+  public void setType (@NonNull final Optional&lt;String&gt; type) {
+<span class="nc" id="L93">    _type = type.orElse(null);</span>
+<span class="nc" id="L94">  }</span>
+  
+  public ApplicationEntityReference&lt;Node&gt; getParent () {
+<span class="nc" id="L97">    return _parent;</span>
+  }
+  
+  @JsonSetter
+  public void setParent (final Long parent) {
+<span class="nc" id="L102">    _parent = ApplicationEntityReference.of(Node.class, parent);</span>
+<span class="nc" id="L103">  }</span>
+  
+  public void setParent (@Nullable final Node parent) {
+<span class="nc bnc" id="L106" title="All 2 branches missed.">    _parent = (parent == null) ? ApplicationEntityReference.empty(Node.class) </span>
+<span class="nc" id="L107">                               : ApplicationEntityReference.of(parent);</span>
+<span class="nc" id="L108">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityCollectionCommandBasedFilteringOperator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.transformation.operator.filtering</a> &gt; <span class="el_source">EntityCollectionCommandBasedFilteringOperator.java</span></div><h1>EntityCollectionCommandBasedFilteringOperator.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.transformation.operator.filtering;
+
+import java.util.Arrays;
+import javax.persistence.criteria.Predicate;
+
+import org.liara.api.collection.query.EntityCollectionQuery;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.filter.interpretor.FilterInterpretor;
+import org.springframework.lang.NonNull;
+
+public class      EntityCollectionCommandBasedFilteringOperator&lt;Entity, Field&gt; 
+       implements EntityCollectionOperator&lt;Entity&gt;
+{  
+  @NonNull
+  private final String[] _commands;
+  
+  @NonNull
+  private final FilterInterpretor&lt;Entity, Field&gt; _interpretor;
+
+  public EntityCollectionCommandBasedFilteringOperator(
+    @NonNull final String[] commands,
+    @NonNull final FilterInterpretor&lt;Entity, Field&gt; interpretor
+<span class="nc" id="L44">  ) {</span>
+<span class="nc" id="L45">    _commands = commands;</span>
+<span class="nc" id="L46">    _interpretor = interpretor;</span>
+<span class="nc" id="L47">  }</span>
+   
+  @Override
+  public void apply (@NonNull final EntityCollectionQuery&lt;Entity, ?&gt; query) {
+<span class="nc" id="L51">    final Predicate[] predicates = Arrays.stream(_commands).map(</span>
+<span class="nc" id="L52">      command -&gt; _interpretor.execute(command, query)</span>
+<span class="nc" id="L53">    ).toArray(size -&gt; new Predicate[size]);</span>
+    
+<span class="nc" id="L55">    query.andWhere(query.getManager().getCriteriaBuilder().or(predicates));</span>
+<span class="nc" id="L56">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

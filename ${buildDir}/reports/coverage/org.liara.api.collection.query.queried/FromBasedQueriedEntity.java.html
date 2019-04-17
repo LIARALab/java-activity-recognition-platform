@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FromBasedQueriedEntity.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.query.queried</a> &gt; <span class="el_source">FromBasedQueriedEntity.java</span></div><h1>FromBasedQueriedEntity.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.query.queried;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.criteria.CollectionJoin;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Fetch;
+import javax.persistence.criteria.From;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.ListJoin;
+import javax.persistence.criteria.MapJoin;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Selection;
+import javax.persistence.criteria.SetJoin;
+import javax.persistence.metamodel.Bindable;
+import javax.persistence.metamodel.CollectionAttribute;
+import javax.persistence.metamodel.ListAttribute;
+import javax.persistence.metamodel.MapAttribute;
+import javax.persistence.metamodel.PluralAttribute;
+import javax.persistence.metamodel.SetAttribute;
+import javax.persistence.metamodel.SingularAttribute;
+
+import org.hibernate.query.criteria.internal.Renderable;
+import org.hibernate.query.criteria.internal.SelectionImplementor;
+import org.hibernate.query.criteria.internal.ValueHandlerFactory.ValueHandler;
+import org.hibernate.query.criteria.internal.compile.RenderingContext;
+import org.springframework.lang.NonNull;
+
+public abstract class FromBasedQueriedEntity&lt;Base, Entity&gt; implements QueriedEntity&lt;Base, Entity&gt;
+{
+  @NonNull
+  private final From&lt;Base, Entity&gt; _from;
+  
+<span class="nc" id="L60">  public FromBasedQueriedEntity(@NonNull final From&lt;Base, Entity&gt; from) {</span>
+<span class="nc" id="L61">    _from = from;</span>
+<span class="nc" id="L62">  }</span>
+
+  @Override
+  public Predicate isNull () {
+<span class="nc" id="L66">    return _from.isNull();</span>
+  }
+
+  @Override
+  public Class&lt;? extends Entity&gt; getJavaType () {
+<span class="nc" id="L71">    return _from.getJavaType();</span>
+  }
+
+  @Override
+  public Selection&lt;Entity&gt; alias (@NonNull final String name) {
+<span class="nc" id="L76">    return _from.alias(name);</span>
+  }
+
+  @Override
+  public Set&lt;Fetch&lt;Entity, ?&gt;&gt; getFetches () {
+<span class="nc" id="L81">    return _from.getFetches();</span>
+  }
+
+  @Override
+  public Predicate isNotNull () {
+<span class="nc" id="L86">    return _from.isNotNull();</span>
+  }
+
+  @Override
+  public String getAlias () {
+<span class="nc" id="L91">    return _from.getAlias();</span>
+  }
+
+  @Override
+  public Bindable&lt;Entity&gt; getModel () {
+<span class="nc" id="L96">    return _from.getModel();</span>
+  }
+
+  @Override
+  public Predicate in (@NonNull final Object... values) {
+<span class="nc" id="L101">    return _from.in(values);</span>
+  }
+
+  @Override
+  public boolean isCompoundSelection () {
+<span class="nc" id="L106">    return _from.isCompoundSelection();</span>
+  }
+
+  @Override
+  public Path&lt;?&gt; getParentPath () {
+<span class="nc" id="L111">    return _from.getParentPath();</span>
+  }
+
+  @Override
+  public &lt;Y&gt; Fetch&lt;Entity, Y&gt; fetch (@NonNull final SingularAttribute&lt;? super Entity, Y&gt; attribute) {
+<span class="nc" id="L116">    return _from.fetch(attribute);</span>
+  }
+
+  @Override
+  public List&lt;Selection&lt;?&gt;&gt; getCompoundSelectionItems () {
+<span class="nc" id="L121">    return _from.getCompoundSelectionItems();</span>
+  }
+
+  @Override
+  public &lt;Y&gt; Path&lt;Y&gt; get (@NonNull final SingularAttribute&lt;? super Entity, Y&gt; attribute) {
+<span class="nc" id="L126">    return _from.get(attribute);</span>
+  }
+
+  @Override
+  public Predicate in (@NonNull final Expression&lt;?&gt;... values) {
+<span class="nc" id="L131">    return _from.in(values);</span>
+  }
+
+  @Override
+  public Set&lt;Join&lt;Entity, ?&gt;&gt; getJoins () {
+<span class="nc" id="L136">    return _from.getJoins();</span>
+  }
+
+  @Override
+  public &lt;Y&gt; Fetch&lt;Entity, Y&gt; fetch (
+    @NonNull final SingularAttribute&lt;? super Entity, Y&gt; attribute, 
+    @NonNull final JoinType jt
+  ) {
+<span class="nc" id="L144">    return _from.fetch(attribute, jt);</span>
+  }
+
+  @Override
+  public &lt;E, C extends Collection&lt;E&gt;&gt; Expression&lt;C&gt; get (@NonNull final PluralAttribute&lt;Entity, C, E&gt; collection) {
+<span class="nc" id="L149">    return _from.get(collection);</span>
+  }
+
+  @Override
+  public Predicate in (@NonNull final Collection&lt;?&gt; values) {
+<span class="nc" id="L154">    return _from.in(values);</span>
+  }
+
+  @Override
+  public boolean isCorrelated () {
+<span class="nc" id="L159">    return _from.isCorrelated();</span>
+  }
+
+  @Override
+  public &lt;Y&gt; Fetch&lt;Entity, Y&gt; fetch (@NonNull final PluralAttribute&lt;? super Entity, ?, Y&gt; attribute) {
+<span class="nc" id="L164">    return _from.fetch(attribute);</span>
+  }
+
+  @Override
+  public Predicate in (@NonNull final Expression&lt;Collection&lt;?&gt;&gt; values) {
+<span class="nc" id="L169">    return _from.in(values);</span>
+  }
+
+  @Override
+  public &lt;K, V, M extends Map&lt;K, V&gt;&gt; Expression&lt;M&gt; get (@NonNull final MapAttribute&lt;Entity, K, V&gt; map) {
+<span class="nc" id="L174">    return _from.get(map);</span>
+  }
+
+  @Override
+  public From&lt;Base, Entity&gt; getCorrelationParent () {
+<span class="nc" id="L179">    return _from.getCorrelationParent();</span>
+  }
+
+  @Override
+  public &lt;Y&gt; Fetch&lt;Entity, Y&gt; fetch (@NonNull final PluralAttribute&lt;? super Entity, ?, Y&gt; attribute, @NonNull final JoinType jt) {
+<span class="nc" id="L184">    return _from.fetch(attribute, jt);</span>
+  }
+
+  @Override
+  public &lt;X&gt; Expression&lt;X&gt; as (@NonNull final Class&lt;X&gt; type) {
+<span class="nc" id="L189">    return _from.as(type);</span>
+  }
+
+  @Override
+  public Expression&lt;Class&lt;? extends Entity&gt;&gt; type () {
+<span class="nc" id="L194">    return _from.type();</span>
+  }
+
+  @Override
+  public &lt;X, Y&gt; Fetch&lt;X, Y&gt; fetch (@NonNull final String attributeName) {
+<span class="nc" id="L199">    return _from.fetch(attributeName);</span>
+  }
+
+  @Override
+  public &lt;Y&gt; Join&lt;Entity, Y&gt; join (@NonNull final SingularAttribute&lt;? super Entity, Y&gt; attribute) {
+<span class="nc" id="L204">    return _from.join(attribute);</span>
+  }
+
+  @Override
+  public &lt;Y&gt; Path&lt;Y&gt; get (@NonNull final String attributeName) {
+<span class="nc" id="L209">    return _from.get(attributeName);</span>
+  }
+
+  @Override
+  public &lt;Y&gt; Join&lt;Entity, Y&gt; join (@NonNull final SingularAttribute&lt;? super Entity, Y&gt; attribute, @NonNull final JoinType jt) {
+<span class="nc" id="L214">    return _from.join(attribute, jt);</span>
+  }
+
+  @Override
+  public &lt;X, Y&gt; Fetch&lt;X, Y&gt; fetch (@NonNull final String attributeName, @NonNull final JoinType jt) {
+<span class="nc" id="L219">    return _from.fetch(attributeName, jt);</span>
+  }
+
+  @Override
+  public &lt;Y&gt; CollectionJoin&lt;Entity, Y&gt; join (@NonNull final CollectionAttribute&lt;? super Entity, Y&gt; collection) {
+<span class="nc" id="L224">    return _from.join(collection);</span>
+  }
+
+  @Override
+  public &lt;Y&gt; SetJoin&lt;Entity, Y&gt; join (@NonNull final SetAttribute&lt;? super Entity, Y&gt; set) {
+<span class="nc" id="L229">    return _from.join(set);</span>
+  }
+
+  @Override
+  public &lt;Y&gt; ListJoin&lt;Entity, Y&gt; join (@NonNull final ListAttribute&lt;? super Entity, Y&gt; list) {
+<span class="nc" id="L234">    return _from.join(list);</span>
+  }
+
+  @Override
+  public &lt;K, V&gt; MapJoin&lt;Entity, K, V&gt; join (@NonNull final MapAttribute&lt;? super Entity, K, V&gt; map) {
+<span class="nc" id="L239">    return _from.join(map);</span>
+  }
+
+  @Override
+  public &lt;Y&gt; CollectionJoin&lt;Entity, Y&gt; join (@NonNull final CollectionAttribute&lt;? super Entity, Y&gt; collection, @NonNull final JoinType jt) {
+<span class="nc" id="L244">    return _from.join(collection, jt);</span>
+  }
+
+  @Override
+  public &lt;Y&gt; SetJoin&lt;Entity, Y&gt; join (@NonNull final SetAttribute&lt;? super Entity, Y&gt; set, @NonNull final JoinType jt) {
+<span class="nc" id="L249">    return _from.join(set, jt);</span>
+  }
+
+  @Override
+  public &lt;Y&gt; ListJoin&lt;Entity, Y&gt; join (@NonNull final ListAttribute&lt;? super Entity, Y&gt; list, @NonNull final JoinType jt) {
+<span class="nc" id="L254">    return _from.join(list, jt);</span>
+  }
+
+  @Override
+  public &lt;K, V&gt; MapJoin&lt;Entity, K, V&gt; join (@NonNull final MapAttribute&lt;? super Entity, K, V&gt; map, @NonNull final JoinType jt) {
+<span class="nc" id="L259">    return _from.join(map, jt);</span>
+  }
+
+  @Override
+  public &lt;X, Y&gt; Join&lt;X, Y&gt; join (@NonNull final String attributeName) {
+<span class="nc" id="L264">    return _from.join(attributeName);</span>
+  }
+
+  @Override
+  public &lt;X, Y&gt; CollectionJoin&lt;X, Y&gt; joinCollection (@NonNull final String attributeName) {
+<span class="nc" id="L269">    return _from.joinCollection(attributeName);</span>
+  }
+
+  @Override
+  public &lt;X, Y&gt; SetJoin&lt;X, Y&gt; joinSet (@NonNull final String attributeName) {
+<span class="nc" id="L274">    return _from.joinSet(attributeName);</span>
+  }
+
+  @Override
+  public &lt;X, Y&gt; ListJoin&lt;X, Y&gt; joinList (@NonNull final String attributeName) {
+<span class="nc" id="L279">    return _from.joinList(attributeName);</span>
+  }
+
+  @Override
+  public &lt;X, K, V&gt; MapJoin&lt;X, K, V&gt; joinMap (@NonNull final String attributeName) {
+<span class="nc" id="L284">    return _from.joinMap(attributeName);</span>
+  }
+
+  @Override
+  public &lt;X, Y&gt; Join&lt;X, Y&gt; join (@NonNull final String attributeName, @NonNull final JoinType jt) {
+<span class="nc" id="L289">    return _from.join(attributeName, jt);</span>
+  }
+
+  @Override
+  public &lt;X, Y&gt; CollectionJoin&lt;X, Y&gt; joinCollection (@NonNull final String attributeName, @NonNull final JoinType jt) {
+<span class="nc" id="L294">    return _from.joinCollection(attributeName, jt);</span>
+  }
+
+  @Override
+  public &lt;X, Y&gt; SetJoin&lt;X, Y&gt; joinSet (@NonNull final String attributeName, @NonNull final JoinType jt) {
+<span class="nc" id="L299">    return _from.joinSet(attributeName, jt);</span>
+  }
+
+  @Override
+  public &lt;X, Y&gt; ListJoin&lt;X, Y&gt; joinList (@NonNull final String attributeName, @NonNull final JoinType jt) {
+<span class="nc" id="L304">    return _from.joinList(attributeName, jt);</span>
+  }
+
+  @Override
+  public &lt;X, K, V&gt; MapJoin&lt;X, K, V&gt; joinMap (@NonNull final String attributeName, @NonNull final JoinType jt) {
+<span class="nc" id="L309">    return _from.joinMap(attributeName, jt);</span>
+  }
+
+  @Override
+  public String render (@NonNull final RenderingContext renderingContext) {
+<span class="nc" id="L314">    return ((Renderable) _from).render(renderingContext);</span>
+  }
+
+  @SuppressWarnings({
+    &quot;unchecked&quot;, &quot;rawtypes&quot;
+  })
+  @Override
+  public List&lt;ValueHandler&gt; getValueHandlers () {
+<span class="nc" id="L322">    return ((SelectionImplementor&lt;Entity&gt;) _from).getValueHandlers();</span>
+  }
+
+  @SuppressWarnings(&quot;unchecked&quot;)
+  @Override
+  public ValueHandler&lt;Entity&gt; getValueHandler () {
+<span class="nc" id="L328">    return ((SelectionImplementor&lt;Entity&gt;) _from).getValueHandler();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

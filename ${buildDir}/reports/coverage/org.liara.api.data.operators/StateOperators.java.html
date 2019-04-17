@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StateOperators.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.operators</a> &gt; <span class="el_source">StateOperators.java</span></div><h1>StateOperators.java</h1><pre class="source lang-java linenums">package org.liara.api.data.operators;
+
+import com.google.common.collect.Iterators;
+import org.liara.api.collection.EntityCollection;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.State;
+import org.springframework.lang.NonNull;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+
+<span class="nc" id="L16">public final class StateOperators</span>
+{
+  public static &lt;T extends State&gt; EntityCollectionOperator&lt;T&gt; after (
+    @NonNull final ZonedDateTime date
+  ) {
+<span class="nc" id="L21">    return query -&gt; {</span>
+<span class="nc" id="L22">      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L23">      query.andWhere(</span>
+<span class="nc" id="L24">        builder.greaterThan(query.getEntity().get(&quot;_emissionDate&quot;), date)</span>
+      );
+<span class="nc" id="L26">    };</span>
+  }
+  
+  public static &lt;T extends State&gt; EntityCollectionOperator&lt;T&gt; afterOrAt (
+    @NonNull final ZonedDateTime date
+  ) {
+<span class="nc" id="L32">    return query -&gt; {</span>
+<span class="nc" id="L33">      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L34">      query.andWhere(</span>
+<span class="nc" id="L35">        builder.greaterThanOrEqualTo(query.getEntity().get(&quot;_emissionDate&quot;), date)</span>
+      );
+<span class="nc" id="L37">    };</span>
+  }
+  
+  public static &lt;T extends State&gt; EntityCollectionOperator&lt;T&gt; before (
+    @NonNull final ZonedDateTime date
+  ) {
+<span class="nc" id="L43">    return query -&gt; {</span>
+<span class="nc" id="L44">      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L45">      query.andWhere(</span>
+<span class="nc" id="L46">        builder.lessThan(query.getEntity().get(&quot;_emissionDate&quot;), date)</span>
+      );
+<span class="nc" id="L48">    };</span>
+  }
+  
+  public static &lt;T extends State&gt; EntityCollectionOperator&lt;T&gt; beforeOrAt (
+    @NonNull final ZonedDateTime date
+  ) {
+<span class="nc" id="L54">    return query -&gt; {</span>
+<span class="nc" id="L55">      final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L56">      query.andWhere(</span>
+<span class="nc" id="L57">        builder.lessThanOrEqualTo(query.getEntity().get(&quot;_emissionDate&quot;), date)</span>
+      );
+<span class="nc" id="L59">    };</span>
+  }
+  
+  public static &lt;T extends State&gt; EntityCollectionOperator&lt;T&gt; of (
+    @NonNull final Sensor sensor
+  ) {
+<span class="nc" id="L65">    return query -&gt; query.andWhere(query.getEntity().get(&quot;_sensor&quot;).in(sensor));</span>
+  }
+  
+  public static &lt;T extends State&gt; EntityCollectionOperator&lt;T&gt; of (
+    @NonNull final Sensor[] sensors
+  ) {
+<span class="nc" id="L71">    return query -&gt; query.andWhere(</span>
+<span class="nc" id="L72">      query.getEntity().get(&quot;_sensor&quot;).in(Arrays.asList(sensors))</span>
+    );
+  }
+  
+  public static &lt;T extends State&gt; EntityCollectionOperator&lt;T&gt; of (
+    @NonNull final Collection&lt;Sensor&gt; sensors
+  ) {
+<span class="nc" id="L79">    return query -&gt; query.andWhere(</span>
+<span class="nc" id="L80">      query.getEntity().get(&quot;_sensor&quot;).in(sensors)</span>
+    );
+  }
+  
+  public static &lt;T extends State&gt; EntityCollectionOperator&lt;T&gt; of (
+    @NonNull final Iterator&lt;Sensor&gt; sensors
+  ) {
+<span class="nc" id="L87">    return query -&gt; query.andWhere(</span>
+<span class="nc" id="L88">      query.getEntity().get(&quot;_sensor&quot;).in(</span>
+<span class="nc" id="L89">        Arrays.asList(Iterators.toArray(sensors, Sensor.class))</span>
+      )
+    );
+  }
+  
+  public static &lt;T extends State&gt; EntityCollectionOperator&lt;T&gt; of (
+    @NonNull final EntityCollection&lt;Sensor&gt; sensors
+  ) {
+<span class="nc" id="L97">    return query -&gt; sensors.getOperator().apply(query.join(entity -&gt; entity.join(&quot;_sensor&quot;)));</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

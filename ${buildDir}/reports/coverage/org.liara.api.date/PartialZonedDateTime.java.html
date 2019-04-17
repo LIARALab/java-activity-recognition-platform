@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PartialZonedDateTime.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.date</a> &gt; <span class="el_source">PartialZonedDateTime.java</span></div><h1>PartialZonedDateTime.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.date;
+
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalField;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+
+import org.springframework.lang.NonNull;
+
+public class PartialZonedDateTime implements TemporalAccessor, Comparable&lt;TemporalAccessor&gt;
+{  
+<span class="nc" id="L37">  @NonNull public static final ChronoField[] DATETIME_FIELDS = new ChronoField[] {</span>
+    ChronoField.YEAR,
+    ChronoField.MONTH_OF_YEAR,
+    ChronoField.DAY_OF_MONTH,
+    ChronoField.HOUR_OF_DAY,
+    ChronoField.MINUTE_OF_HOUR,
+    ChronoField.SECOND_OF_MINUTE,
+    ChronoField.MICRO_OF_SECOND
+  };
+
+<span class="nc" id="L47">  @NonNull public static final ChronoField[] CONTEXT_FIELDS = new ChronoField[] {</span>
+    ChronoField.ALIGNED_WEEK_OF_YEAR,
+    ChronoField.ALIGNED_WEEK_OF_MONTH,
+    ChronoField.DAY_OF_YEAR,
+    ChronoField.DAY_OF_WEEK
+  };
+ 
+<span class="nc" id="L54">  @NonNull public static final ChronoField[] COMPARISON_FIELDS = new ChronoField[] {</span>
+    ChronoField.YEAR,
+    ChronoField.MONTH_OF_YEAR,
+    ChronoField.ALIGNED_WEEK_OF_YEAR,
+    ChronoField.ALIGNED_WEEK_OF_MONTH,
+    ChronoField.DAY_OF_YEAR,
+    ChronoField.DAY_OF_MONTH,
+    ChronoField.DAY_OF_WEEK,
+    ChronoField.HOUR_OF_DAY,
+    ChronoField.MINUTE_OF_HOUR,
+    ChronoField.SECOND_OF_MINUTE,
+    ChronoField.MICRO_OF_SECOND
+  };
+  
+  @NonNull private final TemporalAccessor _date;
+  
+  public static PartialZonedDateTime from (@NonNull final TemporalAccessor date) {
+<span class="nc" id="L71">    return new PartialZonedDateTime(date);</span>
+  }
+  
+<span class="nc" id="L74">  protected PartialZonedDateTime (@NonNull final TemporalAccessor date) {</span>
+<span class="nc" id="L75">    _date = date;</span>
+<span class="nc" id="L76">  }</span>
+  
+  public static Expression&lt;Long&gt; select (
+    @NonNull final Expression&lt;ZonedDateTime&gt; _path, 
+    @NonNull final CriteriaBuilder builder,
+    @NonNull final ChronoField field
+  ) {
+<span class="nc bnc" id="L83" title="All 12 branches missed.">    switch (field) {</span>
+      case MICRO_OF_SECOND:
+<span class="nc" id="L85">        return builder.function(&quot;MICROSECOND&quot;, Long.class, _path);</span>
+      case SECOND_OF_MINUTE:
+<span class="nc" id="L87">        return builder.function(&quot;SECOND&quot;, Long.class, _path);</span>
+      case MINUTE_OF_HOUR:
+<span class="nc" id="L89">        return builder.function(&quot;MINUTE&quot;, Long.class, _path);</span>
+      case HOUR_OF_DAY:
+<span class="nc" id="L91">        return builder.function(&quot;HOUR&quot;, Long.class, _path);</span>
+      case DAY_OF_YEAR:
+<span class="nc" id="L93">        return builder.function(&quot;DAYOFYEAR&quot;, Long.class, _path);</span>
+      case DAY_OF_MONTH:
+<span class="nc" id="L95">        return builder.function(&quot;DAYOFMONTH&quot;, Long.class, _path);</span>
+      case DAY_OF_WEEK:
+<span class="nc" id="L97">        return builder.function(&quot;DAYOFWEEK&quot;, Long.class, _path);</span>
+      case ALIGNED_WEEK_OF_YEAR:
+<span class="nc" id="L99">        return builder.function(&quot;WEEKOFYEAR&quot;, Long.class, _path);</span>
+      case ALIGNED_WEEK_OF_MONTH:
+<span class="nc" id="L101">        return builder.function(&quot;WEEK&quot;, Long.class, _path);</span>
+      case MONTH_OF_YEAR:
+<span class="nc" id="L103">        return builder.function(&quot;MONTH&quot;, Long.class, _path);</span>
+      case YEAR:
+<span class="nc" id="L105">        return builder.function(&quot;YEAR&quot;, Long.class, _path);</span>
+      default:
+<span class="nc" id="L107">        throw new Error(&quot;Unhandled field &quot; + field);</span>
+    }
+  }
+  
+
+  public Expression&lt;ZonedDateTime&gt; mask (
+    @NonNull final Expression&lt;ZonedDateTime&gt; _path, 
+    @NonNull final CriteriaBuilder builder
+  ) {
+<span class="nc" id="L116">    return builder.function(&quot;STR_TO_DATE&quot;,</span>
+      ZonedDateTime.class, 
+<span class="nc" id="L118">      builder.function(</span>
+        &quot;DATE_FORMAT&quot;, 
+        String.class, 
+        _path,
+<span class="nc" id="L122">        builder.literal(this.getSQLMask())</span>
+      ),
+<span class="nc" id="L124">      builder.literal(&quot;%Y-%m-%d %H:%i:%s.%f&quot;)</span>
+    );
+  }
+
+  @Override
+  public int compareTo (@NonNull final TemporalAccessor other) {
+<span class="nc bnc" id="L130" title="All 2 branches missed.">    for (final ChronoField field : COMPARISON_FIELDS) {</span>
+<span class="nc bnc" id="L131" title="All 4 branches missed.">      if (isSupported(field) &amp;&amp; other.isSupported(field)) {</span>
+<span class="nc" id="L132">        final long myValue = this.getLong(field);</span>
+<span class="nc" id="L133">        final long otherValue = other.getLong(field);</span>
+        
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (myValue &lt; otherValue) {</span>
+<span class="nc" id="L136">          return -1;</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">        } else if (myValue &gt; otherValue) {</span>
+<span class="nc" id="L138">          return 1;</span>
+        }
+      }
+    }
+    
+<span class="nc" id="L143">    return 0;</span>
+  }
+  
+  public ZonedDateTime toZonedDateTime () {
+<span class="nc" id="L147">    ZonedDateTime result = ZonedDateTime.of(1900, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault());</span>
+    
+<span class="nc bnc" id="L149" title="All 2 branches missed.">    for (final ChronoField field : new ChronoField[] {</span>
+      ChronoField.YEAR,
+      ChronoField.MONTH_OF_YEAR,
+      ChronoField.DAY_OF_MONTH,
+      ChronoField.HOUR_OF_DAY,
+      ChronoField.MINUTE_OF_HOUR,
+      ChronoField.SECOND_OF_MINUTE,
+      ChronoField.MICRO_OF_SECOND
+    }) {
+<span class="nc bnc" id="L158" title="All 2 branches missed.">      if (isSupported(field)) {</span>
+<span class="nc" id="L159">        result = result.with(field, getLong(field));</span>
+      }
+    }
+    
+<span class="nc" id="L163">    return result;</span>
+  }
+  
+  public boolean isCompleteZonedDateTime () {
+<span class="nc bnc" id="L167" title="All 2 branches missed.">    for (final ChronoField field : COMPARISON_FIELDS) {</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">      if (!isSupported(field)) {</span>
+<span class="nc" id="L169">        return false;</span>
+      }
+    }
+    
+<span class="nc" id="L173">    return true;</span>
+  }
+
+  @Override
+  public long getLong (@NonNull final TemporalField field) {
+<span class="nc" id="L178">    return this._date.getLong(field);</span>
+  }
+
+  @Override
+  public boolean isSupported (@NonNull final TemporalField field) {
+<span class="nc" id="L183">    return this._date.isSupported(field);</span>
+  }
+  
+  public String getSQLMask () {
+<span class="nc" id="L187">    final StringBuilder builder = new StringBuilder();</span>
+    
+<span class="nc bnc" id="L189" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.YEAR)) ? &quot;%Y&quot; : &quot;1900&quot;);</span>
+<span class="nc" id="L190">    builder.append(&quot;-&quot;);</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.MONTH_OF_YEAR)) ? &quot;%m&quot; : &quot;01&quot;);</span>
+<span class="nc" id="L192">    builder.append(&quot;-&quot;);</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.DAY_OF_MONTH)) ? &quot;%d&quot; : &quot;01&quot;);</span>
+<span class="nc" id="L194">    builder.append(&quot; &quot;);</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.HOUR_OF_DAY)) ? &quot;%H&quot; : &quot;00&quot;);</span>
+<span class="nc" id="L196">    builder.append(&quot;:&quot;);</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.MINUTE_OF_HOUR)) ? &quot;%i&quot; : &quot;00&quot;);</span>
+<span class="nc" id="L198">    builder.append(&quot;:&quot;);</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.SECOND_OF_MINUTE)) ? &quot;%s&quot; : &quot;00&quot;);</span>
+<span class="nc" id="L200">    builder.append(&quot;.&quot;);</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.MICRO_OF_SECOND)) ? &quot;%f&quot; : &quot;000000&quot;);</span>
+    
+<span class="nc" id="L203">    return builder.toString();</span>
+  }
+  
+  public boolean containsDatetime () {
+<span class="nc bnc" id="L207" title="All 2 branches missed.">    for (final ChronoField field : PartialZonedDateTime.DATETIME_FIELDS) {</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">      if (isSupported(field)) return true;</span>
+    }
+    
+<span class="nc" id="L211">    return false;</span>
+  }
+  
+  public boolean containsContext () {
+<span class="nc bnc" id="L215" title="All 2 branches missed.">    for (final ChronoField field : PartialZonedDateTime.CONTEXT_FIELDS) {</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">      if (isSupported(field)) return true;</span>
+    }
+    
+<span class="nc" id="L219">    return false;</span>
+  }
+
+  @Override
+  public String toString () {
+<span class="nc" id="L224">    final StringBuilder builder = new StringBuilder();</span>
+    
+<span class="nc bnc" id="L226" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.YEAR)) ? getLong(ChronoField.YEAR) : &quot;****&quot;);</span>
+<span class="nc" id="L227">    builder.append(&quot;-&quot;);</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.MONTH_OF_YEAR)) ? getLong(ChronoField.MONTH_OF_YEAR) : &quot;**&quot;);</span>
+<span class="nc" id="L229">    builder.append(&quot;-&quot;);</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.DAY_OF_MONTH)) ? getLong(ChronoField.DAY_OF_MONTH) : &quot;**&quot;);</span>
+<span class="nc" id="L231">    builder.append(&quot;T&quot;);</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.HOUR_OF_DAY)) ? getLong(ChronoField.HOUR_OF_DAY) : &quot;**&quot;);</span>
+<span class="nc" id="L233">    builder.append(&quot;:&quot;);</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.MINUTE_OF_HOUR)) ? getLong(ChronoField.MINUTE_OF_HOUR) : &quot;**&quot;);</span>
+<span class="nc" id="L235">    builder.append(&quot;:&quot;);</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.SECOND_OF_MINUTE)) ? getLong(ChronoField.SECOND_OF_MINUTE) : &quot;**&quot;);</span>
+<span class="nc" id="L237">    builder.append(&quot;.&quot;);</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">    builder.append((isSupported(ChronoField.MICRO_OF_SECOND)) ? getLong(ChronoField.MICRO_OF_SECOND) : &quot;******&quot;);</span>
+    
+<span class="nc" id="L240">    return builder.toString();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

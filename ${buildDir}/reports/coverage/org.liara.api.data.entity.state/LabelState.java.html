@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LabelState.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.state</a> &gt; <span class="el_source">LabelState.java</span></div><h1>LabelState.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.state;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.schema.UseCreationSchema;
+import org.liara.api.data.schema.UseMutationSchema;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.PrimaryKeyJoinColumn;
+import javax.persistence.Table;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import java.time.Duration;
+import java.time.ZonedDateTime;
+
+@Entity
+@Table(name = &quot;states_label&quot;)
+@PrimaryKeyJoinColumn(name = &quot;state_identifier&quot;)
+@UseCreationSchema(LabelStateCreationSchema.class)
+@UseMutationSchema(LabelStateMutationSchema.class)
+@JsonPropertyOrder({
+  &quot;identifier&quot;, &quot;emittionDate&quot;, &quot;sensorIdentifier&quot;,
+  &quot;start&quot;, &quot;end&quot;, &quot;duration&quot;, &quot;milliseconds&quot;
+})
+public class LabelState
+  extends State
+{
+<span class="fc" id="L33">  public static EntityFieldSelector&lt;LabelState, Expression&lt;Long&gt;&gt; DURATION_SELECTOR = (query, queried) -&gt; {</span>
+<span class="nc" id="L34">    final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+<span class="nc" id="L35">    final Expression&lt;ZonedDateTime&gt; start = queried.get(&quot;_start&quot;);</span>
+<span class="nc" id="L36">    final Expression&lt;ZonedDateTime&gt; end = queried.get(&quot;_end&quot;);</span>
+    
+<span class="nc" id="L38">    return builder.sum(</span>
+<span class="nc" id="L39">      builder.prod(</span>
+<span class="nc" id="L40">        builder.function(</span>
+          &quot;DATEDIFF&quot;, Long.class, start, end
+<span class="nc" id="L42">        ), 24L * 3600L</span>
+      ),
+<span class="nc" id="L44">      builder.toLong(</span>
+<span class="nc" id="L45">        builder.quot(</span>
+<span class="nc" id="L46">          builder.function(</span>
+            &quot;TIMESTAMPDIFF_MICROSECOND&quot;, Long.class, start, end
+<span class="nc" id="L48">          ), 1000L</span>
+        )
+      )
+    );
+  };
+
+<span class="fc" id="L54">  public static EntityFieldSelector&lt;LabelState, Expression&lt;String&gt;&gt; NIGHTS_SELECTOR = (query, queried) -&gt; {</span>
+<span class="nc" id="L55">    final CriteriaBuilder builder = query.getManager().getCriteriaBuilder();</span>
+
+<span class="nc" id="L57">    final Expression&lt;String&gt; lowerBound = builder.function(&quot;DATE_FORMAT&quot;,</span>
+      String.class,
+<span class="nc" id="L59">      builder.function(&quot;DATE_SUB_HOUR&quot;, String.class, queried.get(&quot;_start&quot;), builder.literal(12)),</span>
+<span class="nc" id="L60">      builder.literal(&quot;%Y-%m-%d&quot;)</span>
+    );
+
+<span class="nc" id="L63">    final Expression&lt;String&gt; upperBound = builder.function(&quot;DATE_FORMAT&quot;,</span>
+      String.class,
+<span class="nc" id="L65">      builder.function(&quot;DATE_ADD_HOUR&quot;, String.class, queried.get(&quot;_start&quot;), builder.literal(12)),</span>
+<span class="nc" id="L66">      builder.literal(&quot;%Y-%m-%d&quot;)</span>
+    );
+
+<span class="nc" id="L69">    return builder.concat(builder.concat(lowerBound, &quot;:&quot;), upperBound);</span>
+  };
+  
+  @Column(name = &quot;tag&quot;, nullable = false, updatable = true, unique = false)
+  private String _tag;
+
+  @Column(name = &quot;start&quot;, nullable = false, updatable = true, unique = false, precision = 6)
+  private ZonedDateTime _start;
+
+  @Column(name = &quot;end&quot;, nullable = true, updatable = true, unique = false, precision = 6)
+  private ZonedDateTime _end;
+
+  public LabelState () {
+<span class="fc" id="L82">    super();</span>
+<span class="fc" id="L83">    _tag = null;</span>
+<span class="fc" id="L84">    _start = null;</span>
+<span class="fc" id="L85">    _end = null;</span>
+<span class="fc" id="L86">  }</span>
+  
+  public Duration getDuration () {
+<span class="nc bnc" id="L89" title="All 2 branches missed.">    if (_end == null) {</span>
+<span class="nc" id="L90">      return null;</span>
+    } else {
+<span class="nc" id="L92">      return Duration.between(_start, _end);</span>
+    }
+  }
+  
+  public Long getMilliseconds () {
+<span class="nc" id="L97">    final Duration duration = getDuration();</span>
+    
+<span class="nc bnc" id="L99" title="All 2 branches missed.">    if (duration == null) {</span>
+<span class="nc" id="L100">      return null;</span>
+    } else {
+<span class="nc" id="L102">      return getDuration().getSeconds() * 1_000L + getDuration().getNano() / 1_000_000L;</span>
+    }
+  }
+  
+  public String getTag () {
+<span class="fc" id="L107">    return _tag;</span>
+  }
+
+  public void setTag (@NonNull final String tag) {
+<span class="fc" id="L111">    _tag = tag;</span>
+<span class="fc" id="L112">  }</span>
+
+  @JsonFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;)
+  public ZonedDateTime getStart () {
+<span class="fc" id="L116">    return _start;</span>
+  }
+
+  public void setStart (@NonNull final ZonedDateTime start) {
+<span class="fc" id="L120">    _start = start;</span>
+<span class="fc" id="L121">  }</span>
+
+  @JsonFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm:ss.SSSXXX&quot;)
+  public ZonedDateTime getEnd () {
+<span class="fc" id="L125">    return _end;</span>
+  }
+
+  public void setEnd (@Nullable final ZonedDateTime end) {
+<span class="fc" id="L129">    _end = end;</span>
+<span class="fc" id="L130">  }</span>
+
+  public boolean contains (@NonNull final State state) {
+<span class="fc" id="L133">    return contains(state.getEmissionDate());</span>
+  }
+
+  public boolean contains (@NonNull final ZonedDateTime date) {
+<span class="pc bpc" id="L137" title="3 of 4 branches missed.">    if (getStart() == null &amp;&amp; getEnd() == null) {</span>
+<span class="nc" id="L138">      return true;</span>
+<span class="pc bpc" id="L139" title="1 of 4 branches missed.">    } else if (getStart() != null &amp;&amp; getEnd() == null) {</span>
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">      return date.compareTo(getStart()) &gt;= 0;</span>
+<span class="pc bpc" id="L141" title="3 of 4 branches missed.">    } else if (getStart() == null &amp;&amp; getEnd() != null) {</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">      return date.compareTo(getEnd()) &lt; 0;</span>
+    } else {
+<span class="pc bpc" id="L144" title="1 of 4 branches missed.">      return date.compareTo(getStart()) &gt;= 0 &amp;&amp; date.compareTo(getEnd()) &lt; 0;</span>
+    }
+  }
+
+  @Override
+  public LabelStateSnapshot snapshot () {
+<span class="fc" id="L150">    return new LabelStateSnapshot(this);</span>
+  }
+  
+  @Override
+  public ApplicationEntityReference&lt;? extends LabelState&gt; getReference () {
+<span class="fc" id="L155">    return ApplicationEntityReference.of(this);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

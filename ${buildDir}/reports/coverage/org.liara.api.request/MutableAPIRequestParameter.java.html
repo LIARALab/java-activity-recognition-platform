@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MutableAPIRequestParameter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.request</a> &gt; <span class="el_source">MutableAPIRequestParameter.java</span></div><h1>MutableAPIRequestParameter.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.request;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
+
+public class MutableAPIRequestParameter implements APIRequestParameter
+{
+  @Nullable
+  private MutableAPIRequest  _request;
+  @NonNull
+  private String             _name;
+  @NonNull
+  private final List&lt;String&gt; _values;
+  
+<span class="fc" id="L43">  public MutableAPIRequestParameter (@NonNull final String name) {</span>
+<span class="fc" id="L44">    _name = name;</span>
+<span class="fc" id="L45">    _request = null;</span>
+<span class="fc" id="L46">    _values = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L47">  }</span>
+  
+  @Override
+  public Iterator&lt;String&gt; iterator () {
+<span class="fc" id="L51">    return _values.iterator();</span>
+  }
+
+  /**
+   * @see org.liara.api.request.APIRequestParameter#getRequest()
+   */
+  @Override
+  public APIRequest getRequest () {
+<span class="fc" id="L59">    return _request;</span>
+  }
+  
+  /**
+   * Change this parameter's related request.
+   * 
+   * @throws java.lang.Error when the given request already contains a parameter with the same name as this one.
+   * 
+   * @param request The new related request to attach.
+   */
+  public void setRequest (@Nullable final MutableAPIRequest request) {
+<span class="fc bfc" id="L70" title="All 2 branches covered.">    if (request != _request) {</span>
+<span class="fc bfc" id="L71" title="All 4 branches covered.">      if (request != null &amp;&amp; request.contains(_name)) {</span>
+<span class="fc" id="L72">        throw new IllegalArgumentException(String.join(</span>
+          &quot;&quot;, 
+<span class="fc" id="L74">          &quot;Unnable to change the request of the parameter &quot;, this.toString(), &quot; (&quot;,</span>
+<span class="fc" id="L75">          String.valueOf(_request), &quot;) by &quot;, String.valueOf(_request), &quot; because the new &quot;,</span>
+          &quot; request already contains a parameter nammed &quot;, _name, &quot;.&quot;
+        ));
+      }
+      
+<span class="fc bfc" id="L80" title="All 2 branches covered.">      if (_request != null) {</span>
+<span class="fc" id="L81">        final MutableAPIRequest oldRequest = _request;</span>
+<span class="fc" id="L82">        _request = null;</span>
+<span class="fc" id="L83">        oldRequest.removeParameter(this);</span>
+      }
+      
+<span class="fc" id="L86">      _request = request;</span>
+      
+<span class="fc bfc" id="L88" title="All 2 branches covered.">      if (_request != null) {</span>
+<span class="fc" id="L89">        _request.addParameter(this);</span>
+      }
+    }
+<span class="fc" id="L92">  }</span>
+
+  /**
+   * @see org.liara.api.request.APIRequestParameter#getName()
+   */
+  @Override
+  public String getName () {
+<span class="fc" id="L99">    return _name;</span>
+  }
+  
+  /**
+   * Rename this parameter.
+   * 
+   * @throws java.lang.Error When the parent request of this parameter (if exists) already contains a parameter with the new name.
+   * 
+   * @param newName The new name of this parameter.
+   */
+  public void setName (@NonNull final String newName) {
+<span class="fc bfc" id="L110" title="All 2 branches covered.">    if (!newName.equals(_name)) {</span>
+<span class="fc bfc" id="L111" title="All 4 branches covered.">      if (_request != null &amp;&amp; _request.contains(newName)) {</span>
+<span class="fc" id="L112">        throw new IllegalArgumentException(String.join(</span>
+          &quot;&quot;, 
+<span class="fc" id="L114">          &quot;Unnable to rename the parameter &quot;, this.toString(), &quot; &quot;, _name, &quot; into &quot;, newName, &quot; because &quot;,</span>
+<span class="fc" id="L115">          &quot;the parent request of this parameter (&quot;, _request.toString(), &quot;) already contains a parameter nammed &quot;,</span>
+          newName, &quot;.&quot;
+        ));
+      }
+      
+<span class="fc" id="L120">      final MutableAPIRequest request = _request;</span>
+<span class="fc" id="L121">      setRequest(null);</span>
+<span class="fc" id="L122">      _name = newName;</span>
+<span class="fc" id="L123">      setRequest(request);</span>
+    }
+<span class="fc" id="L125">  }</span>
+
+  /**
+   * @see org.liara.api.request.APIRequestParameter#getValueCount()
+   */
+  @Override
+  public int getValueCount () {
+<span class="fc" id="L132">    return _values.size();</span>
+  }
+
+  /**
+   * @see org.liara.api.request.APIRequestParameter#getValue(int)
+   */
+  @Override
+  public String getValue (final int index) {
+<span class="fc" id="L140">    return _values.get(index);</span>
+  }
+  
+  /**
+   * Register a value in this parameter.
+   * 
+   * @param value A value to register.
+   */
+  public void addValue (@NonNull final String value) {
+<span class="fc" id="L149">    _values.add(value);</span>
+<span class="fc" id="L150">  }</span>
+  
+  /**
+   * Register a collection of values in this parameter.
+   * 
+   * @param values All values to register.
+   */
+  public void addValues (@NonNull final String[] values) {
+<span class="fc bfc" id="L158" title="All 2 branches covered.">    for (final String value : values) {</span>
+<span class="fc" id="L159">      this.addValue(value);</span>
+    }
+<span class="fc" id="L161">  }</span>
+
+  /**
+   * Register a collection of values in this parameter.
+   * 
+   * @param values All values to register.
+   */
+  public void addValues (@NonNull final Iterable&lt;String&gt; values) {
+<span class="fc" id="L169">    Iterables.addAll(_values, values);</span>
+<span class="fc" id="L170">  }</span>
+
+  /**
+   * Register a collection of values in this parameter.
+   * 
+   * @param values All values to register.
+   */
+  public void addValues (@NonNull final Iterator&lt;String&gt; values) {
+<span class="fc" id="L178">    Iterators.addAll(_values, values);</span>
+<span class="fc" id="L179">  }</span>
+  
+  /**
+   * Remove a value of this parameter by index.
+   * 
+   * @throws java.lang.IndexOutOfBoundsException When the given index is not between 0 and the count of values registered in this parameter.
+   * 
+   * @param index Index of the value to remove.
+   */
+  public void removeValue (final int index) {
+<span class="fc" id="L189">    _values.remove(index);</span>
+<span class="fc" id="L190">  }</span>
+  
+  /**
+   * Remove a value of this parameter by reference.
+   * 
+   * @param value The value to remove.
+   */
+  public void removeValue (@NonNull final String value) {
+<span class="fc" id="L198">    _values.remove(value);</span>
+<span class="fc" id="L199">  }</span>
+  
+  /**
+   * Remove a collection of values of this parameter by reference.
+   * 
+   * @param values All values to remove.
+   */
+  public void removeValues (@NonNull final String[] values) {
+<span class="fc bfc" id="L207" title="All 2 branches covered.">    for (final String value : values) {</span>
+<span class="fc" id="L208">      _values.remove(value);</span>
+    }
+<span class="fc" id="L210">  }</span>
+  
+  /**
+   * Remove a collection of values of this parameter by reference.
+   * 
+   * @param values All values to remove.
+   */
+  public void removeValues (@NonNull final Iterable&lt;String&gt; values) {
+<span class="fc" id="L218">    this.removeValues(values.iterator());</span>
+<span class="fc" id="L219">  }</span>
+  
+  /**
+   * Remove a collection of values of this parameter by reference.
+   * 
+   * @param values All values to remove.
+   */
+  public void removeValues (@NonNull final Iterator&lt;String&gt; values) {
+<span class="fc bfc" id="L227" title="All 2 branches covered.">    while (values.hasNext()) {</span>
+<span class="fc" id="L228">      this.removeValue(values.next());</span>
+    }
+<span class="fc" id="L230">  }</span>
+  
+  /**
+   * Remove all values of this parameter.
+   */
+  public void clear () {
+<span class="fc" id="L236">    _values.clear();</span>
+<span class="fc" id="L237">  }</span>
+
+  /**
+   * @see org.liara.api.request.APIRequestParameter#getValues()
+   */
+  @Override
+  public String[] getValues () {
+<span class="fc" id="L244">    return _values.toArray(new String[_values.size()]);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

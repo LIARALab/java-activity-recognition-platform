@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BaseStateBuilder.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.test.builder.state</a> &gt; <span class="el_source">BaseStateBuilder.java</span></div><h1>BaseStateBuilder.java</h1><pre class="source lang-java linenums">package org.liara.api.test.builder.state;
+
+import org.liara.api.data.entity.state.State;
+import org.liara.api.test.builder.Builder;
+import org.liara.api.test.builder.IdentityBuilder;
+import org.liara.api.test.builder.entity.BaseApplicationEntityBuilder;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
+<span class="fc" id="L18">public abstract class BaseStateBuilder&lt;</span>
+                        Self extends BaseStateBuilder&lt;Self, Entity&gt;,
+                        Entity extends State
+                      &gt;
+                extends BaseApplicationEntityBuilder&lt;Self, Entity&gt;
+{
+  @NonNull
+<span class="fc" id="L25">  private static final DateTimeFormatter DEFAULT_FORMATTER = new DateTimeFormatterBuilder().appendPattern(</span>
+    &quot;d-M-y[ H:m:s.S]&quot;
+<span class="fc" id="L27">  ).parseDefaulting(ChronoField.HOUR_OF_DAY, 0)</span>
+<span class="fc" id="L28">   .parseDefaulting(ChronoField.MINUTE_OF_HOUR, 0)</span>
+<span class="fc" id="L29">   .parseDefaulting(ChronoField.SECOND_OF_MINUTE, 0)</span>
+<span class="fc" id="L30">   .parseDefaulting(ChronoField.MILLI_OF_SECOND, 0)</span>
+<span class="fc" id="L31">   .toFormatter();</span>
+  
+<span class="fc" id="L33">  @Nullable</span>
+  private ZonedDateTime _emissionDate = null;
+  
+<span class="fc" id="L36">  @NonNull</span>
+  private final Map&lt;String, Builder&lt;?, ? extends State&gt;&gt; _correlations = new HashMap&lt;&gt;();
+  
+  public Self withEmittionDate (@Nullable final ZonedDateTime emittionDate) {
+<span class="fc" id="L40">    _emissionDate = emittionDate;</span>
+    
+<span class="fc" id="L42">    return self();</span>
+  }
+  
+  public Self withEmittionDate (@NonNull final String string) {
+<span class="nc" id="L46">    _emissionDate = ZonedDateTime.parse(</span>
+      string, 
+      BaseStateBuilder.DEFAULT_FORMATTER
+    );
+    
+<span class="nc" id="L51">    return self();</span>
+  }
+  
+  public Self withCorrelation (
+    @NonNull final String name, 
+    @NonNull final Builder&lt;?, ? extends State&gt; correlated
+  ) {
+<span class="fc" id="L58">    _correlations.put(name, correlated);</span>
+<span class="fc" id="L59">    return self();</span>
+  }
+  
+  public Self withCorrelation (
+    @NonNull final String name, 
+    @NonNull final State correlated
+  ) {
+<span class="fc" id="L66">    return withCorrelation(name, IdentityBuilder.of(correlated));</span>
+  }
+  
+  public ZonedDateTime getEmittionDate () {
+<span class="fc" id="L70">    return _emissionDate;</span>
+  }
+  
+  protected void apply (@NonNull final State state) {
+<span class="fc" id="L74">    super.apply(state);</span>
+<span class="fc" id="L75">    state.setEmissionDate(_emissionDate);</span>
+    
+    for (
+      final Entry&lt;
+        String, Builder&lt;?, ? extends State&gt;
+<span class="fc bfc" id="L80" title="All 2 branches covered.">      &gt; correlation : this._correlations.entrySet()</span>
+    ) {
+<span class="fc" id="L82">      state.correlate(</span>
+<span class="fc" id="L83">        correlation.getKey(), </span>
+<span class="fc" id="L84">        correlation.getValue().build()</span>
+      );
+<span class="fc" id="L86">    }</span>
+<span class="fc" id="L87">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

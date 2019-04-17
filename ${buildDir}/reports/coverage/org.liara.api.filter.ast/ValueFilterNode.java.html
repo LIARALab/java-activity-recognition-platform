@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ValueFilterNode.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.filter.ast</a> &gt; <span class="el_source">ValueFilterNode.java</span></div><h1>ValueFilterNode.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.filter.ast;
+
+import org.liara.api.date.PartialZonedDateTime;
+import org.springframework.lang.NonNull;
+
+public class ValueFilterNode&lt;Value&gt; extends BaseFilterNode
+{
+  @NonNull
+  private final Value _value;
+  
+  public static &lt;T&gt; ValueFilterNode&lt;T&gt; fromGeneric (final T value) {
+<span class="fc bfc" id="L33" title="All 2 branches covered.">    if (value instanceof Integer) {</span>
+<span class="fc" id="L34">      return new ValueFilterNode&lt;T&gt;(CommonFilterNodeType.VALUE_INTEGER, value);</span>
+<span class="fc bfc" id="L35" title="All 2 branches covered.">    } else if (value instanceof Long) {</span>
+<span class="fc" id="L36">      return new ValueFilterNode&lt;T&gt;(CommonFilterNodeType.VALUE_LONG, value);</span>
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">    } else if (value instanceof Float) {</span>
+<span class="nc" id="L38">      return new ValueFilterNode&lt;T&gt;(CommonFilterNodeType.VALUE_FLOAT, value);</span>
+<span class="pc bpc" id="L39" title="1 of 2 branches missed.">    } else if (value instanceof Double) {</span>
+<span class="fc" id="L40">      return new ValueFilterNode&lt;T&gt;(CommonFilterNodeType.VALUE_DOUBLE, value);</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">    } else if (value instanceof String) {</span>
+<span class="nc" id="L42">      return new ValueFilterNode&lt;T&gt;(CommonFilterNodeType.VALUE_STRING, value);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">    } else if (value instanceof PartialZonedDateTime) {</span>
+<span class="nc" id="L44">      return new ValueFilterNode&lt;T&gt;(CommonFilterNodeType.VALUE_DATETIME, value);</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">    } else if (value instanceof Boolean) {</span>
+<span class="nc" id="L46">      return new ValueFilterNode&lt;T&gt;(CommonFilterNodeType.VALUE_BOOLEAN, value);</span>
+    } else {
+<span class="nc" id="L48">      throw new IllegalArgumentException(String.join(</span>
+        &quot;&quot;, 
+        &quot;Unnable to instanciate a valid ValueFilterNode for the value &quot;,
+<span class="nc" id="L51">        String.valueOf(value), &quot; because the type of the given value (&quot;,</span>
+<span class="nc" id="L52">        String.valueOf(value.getClass()),</span>
+        &quot;) is not a valid ValueFilterNode content type.&quot;
+      ));
+    }
+  }
+  
+  public static ValueFilterNode&lt;Integer&gt; from (final int value) {
+<span class="fc" id="L59">    return new ValueFilterNode&lt;Integer&gt;(CommonFilterNodeType.VALUE_INTEGER, value);</span>
+  }
+  
+  public static ValueFilterNode&lt;Integer&gt; from (@NonNull final Integer value) {
+<span class="nc" id="L63">    return new ValueFilterNode&lt;Integer&gt;(CommonFilterNodeType.VALUE_INTEGER, value);</span>
+  }
+  
+  public static ValueFilterNode&lt;Long&gt; from (final long value) {
+<span class="fc" id="L67">    return new ValueFilterNode&lt;Long&gt;(CommonFilterNodeType.VALUE_LONG, value);</span>
+  }
+  
+  public static ValueFilterNode&lt;Long&gt; from (@NonNull final Long value) {
+<span class="nc" id="L71">    return new ValueFilterNode&lt;Long&gt;(CommonFilterNodeType.VALUE_LONG, value);</span>
+  }
+  
+  public static ValueFilterNode&lt;Float&gt; from (final float value) {
+<span class="nc" id="L75">    return new ValueFilterNode&lt;Float&gt;(CommonFilterNodeType.VALUE_FLOAT, value);</span>
+  }
+  
+  public static ValueFilterNode&lt;Float&gt; from (@NonNull final Float value) {
+<span class="nc" id="L79">    return new ValueFilterNode&lt;Float&gt;(CommonFilterNodeType.VALUE_FLOAT, value);</span>
+  }
+  
+  public static ValueFilterNode&lt;Double&gt; from (final double value) {
+<span class="fc" id="L83">    return new ValueFilterNode&lt;Double&gt;(CommonFilterNodeType.VALUE_DOUBLE, value);</span>
+  }
+  
+  public static ValueFilterNode&lt;Double&gt; from (@NonNull final Double value) {
+<span class="nc" id="L87">    return new ValueFilterNode&lt;Double&gt;(CommonFilterNodeType.VALUE_DOUBLE, value);</span>
+  }
+  
+  public static ValueFilterNode&lt;PartialZonedDateTime&gt; from (@NonNull final PartialZonedDateTime value) {
+<span class="nc" id="L91">    return new ValueFilterNode&lt;PartialZonedDateTime&gt;(CommonFilterNodeType.VALUE_DATETIME, value);</span>
+  }
+  
+  public static ValueFilterNode&lt;String&gt; from (@NonNull final String value) {
+<span class="nc" id="L95">    return new ValueFilterNode&lt;String&gt;(CommonFilterNodeType.VALUE_STRING, value);</span>
+  }
+
+  public static ValueFilterNode&lt;Boolean&gt; from (final boolean b) {
+<span class="nc" id="L99">    return new ValueFilterNode&lt;Boolean&gt;(CommonFilterNodeType.VALUE_BOOLEAN, b);</span>
+  }
+  
+  public static ValueFilterNode&lt;Boolean&gt; from (@NonNull final Boolean b) {
+<span class="nc" id="L103">    return new ValueFilterNode&lt;Boolean&gt;(CommonFilterNodeType.VALUE_BOOLEAN, b);</span>
+  }
+
+  private ValueFilterNode(@NonNull final FilterNodeType type, @NonNull final Value value) {
+<span class="fc" id="L107">    super(type);</span>
+<span class="fc" id="L108">    _value = value;</span>
+<span class="fc" id="L109">  }</span>
+
+  public Value getValue () {
+<span class="fc" id="L112">    return _value;</span>
+  }
+
+  @Override
+  public int hashCode () {
+<span class="nc" id="L117">    final int prime = 31;</span>
+<span class="nc" id="L118">    int result = super.hashCode();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">    result = prime * result + ((_value == null) ? 0 : _value.hashCode());</span>
+<span class="nc" id="L120">    return result;</span>
+  }
+
+  @Override
+  public boolean equals (Object obj) {
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">    if (this == obj) return true;</span>
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">    if (!super.equals(obj)) return false;</span>
+<span class="pc bpc" id="L127" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) return false;</span>
+<span class="fc" id="L128">    ValueFilterNode&lt;?&gt; other = (ValueFilterNode&lt;?&gt;) obj;</span>
+<span class="pc bpc" id="L129" title="1 of 2 branches missed.">    if (_value == null) {</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">      if (other._value != null) return false;</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">    } else if (!_value.equals(other._value)) return false;</span>
+<span class="fc" id="L132">    return true;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

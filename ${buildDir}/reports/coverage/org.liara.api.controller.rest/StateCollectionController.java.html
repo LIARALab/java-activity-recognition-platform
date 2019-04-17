@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StateCollectionController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.controller.rest</a> &gt; <span class="el_source">StateCollectionController.java</span></div><h1>StateCollectionController.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.controller.rest;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+
+import org.liara.api.collection.EntityNotFoundException;
+import org.liara.api.collection.transformation.aggregation.EntityCountAggregationTransformation;
+import org.liara.api.data.collection.StateCollection;
+import org.liara.api.data.collection.configuration.StateCollectionRequestConfiguration;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.data.entity.state.StateCreationSchema;
+import org.liara.api.data.entity.state.StateMutationSchema;
+import org.liara.api.data.schema.SchemaManager;
+import org.liara.api.documentation.ParametersFromConfiguration;
+import org.liara.api.request.validator.error.InvalidAPIRequestException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import org.springframework.lang.NonNull;
+import org.springframework.validation.Errors;
+import org.springframework.validation.ValidationUtils;
+import org.springframework.validation.Validator;
+
+import io.swagger.annotations.Api;
+
+@RestController
+@Api(
+    tags = {
+      &quot;state&quot;
+    },
+    description = &quot;All sensor-related operation.&quot;,
+    produces = &quot;application/json&quot;,
+    consumes = &quot;application/json&quot;,
+    protocols = &quot;http&quot;
+)
+<span class="nc" id="L75">public class StateCollectionController extends BaseRestController</span>
+{
+  @Autowired
+  @NonNull
+  private ObjectMapper _mapper;
+  
+  @Autowired
+  @NonNull
+  private ApplicationContext _context;
+  
+  @Autowired
+  @NonNull
+  private Validator _validator;
+  
+  @Autowired
+  @NonNull
+  private SchemaManager _schemaManager;
+  
+  @Autowired
+  @NonNull
+  private StateCollection _collection;
+
+  @GetMapping(&quot;/states/count&quot;)
+  @ParametersFromConfiguration(
+    value = StateCollectionRequestConfiguration.class,
+    orderable = false
+  )
+  public ResponseEntity&lt;Object&gt; count (
+    @NonNull final HttpServletRequest request
+  ) throws InvalidAPIRequestException {
+<span class="nc" id="L105">    return aggregate(</span>
+      _collection, request, 
+<span class="nc" id="L107">      EntityCountAggregationTransformation.create()</span>
+    );
+  }
+
+  @GetMapping(&quot;/states&quot;)
+  @ParametersFromConfiguration(
+    value = StateCollectionRequestConfiguration.class,
+    groupable = false
+  )
+  public ResponseEntity&lt;List&lt;State&gt;&gt; index (
+    @NonNull final HttpServletRequest request
+  ) throws InvalidAPIRequestException {
+<span class="nc" id="L119">    return indexCollection(_collection, request);</span>
+  }
+  
+  @PostMapping(&quot;/states&quot;)
+  @Transactional
+  public ResponseEntity&lt;Void&gt; create (
+    @NonNull final HttpServletRequest request,
+    @NonNull @Valid @RequestBody final StateCreationSchema schema
+  ) {
+<span class="nc" id="L128">    final State state = _schemaManager.execute(schema);</span>
+    
+<span class="nc" id="L130">    final HttpHeaders headers = new HttpHeaders();</span>
+<span class="nc" id="L131">    headers.add(&quot;Location&quot;, request.getRequestURI() + &quot;/&quot; + state.getIdentifier());</span>
+    
+<span class="nc" id="L133">    return new ResponseEntity&lt;&gt;(headers, HttpStatus.CREATED);</span>
+  }
+  
+  @PatchMapping(&quot;/states/{identifier}&quot;)
+  @Transactional
+  public ResponseEntity&lt;?&gt; update (
+    @NonNull final HttpServletRequest request,
+    @PathVariable final long identifier,
+    @NonNull @RequestBody final String jsonText,
+    @NonNull final Errors errors
+  ) throws IOException {
+<span class="nc" id="L144">    final TreeNode json = _mapper.readTree(jsonText);</span>
+    
+<span class="nc bnc" id="L146" title="All 2 branches missed.">    if (json.isObject()) {</span>
+<span class="nc" id="L147">      final ObjectNode node = (ObjectNode) json;</span>
+<span class="nc" id="L148">      node.set(&quot;identifier&quot;, _mapper.valueToTree(identifier));</span>
+    }
+    
+<span class="nc" id="L151">    final StateMutationSchema schema = _mapper.treeToValue(json, StateMutationSchema.class);</span>
+    
+<span class="nc" id="L153">    ValidationUtils.invokeValidator(_validator, schema, errors);</span>
+    
+<span class="nc bnc" id="L155" title="All 2 branches missed.">    if (errors.hasErrors()) {</span>
+<span class="nc" id="L156">      return new ResponseEntity&lt;&gt;(errors, HttpStatus.BAD_REQUEST);</span>
+    }
+    
+<span class="nc" id="L159">    _schemaManager.execute(schema);</span>
+    
+<span class="nc" id="L161">    return new ResponseEntity&lt;Void&gt;(HttpStatus.OK);</span>
+  }
+  
+  @GetMapping(&quot;/states/{identifier}&quot;)
+  public State get (
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException {
+<span class="nc" id="L168">    return _collection.findByIdentifierOrFail(identifier);</span>
+  }
+  
+  @GetMapping(&quot;/states/{identifier}/sensor&quot;)
+  public Sensor getSensor (
+    @PathVariable final long identifier
+  ) throws EntityNotFoundException {
+<span class="nc" id="L175">    return _collection.findByIdentifierOrFail(identifier).getSensor();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

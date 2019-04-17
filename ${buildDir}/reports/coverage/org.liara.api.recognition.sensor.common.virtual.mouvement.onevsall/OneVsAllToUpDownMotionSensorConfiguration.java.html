@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>OneVsAllToUpDownMotionSensorConfiguration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall</a> &gt; <span class="el_source">OneVsAllToUpDownMotionSensorConfiguration.java</span></div><h1>OneVsAllToUpDownMotionSensorConfiguration.java</h1><pre class="source lang-java linenums">package org.liara.api.recognition.sensor.common.virtual.mouvement.onevsall;
+
+import com.fasterxml.jackson.annotation.JsonSetter;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.State;
+import org.liara.api.recognition.sensor.SensorConfiguration;
+import org.liara.api.validation.ValidApplicationEntityReference;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+public class OneVsAllToUpDownMotionSensorConfiguration
+       implements SensorConfiguration
+{  
+<span class="pc" id="L20">  @NonNull</span>
+  private final Set&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; _validInputs = new HashSet&lt;&gt;();
+  
+<span class="pc" id="L23">  @NonNull</span>
+  private final Set&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; _ignoredInputs = new HashSet&lt;&gt;();
+  
+<span class="nc" id="L26">  public OneVsAllToUpDownMotionSensorConfiguration () { }</span>
+  
+  public OneVsAllToUpDownMotionSensorConfiguration (
+    @NonNull final OneVsAllToUpDownMotionSensorConfiguration toCopy
+<span class="nc" id="L30">  ) {</span>
+<span class="nc" id="L31">    _validInputs.addAll(toCopy.getValidInputs());</span>
+<span class="nc" id="L32">    _ignoredInputs.addAll(toCopy.getIgnoredInputs());</span>
+<span class="nc" id="L33">  }</span>
+  
+  public OneVsAllToUpDownMotionSensorConfiguration (
+    @NonNull final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; validInputs,
+    @NonNull final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; ignoredInputs
+<span class="fc" id="L38">  ) {</span>
+<span class="fc" id="L39">    _validInputs.addAll(validInputs);</span>
+<span class="fc" id="L40">    _ignoredInputs.addAll(ignoredInputs);</span>
+<span class="fc" id="L41">  }</span>
+  
+  public boolean isValidInput (@NonNull final Sensor sensor) {
+<span class="nc" id="L44">    return _validInputs.contains(ApplicationEntityReference.of(sensor));</span>
+  }
+  
+  public boolean isValidInput (@NonNull final Long sensor) {
+<span class="nc" id="L48">    return _validInputs.contains(ApplicationEntityReference.of(Sensor.class, sensor));</span>
+  }
+
+  public boolean isValidInput (@NonNull final State state) {
+<span class="fc" id="L52">    return _validInputs.contains(ApplicationEntityReference.of(state.getSensor()));</span>
+  }
+  
+  public Iterable&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; validInputs () {
+<span class="nc" id="L56">    return Collections.unmodifiableSet(_validInputs);</span>
+  }
+  
+  public Iterable&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; ignoredInputs () {
+<span class="nc" id="L60">    return Collections.unmodifiableSet(_ignoredInputs);</span>
+  }
+  
+  @ValidApplicationEntityReference
+  public Set&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; getValidInputs () {
+<span class="nc" id="L65">    return Collections.unmodifiableSet(_validInputs);</span>
+  }
+  
+  @JsonSetter
+  public void setValidInputs (@Nullable final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputs) {
+<span class="nc" id="L70">    _validInputs.clear();</span>
+
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (inputs != null) {</span>
+<span class="nc" id="L73">      _validInputs.addAll(inputs);</span>
+    }
+<span class="nc" id="L75">  }</span>
+  
+  public boolean isIgnoredInput (@NonNull final Sensor sensor) {
+<span class="fc" id="L78">    return _ignoredInputs.contains(ApplicationEntityReference.of(sensor));</span>
+  }
+  
+  public boolean isIgnoredInput (@NonNull final Long sensor) {
+<span class="nc" id="L82">    return _ignoredInputs.contains(ApplicationEntityReference.of(Sensor.class, sensor));</span>
+  }
+
+  public boolean isIgnoredInput (@NonNull final State state) {
+<span class="fc" id="L86">    return _ignoredInputs.contains(ApplicationEntityReference.of(state.getSensor()));</span>
+  }
+  
+  @ValidApplicationEntityReference()
+  public Set&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; getIgnoredInputs () {
+<span class="nc" id="L91">    return Collections.unmodifiableSet(_ignoredInputs);</span>
+  }
+  
+  @JsonSetter
+  public void setIgnoredInputs (@Nullable final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; ignored) {
+<span class="nc" id="L96">    _ignoredInputs.clear();</span>
+    
+<span class="nc bnc" id="L98" title="All 2 branches missed.">    if (ignored != null) {</span>
+<span class="nc" id="L99">      _ignoredInputs.addAll(ignored);</span>
+    }
+<span class="nc" id="L101">  }</span>
+  
+  public boolean isInvalidInput (@NonNull final Sensor sensor) {
+<span class="nc bnc" id="L104" title="All 4 branches missed.">    return !isValidInput(sensor) &amp;&amp; !isIgnoredInput(sensor);</span>
+  }
+  
+  public boolean isInvalidInput (@NonNull final Long sensor) {
+<span class="nc bnc" id="L108" title="All 4 branches missed.">    return !isValidInput(sensor) &amp;&amp; !isIgnoredInput(sensor);</span>
+  }
+
+  public boolean isInvalidInput (@NonNull final State state) {
+<span class="nc bnc" id="L112" title="All 4 branches missed.">    return !isValidInput(state) &amp;&amp; !isIgnoredInput(state);</span>
+  }
+  
+  public OneVsAllToUpDownMotionSensorConfiguration clone () {
+<span class="nc" id="L116">    return new OneVsAllToUpDownMotionSensorConfiguration(this);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

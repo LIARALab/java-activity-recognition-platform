@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AbstractEntityCollectionQuery.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.query</a> &gt; <span class="el_source">AbstractEntityCollectionQuery.java</span></div><h1>AbstractEntityCollectionQuery.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.query;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.criteria.AbstractQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+import javax.persistence.metamodel.EntityType;
+
+import org.liara.api.collection.query.queried.QueriedEntity;
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.query.selector.SimpleEntityFieldSelector;
+import org.springframework.lang.NonNull;
+
+public abstract class AbstractEntityCollectionQuery&lt;Entity, Output&gt; implements EntityCollectionQuery&lt;Entity, Output&gt;
+{
+  @NonNull
+  private final EntityManager _manager;
+  
+  @NonNull 
+  private final AbstractQuery&lt;Output&gt; _query;
+  
+  @NonNull
+  private final QueriedEntity&lt;?, Entity&gt; _entity;
+  
+<span class="nc" id="L54">  @NonNull</span>
+  private final Map&lt;
+    EntityFieldSelector&lt;Entity, ?&gt;,
+    EntityCollectionQuery&lt;?, Output&gt;
+  &gt; _joins = new HashMap&lt;&gt;();
+
+  public AbstractEntityCollectionQuery(
+    @NonNull final EntityManager manager,
+    @NonNull final AbstractQuery&lt;Output&gt; query,
+    @NonNull final QueriedEntity&lt;?, Entity&gt; entity
+  )
+<span class="nc" id="L65">  {</span>
+<span class="nc" id="L66">    _manager = manager;</span>
+<span class="nc" id="L67">    _query = query;</span>
+<span class="nc" id="L68">    _entity = entity;</span>
+<span class="nc" id="L69">  }</span>
+  
+  @Override
+  public QueriedEntity&lt;?, Entity&gt; getEntity () {
+<span class="nc" id="L73">    return _entity;</span>
+  }
+
+  @Override
+  public EntityManager getManager () {
+<span class="nc" id="L78">    return _manager;</span>
+  }
+
+  @Override
+  public &lt;X&gt; Root&lt;X&gt; from (@NonNull final Class&lt;X&gt; entityClass) {
+<span class="nc" id="L83">    return _query.from(entityClass);</span>
+  }
+
+  @Override
+  public &lt;X&gt; Root&lt;X&gt; from (@NonNull final EntityType&lt;X&gt; entity) {
+<span class="nc" id="L88">    return _query.from(entity);</span>
+  }
+
+  @Override
+  public Set&lt;Root&lt;?&gt;&gt; getRoots () {
+<span class="nc" id="L93">    return _query.getRoots();</span>
+  }
+
+  @Override
+  public EntityCollectionQuery&lt;Entity, Output&gt; where (@NonNull final Expression&lt;Boolean&gt; restriction) {
+<span class="nc" id="L98">    _query.where(restriction);</span>
+<span class="nc" id="L99">    return this;</span>
+  }
+
+  @Override
+  public EntityCollectionQuery&lt;Entity, Output&gt; where (@NonNull final Predicate... restrictions) {
+<span class="nc" id="L104">    _query.where(restrictions);</span>
+<span class="nc" id="L105">    return this;</span>
+  }
+
+  @Override
+  public Predicate getRestriction () {
+<span class="nc" id="L110">    return _query.getRestriction();</span>
+  }
+
+  @Override
+  public EntityCollectionQuery&lt;Entity, Output&gt; groupBy (@NonNull final Expression&lt;?&gt;... grouping) {
+<span class="nc" id="L115">    _query.groupBy(grouping);</span>
+<span class="nc" id="L116">    return this;</span>
+  }
+
+  @Override
+  public EntityCollectionQuery&lt;Entity, Output&gt; groupBy (@NonNull final List&lt;Expression&lt;?&gt;&gt; grouping) {
+<span class="nc" id="L121">    _query.groupBy(grouping);</span>
+<span class="nc" id="L122">    return this;</span>
+  }
+
+  @Override
+  public List&lt;Expression&lt;?&gt;&gt; getGroupList () {
+<span class="nc" id="L127">    return _query.getGroupList();</span>
+  }
+
+  @Override
+  public EntityCollectionQuery&lt;Entity, Output&gt; having (@NonNull final Expression&lt;Boolean&gt; restriction) {
+<span class="nc" id="L132">    _query.having(restriction);</span>
+<span class="nc" id="L133">    return this;</span>
+  }
+
+  @Override
+  public EntityCollectionQuery&lt;Entity, Output&gt; having (@NonNull final Predicate... restrictions) {
+<span class="nc" id="L138">    _query.having(restrictions);</span>
+<span class="nc" id="L139">    return this;</span>
+  }
+
+  @Override
+  public Predicate getGroupRestriction () {
+<span class="nc" id="L144">    return _query.getGroupRestriction();</span>
+  }
+
+  @Override
+  public EntityCollectionQuery&lt;Entity, Output&gt; distinct (final boolean distinct) {
+<span class="nc" id="L149">    _query.distinct(distinct);</span>
+<span class="nc" id="L150">    return this;</span>
+  }
+
+  @Override
+  public boolean isDistinct () {
+<span class="nc" id="L155">    return _query.isDistinct();</span>
+  }
+
+  @Override
+  public &lt;Joined, Result&gt; EntityCollectionSubquery&lt;Joined, Result&gt; subquery (
+    @NonNull final Class&lt;Joined&gt; joined, 
+    @NonNull final Class&lt;Result&gt; result
+  ) {
+<span class="nc" id="L163">    final Subquery&lt;Result&gt; subquery = _query.subquery(result);</span>
+<span class="nc" id="L164">    final Root&lt;Joined&gt; from = subquery.from(joined);</span>
+    
+<span class="nc" id="L166">    return new EntityCollectionSubquery&lt;Joined, Result&gt;(</span>
+<span class="nc" id="L167">        getManager(),</span>
+        subquery,
+<span class="nc" id="L169">        QueriedEntity.from(from)</span>
+    );
+  }
+
+  @SuppressWarnings(&quot;unchecked&quot;)
+  @Override
+  public &lt;Joined&gt; EntityCollectionQuery&lt;Joined, Output&gt; join (
+    @NonNull final EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join
+  ) {
+<span class="nc bnc" id="L178" title="All 2 branches missed.">    if (!_joins.containsKey(join)) {</span>
+<span class="nc" id="L179">      _joins.put(join, join(join.select(this)));</span>
+    }
+    
+<span class="nc" id="L182">    return (EntityCollectionQuery&lt;Joined, Output&gt;) _joins.get(join);</span>
+  }
+  
+  @Override
+  public &lt;Joined&gt; EntityCollectionQuery&lt;Joined, Output&gt; join (
+    @NonNull final SimpleEntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join
+  ) {
+<span class="nc" id="L189">    return join((EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt;) join);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

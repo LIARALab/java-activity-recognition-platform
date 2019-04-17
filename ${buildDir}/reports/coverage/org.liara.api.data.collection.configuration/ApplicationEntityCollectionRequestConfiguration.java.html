@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApplicationEntityCollectionRequestConfiguration.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.collection.configuration</a> &gt; <span class="el_source">ApplicationEntityCollectionRequestConfiguration.java</span></div><h1>ApplicationEntityCollectionRequestConfiguration.java</h1><pre class="source lang-java linenums">package org.liara.api.data.collection.configuration;
+
+import org.liara.api.collection.configuration.CollectionRequestConfiguration;
+import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionConjunctionOperatorParser;
+import org.liara.api.request.parser.operator.APIRequestEntityCollectionOperatorParser;
+import org.liara.api.request.parser.operator.APIRequestEntityFilterParserFactory;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessor;
+import org.liara.api.request.parser.operator.ordering.APIRequestOrderingProcessorFactory;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessor;
+import org.liara.api.request.parser.transformation.grouping.APIRequestGroupingProcessorFactory;
+import org.liara.api.request.validator.APIRequestFilterValidatorFactory;
+import org.liara.api.request.validator.APIRequestValidator;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+
+<span class="nc" id="L19">public class ApplicationEntityCollectionRequestConfiguration implements CollectionRequestConfiguration&lt;ApplicationEntity&gt;</span>
+{
+  @Override
+  public APIRequestEntityCollectionOperatorParser&lt;ApplicationEntity&gt; createFilterParser () {
+<span class="nc" id="L23">    return new APIRequestEntityCollectionConjunctionOperatorParser&lt;&gt;(Arrays.asList(</span>
+<span class="nc" id="L24">      APIRequestEntityFilterParserFactory.integer(&quot;identifier&quot;, (root) -&gt; root.get(&quot;_identifier&quot;)),</span>
+<span class="nc" id="L25">      APIRequestEntityFilterParserFactory.datetime(&quot;creationDate&quot;, (root) -&gt; root.get(&quot;_creationDate&quot;)),</span>
+<span class="nc" id="L26">      APIRequestEntityFilterParserFactory.datetime(&quot;updateDate&quot;, (root) -&gt; root.get(&quot;_updateDate&quot;)),</span>
+<span class="nc" id="L27">      APIRequestEntityFilterParserFactory.datetime(&quot;deletionDate&quot;, (root) -&gt; root.get(&quot;_deletionDate&quot;))</span>
+    ));
+  }
+
+  @Override
+  public Collection&lt;APIRequestValidator&gt; createFilteringValidators () {
+<span class="nc" id="L33">    return Arrays.asList(</span>
+<span class="nc" id="L34">      APIRequestFilterValidatorFactory.integer(&quot;identifier&quot;),</span>
+<span class="nc" id="L35">      APIRequestFilterValidatorFactory.datetime(&quot;creationDate&quot;),</span>
+<span class="nc" id="L36">      APIRequestFilterValidatorFactory.datetime(&quot;updateDate&quot;),</span>
+<span class="nc" id="L37">      APIRequestFilterValidatorFactory.datetime(&quot;deletionDate&quot;)</span>
+    );
+  }
+
+  @Override
+  public List&lt;APIRequestOrderingProcessor&lt;ApplicationEntity&gt;&gt; createOrderingProcessors () {
+<span class="nc" id="L43">    return Arrays.asList(</span>
+<span class="nc" id="L44">      APIRequestOrderingProcessorFactory.field(&quot;identifier&quot;, (root) -&gt; root.get(&quot;_identifier&quot;)),</span>
+<span class="nc" id="L45">      APIRequestOrderingProcessorFactory.field(&quot;creationDate&quot;, (root) -&gt; root.get(&quot;_creationDate&quot;)),</span>
+<span class="nc" id="L46">      APIRequestOrderingProcessorFactory.field(&quot;updateDate&quot;, (root) -&gt; root.get(&quot;_updateDate&quot;)),</span>
+<span class="nc" id="L47">      APIRequestOrderingProcessorFactory.field(&quot;deletionDate&quot;, (root) -&gt; root.get(&quot;_deletionDate&quot;))</span>
+    );
+  }
+
+  @Override
+  public List&lt;APIRequestGroupingProcessor&lt;ApplicationEntity&gt;&gt; createGroupingProcessors () {
+<span class="nc" id="L53">    return Arrays.asList(</span>
+<span class="nc" id="L54">      APIRequestGroupingProcessorFactory.expression(&quot;identifier&quot;, (root) -&gt; root.get(&quot;_identifier&quot;)),</span>
+<span class="nc" id="L55">      APIRequestGroupingProcessorFactory.expression(&quot;creationDate&quot;, (root) -&gt; root.get(&quot;_creationDate&quot;)),</span>
+<span class="nc" id="L56">      APIRequestGroupingProcessorFactory.expression(&quot;updateDate&quot;, (root) -&gt; root.get(&quot;_updateDate&quot;)),</span>
+<span class="nc" id="L57">      APIRequestGroupingProcessorFactory.expression(&quot;deletionDate&quot;, (root) -&gt; root.get(&quot;_deletionDate&quot;))</span>
+    );
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

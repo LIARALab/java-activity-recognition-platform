@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>APIRequestFreeCursorValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.request.validator</a> &gt; <span class="el_source">APIRequestFreeCursorValidator.java</span></div><h1>APIRequestFreeCursorValidator.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.request.validator;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.liara.api.request.APIRequest;
+import org.liara.api.request.APIRequestParameter;
+import org.liara.api.request.validator.error.APIRequestError;
+import org.liara.api.request.validator.error.APIRequestParameterError;
+import org.liara.api.request.validator.error.APIRequestParameterValueError;
+import org.springframework.lang.NonNull;
+
+/**
+ * Validate a request for a future parse with
+ * org.domus.api.request.parser.FreeCursorParser
+ * 
+ * @author C&amp;eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
+ */
+<span class="nc" id="L41">public class APIRequestFreeCursorValidator implements APIRequestValidator</span>
+{
+<span class="nc" id="L43">  private final static Pattern POSITIVE_INTEGER_PATTERN = Pattern.compile(&quot;^(\\+)?\\d+$&quot;);</span>
+<span class="nc" id="L44">  private final static Pattern BOOLEAN_PATTERN          = Pattern.compile(&quot;^(true|false)?$&quot;);</span>
+
+  /**
+   * @see org.liara.api.request.validator.APIRequestValidator#validate(org.liara.api.request.APIRequest)
+   */
+  @Override
+  public List&lt;APIRequestError&gt; validate (@NonNull final APIRequest request) {
+<span class="nc" id="L51">    final List&lt;APIRequestError&gt; errors = new ArrayList&lt;&gt;();</span>
+
+<span class="nc" id="L53">    this.assertIsValidRequest(errors, request);</span>
+<span class="nc" id="L54">    this.assertHasValidAllParameter(errors, request);</span>
+<span class="nc" id="L55">    this.assertHasValidOffsetParameter(errors, request);</span>
+<span class="nc" id="L56">    this.assertHasValidLimitParameter(errors, request);</span>
+
+<span class="nc" id="L58">    return errors;</span>
+  }
+
+  /**
+   * Check if the &quot;first&quot; parameter of the given request is valid.
+   *
+   * @param errors A collection of errors to feed.
+   * @param request Request to check.
+   */
+  private
+    void
+    assertHasValidLimitParameter (@NonNull final List&lt;APIRequestError&gt; errors, @NonNull final APIRequest request)
+  {
+<span class="nc bnc" id="L71" title="All 2 branches missed.">    if (request.contains(&quot;first&quot;)) {</span>
+<span class="nc" id="L72">      final APIRequestParameter parameter = request.getParameter(&quot;first&quot;);</span>
+
+<span class="nc bnc" id="L74" title="All 2 branches missed.">      if (parameter.getValueCount() &gt; 1) {</span>
+<span class="nc" id="L75">        errors.add(this.createMoreThanOneParameterError(parameter));</span>
+      }
+
+<span class="nc bnc" id="L78" title="All 2 branches missed.">      for (int index = 0; index &lt; parameter.getValueCount(); ++index) {</span>
+<span class="nc" id="L79">        final String value = parameter.getValue(index).trim();</span>
+
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (!POSITIVE_INTEGER_PATTERN.matcher(value).find()) {</span>
+<span class="nc" id="L82">          errors.add(this.createNotAPositiveIntegerError(parameter, index));</span>
+        }
+      }
+    }
+<span class="nc" id="L86">  }</span>
+
+  /**
+   * Check if the &quot;after&quot; parameter of the given request is valid.
+   *
+   * @param errors A collection of errors to feed.
+   * @param request Request to check.
+   */
+  private
+    void
+    assertHasValidOffsetParameter (@NonNull final List&lt;APIRequestError&gt; errors, @NonNull final APIRequest request)
+  {
+<span class="nc bnc" id="L98" title="All 2 branches missed.">    if (request.contains(&quot;after&quot;)) {</span>
+<span class="nc" id="L99">      final APIRequestParameter parameter = request.getParameter(&quot;after&quot;);</span>
+
+<span class="nc bnc" id="L101" title="All 2 branches missed.">      if (parameter.getValueCount() &gt; 1) {</span>
+<span class="nc" id="L102">        errors.add(this.createMoreThanOneParameterError(parameter));</span>
+      }
+
+<span class="nc bnc" id="L105" title="All 2 branches missed.">      for (int index = 0; index &lt; parameter.getValueCount(); ++index) {</span>
+<span class="nc" id="L106">        final String value = parameter.getValue(index).trim();</span>
+
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (!POSITIVE_INTEGER_PATTERN.matcher(value).find()) {</span>
+<span class="nc" id="L109">          errors.add(this.createNotAPositiveIntegerError(parameter, index));</span>
+        }
+      }
+    }
+<span class="nc" id="L113">  }</span>
+
+  /**
+   * Check if the &quot;all&quot; parameter of the given request is valid.
+   *
+   * @param errors A collection of error to feed.
+   * @param request Request to check.
+   */
+  private
+    void
+    assertHasValidAllParameter (@NonNull final List&lt;APIRequestError&gt; errors, @NonNull final APIRequest request)
+  {
+<span class="nc bnc" id="L125" title="All 2 branches missed.">    if (request.contains(&quot;all&quot;)) {</span>
+<span class="nc" id="L126">      final APIRequestParameter parameter = request.getParameter(&quot;all&quot;);</span>
+
+<span class="nc bnc" id="L128" title="All 2 branches missed.">      if (parameter.getValueCount() &gt; 1) {</span>
+<span class="nc" id="L129">        errors.add(this.createMoreThanOneParameterError(parameter));</span>
+      }
+
+<span class="nc bnc" id="L132" title="All 2 branches missed.">      for (int index = 0; index &lt; parameter.getValueCount(); ++index) {</span>
+<span class="nc" id="L133">        final String value = parameter.getValue(index).trim();</span>
+
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (!BOOLEAN_PATTERN.matcher(value).find()) {</span>
+<span class="nc" id="L136">          errors.add(this.createNotABooleanError(parameter, index));</span>
+        }
+      }
+    }
+<span class="nc" id="L140">  }</span>
+
+  /**
+   * Check if not both of &quot;all&quot; and &quot;first&quot; parameters are present at the same
+   * time in a request.
+   *
+   * @param errors A collection of error to feed.
+   * @param request Request to check.
+   */
+  private void assertIsValidRequest (@NonNull final List&lt;APIRequestError&gt; errors, @NonNull final APIRequest request) {
+<span class="nc bnc" id="L150" title="All 6 branches missed.">    if (request.contains(&quot;all&quot;) &amp;&amp; request.contains(&quot;first&quot;) &amp;&amp; !request.getValue(&quot;all&quot;, 0).trim().equals(&quot;false&quot;)) {</span>
+<span class="nc" id="L151">      errors.add(this.createAllAndFirstError(request));</span>
+    }
+<span class="nc" id="L153">  }</span>
+
+  private APIRequestError createAllAndFirstError (@NonNull final APIRequest request) {
+<span class="nc" id="L156">    return new APIRequestError(</span>
+      request,
+<span class="nc" id="L158">      String.join(</span>
+        &quot;&quot;,
+        &quot;\&quot;all\&quot; and \&quot;first\&quot; parameters can't be both present on the same request. You have &quot;,
+        &quot;to choose one of them in accordance with the result that you &quot;,
+        &quot;expect to get. Refer to the documentation for more information.&quot;
+      )
+    );
+  }
+
+  private APIRequestError createMoreThanOneParameterError (@NonNull final APIRequestParameter parameter) {
+<span class="nc" id="L168">    return APIRequestParameterError.create(</span>
+      parameter,
+<span class="nc" id="L170">      String.join(</span>
+        &quot;&quot;,
+        &quot;Only one parameter is allowed by request, the given parameter was setted &quot;,
+<span class="nc" id="L173">        String.valueOf(parameter.getValueCount()),</span>
+        &quot; times.&quot;
+      )
+    );
+  }
+
+  private
+    APIRequestError
+    createNotAPositiveIntegerError (@NonNull final APIRequestParameter parameter, final int index)
+  {
+<span class="nc" id="L183">    return APIRequestParameterValueError</span>
+<span class="nc" id="L184">      .create(parameter, index, &quot;The given parameter value must be a positive integer.&quot;);</span>
+  }
+
+  private APIRequestError createNotABooleanError (@NonNull final APIRequestParameter parameter, final int index) {
+<span class="nc" id="L188">    return APIRequestParameterValueError</span>
+<span class="nc" id="L189">      .create(parameter, index, &quot;The given parameter value must be a boolean (true, false, or nothing).&quot;);</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

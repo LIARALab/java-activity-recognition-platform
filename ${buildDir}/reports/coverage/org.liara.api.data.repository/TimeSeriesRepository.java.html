@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TimeSeriesRepository.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.repository</a> &gt; <span class="el_source">TimeSeriesRepository.java</span></div><h1>TimeSeriesRepository.java</h1><pre class="source lang-java linenums">package org.liara.api.data.repository;
+
+import groovy.lang.Range;
+import org.liara.api.data.entity.ApplicationEntityReference;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.entity.state.BooleanState;
+import org.liara.api.data.entity.state.State;
+import org.springframework.lang.NonNull;
+
+import java.time.ZonedDateTime;
+import java.util.*;
+
+public interface TimeSeriesRepository&lt;TimeState extends State&gt;
+       extends ApplicationEntityRepository&lt;TimeState&gt;
+{
+  default List&lt;TimeState&gt; findAllAt (
+    @NonNull final TimeState state, @NonNull final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; sensors
+  )
+  {
+<span class="nc" id="L20">    return findAllAt(state.getEmissionDate(), sensors);</span>
+  }
+
+  List&lt;TimeState&gt; findAllAt (
+    @NonNull final ZonedDateTime time, @NonNull final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; sensors
+  );
+
+  Optional&lt;TimeState&gt; find (
+    @NonNull final ApplicationEntityReference&lt;TimeState&gt; identifier
+  );
+
+  default Optional&lt;TimeState&gt; findPrevious (
+    @NonNull final TimeState state
+  )
+  {
+<span class="fc" id="L35">    return findPrevious(</span>
+<span class="fc" id="L36">      state.getEmissionDate(),</span>
+<span class="fc" id="L37">      ApplicationEntityReference.of(state.getSensor())</span>
+    );
+  }
+
+  default List&lt;TimeState&gt; findPrevious (
+    @NonNull final TimeState state, final int count
+  ) {
+<span class="fc" id="L44">    return findPrevious(</span>
+<span class="fc" id="L45">      state.getEmissionDate(),</span>
+<span class="fc" id="L46">      ApplicationEntityReference.of(state.getSensor()),</span>
+      count
+    );
+  }
+
+  default Optional&lt;TimeState&gt; findPrevious (
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  )
+  {
+<span class="fc" id="L55">    final List&lt;TimeState&gt; result = findPrevious(</span>
+      date,
+      sensor,
+      1
+    );
+
+<span class="fc bfc" id="L61" title="All 2 branches covered.">    return result.size() &gt; 0 ? Optional.ofNullable(result.get(0)) : Optional.empty();</span>
+  }
+
+  List&lt;TimeState&gt; findPrevious (
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, final int count
+  );
+
+  default Optional&lt;TimeState&gt; findNext (
+    @NonNull final TimeState state
+  ) {
+<span class="fc" id="L71">    return findNext(</span>
+<span class="fc" id="L72">      state.getEmissionDate(),</span>
+<span class="fc" id="L73">      ApplicationEntityReference.of(state.getSensor())</span>
+    );
+  }
+
+  default Optional&lt;TimeState&gt; findNext (
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="fc" id="L80">    final List&lt;TimeState&gt; results = findNext(date, sensor, 1);</span>
+    
+<span class="fc bfc" id="L82" title="All 2 branches covered.">    return results.size() &gt; 0 ? Optional.of(results.get(0))</span>
+<span class="fc" id="L83">                              : Optional.empty();</span>
+  }
+
+  default List&lt;TimeState&gt; findNext (
+    @NonNull final TimeState state, final int count
+  ) {
+<span class="fc" id="L89">    return findNext(</span>
+<span class="fc" id="L90">      state.getEmissionDate(),</span>
+<span class="fc" id="L91">      ApplicationEntityReference.of(state.getSensor()),</span>
+      count
+    );
+  }
+
+  List&lt;TimeState&gt; findNext (
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, final int count
+  );
+
+  default List&lt;TimeState&gt; find (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, final int count
+  ) {
+<span class="nc" id="L103">    return find(sensor, 0, count);</span>
+  }
+
+  List&lt;TimeState&gt; find (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, final int offset, final int count
+  );
+
+  default List&lt;TimeState&gt; getAt (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, @NonNull final Range&lt;Integer&gt; range
+  ) {
+<span class="nc" id="L113">    return find(sensor, range.getFrom(), range.getTo() - range.getFrom());</span>
+  }
+
+  List&lt;TimeState&gt; findAll (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  );
+
+  List&lt;TimeState&gt; findAll (
+    @NonNull final Collection&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; sensors
+  );
+
+  List&lt;TimeState&gt; findWithCorrelation (
+    @NonNull final String name,
+    @NonNull final ApplicationEntityReference&lt;? extends State&gt; correlated,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  );
+
+  List&lt;TimeState&gt; findWithCorrelations (
+    @NonNull final Map&lt;String, ApplicationEntityReference&lt;? extends State&gt;&gt; correlations,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  );
+
+  default Optional&lt;TimeState&gt; findFirstWithCorrelation (
+    @NonNull final String name,
+    @NonNull final ApplicationEntityReference&lt;? extends State&gt; correlated,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="fc" id="L140">    final List&lt;TimeState&gt; results = findWithCorrelation(name, correlated, sensor);</span>
+    
+<span class="fc bfc" id="L142" title="All 2 branches covered.">    return (results.size() &gt; 0) ? Optional.ofNullable(results.get(0)) </span>
+<span class="fc" id="L143">                                : Optional.empty(); </span>
+  }
+
+  default Optional&lt;TimeState&gt; findFirstWithCorrelations (
+    @NonNull final Map&lt;String, ApplicationEntityReference&lt;? extends State&gt;&gt; correlations,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="nc" id="L150">    final List&lt;TimeState&gt; results = findWithCorrelations(correlations, sensor);</span>
+    
+<span class="nc bnc" id="L152" title="All 2 branches missed.">    return (results.size() &gt; 0) ? Optional.ofNullable(results.get(0)) </span>
+<span class="nc" id="L153">                                : Optional.empty();</span>
+  }
+
+  List&lt;TimeState&gt; findWithAnyCorrelation (
+    @NonNull final Collection&lt;String&gt; keys,
+    @NonNull final ApplicationEntityReference&lt;? extends State&gt; correlated,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  );
+
+  default Optional&lt;TimeState&gt; findFirstWithAnyCorrelation (
+    @NonNull final Collection&lt;String&gt; keys,
+    @NonNull final ApplicationEntityReference&lt;? extends State&gt; correlated,
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="fc" id="L167">    final List&lt;TimeState&gt; results = findWithAnyCorrelation(keys, correlated, sensor);</span>
+    
+<span class="fc bfc" id="L169" title="All 2 branches covered.">    return (results.size() &gt; 0) ? Optional.ofNullable(results.get(0)) </span>
+<span class="fc" id="L170">                                : Optional.empty();</span>
+  }
+
+  default Optional&lt;TimeState&gt; findAt (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, final int index
+  ) {
+<span class="fc" id="L176">    final List&lt;TimeState&gt; result = findAll(sensor);</span>
+    
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">    if (index &lt; result.size()) {</span>
+<span class="fc" id="L179">      return Optional.ofNullable(result.get(index));</span>
+    }
+    
+<span class="nc" id="L182">    return Optional.empty();</span>
+  }
+
+  default TimeState getAt (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor, final int index
+  ) {
+<span class="fc" id="L188">    return findAt(sensor, index).get();</span>
+  }
+
+  default Optional&lt;TimeState&gt; findFirst (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="nc" id="L194">    return findAt(sensor, 0);</span>
+  }
+
+  default Optional&lt;TimeState&gt; findLast (
+    @NonNull final ApplicationEntityReference&lt;Sensor&gt; sensor
+  ) {
+<span class="nc" id="L200">    final List&lt;TimeState&gt; result = findAll(sensor);</span>
+    
+<span class="nc bnc" id="L202" title="All 2 branches missed.">    if (result.size() &gt; 0) {</span>
+<span class="nc" id="L203">      return Optional.ofNullable(result.get(result.size() - 1));</span>
+    }
+    
+<span class="nc" id="L206">    return Optional.empty();</span>
+  }
+
+  default Optional&lt;TimeState&gt; findPrevious (
+    @NonNull final BooleanState created, @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  ) {
+<span class="nc" id="L212">    return findPrevious(created.getEmissionDate(), inputSensors);</span>
+  }
+
+  default Optional&lt;TimeState&gt; findPrevious (
+    @NonNull final ZonedDateTime emittionDate, @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  ) {
+<span class="nc" id="L218">    final List&lt;TimeState&gt; result = findPrevious(emittionDate, inputSensors, 1);</span>
+    
+<span class="nc bnc" id="L220" title="All 2 branches missed.">    if (result.size() &lt;= 0) return Optional.empty();</span>
+<span class="nc" id="L221">    else return Optional.ofNullable(result.get(0));</span>
+  }
+
+  default List&lt;TimeState&gt; findPrevious (
+    @NonNull final BooleanState created,
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors, final int count
+  ) {
+<span class="nc" id="L228">    return findPrevious(created.getEmissionDate(), inputSensors, count);</span>
+  }
+
+  List&lt;TimeState&gt; findPrevious (
+    @NonNull final ZonedDateTime date,
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors,
+    final int count
+  );
+
+  default Optional&lt;TimeState&gt; findNext (
+    @NonNull final BooleanState created, @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  ) {
+<span class="nc" id="L240">    return findNext(created.getEmissionDate(), inputSensors);</span>
+  }
+
+  default Optional&lt;TimeState&gt; findNext (
+    @NonNull final ZonedDateTime emittionDate, @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  ) {
+<span class="nc" id="L246">    final List&lt;TimeState&gt; result = findNext(emittionDate, inputSensors, 1);</span>
+    
+<span class="nc bnc" id="L248" title="All 2 branches missed.">    if (result.size() &lt;= 0) return Optional.empty();</span>
+<span class="nc" id="L249">    else return Optional.ofNullable(result.get(0));</span>
+  }
+
+  default List&lt;TimeState&gt; findNext (
+    @NonNull final BooleanState created,
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors, final int count
+  ) {
+<span class="nc" id="L256">    return findNext(created.getEmissionDate(), inputSensors, count);</span>
+  }
+
+  List&lt;TimeState&gt; findNext (
+    @NonNull final ZonedDateTime date,
+    @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors,
+    final int count
+  );
+
+  default List&lt;TimeState&gt; findAllNext (
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference&lt;Sensor&gt; inputSensor
+  ) {
+<span class="nc" id="L268">    return findAllNext(date, Collections.singletonList(inputSensor));</span>
+  }
+
+  List&lt;TimeState&gt; findAllNext (
+    @NonNull final ZonedDateTime date, @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  );
+
+  default List&lt;TimeState&gt; findAllPrevious (
+    @NonNull final ZonedDateTime date, @NonNull final ApplicationEntityReference&lt;Sensor&gt; inputSensor
+  ) {
+<span class="nc" id="L278">    return findAllNext(date, Collections.singletonList(inputSensor));</span>
+  }
+
+  List&lt;TimeState&gt; findAllPrevious (
+    @NonNull final ZonedDateTime date, @NonNull final List&lt;ApplicationEntityReference&lt;Sensor&gt;&gt; inputSensors
+  );
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

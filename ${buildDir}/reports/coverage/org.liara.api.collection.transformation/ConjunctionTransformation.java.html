@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConjunctionTransformation.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.collection.transformation</a> &gt; <span class="el_source">ConjunctionTransformation.java</span></div><h1>ConjunctionTransformation.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.collection.transformation;
+
+import org.liara.api.collection.view.View;
+import org.springframework.lang.NonNull;
+
+/**
+ * A conjunction of two or more transformation.
+ * 
+ * @author C&amp;eacute;dric DEMONGIVERT [cedric.demongivert@gmail.com](mailto:cedric.demongivert@gmail.com)
+ *
+ * @param &lt;Input&gt; Input view type.
+ * @param &lt;Chain&gt; Intermediate view type.
+ * @param &lt;Output&gt; Output view type.
+ */
+public class      ConjunctionTransformation&lt;
+                    Input extends View&lt;?&gt;,
+                    Chain extends View&lt;?&gt;, 
+                    Output extends View&lt;?&gt;
+                  &gt;
+       implements Transformation&lt;Input, Output&gt;
+{
+  /**
+   * Chain two transformation into one transformation.
+   * @param outerTransformation The transformation to apply directly over the intermediate result view.
+   * @param innerTransformation The transformation to apply directly on the given input view.
+   * 
+   * @return A chain transformation that apply both transformations and return the result of the chain.
+   */
+  public static &lt;
+    Input extends View&lt;?&gt;, 
+    Chain extends View&lt;?&gt;, 
+    Output extends View&lt;?&gt;
+  &gt; ConjunctionTransformation&lt;Input, Chain, Output&gt; conjugate (
+    @NonNull final Transformation&lt;Chain, Output&gt; outerTransformation,
+    @NonNull final Transformation&lt;Input, Chain&gt; innerTransformation
+  ) {
+<span class="fc" id="L58">    return new ConjunctionTransformation&lt;&gt;(innerTransformation, outerTransformation);</span>
+  }
+
+  @NonNull
+  private final Transformation&lt;Input, Chain&gt; _innerTransformation;
+  
+  @NonNull
+  private final Transformation&lt;Chain, Output&gt; _outerTransformation;
+
+  /**
+   * Create a new transformation that is the result of a chain of two transformation.
+   * 
+   * @param innerTransformation The transformation to apply directly on the given input view.
+   * @param outerTransformation The transformation to apply directly over the intermediate result view.
+   */
+  public ConjunctionTransformation(
+    @NonNull final Transformation&lt;Input, Chain&gt; innerTransformation,
+    @NonNull final Transformation&lt;Chain, Output&gt; outerTransformation
+  )
+<span class="fc" id="L77">  {</span>
+<span class="fc" id="L78">    _outerTransformation = outerTransformation;</span>
+<span class="fc" id="L79">    _innerTransformation = innerTransformation;</span>
+<span class="fc" id="L80">  }</span>
+
+  @Override
+  public Output apply (@NonNull final Input input) {
+<span class="fc" id="L84">    return _outerTransformation.apply(_innerTransformation.apply(input));</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

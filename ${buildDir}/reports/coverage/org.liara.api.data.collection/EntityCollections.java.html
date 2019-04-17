@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EntityCollections.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.collection</a> &gt; <span class="el_source">EntityCollections.java</span></div><h1>EntityCollections.java</h1><pre class="source lang-java linenums">package org.liara.api.data.collection;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Service;
+
+@Service
+<span class="nc" id="L8">public class EntityCollections</span>
+{
+  @NonNull
+  public static LabelStateCollection LABEL_STATES;
+  
+  @NonNull
+  public static BooleanStateCollection BOOLEAN_STATES;
+  
+  @NonNull
+  public static DoubleStateCollection DOUBLE_STATES;
+
+  @NonNull
+  public static IntegerStateCollection INTEGER_STATES;
+  
+  @NonNull
+  public static NodeCollection NODES;
+
+  @NonNull
+  public static SensorCollection SENSORS;
+  
+  @NonNull
+  public static StateCollection STATES;
+  
+  @Autowired
+  public void registerActivationStateCollection (
+    @NonNull final LabelStateCollection collection
+  ) {
+<span class="nc" id="L35">    LABEL_STATES = collection;</span>
+<span class="nc" id="L36">  }</span>
+
+  @Autowired
+  public void registerBooleanStateCollection (
+    @NonNull final BooleanStateCollection collection
+  ) {
+<span class="nc" id="L42">    BOOLEAN_STATES = collection;</span>
+<span class="nc" id="L43">  }</span>
+
+  @Autowired
+  public void registerIntegerStateCollection (
+    @NonNull final IntegerStateCollection collection
+  ) {
+<span class="nc" id="L49">    INTEGER_STATES = collection;</span>
+<span class="nc" id="L50">  }</span>
+
+  @Autowired
+  public void registerNodeCollection (
+    @NonNull final NodeCollection collection
+  ) {
+<span class="nc" id="L56">    NODES = collection;</span>
+<span class="nc" id="L57">  }</span>
+
+  @Autowired
+  public void registerSensorCollection (
+    @NonNull final SensorCollection collection
+  ) {
+<span class="nc" id="L63">    SENSORS = collection;</span>
+<span class="nc" id="L64">  }</span>
+
+  @Autowired
+  public void registerStateCollection (
+    @NonNull final StateCollection collection
+  ) {
+<span class="nc" id="L70">    STATES = collection;</span>
+<span class="nc" id="L71">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

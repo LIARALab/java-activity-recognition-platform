@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>StateCreationSchemaDeserializer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.data.entity.state</a> &gt; <span class="el_source">StateCreationSchemaDeserializer.java</span></div><h1>StateCreationSchemaDeserializer.java</h1><pre class="source lang-java linenums">package org.liara.api.data.entity.state;
+
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
+import org.liara.api.data.collection.EntityCollections;
+import org.liara.api.data.entity.sensor.Sensor;
+import org.liara.api.data.schema.UseCreationSchema;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.jackson.JsonComponent;
+import org.springframework.context.ApplicationContext;
+import org.springframework.lang.NonNull;
+
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+
+@JsonComponent
+<span class="nc" id="L24">public class StateCreationSchemaDeserializer extends JsonDeserializer&lt;StateCreationSchema&gt;</span>
+{
+  @Autowired
+  private ApplicationContext _context;
+  
+  @Override
+  public StateCreationSchema deserialize (
+    @NonNull final JsonParser parser, 
+    @NonNull final DeserializationContext context
+  )
+  throws IOException
+  {
+<span class="nc" id="L36">    final ObjectMapper mapper = (ObjectMapper) parser.getCodec();</span>
+<span class="nc" id="L37">    final TreeNode treeNode = mapper.readTree(parser);</span>
+    
+    
+    
+<span class="nc bnc" id="L41" title="All 2 branches missed.">    if (treeNode.isObject()) {</span>
+<span class="nc" id="L42">      final ObjectNode node = (ObjectNode) treeNode;</span>
+<span class="nc" id="L43">      return deserialize(node, mapper);</span>
+<span class="nc" id="L44">    } else if (</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">      treeNode.isValueNode() &amp;&amp; </span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">      ((ValueNode) treeNode).isNull()</span>
+    ) {
+<span class="nc" id="L48">      return null;</span>
+    } else {
+<span class="nc" id="L50">      throw new Error(String.join(</span>
+        &quot;&quot;, 
+        &quot;Unnable to parse a StateCreationSchema from the provided json : &quot;,
+        &quot;the given json is nor an object, nor a null value.&quot;
+      ));
+    }
+  }
+
+  private StateCreationSchema deserialize (
+    @NonNull final ObjectNode node, 
+    @NonNull final ObjectMapper mapper
+  ) throws IOException {
+<span class="nc" id="L62">    final Long sensorIdentifier = (</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">      node.hasNonNull(&quot;sensor&quot;) ? node.get(&quot;sensor&quot;).asLong() </span>
+                                : null
+    );
+    
+<span class="nc bnc" id="L67" title="All 2 branches missed.">    if (sensorIdentifier == null) {</span>
+<span class="nc" id="L68">      return deserializeDefault(node, mapper);</span>
+    } else {
+<span class="nc" id="L70">      final Optional&lt;Sensor&gt; sensor = (</span>
+        EntityCollections.SENSORS
+<span class="nc" id="L72">                         .findByIdentifier(sensorIdentifier)</span>
+      );
+      
+<span class="nc bnc" id="L75" title="All 2 branches missed.">      if (sensor.isPresent()) {</span>
+<span class="nc" id="L76">        return deserializeForSensor(node, mapper, sensor.get());</span>
+      } else {
+<span class="nc" id="L78">        return deserializeDefault(node, mapper);</span>
+      }
+    }
+  }
+
+  @SuppressWarnings(&quot;unchecked&quot;) /* Checked by isAssignableFrom */
+  private StateCreationSchema deserializeForSensor (
+    @NonNull final ObjectNode node, 
+    @NonNull final ObjectMapper mapper, 
+    @NonNull final Sensor sensor
+  ) throws IOException {
+<span class="nc" id="L89">    final Class&lt;? extends State&gt; stateClass = sensor.getStateClass();</span>
+<span class="nc" id="L90">    final UseCreationSchema useCreationSchema = stateClass.getAnnotation(</span>
+      UseCreationSchema.class
+    );
+    
+<span class="nc bnc" id="L94" title="All 2 branches missed.">    if (useCreationSchema == null) {</span>
+<span class="nc" id="L95">      throw new Error(String.join(</span>
+        &quot;&quot;,
+        &quot;Unnable to parse StateCreationSchema for the sensor &quot;,
+<span class="nc" id="L98">        sensor.toString(), &quot; because the given sensor state class &quot;,</span>
+<span class="nc" id="L99">        stateClass.getName(), &quot; does not declare a &quot;, </span>
+<span class="nc" id="L100">        UseCreationSchema.class.toString(),</span>
+        &quot;annotation.&quot;
+      ));
+    } else {
+<span class="nc" id="L104">      final Class&lt;?&gt; creationSchema = useCreationSchema.value();</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">      if (StateCreationSchema.class.isAssignableFrom(creationSchema)) {</span>
+<span class="nc" id="L106">        return deserializeSchema(</span>
+          node, mapper, 
+          (Class&lt;? extends StateCreationSchema&gt;) creationSchema
+        );
+      } else {
+<span class="nc" id="L111">        throw new Error(String.join(</span>
+          &quot;&quot;,
+<span class="nc" id="L113">          &quot;Unnable to parse StateCreationSchema for the sensor &quot;, sensor.toString(), </span>
+          &quot; because the given sensor state creation schema class &quot;,
+<span class="nc" id="L115">          creationSchema.toString(), &quot; is not a child class of &quot;, </span>
+<span class="nc" id="L116">          StateCreationSchema.class.toString()</span>
+        ));
+      }
+    }
+  }
+
+  private StateCreationSchema deserializeSchema (
+    @NonNull final ObjectNode node,
+    @NonNull final ObjectMapper mapper, 
+    @NonNull final Class&lt;? extends StateCreationSchema&gt; creationSchema
+  ) throws IOException {
+<span class="nc" id="L127">    return mapper.treeToValue(node, creationSchema);</span>
+  }
+
+  private StateCreationSchema deserializeDefault (
+    @NonNull final ObjectNode node, 
+    @NonNull final ObjectMapper mapper
+  ) {
+<span class="nc" id="L134">    final StateCreationSchema schema = _context.getBean(</span>
+      &quot;stateCreationSchema&quot;,
+      StateCreationSchema.class
+    );
+<span class="nc bnc" id="L138" title="All 2 branches missed.">    schema.setSensor(node.hasNonNull(&quot;sensor&quot;) ? node.get(&quot;sensor&quot;).asLong() : null);</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">    schema.setEmissionDate(node.hasNonNull(&quot;emittionDate&quot;) ? ZonedDateTime.parse(</span>
+<span class="nc" id="L140">      node.get(&quot;sensor&quot;).asText(),</span>
+<span class="nc" id="L141">      DateTimeFormatter.ofPattern(&quot;YYYY-MM-dd'T'HH:mm:ss.SSSXXX&quot;)</span>
+      ) : null
+    );
+    
+<span class="nc" id="L145">    return schema;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

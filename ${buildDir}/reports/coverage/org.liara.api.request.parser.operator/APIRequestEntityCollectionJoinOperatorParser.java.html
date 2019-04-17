@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>APIRequestEntityCollectionJoinOperatorParser.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api</a> &gt; <a href="index.source.html" class="el_package">org.liara.api.request.parser.operator</a> &gt; <span class="el_source">APIRequestEntityCollectionJoinOperatorParser.java</span></div><h1>APIRequestEntityCollectionJoinOperatorParser.java</h1><pre class="source lang-java linenums">/*******************************************************************************
+ * Copyright (C) 2018 Cedric DEMONGIVERT &lt;cedric.demongivert@gmail.com&gt;
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the &quot;Software&quot;), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ ******************************************************************************/
+package org.liara.api.request.parser.operator;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.persistence.criteria.Join;
+
+import org.liara.api.collection.query.selector.EntityFieldSelector;
+import org.liara.api.collection.transformation.operator.EntityCollectionIdentityOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionJoinOperator;
+import org.liara.api.collection.transformation.operator.EntityCollectionOperator;
+import org.liara.api.request.APIRequest;
+import org.liara.api.request.parser.APIDocumentedRequestParser;
+import org.springframework.lang.NonNull;
+
+import springfox.documentation.service.Parameter;
+
+public class      APIRequestEntityCollectionJoinOperatorParser&lt;Entity, Joined&gt; 
+       implements APIRequestEntityCollectionOperatorParser&lt;Entity&gt;, APIDocumentedRequestParser
+{
+  @NonNull
+  private final String _field;
+  
+  @NonNull
+  private final EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; _join;
+  
+  @NonNull
+  private final APIRequestEntityCollectionOperatorParser&lt;Joined&gt; _joinParser;
+
+  public APIRequestEntityCollectionJoinOperatorParser (
+    @NonNull final String field,
+    @NonNull final EntityFieldSelector&lt;Entity, Join&lt;Entity, Joined&gt;&gt; join,
+    @NonNull final APIRequestEntityCollectionOperatorParser&lt;Joined&gt; joinParser 
+<span class="nc" id="L56">  ) {</span>
+<span class="nc" id="L57">    _field = field;</span>
+<span class="nc" id="L58">    _join = join;</span>
+<span class="nc" id="L59">    _joinParser = joinParser;</span>
+<span class="nc" id="L60">  }</span>
+
+  @Override
+  public String getName () {
+<span class="nc" id="L64">    return _field;</span>
+  }
+
+  @Override
+  public EntityCollectionOperator&lt;Entity&gt; parse (@NonNull final APIRequest request) {
+<span class="nc" id="L69">    final APIRequest subRequest = request.subRequest(_field);</span>
+    
+<span class="nc bnc" id="L71" title="All 2 branches missed.">    if (subRequest.getParameterCount() &gt; 0) {</span>
+<span class="nc" id="L72">      return new EntityCollectionJoinOperator&lt;&gt;(</span>
+          _join,
+<span class="nc" id="L74">          _joinParser.parse(subRequest)</span>
+      );
+    } else {
+<span class="nc" id="L77">      return new EntityCollectionIdentityOperator&lt;&gt;();</span>
+    }
+  }
+
+  @Override
+  public List&lt;Parameter&gt; getHandledParametersDocumentation (@NonNull final List&lt;APIDocumentedRequestParser&gt; parents) {
+<span class="nc bnc" id="L83" title="All 2 branches missed.">    if (_joinParser instanceof APIDocumentedRequestParser) {</span>
+<span class="nc" id="L84">      final List&lt;APIDocumentedRequestParser&gt; nextParents = new ArrayList&lt;&gt;(parents);</span>
+<span class="nc" id="L85">      nextParents.add(this);</span>
+<span class="nc" id="L86">      return ((APIDocumentedRequestParser) _joinParser).getHandledParametersDocumentation(nextParents);</span>
+    }
+    
+<span class="nc" id="L89">    return Collections.emptyList();</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
