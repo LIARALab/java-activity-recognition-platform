@@ -25,6 +25,7 @@ import org.hibernate.dialect.MySQL8Dialect;
 import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.type.BooleanType;
 import org.hibernate.type.LongType;
+import org.hibernate.type.StringType;
 
 public class DatabaseDialect
   extends MySQL8Dialect
@@ -39,7 +40,15 @@ public class DatabaseDialect
           "TIMESTAMPDIFF(MICROSECOND, ?1, ?2)"
         )
       );
-      registerFunction(
+    registerFunction(
+      "date_sub_hour",
+      new SQLFunctionTemplate(StringType.INSTANCE, "DATE_SUB(?1, INTERVAL ?2 HOUR)")
+    );
+    registerFunction(
+      "date_add_hour",
+      new SQLFunctionTemplate(StringType.INSTANCE, "DATE_ADD(?1, INTERVAL ?2 HOUR)")
+    );
+    registerFunction(
         "regexp",
         new SQLFunctionTemplate(
           BooleanType.INSTANCE,

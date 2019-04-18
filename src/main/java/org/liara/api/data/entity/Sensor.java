@@ -59,15 +59,15 @@ public class Sensor
              .setParameter("sensorIdentifier", sensor.getIdentifier());
   }
 
-  @Nullable
-  private String _name;
-
   @RelationFactory(Node.class)
   public static @NonNull InnerJoin<Node> node () {
     return Join.inner(Node.class).filter(
       Filter.expression(":this.identifier = :super.nodeIdentifier")
     );
   }
+
+  @Nullable
+  private String _name;
 
   @Nullable
   private String _unit;
