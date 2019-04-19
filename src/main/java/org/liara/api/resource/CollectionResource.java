@@ -27,6 +27,7 @@ import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.utils.Duplicator;
 import org.liara.collection.Collection;
 import org.liara.collection.ModelCollection;
+import org.liara.collection.jpa.JPACollections;
 import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.aggregate.Aggregate;
 import org.liara.request.validator.error.InvalidAPIRequestException;
@@ -47,6 +48,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class CollectionResource<Entity extends ApplicationEntity>
@@ -263,6 +265,19 @@ public class CollectionResource<Entity extends ApplicationEntity>
 
       @NonNull final Operator      operator   = configuration.parse(request.getParameters());
       @NonNull final Collection<?> collection = operator.apply(getCollection());
+      @NonNull final Logger        logger     = Logger.getLogger(getClass().getName());
+
+      logger.finest(JPACollections.getQuery(collection, ":this").toString());
+
+      for (
+        final Map.@NonNull Entry<String, Object> parameter :
+        JPACollections.getParameters(collection).entrySet()
+      ) {
+        logger.finest(
+          parameter.getKey() + " " + parameter.getValue().toString() + " (" +
+          parameter.getValue().getClass().getName() + ")"
+        );
+      }
 
       @NonNull final EntityManager entityManager = getEntityManagerFactory().createEntityManager();
       entityManager.getTransaction().begin();

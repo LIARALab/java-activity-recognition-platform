@@ -29,10 +29,12 @@ public class ValueState<Value>
     _type = toCopy.getType();
   }
 
+  @Transient
   public @Nullable Value getValue () {
     return _value;
   }
 
+  @Transient
   public void setValue (@Nullable final Value value) {
     _value = value;
   }

@@ -38,8 +38,7 @@ public class LabelStateCollection
   @Autowired
   public LabelStateCollection (
     @NonNull final CollectionResourceBuilder configuration
-  )
-  {
+  ) {
     super(LabelState.class, configuration);
   }
 }
