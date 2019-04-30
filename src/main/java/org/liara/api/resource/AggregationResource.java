@@ -1,5 +1,6 @@
 package org.liara.api.resource;
 
+import com.fasterxml.jackson.databind.node.NullNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
@@ -78,12 +79,20 @@ public class AggregationResource<Entity extends ApplicationEntity>
     @NonNull final List<@NonNull Tuple> tuples,
     @NonNull final Collection<?> collection
   ) {
+    if (tuples.size() <= 0) {
+      return RestResponse.ofType(Object.class).ofCollection().build();
+    }
+
     final int groups       = getGroupsOf(collection);
     final int aggregations = getAggregationsOf(collection);
 
     if (groups <= 0) {
       if (aggregations == 1) {
-        return RestResponse.ofType(Object.class).ofModel(tuples.get(0).get(0));
+        if (tuples.get(0).get(0) == null) {
+          return RestResponse.ofType(Object.class).ofModel(NullNode.instance);
+        } else {
+          return RestResponse.ofType(Object.class).ofModel(tuples.get(0).get(0));
+        }
       } else {
         return RestResponse.ofType(Object.class).ofCollection().ofModels(
           Arrays.asList(tuples.get(0).toArray())

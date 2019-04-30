@@ -270,8 +270,9 @@ public class CollectionResource<Entity extends ApplicationEntity>
       logger.finest(JPACollections.getQuery(collection, ":this").toString());
 
       for (
-        final Map.@NonNull Entry<String, Object> parameter :
+        final Map.@NonNull Entry<String, Object> parameter : (
         JPACollections.getParameters(collection).entrySet()
+      )
       ) {
         logger.finest(
           parameter.getKey() + " " + parameter.getValue().toString() + " (" +

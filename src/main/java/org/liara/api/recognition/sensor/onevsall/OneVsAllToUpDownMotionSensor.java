@@ -3,7 +3,6 @@ package org.liara.api.recognition.sensor.onevsall;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.data.entity.state.BooleanValueState;
@@ -32,8 +31,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
@@ -56,8 +53,8 @@ public class OneVsAllToUpDownMotionSensor
   @NonNull
   private final NodeRepository _nodes;
 
-  @Nullable
-  private Set<@NonNull Long> _inputSensors;
+  @NonNull
+  private final OneVsAllToUpDownMotionSensorAsserter _asserter;
 
   @Autowired
   public OneVsAllToUpDownMotionSensor (@NonNull final OneVsAllToUpDownMotionSensorBuilder builder) {
@@ -66,15 +63,16 @@ public class OneVsAllToUpDownMotionSensor
     _flags = Objects.requireNonNull(builder.getFlags());
     _sensors = Objects.requireNonNull(builder.getSensors());
     _nodes = Objects.requireNonNull(builder.getNodes());
-    _inputSensors = null;
+    _asserter = new OneVsAllToUpDownMotionSensorAsserter(this);
   }
 
   @Override
   public void initialize (@NonNull final VirtualSensorRunner runner) {
     super.initialize(runner);
+    _asserter.refresh();
 
     @NonNull final List<@NonNull BooleanValueState> states = _flags.findAllWithValue(
-      getInputSensors(), true
+      _asserter.getTrackedSensors(), true
     );
 
     @Nullable BooleanValueState previous = null;
@@ -90,10 +88,16 @@ public class OneVsAllToUpDownMotionSensor
     }
   }
 
+  @Override
+  public void resume (@NonNull final VirtualSensorRunner runner) {
+    super.resume(runner);
+    _asserter.refresh();
+  }
+
   private boolean isInputState (@NonNull final State state) {
-    if (getInputSensors().contains(state.getSensorIdentifier())) {
+    if (_asserter.isTracked(state)) {
       @NonNull final BooleanValueState booleanState = (BooleanValueState) state;
-      return Objects.equals(booleanState.getValue(), true) && !isIgnoredInput(booleanState);
+      return Objects.equals(booleanState.getValue(), true);
     }
 
     return false;
@@ -104,7 +108,7 @@ public class OneVsAllToUpDownMotionSensor
     super.sensorWasCreated(event);
 
     if (event.getSensor().getTypeInstance() == ValueSensorType.MOTION) {
-      _inputSensors = null;
+      _asserter.refresh();
     }
   }
 
@@ -121,10 +125,10 @@ public class OneVsAllToUpDownMotionSensor
 
   private void onInputStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
     @NonNull final Optional<BooleanValueState> previous = _flags.findPreviousWithValue(
-      stateThatWasCreated, getInputSensors(), true
+      stateThatWasCreated, _asserter.getTrackedSensors(), true
     );
     @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
-      stateThatWasCreated, getInputSensors(), true
+      stateThatWasCreated, _asserter.getTrackedSensors(), true
     );
 
     if (!previous.isPresent()) {
@@ -207,10 +211,10 @@ public class OneVsAllToUpDownMotionSensor
     if (!findCorrelationFromInput(stateThatWillBeDeleted.getIdentifier()).isPresent()) return;
 
     @NonNull final Optional<BooleanValueState> previous = _flags.findPreviousWithValue(
-      stateThatWillBeDeleted.getEmissionDate(), getInputSensors(), true
+      stateThatWillBeDeleted.getEmissionDate(), _asserter.getTrackedSensors(), true
     );
     @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
-      stateThatWillBeDeleted.getEmissionDate(), getInputSensors(), true
+      stateThatWillBeDeleted.getEmissionDate(), _asserter.getTrackedSensors(), true
     );
 
     if (!previous.isPresent()) {
@@ -308,7 +312,7 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void emit (@NonNull final BooleanValueState input) {
-    emit(input, isValidInput(input));
+    emit(input, _asserter.isValidInput(input));
   }
 
   private void emit (@NonNull final State input, final boolean up) {
@@ -329,108 +333,15 @@ public class OneVsAllToUpDownMotionSensor
     _apiEventPublisher.create(correlation);
   }
 
-  private boolean isIgnoredInput (@NonNull final Sensor sensor) {
-    @NonNull final OneVsAllToUpDownMotionSensorConfiguration configuration = getConfiguration();
-
-    if (configuration.getIgnoredInputs().contains(sensor.getIdentifier())) {
-      return true;
-    }
-
-    if (configuration.getIgnoredNodes().isEmpty()) return false;
-
-    Objects.requireNonNull(sensor.getNodeIdentifier());
-
-    @NonNull final Node stateNode = _nodes.getAt(sensor.getNodeIdentifier());
-    Objects.requireNonNull(stateNode.getCoordinates());
-
-    for (@NonNull final Long nodeIdentifier : configuration.getIgnoredNodes()) {
-      @NonNull final Node node = _nodes.getAt(nodeIdentifier);
-      Objects.requireNonNull(node.getCoordinates());
-
-      if (
-        Objects.equals(stateNode.getIdentifier(), node.getIdentifier()) ||
-        Objects.equals(node.getCoordinates().isParentSetOf(stateNode.getCoordinates()), true)
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  private boolean isIgnoredInput (@NonNull final BooleanValueState state) {
-    return isIgnoredInput(_sensors.find(state.getSensorIdentifier()).orElseThrow());
-  }
-
-  private boolean isValidInput (@NonNull final Sensor sensor) {
-    @NonNull final OneVsAllToUpDownMotionSensorConfiguration configuration = getConfiguration();
-
-    if (configuration.getValidInputs().contains(sensor.getIdentifier())) {
-      return true;
-    }
-
-    Objects.requireNonNull(sensor.getNodeIdentifier());
-
-    @NonNull final Node stateNode = _nodes.getAt(sensor.getNodeIdentifier());
-    Objects.requireNonNull(stateNode.getCoordinates());
-
-    for (@NonNull final Long nodeIdentifier : configuration.getValidNodes()) {
-      @NonNull final Node node = _nodes.getAt(nodeIdentifier);
-      Objects.requireNonNull(node.getCoordinates());
-
-      if (
-        Objects.equals(stateNode.getIdentifier(), node.getIdentifier()) ||
-        Objects.equals(node.getCoordinates().isParentSetOf(stateNode.getCoordinates()), true)
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  private boolean isValidInput (@NonNull final BooleanValueState state) {
-    return isValidInput(_sensors.find(state.getSensorIdentifier()).orElseThrow());
-  }
-
   private boolean areOfSameType (
     @NonNull final BooleanValueState left,
     @NonNull final BooleanValueState right
   ) {
-    return isValidInput(left) == isValidInput(right);
+    return _asserter.isValidInput(left) == _asserter.isValidInput(right);
   }
 
   public @NonNull OneVsAllToUpDownMotionSensorConfiguration getConfiguration () {
     return getConfiguration(OneVsAllToUpDownMotionSensorConfiguration.class).orElseThrow();
-  }
-
-  public @NonNull Set<@NonNull Long> getInputSensors () {
-    if (_inputSensors == null) computeInputSensors();
-
-    return _inputSensors;
-  }
-
-  public void computeInputSensors () {
-    @NonNull final Sensor sensor = getSensor().orElseThrow();
-    Objects.requireNonNull(sensor.getNodeIdentifier());
-
-    @NonNull final Node sensorNode = _nodes.getAt(sensor.getNodeIdentifier());
-    @NonNull final Node rootNode   = _nodes.getRoot(sensorNode);
-
-    @NonNull final List<@NonNull Sensor> sensors = _sensors.getSensorsOfTypeIntoNode(
-      ValueSensorType.MOTION.getName(),
-      Objects.requireNonNull(rootNode.getIdentifier())
-    );
-
-    _inputSensors = sensors.stream()
-                      .filter(this::isNotIgnoredInput)
-                      .map(Sensor::getIdentifier)
-                      .map(Objects::requireNonNull)
-                      .collect(Collectors.toSet());
-  }
-
-  private boolean isNotIgnoredInput (@NonNull final Sensor sensor) {
-    return !isIgnoredInput(sensor);
   }
 
   @Override
@@ -446,5 +357,25 @@ public class OneVsAllToUpDownMotionSensor
   @Override
   public @NonNull String getName () {
     return "liara:onevsall";
+  }
+
+  public @NonNull APIEventPublisher getApiEventPublisher () {
+    return _apiEventPublisher;
+  }
+
+  public @NonNull BooleanValueStateRepository getFlags () {
+    return _flags;
+  }
+
+  public @NonNull SensorRepository getSensors () {
+    return _sensors;
+  }
+
+  public @NonNull CorrelationRepository getCorrelations () {
+    return _correlations;
+  }
+
+  public @NonNull NodeRepository getNodes () {
+    return _nodes;
   }
 }
