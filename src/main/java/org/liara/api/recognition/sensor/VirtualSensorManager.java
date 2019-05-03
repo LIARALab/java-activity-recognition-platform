@@ -6,7 +6,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.event.node.DidCreateNodeEvent;
 import org.liara.api.event.node.WillCreateNodeEvent;
-import org.liara.api.event.sensor.SensorEvent;
 import org.liara.api.event.sensor.SensorWasCreatedEvent;
 import org.liara.api.event.sensor.SensorWillBeCreatedEvent;
 import org.liara.api.event.state.DidCreateStateEvent;
@@ -20,10 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import javax.persistence.EntityManager;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,23 +80,15 @@ public class VirtualSensorManager
     getLogger().info("Virtual sensor manager initialization...");
     getLogger().info("Finding virtual sensors in application database...");
 
-    @NonNull final List<@NonNull Sensor> sensors = _entityManager.createQuery(String.join(
-      "", "SELECT sensor FROM ",
-      Sensor.class.getName(), " sensor"
-    ), Sensor.class).getResultList();
+    @NonNull final List<@NonNull Sensor> sensors = _entityManager.createQuery(
+      "SELECT sensor FROM " + Sensor.class.getName() + " sensor",
+      Sensor.class
+    ).getResultList();
 
     for (@NonNull final Sensor sensor : sensors) {
       if (!sensor.getTypeInstance().isNative()) {
         VirtualSensorRunner.restart(this, sensor);
       }
-    }
-  }
-
-  @EventListener
-  public void onSensorCreation (@NonNull final SensorEvent event) {
-    final Sensor sensor = event.getSensor();
-    if (VirtualSensorHandler.isVirtual(sensor)) {
-      VirtualSensorRunner.create(this, sensor);
     }
   }
 
@@ -131,6 +119,13 @@ public class VirtualSensorManager
 
   @EventListener
   public void sensorWasCreated (final SensorWasCreatedEvent event) {
+    final Sensor sensor = event.getSensor();
+
+    if (VirtualSensorHandler.isVirtual(sensor)) {
+      Objects.requireNonNull(event.getSensor().getIdentifier());
+      VirtualSensorRunner.create(this, sensor);
+    }
+
     try {
       for (final VirtualSensorRunner runner : _runners.values()) {
         runner.getHandler().sensorWasCreated(event);

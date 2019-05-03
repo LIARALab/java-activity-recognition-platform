@@ -3,6 +3,7 @@ package org.liara.api.data.entity.state;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.liara.api.utils.ObjectIdentifiers;
 
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
@@ -43,5 +44,21 @@ public class ValueState<Value>
   @JsonIgnore
   public @NonNull Class<Value> getType () {
     return _type;
+  }
+
+  @Override
+  public @NonNull String toString () {
+    return ObjectIdentifiers.getIdentifier(this) + " " +
+           "{" +
+           " universalUniqueIdentifier: " + String.valueOf(getUniversalUniqueIdentifier()) + ", " +
+           " identifier: " + String.valueOf(getIdentifier()) + ", " +
+           " updateDate: " + String.valueOf(getUpdateDate()) + ", " +
+           " creationDate: " + String.valueOf(getCreationDate()) + ", " +
+           " deletionDate: " + String.valueOf(getDeletionDate()) + ", " +
+           " sensorIdentifier: " + String.valueOf(getSensorIdentifier()) + ", " +
+           " emissionDate: " + String.valueOf(getEmissionDate()) + ", " +
+           " value: " + String.valueOf(_value) + ", " +
+           " type: " + _type.getName() +
+           " } ";
   }
 }

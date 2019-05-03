@@ -121,7 +121,8 @@ public class StateCollection
       return true;
     } catch (@NonNull final Throwable throwable) {
       throw new Error(
-        "Unable to post a new state into the application database.",
+        "Unable to post a new state into the application database. (" +
+        state.toString(),
         throwable
       );
     }

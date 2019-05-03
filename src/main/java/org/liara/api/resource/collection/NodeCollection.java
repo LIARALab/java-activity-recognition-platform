@@ -84,7 +84,7 @@ public final class NodeCollection
 
       _transactionTemplate.execute(status -> {
         _applicationEventPublisher.publishEvent(new CreateNodeEvent(this, schema));
-        return null;
+        return true;
       });
 
       Objects.requireNonNull(schema.getIdentifier());

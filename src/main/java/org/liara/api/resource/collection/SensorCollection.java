@@ -75,8 +75,10 @@ public class SensorCollection
       assertIsValid(sensor);
 
       _transactionTemplate.execute(status -> {
-        _applicationEventPublisher.publishEvent(new CreateApplicationEntityEvent(this, sensor));
-        return null;
+        _applicationEventPublisher.publishEvent(
+          new CreateApplicationEntityEvent(this, sensor)
+        );
+        return true;
       });
 
       return Mono.just(RestResponse.ofType(Long.class).ofModel(
