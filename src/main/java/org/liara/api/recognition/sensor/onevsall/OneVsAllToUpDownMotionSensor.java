@@ -127,39 +127,38 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final Optional<BooleanValueState> previous = _flags.findPreviousWithValue(
       stateThatWasCreated, _asserter.getTrackedSensors(), true
     );
+
+    if (!previous.isPresent()) {
+      onLeftMotionStateWasCreated(stateThatWasCreated);
+    } else if (!areOfSameType(previous.get(), stateThatWasCreated)) {
+      onRightMotionStateWasCreated(stateThatWasCreated);
+    }
+  }
+
+  private void onLeftMotionStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
     @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
       stateThatWasCreated, _asserter.getTrackedSensors(), true
     );
 
-    if (!previous.isPresent()) {
-      onLeftMotionStateWasCreated(stateThatWasCreated, next.orElse(null));
-    } else if (!areOfSameType(previous.get(), stateThatWasCreated)) {
-      onRightMotionStateWasCreated(stateThatWasCreated, next.orElse(null));
+    if (next.isPresent() && areOfSameType(stateThatWasCreated, next.get())) {
+      move(next.get(), stateThatWasCreated);
+    } else {
+      emit(stateThatWasCreated);
     }
   }
 
-  private void onLeftMotionStateWasCreated (
-    @NonNull final BooleanValueState created,
-    @Nullable final BooleanValueState next
-  ) {
-    if (next != null && areOfSameType(created, next)) {
-      move(next, created);
-    } else {
-      emit(created);
-    }
-  }
+  private void onRightMotionStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
+    @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
+      stateThatWasCreated, _asserter.getTrackedSensors(), true
+    );
 
-  private void onRightMotionStateWasCreated (
-    @NonNull final BooleanValueState created,
-    @Nullable final BooleanValueState next
-  ) {
-    if (next == null) {
-      emit(created);
-    } else if (areOfSameType(created, next)) {
-      move(next, created);
+    if (!next.isPresent()) {
+      emit(stateThatWasCreated);
+    } else if (areOfSameType(stateThatWasCreated, next.get())) {
+      move(next.get(), stateThatWasCreated);
     } else {
-      emit(created);
-      emit(next);
+      emit(stateThatWasCreated);
+      emit(next.get());
     }
   }
 

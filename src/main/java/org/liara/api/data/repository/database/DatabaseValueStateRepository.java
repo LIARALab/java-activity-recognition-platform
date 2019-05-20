@@ -36,9 +36,9 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
   {
     @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state " +
-      " WHERE state.emissionDate < :date " +
-      "   AND state.sensorIdentifier IN :sensors " +
+      " WHERE state.sensorIdentifier IN :sensors " +
       "   AND state.value = :value" +
+      "   AND state.emissionDate < :date" +
       " ORDER BY state.emissionDate DESC, state.identifier DESC",
       getManagedEntity()
     );
@@ -63,9 +63,9 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
   {
     @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state " +
-      " WHERE state.emissionDate > :date " +
-      "   AND state.sensorIdentifier IN :sensors " +
-      "   AND state.value = :value" +
+      " WHERE state.sensorIdentifier IN :sensors " +
+      "   AND state.value = :value " +
+      "   AND state.emissionDate > :date " +
       " ORDER BY state.emissionDate ASC",
       getManagedEntity()
     );
