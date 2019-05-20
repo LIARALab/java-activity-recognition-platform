@@ -35,8 +35,8 @@ public class DatabaseStateRepository<TimeState extends State>
   ) {
     @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state" +
-      " WHERE state.emissionDate < :date " +
-      "   AND state.sensorIdentifier IN :sensorIdentifiers" +
+      " WHERE state.sensorIdentifier IN :sensorIdentifiers" +
+      "   AND state.emissionDate < :date" +
       " ORDER BY state.emissionDate DESC, state.identifier DESC",
       getManagedEntity()
     );
@@ -58,8 +58,8 @@ public class DatabaseStateRepository<TimeState extends State>
   ) {
     @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state" +
-      " WHERE state.emissionDate > :date" +
-      "   AND state.sensorIdentifier IN :sensorIdentifiers" +
+      " WHERE state.sensorIdentifier IN :sensorIdentifiers" +
+      "   AND state.emissionDate > :date" +
       " ORDER BY state.emissionDate ASC, state.identifier ASC",
       getManagedEntity()
     );
