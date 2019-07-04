@@ -197,16 +197,18 @@ public class DatabaseNestedSetRepository
 
   @Override
   public <Node extends NestedSet> @NonNull Node getRoot (@NonNull final Node node) {
-    return (Node) _entityManager.createQuery(String.join(
-      "",
-      "SELECT node FROM ",
-      node.getClass().getName(),
-      " node ",
-      " WHERE node.coordinates.end >= :childSetEnd ",
-      "   AND node.coordinates.start <= :childSetStart ",
-      "   AND node.coordinates.depth = 1"
-    ), node.getClass()).setParameter("childSetEnd", node.getCoordinates().getEnd()).setParameter("childSetStart",
-      node.getCoordinates().getStart()
-    ).getSingleResult();
+    @NonNull final TypedQuery<? extends NestedSet> query = _entityManager.createQuery(
+      "SELECT node FROM " + node.getClass().getName() + " node" +
+      " WHERE node.coordinates.end >= :childSetEnd " +
+      "   AND node.coordinates.start <= :childSetStart " +
+      "   AND node.coordinates.depth = 1",
+      node.getClass()
+    );
+
+    query.setParameter("childSetEnd", node.getCoordinates().getEnd());
+    query.setParameter("childSetStart", node.getCoordinates().getStart());
+    query.setMaxResults(1);
+
+    return (Node) query.getSingleResult();
   }
 }

@@ -1,4 +1,4 @@
-package org.liara.api.recognition.sensor.onevsall;
+package org.liara.api.recognition.sensor.montiontracking;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -6,6 +6,7 @@ import org.liara.api.data.repository.BooleanValueStateRepository;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
+import org.liara.api.data.series.SeriesManager;
 import org.liara.api.io.APIEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -16,13 +17,16 @@ import java.util.Objects;
 
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class OneVsAllToUpDownMotionSensorBuilder
+public class MotionTrackerSensorBuilder
 {
   @Nullable
   private APIEventPublisher _apiEventPublisher;
 
   @Nullable
-  private BooleanValueStateRepository _flags;
+  private BooleanValueStateRepository _booleanValues;
+
+  @Nullable
+  private SeriesManager _seriesManager;
 
   @Nullable
   private SensorRepository _sensors;
@@ -33,26 +37,37 @@ public class OneVsAllToUpDownMotionSensorBuilder
   @Nullable
   private NodeRepository _nodes;
 
-  public OneVsAllToUpDownMotionSensorBuilder () {
+  public MotionTrackerSensorBuilder () {
     _apiEventPublisher = null;
-    _flags = null;
+    _booleanValues = null;
     _sensors = null;
     _correlations = null;
     _nodes = null;
+    _seriesManager = null;
   }
 
-  public OneVsAllToUpDownMotionSensorBuilder (
-    @NonNull final OneVsAllToUpDownMotionSensorBuilder toCopy
+  public MotionTrackerSensorBuilder (
+    @NonNull final MotionTrackerSensorBuilder toCopy
   ) {
     _apiEventPublisher = toCopy.getApiEventPublisher();
-    _flags = toCopy.getFlags();
+    _booleanValues = toCopy.getBooleanValues();
     _sensors = toCopy.getSensors();
     _correlations = toCopy.getCorrelations();
     _nodes = toCopy.getNodes();
+    _seriesManager = toCopy.getSeriesManager();
   }
 
-  public @NonNull OneVsAllToUpDownMotionSensor build () {
-    return new OneVsAllToUpDownMotionSensor(this);
+  public @NonNull MotionTrackerSensor build () {
+    return new MotionTrackerSensor(this);
+  }
+
+  public @Nullable SeriesManager getSeriesManager () {
+    return _seriesManager;
+  }
+
+  @Autowired
+  public void setSeriesManager (@Nullable final SeriesManager seriesManager) {
+    _seriesManager = seriesManager;
   }
 
   public @Nullable APIEventPublisher getApiEventPublisher () {
@@ -64,13 +79,13 @@ public class OneVsAllToUpDownMotionSensorBuilder
     _apiEventPublisher = apiEventPublisher;
   }
 
-  public @Nullable BooleanValueStateRepository getFlags () {
-    return _flags;
+  public @Nullable BooleanValueStateRepository getBooleanValues () {
+    return _booleanValues;
   }
 
   @Autowired
-  public void setFlags (@Nullable final BooleanValueStateRepository flags) {
-    _flags = flags;
+  public void setBooleanValues (@Nullable final BooleanValueStateRepository booleanValues) {
+    _booleanValues = booleanValues;
   }
 
   public @Nullable SensorRepository getSensors () {
@@ -105,25 +120,28 @@ public class OneVsAllToUpDownMotionSensorBuilder
     if (other == null) return false;
     if (other == this) return true;
 
-    if (other instanceof OneVsAllToUpDownMotionSensorBuilder) {
-      @NonNull final OneVsAllToUpDownMotionSensorBuilder otherOneVsAllToUpDownMotionSensorBuilder =
-        (OneVsAllToUpDownMotionSensorBuilder) other;
+    if (other instanceof MotionTrackerSensorBuilder) {
+      @NonNull final MotionTrackerSensorBuilder otherMotionTrackerSensorBuilder =
+        (MotionTrackerSensorBuilder) other;
 
       return Objects.equals(
         _apiEventPublisher,
-        otherOneVsAllToUpDownMotionSensorBuilder.getApiEventPublisher()
+        otherMotionTrackerSensorBuilder.getApiEventPublisher()
       ) && Objects.equals(
-        _flags,
-        otherOneVsAllToUpDownMotionSensorBuilder.getFlags()
+        _booleanValues,
+        otherMotionTrackerSensorBuilder.getBooleanValues()
       ) && Objects.equals(
         _sensors,
-        otherOneVsAllToUpDownMotionSensorBuilder.getSensors()
+        otherMotionTrackerSensorBuilder.getSensors()
       ) && Objects.equals(
         _correlations,
-        otherOneVsAllToUpDownMotionSensorBuilder.getCorrelations()
+        otherMotionTrackerSensorBuilder.getCorrelations()
       ) && Objects.equals(
         _nodes,
-        otherOneVsAllToUpDownMotionSensorBuilder.getNodes()
+        otherMotionTrackerSensorBuilder.getNodes()
+      ) && Objects.equals(
+        _seriesManager,
+        otherMotionTrackerSensorBuilder.getSeriesManager()
       );
     }
 
@@ -132,6 +150,9 @@ public class OneVsAllToUpDownMotionSensorBuilder
 
   @Override
   public int hashCode () {
-    return Objects.hash(_apiEventPublisher, _flags, _sensors, _correlations, _nodes);
+    return Objects.hash(
+      _apiEventPublisher, _booleanValues, _sensors,
+      _correlations, _nodes, _seriesManager
+    );
   }
 }

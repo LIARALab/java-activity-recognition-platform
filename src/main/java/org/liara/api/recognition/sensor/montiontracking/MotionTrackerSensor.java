@@ -1,4 +1,4 @@
-package org.liara.api.recognition.sensor.onevsall;
+package org.liara.api.recognition.sensor.montiontracking;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -7,11 +7,13 @@ import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.data.entity.state.BooleanValueState;
 import org.liara.api.data.entity.state.Correlation;
+import org.liara.api.data.entity.state.LongValueState;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.repository.BooleanValueStateRepository;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
+import org.liara.api.data.series.SeriesManager;
 import org.liara.api.event.sensor.SensorWasCreatedEvent;
 import org.liara.api.event.state.DidCreateStateEvent;
 import org.liara.api.event.state.DidUpdateStateEvent;
@@ -34,7 +36,7 @@ import java.util.Optional;
 
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class OneVsAllToUpDownMotionSensor
+public class MotionTrackerSensor
   extends AbstractVirtualSensorHandler
   implements ComputedSensorType
 {
@@ -42,7 +44,10 @@ public class OneVsAllToUpDownMotionSensor
   private final APIEventPublisher _apiEventPublisher;
 
   @NonNull
-  private final BooleanValueStateRepository _flags;
+  private final BooleanValueStateRepository _booleanValues;
+
+  @NonNull
+  private final SeriesManager _seriesManager;
 
   @NonNull
   private final SensorRepository _sensors;
@@ -54,16 +59,17 @@ public class OneVsAllToUpDownMotionSensor
   private final NodeRepository _nodes;
 
   @NonNull
-  private final OneVsAllToUpDownMotionSensorAsserter _asserter;
+  private final MotionTrackerSensorAsserter _asserter;
 
   @Autowired
-  public OneVsAllToUpDownMotionSensor (@NonNull final OneVsAllToUpDownMotionSensorBuilder builder) {
+  public MotionTrackerSensor (@NonNull final MotionTrackerSensorBuilder builder) {
     _correlations = Objects.requireNonNull(builder.getCorrelations());
     _apiEventPublisher = Objects.requireNonNull(builder.getApiEventPublisher());
-    _flags = Objects.requireNonNull(builder.getFlags());
+    _booleanValues = Objects.requireNonNull(builder.getBooleanValues());
     _sensors = Objects.requireNonNull(builder.getSensors());
     _nodes = Objects.requireNonNull(builder.getNodes());
-    _asserter = new OneVsAllToUpDownMotionSensorAsserter(this);
+    _asserter = new MotionTrackerSensorAsserter(this);
+    _seriesManager = Objects.requireNonNull(builder.getSeriesManager());
   }
 
   @Override
@@ -71,20 +77,24 @@ public class OneVsAllToUpDownMotionSensor
     super.initialize(runner);
     _asserter.refresh();
 
-    @NonNull final List<@NonNull BooleanValueState> states = _flags.findAllWithValue(
-      _asserter.getTrackedSensors(), true
-    );
+    @NonNull final List<@NonNull LongValueState> states = _seriesManager.getLongSeries(
+      getConfiguration().getSource()
+    ).get();
 
-    @Nullable BooleanValueState previous = null;
+    @Nullable Boolean previous = null;
 
     for (@NonNegative int index = 0; index < states.size(); ++index) {
-      @NonNull final BooleanValueState current = states.get(index);
+      @NonNull final LongValueState currentState = states.get(index);
 
-      if (previous == null || !areOfSameType(previous, current)) {
-        emit(current);
+      if (!_asserter.isIgnoredInput(currentState)) {
+        @NonNull final Boolean current = _asserter.isValidInput(currentState);
+
+        if (previous == null || previous != current) {
+          emit(currentState);
+        }
+
+        previous = current;
       }
-
-      previous = current;
     }
   }
 
@@ -95,12 +105,8 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private boolean isInputState (@NonNull final State state) {
-    if (_asserter.isTracked(state)) {
-      @NonNull final BooleanValueState booleanState = (BooleanValueState) state;
-      return Objects.equals(booleanState.getValue(), true);
-    }
-
-    return false;
+    return Objects.equals(state.getSensorIdentifier(), getConfiguration().getSource()) &&
+           !_asserter.isIgnoredInput((LongValueState) state);
   }
 
   @Override
@@ -119,14 +125,14 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final State stateThatWasCreated = event.getState();
 
     if (isInputState(stateThatWasCreated)) {
-      onInputStateWasCreated((BooleanValueState) stateThatWasCreated);
+      onInputStateWasCreated((LongValueState) stateThatWasCreated);
     }
   }
 
-  private void onInputStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
-    @NonNull final Optional<BooleanValueState> previous = _flags.findPreviousWithValue(
-      stateThatWasCreated, _asserter.getTrackedSensors(), true
-    );
+  private void onInputStateWasCreated (@NonNull final LongValueState stateThatWasCreated) {
+    @NonNull final Optional<LongValueState> previous = _seriesManager.getLongSeries(
+      getConfiguration().getSource()
+    ).getPrevious(stateThatWasCreated.getEmissionDate());
 
     if (!previous.isPresent()) {
       onLeftMotionStateWasCreated(stateThatWasCreated);
@@ -135,10 +141,10 @@ public class OneVsAllToUpDownMotionSensor
     }
   }
 
-  private void onLeftMotionStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
-    @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
-      stateThatWasCreated, _asserter.getTrackedSensors(), true
-    );
+  private void onLeftMotionStateWasCreated (@NonNull final LongValueState stateThatWasCreated) {
+    @NonNull final Optional<LongValueState> next = _seriesManager.getLongSeries(
+      getConfiguration().getSource()
+    ).getNext(stateThatWasCreated.getEmissionDate());
 
     if (next.isPresent() && areOfSameType(stateThatWasCreated, next.get())) {
       move(next.get(), stateThatWasCreated);
@@ -147,10 +153,10 @@ public class OneVsAllToUpDownMotionSensor
     }
   }
 
-  private void onRightMotionStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
-    @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
-      stateThatWasCreated, _asserter.getTrackedSensors(), true
-    );
+  private void onRightMotionStateWasCreated (@NonNull final LongValueState stateThatWasCreated) {
+    @NonNull final Optional<LongValueState> next = _seriesManager.getLongSeries(
+      getConfiguration().getSource()
+    ).getNext(stateThatWasCreated.getEmissionDate());
 
     if (!next.isPresent()) {
       emit(stateThatWasCreated);
@@ -169,11 +175,11 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final State stateThatWillBeMutated = event.getOldValue();
 
     if (isInputState(stateThatWillBeMutated)) {
-      onInputStateWillBeMutated((BooleanValueState) stateThatWillBeMutated);
+      onInputStateWillBeMutated((LongValueState) stateThatWillBeMutated);
     }
   }
 
-  private void onInputStateWillBeMutated (@NonNull final BooleanValueState stateThatWillBeMutated) {
+  private void onInputStateWillBeMutated (@NonNull final LongValueState stateThatWillBeMutated) {
     onInputStateWillBeDeleted(stateThatWillBeMutated);
   }
 
@@ -184,11 +190,11 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final State stateThatWasMutated = event.getNewValue();
 
     if (isInputState(stateThatWasMutated)) {
-      onInputStateWasMutated((BooleanValueState) stateThatWasMutated);
+      onInputStateWasMutated((LongValueState) stateThatWasMutated);
     }
   }
 
-  public void onInputStateWasMutated (@NonNull final BooleanValueState stateThatWasMutated) {
+  public void onInputStateWasMutated (@NonNull final LongValueState stateThatWasMutated) {
     onInputStateWasCreated(stateThatWasMutated);
   }
 
@@ -199,22 +205,23 @@ public class OneVsAllToUpDownMotionSensor
     @NonNull final State stateThatWillBeDeleted = event.getState();
 
     if (isInputState(stateThatWillBeDeleted)) {
-      onInputStateWillBeDeleted((BooleanValueState) stateThatWillBeDeleted);
+      onInputStateWillBeDeleted((LongValueState) stateThatWillBeDeleted);
     }
   }
 
-  public void onInputStateWillBeDeleted (@NonNull final BooleanValueState stateThatWillBeDeleted) {
+  public void onInputStateWillBeDeleted (@NonNull final LongValueState stateThatWillBeDeleted) {
     Objects.requireNonNull(stateThatWillBeDeleted.getIdentifier());
     Objects.requireNonNull(stateThatWillBeDeleted.getEmissionDate());
 
     if (!findCorrelationFromInput(stateThatWillBeDeleted.getIdentifier()).isPresent()) return;
 
-    @NonNull final Optional<BooleanValueState> previous = _flags.findPreviousWithValue(
-      stateThatWillBeDeleted.getEmissionDate(), _asserter.getTrackedSensors(), true
-    );
-    @NonNull final Optional<BooleanValueState> next = _flags.findNextWithValue(
-      stateThatWillBeDeleted.getEmissionDate(), _asserter.getTrackedSensors(), true
-    );
+    @NonNull final Optional<LongValueState> previous = _seriesManager.getLongSeries(
+      getConfiguration().getSource()
+    ).getPrevious(stateThatWillBeDeleted.getEmissionDate());
+
+    @NonNull final Optional<LongValueState> next = _seriesManager.getLongSeries(
+      getConfiguration().getSource()
+    ).getNext(stateThatWillBeDeleted.getEmissionDate());
 
     if (!previous.isPresent()) {
       onLeftMotionStateWillBeDeleted(stateThatWillBeDeleted, next.orElse(null));
@@ -224,8 +231,8 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void onRightMotionStateWillBeDeleted (
-    @NonNull final BooleanValueState stateThatWillBeDeleted,
-    @Nullable final BooleanValueState next
+    @NonNull final LongValueState stateThatWillBeDeleted,
+    @Nullable final LongValueState next
   ) {
     if (next == null) {
       delete(stateThatWillBeDeleted);
@@ -238,8 +245,8 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private void onLeftMotionStateWillBeDeleted (
-    @NonNull final BooleanValueState stateThatWillBeDeleted,
-    @Nullable final BooleanValueState next
+    @NonNull final LongValueState stateThatWillBeDeleted,
+    @Nullable final LongValueState next
   ) {
     if (next == null) {
       delete(stateThatWillBeDeleted);
@@ -264,34 +271,29 @@ public class OneVsAllToUpDownMotionSensor
 
   private @NonNull Optional<BooleanValueState> findOutput (@NonNull final Long input) {
     return findCorrelationFromInput(input).map(Correlation::getStartStateIdentifier)
-             .flatMap(_flags::find);
+                                          .flatMap(_booleanValues::find);
   }
 
-  private @NonNull Optional<BooleanValueState> findInput (@NonNull final Long output) {
-    return findCorrelationFromOutput(output).map(Correlation::getEndStateIdentifier)
-             .flatMap(_flags::find);
-  }
-
-
-  private void delete (@NonNull final BooleanValueState state) {
+  private void delete (@NonNull final LongValueState state) {
     Objects.requireNonNull(state.getIdentifier());
-    @NonNull
-    final Correlation                correlation =
-      findCorrelationFromInput(state.getIdentifier()).orElseThrow();
-    @NonNull
-    final BooleanValueState          output      =
-      _flags.find(correlation.getStartStateIdentifier())
-                                                     .orElseThrow();
+
+    @NonNull final Correlation correlation = (
+      findCorrelationFromInput(state.getIdentifier()).orElseThrow()
+    );
+
+    @NonNull final BooleanValueState output = (
+      _booleanValues.find(correlation.getStartStateIdentifier()).orElseThrow()
+    );
 
     _apiEventPublisher.delete(correlation, output);
   }
 
-  private void move (@NonNull final BooleanValueState from, @NonNull final BooleanValueState to) {
+  private void move (@NonNull final LongValueState from, @NonNull final LongValueState to) {
     Objects.requireNonNull(from.getIdentifier());
 
-    @NonNull final BooleanValueState toMove = findOutput(from.getIdentifier()).map(
-      Duplicator::duplicate
-    ).orElseThrow();
+    @NonNull final BooleanValueState toMove = (
+      findOutput(from.getIdentifier()).map(Duplicator::duplicate).orElseThrow()
+    );
 
     toMove.setEmissionDate(to.getEmissionDate());
 
@@ -300,9 +302,9 @@ public class OneVsAllToUpDownMotionSensor
     } else {
       Objects.requireNonNull(toMove.getIdentifier());
 
-      @NonNull final Correlation correlation = findCorrelationFromOutput(
-        toMove.getIdentifier()
-      ).map(Duplicator::duplicate).orElseThrow();
+      @NonNull final Correlation correlation = (
+        findCorrelationFromOutput(toMove.getIdentifier()).map(Duplicator::duplicate).orElseThrow()
+      );
 
       correlation.setEndStateIdentifier(to.getIdentifier());
 
@@ -310,7 +312,7 @@ public class OneVsAllToUpDownMotionSensor
     }
   }
 
-  private void emit (@NonNull final BooleanValueState input) {
+  private void emit (@NonNull final LongValueState input) {
     emit(input, _asserter.isValidInput(input));
   }
 
@@ -333,14 +335,14 @@ public class OneVsAllToUpDownMotionSensor
   }
 
   private boolean areOfSameType (
-    @NonNull final BooleanValueState left,
-    @NonNull final BooleanValueState right
+    @NonNull final LongValueState left,
+    @NonNull final LongValueState right
   ) {
     return _asserter.isValidInput(left) == _asserter.isValidInput(right);
   }
 
-  public @NonNull OneVsAllToUpDownMotionSensorConfiguration getConfiguration () {
-    return getConfiguration(OneVsAllToUpDownMotionSensorConfiguration.class).orElseThrow();
+  public @NonNull MotionTrackerSensorConfiguration getConfiguration () {
+    return getConfiguration(MotionTrackerSensorConfiguration.class).orElseThrow();
   }
 
   @Override
@@ -350,20 +352,20 @@ public class OneVsAllToUpDownMotionSensor
 
   @Override
   public @NonNull Class<? extends SensorConfiguration> getConfigurationClass () {
-    return OneVsAllToUpDownMotionSensorConfiguration.class;
+    return MotionTrackerSensorConfiguration.class;
   }
 
   @Override
   public @NonNull String getName () {
-    return "liara:onevsall";
+    return "liara:motion-tracker";
   }
 
   public @NonNull APIEventPublisher getApiEventPublisher () {
     return _apiEventPublisher;
   }
 
-  public @NonNull BooleanValueStateRepository getFlags () {
-    return _flags;
+  public @NonNull BooleanValueStateRepository getBooleanValues () {
+    return _booleanValues;
   }
 
   public @NonNull SensorRepository getSensors () {

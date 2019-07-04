@@ -6,7 +6,7 @@ services:
     depends_on:
       - sapa-api-database
     environment:
-      DATABASE_URL: mysql://sapa-api-v2-database:3306/api
+      DATABASE_URL: mysql://sapa-api-v2-database:3306/api?allowPublicKeyRetrieval=true&useSSL=false
       DATABASE_USERNAME: root
       DATABASE_PASSWORD: sapa
     ports:

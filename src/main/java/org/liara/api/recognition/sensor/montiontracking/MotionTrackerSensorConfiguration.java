@@ -1,4 +1,4 @@
-package org.liara.api.recognition.sensor.onevsall;
+package org.liara.api.recognition.sensor.montiontracking;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -13,9 +13,12 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-public class OneVsAllToUpDownMotionSensorConfiguration
+public class MotionTrackerSensorConfiguration
   implements SensorConfiguration
-{  
+{
+  @NonNull
+  private Long _source;
+
   @NonNull
   private final Set<@NonNull Long> _validInputs;
   
@@ -28,20 +31,32 @@ public class OneVsAllToUpDownMotionSensorConfiguration
   @NonNull
   private final Set<@NonNull Long> _ignoredNodes;
 
-  public OneVsAllToUpDownMotionSensorConfiguration () {
+  public MotionTrackerSensorConfiguration () {
     _validInputs = new HashSet<>();
     _ignoredInputs = new HashSet<>();
     _validNodes = new HashSet<>();
     _ignoredNodes = new HashSet<>();
+    _source = 0L;
   }
-  
-  public OneVsAllToUpDownMotionSensorConfiguration (
-    @NonNull final OneVsAllToUpDownMotionSensorConfiguration toCopy
+
+  public MotionTrackerSensorConfiguration (
+    @NonNull final MotionTrackerSensorConfiguration toCopy
   ) {
     _validInputs = new HashSet<>(toCopy.getValidInputs());
     _ignoredInputs = new HashSet<>(toCopy.getIgnoredInputs());
     _validNodes = new HashSet<>(toCopy.getValidNodes());
     _ignoredNodes = new HashSet<>(toCopy.getIgnoredNodes());
+    _source = toCopy.getSource();
+  }
+
+  @ApplicationEntityReference(Sensor.class)
+  public @NonNull Long getSource () {
+    return _source;
+  }
+
+  @JsonSetter
+  public void setSource (@NonNull final Long source) {
+    _source = source;
   }
 
   @ApplicationEntityReference(Sensor.class)
@@ -93,22 +108,26 @@ public class OneVsAllToUpDownMotionSensorConfiguration
     if (other == null) return false;
     if (other == this) return true;
 
-    if (other instanceof OneVsAllToUpDownMotionSensorConfiguration) {
+    if (other instanceof MotionTrackerSensorConfiguration) {
       @NonNull
-      final OneVsAllToUpDownMotionSensorConfiguration otherOneVsAllToUpDownMotionSensorConfiguration = (OneVsAllToUpDownMotionSensorConfiguration) other;
+      final MotionTrackerSensorConfiguration otherMotionTrackerSensorConfiguration =
+        (MotionTrackerSensorConfiguration) other;
 
       return Objects.equals(
         _validInputs,
-        otherOneVsAllToUpDownMotionSensorConfiguration.getValidInputs()
+        otherMotionTrackerSensorConfiguration.getValidInputs()
       ) && Objects.equals(
         _ignoredInputs,
-        otherOneVsAllToUpDownMotionSensorConfiguration.getIgnoredInputs()
+        otherMotionTrackerSensorConfiguration.getIgnoredInputs()
       ) && Objects.equals(
         _validNodes,
-        otherOneVsAllToUpDownMotionSensorConfiguration.getValidNodes()
+        otherMotionTrackerSensorConfiguration.getValidNodes()
       ) && Objects.equals(
         _ignoredNodes,
-        otherOneVsAllToUpDownMotionSensorConfiguration.getIgnoredNodes()
+        otherMotionTrackerSensorConfiguration.getIgnoredNodes()
+      ) && Objects.equals(
+        _source,
+        otherMotionTrackerSensorConfiguration.getSource()
       );
     }
 
@@ -117,6 +136,6 @@ public class OneVsAllToUpDownMotionSensorConfiguration
 
   @Override
   public int hashCode () {
-    return Objects.hash(_validInputs, _ignoredInputs, _validNodes, _ignoredNodes);
+    return Objects.hash(_validInputs, _ignoredInputs, _validNodes, _ignoredNodes, _source);
   }
 }

@@ -44,11 +44,11 @@ public class OneVsAllToUpDownMotionSensor
   @Autowired
   public OneVsAllToUpDownMotionSensor (
     @NonNull final SchemaManager schemaManager,
-    @NonNull final BooleanStateRepository flags,
+    @NonNull final BooleanStateRepository booleanValues,
     @NonNull final SensorRepository sensors
 <span class="fc" id="L49">  ) {</span>
 <span class="fc" id="L50">    _schemaManager = schemaManager;</span>
-<span class="fc" id="L51">    _flags = flags;</span>
+<span class="fc" id="L51">    _flags = booleanValues;</span>
 <span class="fc" id="L52">    _sensors = sensors;</span>
 <span class="fc" id="L53">  }</span>
   

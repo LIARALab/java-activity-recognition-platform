@@ -1,9 +1,8 @@
-package org.liara.api.recognition.sensor.onevsall;
+package org.liara.api.recognition.sensor.montiontracking;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.Sensor;
-import org.liara.api.data.entity.state.State;
+import org.liara.api.data.entity.state.LongValueState;
 import org.liara.api.recognition.sensor.type.ValueSensorType;
 
 import java.util.HashSet;
@@ -11,13 +10,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class OneVsAllToUpDownMotionSensorAsserter
+public class MotionTrackerSensorAsserter
 {
   @NonNull
-  private final OneVsAllToUpDownMotionSensor _sensor;
-
-  @NonNull
-  private final Set<@NonNull Long> _trackedSensors;
+  private final MotionTrackerSensor _sensor;
 
   @NonNull
   private final Set<@NonNull Long> _ignoredSensors;
@@ -25,9 +21,8 @@ public class OneVsAllToUpDownMotionSensorAsserter
   @NonNull
   private final Set<@NonNull Long> _validSensors;
 
-  public OneVsAllToUpDownMotionSensorAsserter (@NonNull final OneVsAllToUpDownMotionSensor sensor) {
+  public MotionTrackerSensorAsserter (@NonNull final MotionTrackerSensor sensor) {
     _sensor = sensor;
-    _trackedSensors = new HashSet<>();
     _ignoredSensors = new HashSet<>();
     _validSensors = new HashSet<>();
   }
@@ -35,27 +30,6 @@ public class OneVsAllToUpDownMotionSensorAsserter
   public void refresh () {
     computeIgnoredSensors();
     computeValidSensors();
-    computeTrackedSensors();
-  }
-
-  private void computeTrackedSensors () {
-    _trackedSensors.clear();
-
-    @NonNull final Sensor sensor = _sensor.getSensor().orElseThrow();
-    Objects.requireNonNull(sensor.getNodeIdentifier());
-
-    @NonNull final Node sensorNode = _sensor.getNodes().getAt(sensor.getNodeIdentifier());
-    @NonNull final Node rootNode   = _sensor.getNodes().getRoot(sensorNode);
-
-    @NonNull final List<@NonNull Sensor> sensors = _sensor.getSensors().getSensorsOfTypeIntoNode(
-      ValueSensorType.MOTION.getName(),
-      Objects.requireNonNull(rootNode.getIdentifier())
-    );
-
-    sensors.stream().map(Sensor::getIdentifier)
-           .map(Objects::requireNonNull)
-           .filter(x -> !isIgnoredInput(x))
-           .forEach(_trackedSensors::add);
   }
 
   private void computeIgnoredSensors () {
@@ -98,32 +72,12 @@ public class OneVsAllToUpDownMotionSensorAsserter
            .forEach(_validSensors::add);
   }
 
-  public boolean isIgnoredInput (@NonNull final Long sensorIdentifier) {
-    return _ignoredSensors.contains(sensorIdentifier);
+  public boolean isIgnoredInput (@NonNull final LongValueState state) {
+    return _ignoredSensors.contains(state.getValue());
   }
 
-  public boolean isIgnoredInput (@NonNull final State state) {
-    return _ignoredSensors.contains(state.getSensorIdentifier());
-  }
-
-  public boolean isValidInput (@NonNull final Long sensorIdentifier) {
-    return _validSensors.contains(sensorIdentifier);
-  }
-
-  public boolean isValidInput (@NonNull final State state) {
-    return _validSensors.contains(state.getSensorIdentifier());
-  }
-
-  public boolean isTracked (@NonNull final Long sensorIdentifier) {
-    return _trackedSensors.contains(sensorIdentifier);
-  }
-
-  public boolean isTracked (@NonNull final State state) {
-    return _trackedSensors.contains(state.getSensorIdentifier());
-  }
-
-  public @NonNull Set<@NonNull Long> getTrackedSensors () {
-    return _trackedSensors;
+  public boolean isValidInput (@NonNull final LongValueState state) {
+    return _validSensors.contains(state.getValue());
   }
 
   public @NonNull Set<@NonNull Long> getIgnoredSensors () {

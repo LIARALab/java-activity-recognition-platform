@@ -59,8 +59,7 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
     @NonNull final Collection<@NonNull Long> inputSensorIdentifiers,
     @NonNull final Value value,
     @NonNull final Cursor cursor
-  )
-  {
+  ) {
     @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state " +
       " WHERE state.sensorIdentifier IN :sensors " +

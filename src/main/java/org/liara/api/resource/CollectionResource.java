@@ -27,7 +27,6 @@ import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.utils.Duplicator;
 import org.liara.collection.Collection;
 import org.liara.collection.ModelCollection;
-import org.liara.collection.jpa.JPACollections;
 import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.aggregate.Aggregate;
 import org.liara.request.validator.error.InvalidAPIRequestException;
@@ -98,8 +97,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
            "first".equalsIgnoreCase(name) ||
            "last".equalsIgnoreCase(name) ||
            "aggregate".equalsIgnoreCase(name) ||
-           "count".equalsIgnoreCase(name)
-      ;
+           "count".equalsIgnoreCase(name);
   }
 
   @Override
@@ -152,9 +150,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
     entityManager.getTransaction().begin();
 
     @NonNull final List<@NonNull Entity> identifiers = entityManager.createQuery(
-      "SELECT model " +
-      "FROM " + _modelClass.getName() + " model " +
-      "ORDER BY model.identifier ASC",
+      "SELECT model FROM " + _modelClass.getName() + " model ORDER BY model.identifier ASC",
       getModelClass()
     ).setMaxResults(1).getResultList();
 
@@ -174,9 +170,7 @@ public class CollectionResource<Entity extends ApplicationEntity>
     entityManager.getTransaction().begin();
 
     @NonNull final List<@NonNull Entity> identifiers = entityManager.createQuery(
-      "SELECT model " +
-      "FROM " + _modelClass.getName() + " model " +
-      "ORDER BY model.identifier DESC",
+      "SELECT model FROM " + _modelClass.getName() + " model ORDER BY model.identifier DESC",
       getModelClass()
     ).setMaxResults(1).getResultList();
 
@@ -234,7 +228,6 @@ public class CollectionResource<Entity extends ApplicationEntity>
     entityManager.getTransaction().commit();
     entityManager.close();
 
-
     return toModelResource(
       model.orElseThrow(
         () -> new NoSuchElementException(
@@ -266,25 +259,12 @@ public class CollectionResource<Entity extends ApplicationEntity>
       @NonNull final Operator      operator   = configuration.parse(request.getParameters());
       @NonNull final Collection<?> collection = operator.apply(getCollection());
       @NonNull final Logger        logger     = Logger.getLogger(getClass().getName());
-
-      logger.finest(JPACollections.getQuery(collection, ":this").toString());
-
-      for (
-        final Map.@NonNull Entry<String, Object> parameter : (
-        JPACollections.getParameters(collection).entrySet()
-      )
-      ) {
-        logger.finest(
-          parameter.getKey() + " " + parameter.getValue().toString() + " (" +
-          parameter.getValue().getClass().getName() + ")"
-        );
-      }
-
       @NonNull final EntityManager entityManager = getEntityManagerFactory().createEntityManager();
+
       entityManager.getTransaction().begin();
 
       @NonNull final RestResponse<?> response = RestResponse.ofCollection(collection)
-                                                  .resolve(entityManager);
+                                                            .resolve(entityManager);
 
       entityManager.getTransaction().commit();
       entityManager.close();
