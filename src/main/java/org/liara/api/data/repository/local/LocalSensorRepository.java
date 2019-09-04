@@ -67,6 +67,20 @@ public class LocalSensorRepository
   }
 
   @Override
+  // @Todo
+  public @NonNull List<@NonNull Sensor> getSensorsWithName (final @NonNull String name) {
+    return Collections.emptyList();
+  }
+
+  @Override
+  // @Todo
+  public @NonNull List<@NonNull Sensor> getSensorsWithNameIntoNode (
+    final @NonNull String name, final @NonNull Long node
+  ) {
+    return Collections.emptyList();
+  }
+
+  @Override
   public void onUpdate (
     @Nullable final ApplicationEntity oldEntity, @NonNull final ApplicationEntity newEntity
   )

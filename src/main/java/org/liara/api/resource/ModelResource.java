@@ -2,6 +2,7 @@ package org.liara.api.resource;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.ApplicationEntity;
+import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.metamodel.RestResource;
 import org.liara.rest.request.RestRequest;
 import org.liara.rest.response.RestResponse;
@@ -35,5 +36,11 @@ public class ModelResource<Model extends ApplicationEntity>
   @Override
   public @NonNull Mono<RestResponse> get (@NonNull final RestRequest request) {
     return Mono.just(RestResponse.ofType(_modelClass).ofModel(_model));
+  }
+
+  @Override
+  public @NonNull Mono<RestResponse> delete (@NonNull final RestRequest request)
+  throws UnsupportedOperationException, IllegalRestRequestException {
+    return null;
   }
 }

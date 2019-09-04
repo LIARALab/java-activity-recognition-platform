@@ -12,4 +12,12 @@ public interface SensorRepository extends ApplicationEntityRepository<Sensor>
   @NonNull List<@NonNull Sensor> getSensorsOfTypeIntoNode (
     @NonNull final String type, @NonNull final Long node
   );
+
+  @NonNull List<@NonNull Sensor> getSensorsWithName (@NonNull final String name);
+
+  @NonNull List<@NonNull Sensor> getSensorsWithNameIntoNode (
+    @NonNull final String name, @NonNull final Long node
+  );
+
+
 }

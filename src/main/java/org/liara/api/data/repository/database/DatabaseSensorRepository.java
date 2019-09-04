@@ -75,4 +75,39 @@ public class DatabaseSensorRepository
 
     return query.getResultList();
   }
+
+  @Override
+  public @NonNull List<@NonNull Sensor> getSensorsWithName (final @NonNull String name) {
+    @NonNull final TypedQuery<Sensor> query = _entityManager.createQuery(
+      "SELECT sensor FROM " + Sensor.class.getName() + " sensor " +
+      " WHERE sensor.name = :name",
+      Sensor.class
+    );
+
+    query.setParameter("name", name);
+
+    return query.getResultList();
+  }
+
+  @Override
+  public @NonNull List<@NonNull Sensor> getSensorsWithNameIntoNode (
+    final @NonNull String name, final @NonNull Long nodeIdentifier
+  ) {
+    final Node node = _entityManager.find(Node.class, nodeIdentifier);
+
+    @NonNull final TypedQuery<Sensor> query = _entityManager.createQuery(
+      "SELECT sensor FROM " + Sensor.class.getName() + " sensor " +
+      " JOIN " + Node.class.getName() + " node ON node.identifier = sensor.nodeIdentifier" +
+      " WHERE sensor.name = :name " +
+      "   AND node.coordinates.start >= :start" +
+      "   AND node.coordinates.end <= :end",
+      Sensor.class
+    );
+
+    query.setParameter("name", name);
+    query.setParameter("start", node.getCoordinates().getStart());
+    query.setParameter("end", node.getCoordinates().getEnd());
+
+    return query.getResultList();
+  }
 }

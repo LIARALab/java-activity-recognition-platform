@@ -23,6 +23,9 @@ package org.liara.api;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.recognition.sensor.VirtualSensorManager;
+import org.liara.data.graph.Column;
+import org.liara.data.graph.Graph;
+import org.liara.data.graph.Table;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -33,6 +36,7 @@ import org.springframework.context.annotation.Import;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.metamodel.Metamodel;
 import java.util.TimeZone;
+import java.util.logging.Logger;
 
 @SpringBootApplication
 @ComponentScan({"org.liara.api", "org.liara.rest"})
@@ -41,8 +45,38 @@ public class Application
 {
   public static void main (@NonNull final String[] args) {
     TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+
     @NonNull final ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
+
+    logDataGraph(context);
+
     context.getBean(VirtualSensorManager.class).start();
+  }
+
+  private static void logDataGraph (@NonNull final ConfigurableApplicationContext context) {
+    @NonNull final Logger logger = Logger.getLogger("data-graph");
+    @NonNull final Graph  graph  = context.getBean("dataGraph", Graph.class);
+
+    logger.info("Application started with data-graph \"" + graph.getName() + "\"");
+
+    for (int index = 0, size = graph.getTables().getSize(); index < size; ++index) {
+      @NonNull final Table table = graph.getTables().get(index);
+
+      logger.info("  with table \"" + table.getName() + "\"");
+      logDataGraphTableColumns(table);
+    }
+  }
+
+  private static void logDataGraphTableColumns (@NonNull final Table table) {
+    @NonNull final Logger logger = Logger.getLogger("data-graph");
+
+    for (int index = 0, size = table.getColumns().getSize(); index < size; ++index) {
+      @NonNull final Column column = table.getColumns().get(index);
+
+      logger.info(
+        "    with column \"" + column.getName() + "\" of type " + column.getType().toString()
+      );
+    }
   }
 
   @Bean
