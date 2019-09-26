@@ -41,13 +41,19 @@ public class DatabaseApplicationEntityDriver
   @EventListener
   public void create (@NonNull final CreateApplicationEntityEvent creation) {
     try {
+      info("io.handling " + creation.toString());
       _eventPublisher.initialize(creation.getEntities());
+      info("io.handling.initialized " + creation.toString());
       _eventPublisher.willCreate(creation.getEntities());
+      info("io.handling.pre-processed " + creation.toString());
 
       Arrays.stream(creation.getEntities()).forEach(_entityManager::persist);
       _entityManager.flush();
+      info("io.handling.pushed " + creation.toString());
 
       _eventPublisher.didCreate(creation.getEntities());
+      info("io.handling.post-processed " + creation.toString());
+      info("io.handled " + creation.toString());
     } catch (@NonNull final Throwable throwable) {
       throw new Error("Error during creation event handling.", throwable);
     }
@@ -56,12 +62,17 @@ public class DatabaseApplicationEntityDriver
   @EventListener
   public void update (@NonNull final UpdateApplicationEntityEvent mutation) {
     try {
+      info("io.handling " + mutation.toString());
       _eventPublisher.willUpdate(mutation.getEntities());
+      info("io.handling.pre-processed " + mutation.toString());
 
       Arrays.stream(mutation.getEntities()).forEach(_entityManager::merge);
       _entityManager.flush();
+      info("io.handling.pushed " + mutation.toString());
 
       _eventPublisher.didUpdate(mutation.getEntities());
+      info("io.handling.post-processed " + mutation.toString());
+      info("io.handled " + mutation.toString());
     } catch (@NonNull final Throwable throwable) {
       throw new Error("Error during update event handling.", throwable);
     }
@@ -70,12 +81,17 @@ public class DatabaseApplicationEntityDriver
   @EventListener
   public void delete (@NonNull final DeleteApplicationEntityEvent deletion) {
     try {
+      info("io.handling " + deletion.toString());
       _eventPublisher.willDelete(deletion.getEntities());
+      info("io.handling.pre-processed " + deletion.toString());
 
       Arrays.stream(deletion.getEntities()).forEach(_entityManager::remove);
       _entityManager.flush();
+      info("io.handling.pushed " + deletion.toString());
 
       _eventPublisher.didDelete(deletion.getEntities());
+      info("io.handling.post-processed " + deletion.toString());
+      info("io.handled " + deletion.toString());
     } catch (@NonNull final Throwable throwable) {
       throw new Error("Error during deletion event handling.", throwable);
     }

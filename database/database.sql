@@ -34,7 +34,7 @@ CREATE TABLE `nodes` (
   `name` varchar(255) NOT NULL,
   PRIMARY KEY (`identifier`),
   UNIQUE KEY `uuid_key` (`uuid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -66,7 +66,7 @@ CREATE TABLE `sensors` (
   `unit` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`identifier`),
   UNIQUE KEY `uuid_key` (`uuid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -98,7 +98,7 @@ CREATE TABLE `state_correlations` (
   UNIQUE KEY `uuid_key` (`uuid`),
   CONSTRAINT `state_correlations_start_to_states` FOREIGN KEY (`start_state_identifier`) REFERENCES `states` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `state_correlations_end_to_states` FOREIGN KEY (`end_state_identifier`) REFERENCES `states` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -131,7 +131,7 @@ CREATE TABLE `states` (
   KEY `reversed_temporal_key` (`emitted_at` DESC),
   KEY `sensor_key` (`sensor_identifier` ASC),
   CONSTRAINT `states_to_sensors` FOREIGN KEY (`sensor_identifier`) REFERENCES `sensors` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -155,7 +155,7 @@ CREATE TABLE `states_boolean` (
   `state_identifier` bigint(20) NOT NULL,
   PRIMARY KEY (`state_identifier`),
   CONSTRAINT `states_boolean_to_states` FOREIGN KEY (`state_identifier`) REFERENCES `states` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -179,7 +179,7 @@ CREATE TABLE `states_byte` (
   `state_identifier` bigint(20) NOT NULL,
   PRIMARY KEY (`state_identifier`),
   CONSTRAINT `states_byte_to_states` FOREIGN KEY (`state_identifier`) REFERENCES `states` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -203,7 +203,7 @@ CREATE TABLE `states_double` (
   `state_identifier` bigint(20) NOT NULL,
   PRIMARY KEY (`state_identifier`),
   CONSTRAINT `states_double_to_states` FOREIGN KEY (`state_identifier`) REFERENCES `states` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -227,7 +227,7 @@ CREATE TABLE `states_float` (
   `state_identifier` bigint(20) NOT NULL,
   PRIMARY KEY (`state_identifier`),
   CONSTRAINT `states_float_to_states` FOREIGN KEY (`state_identifier`) REFERENCES `states` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -251,7 +251,7 @@ CREATE TABLE `states_integer` (
   `state_identifier` bigint(20) NOT NULL,
   PRIMARY KEY (`state_identifier`),
   CONSTRAINT `states_integer_to_states` FOREIGN KEY (`state_identifier`) REFERENCES `states` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -277,7 +277,7 @@ CREATE TABLE `states_label` (
   `state_identifier` bigint(20) NOT NULL,
   PRIMARY KEY (`state_identifier`),
   CONSTRAINT `states_label_to_states` FOREIGN KEY (`state_identifier`) REFERENCES `states` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -301,7 +301,7 @@ CREATE TABLE `states_long` (
   `state_identifier` bigint(20) NOT NULL,
   PRIMARY KEY (`state_identifier`),
   CONSTRAINT `states_long_to_states` FOREIGN KEY (`state_identifier`) REFERENCES `states` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -325,7 +325,7 @@ CREATE TABLE `states_short` (
   `state_identifier` bigint(20) NOT NULL,
   PRIMARY KEY (`state_identifier`),
   CONSTRAINT `states_short_to_states` FOREIGN KEY (`state_identifier`) REFERENCES `states` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -349,7 +349,7 @@ CREATE TABLE `states_string` (
   `state_identifier` bigint(20) NOT NULL,
   PRIMARY KEY (`state_identifier`),
   CONSTRAINT `states_string_to_states` FOREIGN KEY (`state_identifier`) REFERENCES `states` (`identifier`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -372,7 +372,7 @@ CREATE TABLE `states_values` (
   `value` int(11) DEFAULT NULL,
   `state_identifier` bigint(20) NOT NULL,
   PRIMARY KEY (`state_identifier`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -402,7 +402,7 @@ CREATE TABLE `tag_relations` (
   `tag_identifier` bigint(20) NOT NULL,
   PRIMARY KEY (`identifier`),
   UNIQUE KEY `uuid_key` (`uuid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -431,7 +431,7 @@ CREATE TABLE `tags` (
   PRIMARY KEY (`identifier`),
   UNIQUE KEY `uuid_key` (`uuid`),
   UNIQUE KEY `name_key` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

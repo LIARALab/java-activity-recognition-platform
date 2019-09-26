@@ -9,5 +9,4 @@ public abstract class ApplicationEntityEvent
   public ApplicationEntityEvent (@NonNull final Object source) {
     super(source);
   }
-
 }

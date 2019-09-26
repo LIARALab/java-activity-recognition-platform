@@ -4,6 +4,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.ApplicationEntity;
 
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class DidDeleteApplicationEntityEvent
   extends ApplicationEntityEvent
@@ -21,5 +23,14 @@ public class DidDeleteApplicationEntityEvent
 
   public @NonNull ApplicationEntity[] getEntities () {
     return Arrays.copyOf(_entities, _entities.length);
+  }
+
+  @Override
+  public String toString () {
+    return super.toString() + " [ " +
+           Arrays.stream(_entities)
+                 .map(Objects::toString)
+                 .collect(Collectors.joining(", ")) +
+           "]";
   }
 }

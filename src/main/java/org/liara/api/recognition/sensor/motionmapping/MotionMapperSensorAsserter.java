@@ -37,15 +37,19 @@ public class MotionMapperSensorAsserter
     _sensor.getSensors().getSensorsOfTypeIntoNode(
       ValueSensorType.MOTION.getName(),
       Objects.requireNonNull(rootNode.getIdentifier())
-    ).stream().map(Objects::requireNonNull)
+    ).stream()
+           .map(Objects::requireNonNull)
            .map(Sensor::getIdentifier)
+           .map(Objects::requireNonNull)
            .forEach(_trackedSensors::add);
 
     _sensor.getSensors().getSensorsWithNameIntoNode(
       "contact",
       Objects.requireNonNull(rootNode.getIdentifier())
-    ).stream().map(Objects::requireNonNull)
+    ).stream()
+           .map(Objects::requireNonNull)
            .map(Sensor::getIdentifier)
+           .map(Objects::requireNonNull)
            .forEach(_trackedSensors::add);
   }
 

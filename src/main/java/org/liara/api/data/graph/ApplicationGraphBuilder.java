@@ -4,16 +4,11 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.data.graph.Graph;
 import org.liara.data.graph.builder.StaticGraphBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 
-@Component
-@Scope(BeanDefinition.SCOPE_SINGLETON)
 public class ApplicationGraphBuilder
   implements GraphSupplier
 {
@@ -51,7 +46,7 @@ public class ApplicationGraphBuilder
         );
       }
 
-      builder.putTable(table.getName(), table.get());
+      builder.putTable(table.getName(), table);
     }
 
     return builder.build();

@@ -17,7 +17,6 @@ import org.liara.api.io.APIEventPublisher;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
 import org.liara.api.recognition.sensor.type.ComputedSensorType;
-import org.liara.api.recognition.sensor.type.ValueSensorType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -87,8 +86,7 @@ public class MotionMapperSensor
 
   private boolean isInputState (@NonNull final State state) {
     if (_asserter.isTracked(state)) {
-      @NonNull final BooleanValueState booleanState = (BooleanValueState) state;
-      return Objects.equals(booleanState.getValue(), true);
+      return Objects.equals(((BooleanValueState) state).getValue(), true);
     }
 
     return false;
@@ -97,8 +95,7 @@ public class MotionMapperSensor
   @Override
   public void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) {
     super.sensorWasCreated(event);
-
-    if (event.getSensor().getTypeInstance() == ValueSensorType.MOTION) _asserter.refresh();
+    _asserter.refresh();
   }
 
   @Override

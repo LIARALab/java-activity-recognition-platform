@@ -11,6 +11,8 @@ import org.liara.api.relation.RelationFactory;
 import org.liara.api.validation.ApplicationEntityReference;
 import org.liara.collection.operator.Operator;
 import org.liara.collection.operator.filtering.Filter;
+import org.liara.collection.operator.joining.InnerJoin;
+import org.liara.collection.operator.joining.Join;
 
 import javax.persistence.*;
 import java.util.Objects;

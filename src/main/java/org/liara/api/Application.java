@@ -48,7 +48,7 @@ public class Application
 
     @NonNull final ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
 
-    logDataGraph(context);
+    //logDataGraph(context);
 
     context.getBean(VirtualSensorManager.class).start();
   }

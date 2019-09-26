@@ -6,7 +6,6 @@ import org.liara.api.data.entity.state.LongValueState;
 import org.liara.api.recognition.sensor.type.ValueSensorType;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -36,11 +35,15 @@ public class MotionTrackerSensorAsserter
     _ignoredSensors.clear();
 
     for (@NonNull final Long ignoredNodeIdentifier : _sensor.getConfiguration().getIgnoredNodes()) {
-      @NonNull final List<@NonNull Sensor> ignored = _sensor.getSensors().getSensorsOfTypeIntoNode(
+      _sensor.getSensors().getSensorsOfTypeIntoNode(
         ValueSensorType.MOTION.getName(), ignoredNodeIdentifier
-      );
+      ).stream().map(Sensor::getIdentifier)
+             .map(Objects::requireNonNull)
+             .forEach(_ignoredSensors::add);
 
-      ignored.stream().map(Sensor::getIdentifier)
+      _sensor.getSensors().getSensorsWithNameIntoNode(
+        "contact", ignoredNodeIdentifier
+      ).stream().map(Sensor::getIdentifier)
              .map(Objects::requireNonNull)
              .forEach(_ignoredSensors::add);
     }
@@ -56,13 +59,17 @@ public class MotionTrackerSensorAsserter
     _validSensors.clear();
 
     for (@NonNull final Long validNodeIdentifier : _sensor.getConfiguration().getValidNodes()) {
-      @NonNull final List<@NonNull Sensor> valids = _sensor.getSensors().getSensorsOfTypeIntoNode(
+      _sensor.getSensors().getSensorsOfTypeIntoNode(
         ValueSensorType.MOTION.getName(), validNodeIdentifier
-      );
+      ).stream().map(Sensor::getIdentifier)
+             .map(Objects::requireNonNull)
+             .forEach(_validSensors::add);
 
-      valids.stream().map(Sensor::getIdentifier)
-            .map(Objects::requireNonNull)
-            .forEach(_validSensors::add);
+      _sensor.getSensors().getSensorsWithNameIntoNode(
+        "contact", validNodeIdentifier
+      ).stream().map(Sensor::getIdentifier)
+             .map(Objects::requireNonNull)
+             .forEach(_validSensors::add);
     }
 
     _sensor.getConfiguration()
