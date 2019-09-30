@@ -97,7 +97,8 @@ public class CollectionResource<Entity extends ApplicationEntity>
            "first".equalsIgnoreCase(name) ||
            "last".equalsIgnoreCase(name) ||
            "aggregate".equalsIgnoreCase(name) ||
-           "count".equalsIgnoreCase(name);
+           "count".equalsIgnoreCase(name) ||
+           "sql".equalsIgnoreCase(name);
   }
 
   @Override
@@ -125,6 +126,10 @@ public class CollectionResource<Entity extends ApplicationEntity>
 
     if ("count".equalsIgnoreCase(name)) {
       return getPartialAggregationResource(Aggregate.expression("COUNT(:this)"));
+    }
+
+    if ("sql".equalsIgnoreCase(name)) {
+      return new SQLResource(this);
     }
 
     return FilterableRestResource.super.getResource(name);
