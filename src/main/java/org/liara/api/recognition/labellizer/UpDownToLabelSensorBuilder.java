@@ -2,7 +2,7 @@ package org.liara.api.recognition.labellizer;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.data.repository.BooleanValueStateRepository;
+import org.liara.api.data.repository.AnyStateRepository;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.LabelStateRepository;
 import org.liara.api.io.APIEventPublisher;
@@ -23,7 +23,8 @@ public class UpDownToLabelSensorBuilder
   @Nullable
   private LabelStateRepository _outputs;
 
-  private BooleanValueStateRepository _inputs;
+  @Nullable
+  private AnyStateRepository _inputs;
 
   @Nullable
   private CorrelationRepository _correlations;
@@ -57,12 +58,12 @@ public class UpDownToLabelSensorBuilder
     _outputs = outputs;
   }
 
-  public BooleanValueStateRepository getInputs () {
+  public @Nullable AnyStateRepository getInputs () {
     return _inputs;
   }
 
   @Autowired
-  public void setInputs (final BooleanValueStateRepository inputs) {
+  public void setInputs (@Nullable final AnyStateRepository inputs) {
     _inputs = inputs;
   }
 

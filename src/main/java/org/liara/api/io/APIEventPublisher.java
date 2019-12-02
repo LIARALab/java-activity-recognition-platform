@@ -4,8 +4,12 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.event.entity.*;
+import org.liara.api.event.event.DidConsumeEvent;
+import org.liara.api.event.event.DidRejectEvent;
+import org.liara.api.event.event.WillConsumeEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -82,6 +86,18 @@ public class APIEventPublisher
     _applicationEventPublisher.publishEvent(
       new DidUpdateApplicationEntityEvent(this, entities)
     );
+  }
+
+  public void willConsume (@NonNull final ApplicationEvent event) {
+    _applicationEventPublisher.publishEvent(new WillConsumeEvent(this, event));
+  }
+
+  public void didConsume (@NonNull final ApplicationEvent event) {
+    _applicationEventPublisher.publishEvent(new DidConsumeEvent(this, event));
+  }
+
+  public void didReject (@NonNull final ApplicationEvent event) {
+    _applicationEventPublisher.publishEvent(new DidRejectEvent(this, event));
   }
 
   public @NonNull ApplicationEventPublisher getApplicationEventPublisher () {

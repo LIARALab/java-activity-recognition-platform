@@ -12,6 +12,8 @@ import org.liara.rest.request.handler.RestRequestHandler;
 import org.liara.rest.response.RestResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
+
 public class SQLResource
   implements RestResource
 {
@@ -34,9 +36,10 @@ public class SQLResource
       @NonNull final Operator      operator   = configuration.parse(request.getParameters());
       @NonNull final Collection<?> collection = operator.apply(_resource.getCollection());
 
-      return Mono.just(RestResponse.ofType(String.class).ofModel(
-        JPACollections.getQuery(collection, ":this").toString()
-      ));
+      return Mono.just(RestResponse.ofType(Object.class).ofModel(Arrays.asList(
+        JPACollections.getQuery(collection, ":this").toString(),
+        JPACollections.getParameters(collection)
+      )));
     } catch (@NonNull final InvalidAPIRequestException exception) {
       throw new IllegalRestRequestException(exception);
     }

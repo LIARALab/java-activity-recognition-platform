@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PreDestroy;
 import javax.persistence.EntityManager;
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Service
@@ -46,7 +45,7 @@ public class VirtualSensorManager
   public void registerRunner (@NonNull final VirtualSensorRunner runner) {
     if (runner.getManager() != this) {
       throw new Error(
-        "Unnable to register a runner created for another virtual sensor manager instance.");
+        "Unable to register a runner created for another virtual sensor manager instance.");
     }
 
     if (!_runners.containsValue(runner)) {
@@ -112,8 +111,10 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "sensorWillBeCreated", error);
-      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
-      throw error;
+      throw new Error(
+        "Unable to handle event " + event.toString() + ", an error was raised during " +
+        "event processing.", error
+      );
     }
   }
 
@@ -132,8 +133,10 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "sensorWasCreated", error);
-      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
-      throw error;
+      throw new Error(
+        "Unable to handle event " + event.toString() + ", an error was raised during " +
+        "event processing.", error
+      );
     }
   }
 
@@ -145,8 +148,10 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "nodeWillBeCreated", error);
-      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
-      throw error;
+      throw new Error(
+        "Unable to handle event " + event.toString() + ", an error was raised during " +
+        "event processing.", error
+      );
     }
   }
 
@@ -158,8 +163,10 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "nodeWasCreated", error);
-      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
-      throw error;
+      throw new Error(
+        "Unable to handle event " + event.toString() + ", an error was raised during " +
+        "event processing.", error
+      );
     }
   }
 
@@ -171,8 +178,10 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "stateWillBeCreated", error);
-      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
-      throw error;
+      throw new Error(
+        "Unable to handle event " + event.toString() + ", an error was raised during " +
+        "event processing.", error
+      );
     }
   }
 
@@ -184,8 +193,10 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "stateWasCreated", error);
-      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
-      throw error;
+      throw new Error(
+        "Unable to handle event " + event.toString() + ", an error was raised during " +
+        "event processing.", error
+      );
     }
   }
 
@@ -197,8 +208,10 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "stateWillBeMutated", error);
-      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
-      throw error;
+      throw new Error(
+        "Unable to handle event " + event.toString() + ", an error was raised during " +
+        "event processing.", error
+      );
     }
   }
 
@@ -210,8 +223,10 @@ public class VirtualSensorManager
       }
     } catch (@NonNull final Throwable error) {
       getLogger().throwing(getClass().getName(), "stateWasMutated", error);
-      if (getLogger().getLevel().intValue() <= Level.FINE.intValue()) error.printStackTrace();
-      throw error;
+      throw new Error(
+        "Unable to handle event " + event.toString() + ", an error was raised during " +
+        "event processing.", error
+      );
     }
   }
 

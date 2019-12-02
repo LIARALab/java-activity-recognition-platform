@@ -7,6 +7,8 @@ import org.liara.api.utils.ObjectIdentifiers;
 
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
+import java.util.NoSuchElementException;
+import java.util.Objects;
 
 @MappedSuperclass
 public class ValueState<Value>
@@ -24,6 +26,12 @@ public class ValueState<Value>
     _type = type;
   }
 
+  public ValueState (@NonNull final Class<Value> type, @NonNull final ValueState<?> toCopy) {
+    super(toCopy);
+    _value = null;
+    _type = type;
+  }
+
   public ValueState (@NonNull final ValueState<Value> toCopy) {
     super(toCopy);
     _value = toCopy.getValue();
@@ -33,6 +41,12 @@ public class ValueState<Value>
   @Transient
   public @Nullable Value getValue () {
     return _value;
+  }
+
+  @Transient
+  public @NonNull Value requireValue ()
+  throws NoSuchElementException {
+    return Objects.requireNonNull(getValue());
   }
 
   @Transient
@@ -50,14 +64,14 @@ public class ValueState<Value>
   public @NonNull String toString () {
     return ObjectIdentifiers.getIdentifier(this) + " " +
            "{" +
-           " universalUniqueIdentifier: " + String.valueOf(getUniversalUniqueIdentifier()) + ", " +
-           " identifier: " + String.valueOf(getIdentifier()) + ", " +
-           " updateDate: " + String.valueOf(getUpdateDate()) + ", " +
-           " creationDate: " + String.valueOf(getCreationDate()) + ", " +
-           " deletionDate: " + String.valueOf(getDeletionDate()) + ", " +
-           " sensorIdentifier: " + String.valueOf(getSensorIdentifier()) + ", " +
-           " emissionDate: " + String.valueOf(getEmissionDate()) + ", " +
-           " value: " + String.valueOf(_value) + ", " +
+           " universalUniqueIdentifier: " + getUniversalUniqueIdentifier() + ", " +
+           " identifier: " + getIdentifier() + ", " +
+           " updateDate: " + getUpdateDate() + ", " +
+           " creationDate: " + getCreationDate() + ", " +
+           " deletionDate: " + getDeletionDate() + ", " +
+           " sensorIdentifier: " + getSensorIdentifier() + ", " +
+           " emissionDate: " + getEmissionDate() + ", " +
+           " value: " + _value + ", " +
            " type: " + _type.getName() +
            " } ";
   }

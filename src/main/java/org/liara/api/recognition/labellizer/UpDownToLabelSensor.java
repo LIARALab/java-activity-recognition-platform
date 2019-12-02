@@ -4,11 +4,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
-import org.liara.api.data.entity.state.BooleanValueState;
-import org.liara.api.data.entity.state.Correlation;
-import org.liara.api.data.entity.state.LabelState;
-import org.liara.api.data.entity.state.State;
-import org.liara.api.data.repository.BooleanValueStateRepository;
+import org.liara.api.data.entity.state.*;
+import org.liara.api.data.repository.AnyStateRepository;
 import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.LabelStateRepository;
 import org.liara.api.event.state.DidCreateStateEvent;
@@ -22,15 +19,17 @@ import org.liara.api.recognition.sensor.type.ComputedSensorType;
 import org.liara.api.utils.Duplicator;
 import org.liara.collection.operator.cursoring.Cursor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 @Component
-@Scope("prototype")
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class UpDownToLabelSensor
   extends AbstractVirtualSensorHandler
   implements ComputedSensorType
@@ -48,7 +47,7 @@ public class UpDownToLabelSensor
   private final LabelStateRepository _outputs;
 
   @NonNull
-  private final BooleanValueStateRepository _inputs;
+  private final AnyStateRepository _inputs;
 
   @NonNull
   private final CorrelationRepository _correlations;
@@ -61,19 +60,28 @@ public class UpDownToLabelSensor
     _correlations = Objects.requireNonNull(builder.getCorrelations());
   }
 
+  private @NonNull BooleanValueState cast (@NonNull final State state) {
+    if (state instanceof BooleanValueState) {
+      return (BooleanValueState) state;
+    } else if (state instanceof NumericValueState) {
+      return new BooleanValueState((NumericValueState<? extends Number>) state);
+    } else {
+      throw new Error("Invalid input state type : " + state.getClass().getName() + ".");
+    }
+  }
+
   @Override
   public void initialize (@NonNull final VirtualSensorRunner runner) {
     super.initialize(runner);
 
-    @NonNull final List<@NonNull BooleanValueState> initializationStates = _inputs.find(
-      getInputSensorIdentifier(),
-      Cursor.ALL
+    @NonNull final List<@NonNull State> initializationStates = (
+      _inputs.find(getInputSensorIdentifier(), Cursor.ALL)
     );
 
     @Nullable LabelState current = null;
 
-    for (int index = 0; index < initializationStates.size(); ++index) {
-      current = initialize(current, initializationStates.get(index));
+    for (@NonNull final State state : initializationStates) {
+      current = initialize(current, cast(state));
     }
   }
 
@@ -81,11 +89,9 @@ public class UpDownToLabelSensor
     @Nullable final LabelState current,
     @NonNull final BooleanValueState next
   ) {
-    Objects.requireNonNull(next.getValue());
-
-    if (next.getValue() && current == null) {
+    if (next.requireValue() && current == null) {
       return create(next, null);
-    } else if (!next.getValue() && current != null) {
+    } else if (!next.requireValue() && current != null) {
       finish(current, next);
       return null;
     } else {
@@ -93,6 +99,9 @@ public class UpDownToLabelSensor
     }
   }
 
+  /**
+   * @see AbstractVirtualSensorHandler#stateWasCreated(DidCreateStateEvent)
+   */
   @Override
   public void stateWasCreated (@NonNull final DidCreateStateEvent event) {
     super.stateWasCreated(event);
@@ -100,74 +109,59 @@ public class UpDownToLabelSensor
     @NonNull final State stateThatWasCreated = event.getState();
 
     if (Objects.equals(stateThatWasCreated.getSensorIdentifier(), getInputSensorIdentifier())) {
-      inputStateWasCreated((BooleanValueState) stateThatWasCreated);
+      inputStateWasCreated(cast(stateThatWasCreated));
     }
   }
 
+  /**
+   * PREVIOUS; CREATED; NEXT ; ACTION NONE    ; TRUE   ; NONE ; BEGIN(CREATED) NONE    ; TRUE   ;
+   * TRUE ; BEGIN(NEXT, CREATED) NONE    ; TRUE   ; FALSE; CREATE(CREATED, NEXT) NONE    ; FALSE  ;
+   * NONE ; NOTHING NONE    ; FALSE  ; TRUE ; NOTHING NONE    ; FALSE  ; FALSE; NOTHING TRUE    ;
+   * TRUE   ; NONE ; NOTHING TRUE    ; TRUE   ; TRUE ; NOTHING TRUE    ; TRUE   ; FALSE; NOTHING
+   * TRUE    ; FALSE  ; NONE ; END(PREVIOUS, CREATED) TRUE    ; FALSE  ; TRUE ; SPLIT(CREATED, NEXT)
+   * TRUE    ; FALSE  ; FALSE; END(PREVIOUS, CREATED) FALSE   ; TRUE   ; NONE ; BEGIN(CREATED) FALSE
+   *   ; TRUE   ; TRUE ; BEGIN(NEXT, CREATED) FALSE   ; TRUE   ; FALSE; CREATE(CREATED, NEXT) FALSE
+   * ; FALSE  ; NONE ; NOTHING FALSE   ; FALSE  ; TRUE ; NOTHING FALSE   ; FALSE  ; FALSE; NOTHING
+   *
+   * @param stateThatWasCreated The state that was inserted into the database.
+   */
   private void inputStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
-    Objects.requireNonNull(stateThatWasCreated.getEmissionDate());
-
-    _outputs.findAt(
-      stateThatWasCreated.getEmissionDate(),
-      getOutputSensorIdentifier()
-    ).ifPresentOrElse(
-      (parentLabel) -> innerInputStateWasCreated(parentLabel, stateThatWasCreated),
-      () -> outerInputStateWasCreated(stateThatWasCreated)
+    @NonNull final Optional<BooleanValueState> previous = (
+      _inputs.findPrevious(stateThatWasCreated).map(this::cast)
     );
-  }
 
-  /**
-   * An input state was created out of any existing labels.
-   */
-  private void outerInputStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
-    Objects.requireNonNull(stateThatWasCreated.getValue());
+    if (!previous.isPresent() || !previous.get().requireValue()) {
+      if (stateThatWasCreated.requireValue()) {
+        @NonNull final Optional<BooleanValueState> next = (
+          _inputs.findNext(stateThatWasCreated).map(this::cast)
+        );
 
-    if (!stateThatWasCreated.getValue()) return;
-
-    _inputs.findNext(stateThatWasCreated).ifPresentOrElse(
-      (next) -> outerInputStateWasCreatedBeforeAnotherState(stateThatWasCreated, next),
-      () -> create(stateThatWasCreated, null)
-    );
-  }
-
-  private void outerInputStateWasCreatedBeforeAnotherState (
-    @NonNull final BooleanValueState stateThatWasCreated,
-    @NonNull final BooleanValueState next
-  ) {
-    Objects.requireNonNull(next.getValue());
-    Objects.requireNonNull(next.getIdentifier());
-
-    if (next.getValue()) {
-      begin(
-        stateThatWasCreated,
-        findLabelStateThatStartBy(next.getIdentifier()).orElseThrow()
-      );
+        if (!next.isPresent()) {
+          begin(stateThatWasCreated);
+        } else if (next.get().requireValue()) {
+          begin(next.get(), stateThatWasCreated);
+        } else {
+          create(stateThatWasCreated, next.get());
+        }
+      }
     } else {
-      create(stateThatWasCreated, next);
+      if (!stateThatWasCreated.requireValue()) {
+        @NonNull final Optional<BooleanValueState> next = (
+          _inputs.findNext(stateThatWasCreated).map(this::cast)
+        );
+
+        if (next.isPresent() && next.get().requireValue()) {
+          split(stateThatWasCreated, next.get());
+        } else {
+          finish(previous.get(), stateThatWasCreated);
+        }
+      }
     }
   }
 
   /**
-   * An input state was created into an existing label.
+   * @see AbstractVirtualSensorHandler#stateWillBeMutated(WillUpdateStateEvent)
    */
-  private void innerInputStateWasCreated (
-    @NonNull final LabelState parentLabel,
-    @NonNull final BooleanValueState stateThatWasCreated
-  ) {
-    Objects.requireNonNull(stateThatWasCreated.getValue());
-
-    if (stateThatWasCreated.getValue()) return;
-
-    @NonNull final Optional<BooleanValueState> endState  = findEndState(parentLabel);
-    @NonNull final Optional<BooleanValueState> nextState = _inputs.findNext(stateThatWasCreated);
-
-    finish(parentLabel, stateThatWasCreated);
-
-    if (nextState.isPresent() && nextState.map(BooleanValueState::getValue).orElseThrow()) {
-      create(nextState.get(), endState.orElse(null));
-    }
-  }
-
   @Override
   public void stateWillBeMutated (@NonNull final WillUpdateStateEvent event) {
     super.stateWillBeMutated(event);
@@ -175,10 +169,13 @@ public class UpDownToLabelSensor
     @NonNull final State stateThatWillBeMutated = event.getOldValue();
 
     if (Objects.equals(stateThatWillBeMutated.getSensorIdentifier(), getInputSensorIdentifier())) {
-      inputStateWillBeDeleted((BooleanValueState) stateThatWillBeMutated);
+      inputStateWillBeDeleted(cast(stateThatWillBeMutated));
     }
   }
 
+  /**
+   * @see AbstractVirtualSensorHandler#stateWasMutated(DidUpdateStateEvent)
+   */
   @Override
   public void stateWasMutated (@NonNull final DidUpdateStateEvent event) {
     super.stateWasMutated(event);
@@ -186,10 +183,13 @@ public class UpDownToLabelSensor
     @NonNull final State stateThatWasMutated = event.getNewValue();
 
     if (Objects.equals(stateThatWasMutated.getSensorIdentifier(), getInputSensorIdentifier())) {
-      inputStateWasCreated((BooleanValueState) stateThatWasMutated);
+      inputStateWasCreated(cast(stateThatWasMutated));
     }
   }
 
+  /**
+   * @see AbstractVirtualSensorHandler#stateWillBeDeleted(WillDeleteStateEvent)
+   */
   @Override
   public void stateWillBeDeleted (@NonNull final WillDeleteStateEvent event) {
     super.stateWillBeDeleted(event);
@@ -197,194 +197,320 @@ public class UpDownToLabelSensor
     @NonNull final State stateThatWillBeDeleted = event.getState();
 
     if (Objects.equals(stateThatWillBeDeleted.getSensorIdentifier(), getInputSensorIdentifier())) {
-      inputStateWillBeDeleted((BooleanValueState) stateThatWillBeDeleted);
+      inputStateWillBeDeleted(cast(stateThatWillBeDeleted));
     }
   }
 
+  /**
+   * PREVIOUS; DELETED; NEXT ; ACTION
+   * NONE    ; TRUE   ; NONE ; DELETE(DELETED)
+   * NONE    ; TRUE   ; TRUE ; BEGIN(DELETED, NEXT)
+   * NONE    ; TRUE   ; FALSE; DELETE(DELETED)
+   * NONE    ; FALSE  ; NONE ; NOTHING
+   * NONE    ; FALSE  ; TRUE ; NOTHING
+   * NONE    ; FALSE  ; FALSE; NOTHING
+   * TRUE    ; TRUE   ; NONE ; NOTHING
+   * TRUE    ; TRUE   ; TRUE ; NOTHING
+   * TRUE    ; TRUE   ; FALSE; NOTHING
+   * TRUE    ; FALSE  ; NONE ; FINISH(PREVIOUS, NULL)
+   * TRUE    ; FALSE  ; TRUE ; MERGE(PREVIOUS, NEXT)
+   * TRUE    ; FALSE  ; FALSE; FINISH(PREVIOUS, NEXT)
+   * FALSE   ; TRUE   ; NONE ; DELETE(DELETED)
+   * FALSE   ; TRUE   ; TRUE ; BEGIN(DELETED, NEXT)
+   * FALSE   ; TRUE   ; FALSE; DELETE(DELETED)
+   * FALSE   ; FALSE  ; NONE ; NOTHING
+   * FALSE   ; FALSE  ; TRUE ; NOTHING
+   * FALSE   ; FALSE  ; FALSE; NOTHING
+   *
+   * @param stateThatWillBeDeleted The state that will be removed from the database.
+   */
   private void inputStateWillBeDeleted (@NonNull final BooleanValueState stateThatWillBeDeleted) {
-    Objects.requireNonNull(stateThatWillBeDeleted.getIdentifier());
-
-    @NonNull final Optional<BooleanValueState> next = _inputs.findNext(stateThatWillBeDeleted);
-
-    findLabelStateThatStartBy(stateThatWillBeDeleted.getIdentifier()).ifPresentOrElse(
-      (parentState) -> startBoundaryWillBeDeleted(parentState, stateThatWillBeDeleted),
-      () -> findLabelStateThatEndBy(stateThatWillBeDeleted.getIdentifier()).ifPresent(
-        (parentState) -> endBoundaryWillBeDeleted(parentState, stateThatWillBeDeleted)
-      )
+    @NonNull final Optional<BooleanValueState> previous = (
+      _inputs.findPrevious(stateThatWillBeDeleted).map(this::cast)
     );
-  }
 
-  private void startBoundaryWillBeDeleted (
-    @NonNull final LabelState label,
-    @NonNull final BooleanValueState boundaryThatWillBeDeleted
-  ) {
-    @NonNull final Optional<BooleanValueState> next = _inputs.findNext(boundaryThatWillBeDeleted);
+    if (!previous.isPresent() || !previous.get().requireValue()) {
+      if (stateThatWillBeDeleted.requireValue()) {
+        @NonNull final Optional<BooleanValueState> next = (
+          _inputs.findNext(stateThatWillBeDeleted).map(this::cast)
+        );
 
-    if (next.isPresent() && next.map(BooleanValueState::getValue).orElseThrow()) {
-      begin(next.get(), label);
+        if (!next.isPresent() || !next.get().requireValue()) {
+          delete(stateThatWillBeDeleted);
+        } else {
+          begin(stateThatWillBeDeleted, next.get());
+        }
+      }
     } else {
-      delete(label);
+      if (!stateThatWillBeDeleted.requireValue()) {
+        @NonNull final Optional<BooleanValueState> next = (
+          _inputs.findNext(stateThatWillBeDeleted).map(this::cast)
+        );
+
+        if (next.isPresent() && next.get().requireValue()) {
+          merge(previous.get(), next.get());
+        } else {
+          finish(previous.get(), next.orElse(null));
+        }
+      }
     }
   }
 
-  private void endBoundaryWillBeDeleted (
-    @NonNull final LabelState label,
-    @NonNull final BooleanValueState boundaryThatWillBeDeleted
+  /**
+   * Merge the label that contains the left state with the label that contains the right state.
+   *
+   * @param left Inner state of the left label to merge.
+   * @param right Inner state of the right label to merge.
+   */
+  private void merge (
+    @NonNull final BooleanValueState left,
+    @NonNull final BooleanValueState right
   ) {
-    _inputs.findNext(boundaryThatWillBeDeleted).ifPresentOrElse(
-      (next) -> endBoundaryWillBeDeletedBeforeAnotherState(label, next),
-      () -> finish(label, null)
+    @NonNull final LabelState leftLabel = (
+      findLabelStateAt(left.requireEmissionDate()).orElseThrow()
     );
+
+    @NonNull final LabelState rightLabel = (
+      findLabelStateAt(right.requireEmissionDate()).orElseThrow()
+    );
+
+    @NonNull final Optional<BooleanValueState> oldEnd = (
+      findEndState(Objects.requireNonNull(rightLabel.getIdentifier()))
+    );
+
+    delete(rightLabel);
+    finish(leftLabel, oldEnd.orElse(null));
   }
 
-  private void endBoundaryWillBeDeletedBeforeAnotherState (
-    @NonNull final LabelState label,
+  /**
+   * Delete the given label state.
+   *
+   * @param state The label state to delete.
+   */
+  private void delete (@NonNull final LabelState state) {
+    _publisher.delete(getStartCorrelation(Objects.requireNonNull(state.getIdentifier())));
+    findEndCorrelation(state.getIdentifier()).ifPresent(_publisher::delete);
+    _publisher.delete(state);
+  }
+
+  /**
+   * Delete the label that contains the given state.
+   *
+   * @param inner Inner state of the label to delete.
+   */
+  private void delete (@NonNull final State inner) {
+    delete(findLabelStateAt(inner.requireEmissionDate()).orElseThrow());
+  }
+
+  /**
+   * Splits the label in two parts by using the given pair of states.
+   *
+   * The first label will begins from the start of the label that contains the split state and
+   * finish at the split state. Thee second one will begins from the given next state and finish to
+   * the end state of the label that contains the split state.
+   *
+   * @param split The state to use for splitting.
+   * @param next The next state to use as a starting state of the new state to create.
+   */
+  private void split (
+    @NonNull final BooleanValueState split,
     @NonNull final BooleanValueState next
   ) {
-    Objects.requireNonNull(next.getValue());
-    Objects.requireNonNull(next.getIdentifier());
+    @NonNull final LabelState origin = findLabelStateAt(split.requireEmissionDate()).orElseThrow();
+    @NonNull final Optional<BooleanValueState> oldEnd = (
+      findEndState(origin.requireIdentifier())
+    );
 
-    if (next.getValue()) {
-      merge(label, findLabelStateThatStartBy(next.getIdentifier()).orElseThrow());
-    } else {
-      finish(label, next);
-    }
+    finish(origin, split);
+    create(next, oldEnd.orElse(null));
   }
 
-  private void merge (
-    @NonNull final LabelState left,
-    @NonNull final LabelState right
+  /**
+   * Finish the given label at the given state.
+   *
+   * The ending state parameter is optional, if no ending state was passed to this method the
+   * resulting label may pass from a terminate state to a non-finite state.
+   *
+   * @param label The label to mutate.
+   * @param ending The new ending state of the given label.
+   *
+   * @return The mutated label.
+   */
+  private @NonNull LabelState finish (
+    @NonNull final LabelState label,
+    @Nullable final BooleanValueState ending
   ) {
-    @NonNull final Optional<BooleanValueState> end = findEndState(right);
+    @NonNull final LabelState mutation = Duplicator.duplicate(label);
 
-    delete(right);
-    finish(left, end.orElse(null));
-  }
-
-  private void delete (@NonNull final LabelState toDelete) {
-    _publisher.delete(toDelete);
-    _publisher.delete(getStartCorrelation(toDelete));
-    findEndCorrelation(toDelete).ifPresent(_publisher::delete);
-  }
-
-  private void finish (
-    @NonNull final LabelState current,
-    @Nullable final State next
-  ) {
-    @NonNull final LabelState mutation = Duplicator.duplicate(current);
-
-    mutation.setEnd(next == null ? null : next.getEmissionDate());
+    mutation.setEnd(ending == null ? null : ending.getEmissionDate());
 
     _publisher.update(mutation);
 
-    @NonNull final Optional<Correlation> endCorrelation = findEndCorrelation(current);
+    @NonNull final Optional<Correlation> endCorrelation = (
+      findEndCorrelation(Objects.requireNonNull(mutation.getIdentifier()))
+    );
 
-    if (next == null) {
+    if (ending == null) {
       endCorrelation.ifPresent(_publisher::delete);
     } else if (endCorrelation.isPresent()) {
       @NonNull final Correlation correlation = Duplicator.duplicate(endCorrelation.get());
-      correlation.setEndStateIdentifier(next.getIdentifier());
+      correlation.setEndStateIdentifier(ending.getIdentifier());
       _publisher.update(correlation);
     } else {
       @NonNull final Correlation correlation = new Correlation();
       correlation.setName(END_LABEL);
-      correlation.setEndStateIdentifier(next.getIdentifier());
-      correlation.setStartStateIdentifier(current.getIdentifier());
+      correlation.setStartStateIdentifier(mutation.getIdentifier());
+      correlation.setEndStateIdentifier(ending.getIdentifier());
       _publisher.create(correlation);
     }
+
+    return mutation;
   }
 
-  private @NonNull LabelState create (
-    @NonNull final State start,
-    @Nullable final State end
+  /**
+   * Ending the label that contains the given state to the given ending state.
+   *
+   * The ending state parameter is optional, if no ending state was passed to this method the
+   * resulting label may pass from a terminate state to a non-finite state.
+   *
+   * @param inner A state that the label to update contain.
+   * @param ending The new ending state of the label.
+   *
+   * @return The mutated label.
+   */
+  private @NonNull LabelState finish (
+    @NonNull final BooleanValueState inner,
+    @Nullable final BooleanValueState ending
   ) {
-    @NonNull final LabelState state = new LabelState();
-    state.setName(getConfiguration().getLabel());
-    state.setEmissionDate(start.getEmissionDate());
-    state.setSensorIdentifier(getSensor().map(Sensor::getIdentifier).orElseThrow());
-    state.setStart(start.getEmissionDate());
-    state.setEnd(end == null ? null : end.getEmissionDate());
+    return finish(findLabelStateAt(inner.requireEmissionDate()).orElseThrow(), ending);
+  }
 
-    _publisher.create(state);
+  /**
+   * Create a label that begin at the given start state and that end at the given end state.
+   * <p>
+   * The end state parameter is optional, if null is passed the resulting label will be non-finite :
+   * it will start at the given start state but it will not terminate.
+   * <p>
+   * This method also create all the needed correlations.
+   *
+   * @param start The beginning state of the label to create.
+   * @param end   The ending state of the label to create, may be null.
+   *
+   * @return The created label.
+   */
+  private @NonNull LabelState create (
+    @NonNull final BooleanValueState start,
+    @Nullable final BooleanValueState end
+  ) {
+    @NonNull final LabelState label = new LabelState();
+    label.setName(getConfiguration().getLabel());
+    label.setEmissionDate(start.getEmissionDate());
+    label.setSensorIdentifier(getOutputSensorIdentifier());
+    label.setStart(start.getEmissionDate());
+    label.setEnd(end == null ? null : end.getEmissionDate());
+
+    _publisher.create(label);
 
     @NonNull final Correlation startCorrelation = new Correlation();
 
     startCorrelation.setName(START_LABEL);
-    startCorrelation.setStartStateIdentifier(state.getIdentifier());
+    startCorrelation.setStartStateIdentifier(label.getIdentifier());
     startCorrelation.setEndStateIdentifier(start.getIdentifier());
 
     _publisher.create(startCorrelation);
 
     if (end != null) {
-      Objects.requireNonNull(end.getIdentifier());
-
       @NonNull final Correlation endCorrelation = new Correlation();
 
       endCorrelation.setName(END_LABEL);
-      endCorrelation.setStartStateIdentifier(state.getIdentifier());
+      endCorrelation.setStartStateIdentifier(label.getIdentifier());
       endCorrelation.setEndStateIdentifier(end.getIdentifier());
 
       _publisher.create(endCorrelation);
     }
 
-    return state;
+    return label;
   }
 
-  private void begin (
-    @NonNull final BooleanValueState current,
-    @NonNull final LabelState state
+  /**
+   * Create a non-finite label that starts from the given state.
+   *
+   * Alias of #create(start, null)
+   *
+   * @param start The beginning state of the label to create.
+   */
+  private @NonNull LabelState begin (@NonNull final BooleanValueState start) {
+    return create(start, null);
+  }
+
+  /**
+   * Extend the label that contains the given state such as it then begins from the new state.
+   *
+   * @param inner State that the label to mutate contains.
+   * @param newStart New starting state of the label to mutate.
+   *
+   * @return The mutated label.
+   */
+  private @NonNull LabelState begin (
+    @NonNull final BooleanValueState inner,
+    @NonNull final BooleanValueState newStart
   ) {
-    @NonNull final LabelState mutation = Duplicator.duplicate(state);
-    mutation.setStart(current.getEmissionDate());
-    mutation.setEmissionDate(current.getEmissionDate());
+    @NonNull final LabelState origin = findLabelStateAt(inner.requireEmissionDate()).orElseThrow();
+
+    @NonNull final LabelState mutation = Duplicator.duplicate(origin);
+    mutation.setStart(newStart.getEmissionDate());
+    mutation.setEmissionDate(newStart.getEmissionDate());
 
     _publisher.update(mutation);
 
-    @NonNull final Correlation startCorrelation = Duplicator.duplicate(getStartCorrelation(state));
-    startCorrelation.setEndStateIdentifier(current.getIdentifier());
+    @NonNull final Correlation startCorrelation = Duplicator.duplicate(
+      getStartCorrelation(Objects.requireNonNull(origin.getIdentifier()))
+    );
+    startCorrelation.setEndStateIdentifier(newStart.getIdentifier());
 
     _publisher.update(startCorrelation);
+
+    return mutation;
   }
 
-  private @NonNull Correlation getStartCorrelation (@NonNull final LabelState label) {
-    Objects.requireNonNull(label.getIdentifier());
-
-    return _correlations.findFirstCorrelationWithNameAndThatStartBy(
-      START_LABEL, label.getIdentifier()
-    ).orElseThrow();
+  /**
+   * Return the correlation between the given label and it's starting state.
+   *
+   * @param labelIdentifier Identifier of the label to fetch.
+   *
+   * @return The correlation between the given label and it's starting state.
+   */
+  private @NonNull Correlation getStartCorrelation (@NonNull final Long labelIdentifier) {
+    return _correlations.findFirstCorrelationWithNameAndThatStartBy(START_LABEL, labelIdentifier)
+                        .orElseThrow();
   }
 
-  private @NonNull Optional<Correlation> findEndCorrelation (@NonNull final LabelState label) {
-    Objects.requireNonNull(label.getIdentifier());
-
-    return _correlations.findFirstCorrelationWithNameAndThatStartBy(
-      END_LABEL, label.getIdentifier()
-    );
+  /**
+   * Return the correlation between the given label and it's ending state.
+   *
+   * @param labelIdentifier Identifier of the label to fetch.
+   *
+   * @return The correlation between the given label and it's starting state.
+   */
+  private @NonNull Optional<Correlation> findEndCorrelation (@NonNull final Long labelIdentifier) {
+    return _correlations.findFirstCorrelationWithNameAndThatStartBy(END_LABEL, labelIdentifier);
   }
 
-  private @NonNull Optional<BooleanValueState> findEndState (@NonNull final LabelState label) {
-    return findEndCorrelation(label).map(Correlation::getEndStateIdentifier)
-             .flatMap(_inputs::find);
+  /**
+   * Return the ending state of the given label.
+   *
+   * @param labelIdentifier Identifier of the label to fetch.
+   *
+   * @return The ending state of the given label.
+   */
+  private @NonNull Optional<BooleanValueState> findEndState (@NonNull final Long labelIdentifier) {
+    return findEndCorrelation(labelIdentifier).map(Correlation::getEndStateIdentifier)
+                                              .flatMap(_inputs::find)
+                                              .map(this::cast);
   }
 
-  private @NonNull Optional<LabelState> findLabelStateThatStartBy (
-    @NonNull final Long stateIdentifier
-  ) {
-    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
-      getSensor().map(Sensor::getIdentifier).orElseThrow(),
-      START_LABEL,
-      stateIdentifier
-    ).map(Correlation::getStartStateIdentifier).flatMap(_outputs::find);
-  }
-
-  private @NonNull Optional<LabelState> findLabelStateThatEndBy (
-    @NonNull final Long stateIdentifier
-  ) {
-    return _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
-      getSensor().map(Sensor::getIdentifier).orElseThrow(),
-      END_LABEL,
-      stateIdentifier
-    ).map(Correlation::getStartStateIdentifier).flatMap(_outputs::find);
+  private @NonNull Optional<LabelState> findLabelStateAt (@NonNull final ZonedDateTime dateTime) {
+    return _outputs.findAt(dateTime, getOutputSensorIdentifier());
   }
 
   public @NonNull UpDownToLabelSensorConfiguration getConfiguration () {

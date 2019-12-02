@@ -36,6 +36,7 @@ import org.liara.collection.operator.joining.Join;
 
 import javax.persistence.*;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "states")
@@ -147,6 +148,11 @@ public class State extends ApplicationEntity
   @Column(name = "emitted_at", nullable = false, columnDefinition = "DATETIME(6)")
   public @Nullable ZonedDateTime getEmissionDate () {
     return _emissionDate;
+  }
+
+  @Transient
+  public @NonNull ZonedDateTime requireEmissionDate () {
+    return Objects.requireNonNull(getEmissionDate());
   }
 
   public void setEmissionDate (@Nullable final ZonedDateTime emissionDate) {

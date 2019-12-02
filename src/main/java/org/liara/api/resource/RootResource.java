@@ -49,16 +49,12 @@ public class RootResource
   }
 
   @Override
-  public @NonNull RestResource getResource (
-    @NonNull final String name
-  )
+  public @NonNull RestResource getResource (@NonNull final String name)
   throws NoSuchElementException {
     @Nullable final RestResource resource = _resources.computeIfAbsent(
       name.toLowerCase(), x -> null
     );
 
-    return resource == null ? RestResource.super.getResource(name)
-                            : resource
-      ;
+    return resource == null ? RestResource.super.getResource(name) : resource;
   }
 }

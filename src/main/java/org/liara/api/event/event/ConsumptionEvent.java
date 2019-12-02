@@ -1,45 +1,35 @@
-package org.liara.api.event.sensor;
+package org.liara.api.event.event;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.liara.api.data.entity.Sensor;
-import org.liara.api.utils.Duplicator;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.Objects;
 
 @JsonIgnoreProperties({"source", "unnamedModule", "classLoader"})
-public class SensorEvent
+public abstract class ConsumptionEvent
   extends ApplicationEvent
 {
   @NonNull
-  private final Sensor _sensor;
+  private final ApplicationEvent _event;
 
-  public SensorEvent (
-    @NonNull final Object source,
-    @NonNull final Sensor sensor
-  ) {
+  public ConsumptionEvent (@NonNull final Object source, @NonNull final ApplicationEvent event) {
     super(source);
-    _sensor = Duplicator.duplicate(sensor);
+    _event = event;
   }
 
-  public SensorEvent (@NonNull final SensorEvent toCopy) {
-    super(toCopy);
-    _sensor = toCopy.getSensor();
+  public @NonNull ApplicationEvent getEvent () {
+    return _event;
   }
 
   public @NonNull String getType () {
     return getClass().getSimpleName();
   }
 
-  public @NonNull Sensor getSensor () {
-    return Duplicator.duplicate(_sensor);
-  }
-
   @Override
   public int hashCode () {
-    return Objects.hash(_sensor);
+    return Objects.hash(getEvent());
   }
 
   @Override
@@ -48,14 +38,13 @@ public class SensorEvent
     if (other == this) return true;
 
     if (getClass().isInstance(other)) {
-      @NonNull final SensorEvent otherEvent = (SensorEvent) other;
+      @NonNull final ConsumptionEvent otherEvent = (ConsumptionEvent) other;
 
       return Objects.equals(getSource(), otherEvent.getSource()) &&
              Objects.equals(getTimestamp(), otherEvent.getTimestamp()) &&
-             Objects.equals(_sensor, otherEvent.getSensor());
+             Objects.equals(getEvent(), otherEvent.getEvent());
     }
 
     return false;
   }
-
 }

@@ -9,6 +9,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
@@ -34,6 +35,10 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
     @NonNull final Cursor cursor
   )
   {
+    if (inputSensorIdentifiers.isEmpty()) {
+      return Collections.emptyList();
+    }
+
     @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state " +
       " WHERE state.sensorIdentifier IN :sensors " +
@@ -60,6 +65,10 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
+    if (inputSensorIdentifiers.isEmpty()) {
+      return Collections.emptyList();
+    }
+
     @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
       "SELECT state FROM " + getManagedEntity().getName() + " state " +
       " WHERE state.sensorIdentifier IN :sensors " +
@@ -85,9 +94,13 @@ public class DatabaseValueStateRepository<Value, Wrapper extends ValueState>
     @NonNull final Value value,
     @NonNull final Cursor cursor
   ) {
+    if (inputSensorIdentifiers.isEmpty()) {
+      return Collections.emptyList();
+    }
+
     @NonNull final TypedQuery<Wrapper> states = _entityManager.createQuery(
-      "SELECT state FROM " + getManagedEntity().getName() + " state " +
-      " WHERE state.sensorIdentifier IN :sensors " +
+      "SELECT state FROM " + getManagedEntity().getName() + " state" +
+      " WHERE state.sensorIdentifier IN :sensors" +
       "   AND state.value = :value" +
       " ORDER BY state.emissionDate ASC",
       getManagedEntity()

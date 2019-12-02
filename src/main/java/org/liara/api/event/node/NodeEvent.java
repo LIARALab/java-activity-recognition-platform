@@ -1,5 +1,6 @@
 package org.liara.api.event.node;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Node;
@@ -8,6 +9,7 @@ import org.springframework.context.ApplicationEvent;
 
 import java.util.Objects;
 
+@JsonIgnoreProperties({"source", "unnamedModule", "classLoader"})
 public abstract class NodeEvent
   extends ApplicationEvent
 {
@@ -20,6 +22,10 @@ public abstract class NodeEvent
   ) {
     super(source);
     _node = Duplicator.duplicate(node);
+  }
+
+  public @NonNull String getType () {
+    return getClass().getSimpleName();
   }
 
   public @NonNull Node getNode () {
@@ -46,5 +52,4 @@ public abstract class NodeEvent
 
     return false;
   }
-
 }

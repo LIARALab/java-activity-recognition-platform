@@ -1,4 +1,4 @@
-FROM library/fedora:27
+FROM openjdk:12-jdk-alpine
 
 WORKDIR /
 
@@ -10,15 +10,13 @@ ENV DATABASE_URL ${DATABASE_URL}
 ENV DATABASE_USERNAME ${DATABASE_USERNAME}
 ENV DATABASE_PASSWORD ${DATABASE_PASSWORD}
 
-RUN yum install wget pwgen findutils -y
+RUN apk add pwgen
 
-RUN wget --no-cookies --no-check-certificate --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/12.0.1+12/69cfe15208a647278a19ef0990eea691/jdk-12.0.1_linux-x64_bin.rpm && \
-    rpm -ivh jdk-12.0.1_linux-x64_bin.rpm && \
-    rm -f jdk-12.0.1_linux-x64_bin.rpm
+RUN addgroup application && \
+	adduser --home /home/application --disabled-password --ingroup application application && \
+    pwgen --secure 128 | passwd -u application
 
-RUN groupadd application && \
-	useradd -d /home/application -m -g application -p `pwgen -s 20` application && \
-	chown -R application:application /home/application && \
+RUN chown -R application:application /home/application && \
 	chmod -R a-rwx /home/application && \
 	chmod -R g+r /home/application && \
 	chmod -R u+rx /home/application

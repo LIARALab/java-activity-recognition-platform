@@ -61,7 +61,7 @@ public class DatabaseSensorRepository
     final Node node = _entityManager.find(Node.class, nodeIdentifier);
 
     @NonNull final TypedQuery<Sensor> query = _entityManager.createQuery(
-      "SELECT sensor FROM " + Sensor.class.getName() + " sensor " +
+      "SELECT sensor FROM " + Sensor.class.getName() + " sensor" +
       " JOIN " + Node.class.getName() + " node ON node.identifier = sensor.nodeIdentifier" +
       " WHERE sensor.type = :type " +
       "   AND node.coordinates.start >= :start" +

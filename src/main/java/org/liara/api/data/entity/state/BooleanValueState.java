@@ -22,6 +22,14 @@ public class BooleanValueState
     super(toCopy);
   }
 
+  public BooleanValueState (@NonNull final NumericValueState<? extends Number> toCast) {
+    super(Boolean.class, toCast);
+
+    @Nullable final Number value = toCast.getValue();
+
+    setValue(value == null ? null : value.doubleValue() != 0);
+  }
+
   @Column(name = "value", nullable = false)
   @Override
   public @Nullable Boolean getValue () {

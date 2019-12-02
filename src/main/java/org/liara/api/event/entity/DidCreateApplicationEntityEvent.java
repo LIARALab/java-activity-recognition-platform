@@ -21,6 +21,13 @@ public class DidCreateApplicationEntityEvent
     _entities = Arrays.copyOf(entities, entities.length);
   }
 
+  public @NonNull String[] getEntitiesTypes () {
+    return Arrays.stream(_entities)
+                 .map(Object::getClass)
+                 .map(Class::getSimpleName)
+                 .toArray(String[]::new);
+  }
+
   public @NonNull ApplicationEntity[] getEntities () {
     return Arrays.copyOf(_entities, _entities.length);
   }

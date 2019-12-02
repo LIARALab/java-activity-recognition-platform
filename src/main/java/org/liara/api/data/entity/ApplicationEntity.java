@@ -135,6 +135,11 @@ public class ApplicationEntity
     return _identifier;
   }
 
+  @Transient
+  public @NonNull Long requireIdentifier () {
+    return Objects.requireNonNull(getIdentifier());
+  }
+
   public void setIdentifier (@Nullable @NonNegative final Long identifier) {
     _identifier = identifier;
   }
