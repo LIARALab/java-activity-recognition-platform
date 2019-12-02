@@ -19,7 +19,7 @@ public class MotionMapperSensorBuilder
   private APIEventPublisher _apiEventPublisher;
 
   @Nullable
-  private BooleanValueStateRepository _booleanValues;
+  private AnyStateRepository _booleanValues;
 
   @Nullable
   private LongValueStateRepository _longValues;
@@ -57,12 +57,12 @@ public class MotionMapperSensorBuilder
     return new MotionMapperSensor(this);
   }
 
-  public @Nullable BooleanValueStateRepository getBooleanValues () {
+  public @Nullable AnyStateRepository getBooleanValues () {
     return _booleanValues;
   }
 
   @Autowired
-  public void setBooleanValues (@Nullable final BooleanValueStateRepository booleanValues) {
+  public void setBooleanValues (@Nullable final AnyStateRepository booleanValues) {
     _booleanValues = booleanValues;
   }
 

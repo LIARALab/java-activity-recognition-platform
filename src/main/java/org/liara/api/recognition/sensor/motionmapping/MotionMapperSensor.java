@@ -3,10 +3,7 @@ package org.liara.api.recognition.sensor.motionmapping;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
-import org.liara.api.data.entity.state.BooleanValueState;
-import org.liara.api.data.entity.state.Correlation;
-import org.liara.api.data.entity.state.LongValueState;
-import org.liara.api.data.entity.state.State;
+import org.liara.api.data.entity.state.*;
 import org.liara.api.data.repository.*;
 import org.liara.api.event.sensor.SensorWasCreatedEvent;
 import org.liara.api.event.state.DidCreateStateEvent;
@@ -17,6 +14,7 @@ import org.liara.api.io.APIEventPublisher;
 import org.liara.api.recognition.sensor.AbstractVirtualSensorHandler;
 import org.liara.api.recognition.sensor.VirtualSensorRunner;
 import org.liara.api.recognition.sensor.type.ComputedSensorType;
+import org.liara.collection.operator.cursoring.Cursor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -36,7 +34,7 @@ public class MotionMapperSensor
   private final APIEventPublisher _apiEventPublisher;
 
   @NonNull
-  private final BooleanValueStateRepository _booleanValues;
+  private final AnyStateRepository _booleanValues;
 
   @NonNull
   private final LongValueStateRepository _longValues;
@@ -64,17 +62,29 @@ public class MotionMapperSensor
     _longValues = Objects.requireNonNull(builder.getLongValues());
   }
 
+  private @NonNull BooleanValueState cast (@NonNull final State state) {
+    if (state instanceof BooleanValueState) {
+      return (BooleanValueState) state;
+    } else if (state instanceof NumericValueState) {
+      return new BooleanValueState((NumericValueState<? extends Number>) state);
+    } else {
+      throw new Error("Invalid input state type : " + state.getClass().getName() + ".");
+    }
+  }
+
   @Override
   public void initialize (@NonNull final VirtualSensorRunner runner) {
     super.initialize(runner);
     _asserter.refresh();
 
-    @NonNull final List<@NonNull BooleanValueState> states = _booleanValues.findAllWithValue(
-      _asserter.getTrackedSensors(), true
+    @NonNull final List<@NonNull State> states = _booleanValues.find(
+      _asserter.getTrackedSensors(), Cursor.ALL
     );
 
-    for (int index = 0, size = states.size(); index < size; ++index) {
-      emit(states.get(index));
+    for (@NonNull final State state : states) {
+      @NonNull final BooleanValueState flag = cast(state);
+
+      if (flag.requireValue()) emit(flag);
     }
   }
 
@@ -86,7 +96,7 @@ public class MotionMapperSensor
 
   private boolean isInputState (@NonNull final State state) {
     if (_asserter.isTracked(state)) {
-      return Objects.equals(((BooleanValueState) state).getValue(), true);
+      return Objects.equals(cast(state).getValue(), true);
     }
 
     return false;
@@ -208,7 +218,7 @@ public class MotionMapperSensor
     return _apiEventPublisher;
   }
 
-  public @NonNull BooleanValueStateRepository getBooleanValues () {
+  public @NonNull AnyStateRepository getBooleanValues () {
     return _booleanValues;
   }
 
