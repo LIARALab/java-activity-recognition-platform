@@ -24,7 +24,7 @@ package org.liara.api.resource;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
-import org.liara.api.utils.Duplicator;
+import org.liara.api.relation.RelationManager;
 import org.liara.collection.Collection;
 import org.liara.collection.ModelCollection;
 import org.liara.collection.operator.Operator;
@@ -40,6 +40,7 @@ import org.liara.rest.request.RestRequest;
 import org.liara.rest.request.handler.RestRequestHandler;
 import org.liara.rest.response.RestResponse;
 import org.liara.selection.processor.ProcessorExecutor;
+import org.springframework.context.ApplicationContext;
 import reactor.core.publisher.Mono;
 
 import javax.persistence.EntityManager;
@@ -75,19 +76,25 @@ public class CollectionResource<Entity extends ApplicationEntity>
   private final EntityManagerFactory _entityManagerFactory;
 
   @NonNull
-  private final CollectionResourceBuilder _builder;
+  private final RelationManager _relationManager;
+
+  @NonNull
+  private final ApplicationContext _context;
 
   protected CollectionResource (
     @NonNull final Class<Entity> modelClass,
     @NonNull final CollectionResourceBuilder builder
   ) {
     _modelClass = modelClass;
-    _entityOrderingHandlerFactory =
-      Objects.requireNonNull(builder.getEntityOrderingHandlerFactory());
-    _entityFilteringHandlerFactory =
-      Objects.requireNonNull(builder.getEntityFilteringHandlerFactory());
     _entityManagerFactory = Objects.requireNonNull(builder.getEntityManagerFactory());
-    _builder = Duplicator.duplicate(builder);
+    _relationManager = Objects.requireNonNull(builder.getRelationManager());
+    _context = Objects.requireNonNull(builder.getApplicationContext());
+    _entityOrderingHandlerFactory = (
+      Objects.requireNonNull(builder.getEntityOrderingHandlerFactory())
+    );
+    _entityFilteringHandlerFactory = (
+      Objects.requireNonNull(builder.getEntityFilteringHandlerFactory())
+    );
   }
 
   @Override
@@ -139,14 +146,14 @@ public class CollectionResource<Entity extends ApplicationEntity>
     @NonNull final Aggregate expression
   ) {
     return new PartialAggregationResource<>(
-      Arrays.asList(expression),
+      Collections.singletonList(expression),
       this,
-      Objects.requireNonNull(_builder.getAggregationResourceBuilder())
+      _context.getBean(AggregationResourceBuilder.class)
     );
   }
 
   private @NonNull RestResource getAggregationResource () {
-    return Objects.requireNonNull(_builder.getAggregationResourceBuilder()).build(this);
+    return _context.getBean(AggregationResourceBuilder.class).build(this);
   }
 
   public @NonNull ModelResource<Entity> getFirstModelResource ()
@@ -244,11 +251,12 @@ public class CollectionResource<Entity extends ApplicationEntity>
   }
 
   protected @NonNull ModelResource<Entity> toModelResource (@NonNull final Entity entity) {
-    @NonNull final BaseModelResourceBuilder<Entity> builder = new BaseModelResourceBuilder<>();
+    @NonNull final BaseModelResourceBuilder<Entity> builder = (
+      _context.getBean(BaseModelResourceBuilder.class)
+    );
+
     builder.setModelClass(getModelClass());
     builder.setModel(entity);
-    builder.setRelationManager(_builder.getRelationManager());
-    builder.setCollectionResourceBuilder(_builder);
 
     return builder.build();
   }
@@ -318,6 +326,14 @@ public class CollectionResource<Entity extends ApplicationEntity>
 
   public @NonNull EntityManagerFactory getEntityManagerFactory () {
     return _entityManagerFactory;
+  }
+
+  public @NonNull RelationManager getRelationManager () {
+    return _relationManager;
+  }
+
+  public @NonNull ApplicationContext getContext () {
+    return _context;
   }
 
   @Override

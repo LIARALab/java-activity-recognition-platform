@@ -3,14 +3,14 @@ package org.liara.api.event.sensor;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
 
-public class SensorWasCreatedEvent
+public class DidCreateSensorEvent
   extends SensorEvent
 {
-  public SensorWasCreatedEvent (@NonNull final Object source, @NonNull final Sensor sensor) {
+  public DidCreateSensorEvent (@NonNull final Object source, @NonNull final Sensor sensor) {
     super(source, sensor);
   }
 
-  public SensorWasCreatedEvent (@NonNull final SensorWasCreatedEvent toCopy) {
+  public DidCreateSensorEvent (@NonNull final DidCreateSensorEvent toCopy) {
     super(toCopy);
   }
 }

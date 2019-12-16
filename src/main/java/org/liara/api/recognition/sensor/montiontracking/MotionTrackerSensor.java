@@ -14,7 +14,8 @@ import org.liara.api.data.repository.CorrelationRepository;
 import org.liara.api.data.repository.NodeRepository;
 import org.liara.api.data.repository.SensorRepository;
 import org.liara.api.data.series.SeriesManager;
-import org.liara.api.event.sensor.SensorWasCreatedEvent;
+import org.liara.api.event.sensor.DidCreateSensorEvent;
+import org.liara.api.event.sensor.DidDeleteSensorEvent;
 import org.liara.api.event.state.DidCreateStateEvent;
 import org.liara.api.event.state.DidUpdateStateEvent;
 import org.liara.api.event.state.WillDeleteStateEvent;
@@ -110,8 +111,17 @@ public class MotionTrackerSensor
   }
 
   @Override
-  public void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) {
+  public void sensorWasCreated (@NonNull final DidCreateSensorEvent event) {
     super.sensorWasCreated(event);
+
+    if (event.getSensor().getTypeInstance() == ValueSensorType.MOTION) {
+      _asserter.refresh();
+    }
+  }
+
+  @Override
+  public void sensorWasDeleted (@NonNull final DidDeleteSensorEvent event) {
+    super.sensorWasDeleted(event);
 
     if (event.getSensor().getTypeInstance() == ValueSensorType.MOTION) {
       _asserter.refresh();

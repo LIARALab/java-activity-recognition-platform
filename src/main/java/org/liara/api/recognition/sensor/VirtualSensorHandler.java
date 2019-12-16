@@ -4,8 +4,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.event.node.DidCreateNodeEvent;
 import org.liara.api.event.node.WillCreateNodeEvent;
-import org.liara.api.event.sensor.SensorWasCreatedEvent;
-import org.liara.api.event.sensor.SensorWillBeCreatedEvent;
+import org.liara.api.event.sensor.DidCreateSensorEvent;
+import org.liara.api.event.sensor.DidDeleteSensorEvent;
+import org.liara.api.event.sensor.WillCreateSensorEvent;
+import org.liara.api.event.sensor.WillDeleteSensorEvent;
 import org.liara.api.event.state.*;
 
 public interface VirtualSensorHandler
@@ -26,9 +28,13 @@ public interface VirtualSensorHandler
    */
   void pause ();
 
-  default void sensorWillBeCreated (final SensorWillBeCreatedEvent event) {}
+  default void sensorWillBeCreated (final WillCreateSensorEvent event) {}
 
-  default void sensorWasCreated (final SensorWasCreatedEvent event) {}
+  default void sensorWasCreated (final DidCreateSensorEvent event) {}
+
+  default void sensorWillBeDeleted (final WillDeleteSensorEvent event) {}
+
+  default void sensorWasDeleted (final DidDeleteSensorEvent event) {}
 
   default void nodeWillBeCreated (final WillCreateNodeEvent event) {}
 

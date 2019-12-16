@@ -126,8 +126,11 @@ public interface StateRepository<TimeState extends State>
   }
 
   @NonNull List<@NonNull TimeState> find (
-    @NonNull final Collection<Long> sensorIdentifiers, @NonNull final Cursor cursor
+    @NonNull final Collection<Long> sensorIdentifiers,
+    @NonNull final Cursor cursor
   );
+
+  @NonNull @NonNegative Long count (@NonNull final Collection<Long> sensorIdentifiers);
 
   default @NonNull Optional<TimeState> findAt (
     @NonNull final Long sensorIdentifier, @NonNegative final int index

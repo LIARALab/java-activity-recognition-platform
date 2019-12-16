@@ -6,6 +6,7 @@ import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.relation.RelationManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -19,9 +20,6 @@ import java.util.Objects;
 public class CollectionResourceBuilder
 {
   @Nullable
-  private AggregationResourceBuilder _aggregationResourceBuilder;
-
-  @Nullable
   private RelationBasedFilteringHandlerFactory _entityFilteringHandlerFactory;
 
   @Nullable
@@ -33,12 +31,15 @@ public class CollectionResourceBuilder
   @Nullable
   private RelationManager _relationManager;
 
+  @Nullable
+  private ApplicationContext _applicationContext;
+
   public CollectionResourceBuilder () {
     _entityFilteringHandlerFactory = null;
     _entityOrderingHandlerFactory = null;
     _entityManagerFactory = null;
     _relationManager = null;
-    _aggregationResourceBuilder = null;
+    _applicationContext = null;
   }
 
   public CollectionResourceBuilder (@NonNull final CollectionResourceBuilder toCopy) {
@@ -46,7 +47,7 @@ public class CollectionResourceBuilder
     _entityOrderingHandlerFactory = toCopy.getEntityOrderingHandlerFactory();
     _entityManagerFactory = toCopy.getEntityManagerFactory();
     _relationManager = toCopy.getRelationManager();
-    _aggregationResourceBuilder = toCopy.getAggregationResourceBuilder();
+    _applicationContext = toCopy.getApplicationContext();
   }
 
   public <Model extends ApplicationEntity> @NonNull CollectionResource<Model> build (
@@ -55,15 +56,13 @@ public class CollectionResourceBuilder
     return new CollectionResource<>(modelClass, this);
   }
 
-  public @Nullable AggregationResourceBuilder getAggregationResourceBuilder () {
-    return _aggregationResourceBuilder;
+  public @Nullable ApplicationContext getApplicationContext () {
+    return _applicationContext;
   }
 
   @Autowired
-  public void setAggregationResourceBuilder (
-    @Nullable final AggregationResourceBuilder aggregationResourceBuilder
-  ) {
-    _aggregationResourceBuilder = aggregationResourceBuilder;
+  public void setApplicationContext (@Nullable final ApplicationContext applicationContext) {
+    _applicationContext = applicationContext;
   }
 
   public @NonNull RelationManager getRelationManager () {
@@ -121,29 +120,23 @@ public class CollectionResourceBuilder
     if (other == this) return true;
 
     if (other instanceof CollectionResourceBuilder) {
-      @NonNull final CollectionResourceBuilder otherCollectionResourceBuilder =
-        (CollectionResourceBuilder) other;
+      @NonNull final CollectionResourceBuilder otherCollectionResourceBuilder = (
+        (CollectionResourceBuilder) other
+      );
 
       return Objects.equals(
         _entityFilteringHandlerFactory,
         otherCollectionResourceBuilder.getEntityFilteringHandlerFactory()
-      ) &&
-             Objects.equals(
-               _entityOrderingHandlerFactory,
-               otherCollectionResourceBuilder.getEntityOrderingHandlerFactory()
-             ) &&
-             Objects.equals(
-               _entityManagerFactory,
-               otherCollectionResourceBuilder.getEntityManagerFactory()
-             ) &&
-             Objects.equals(
-               _relationManager,
-               otherCollectionResourceBuilder.getRelationManager()
-             ) &&
-             Objects.equals(
-               _aggregationResourceBuilder,
-               otherCollectionResourceBuilder.getAggregationResourceBuilder()
-             );
+      ) && Objects.equals(
+        _entityOrderingHandlerFactory,
+        otherCollectionResourceBuilder.getEntityOrderingHandlerFactory()
+      ) && Objects.equals(
+        _entityManagerFactory,
+        otherCollectionResourceBuilder.getEntityManagerFactory()
+      ) && Objects.equals(
+        _relationManager,
+        otherCollectionResourceBuilder.getRelationManager()
+      );
     }
 
     return false;
@@ -155,8 +148,7 @@ public class CollectionResourceBuilder
       _entityFilteringHandlerFactory,
       _entityOrderingHandlerFactory,
       _entityManagerFactory,
-      _relationManager,
-      _aggregationResourceBuilder
+      _relationManager
     );
   }
 }

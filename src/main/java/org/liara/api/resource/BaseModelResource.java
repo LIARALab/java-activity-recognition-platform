@@ -7,6 +7,7 @@ import org.liara.api.relation.RelationManager;
 import org.liara.collection.ModelCollection;
 import org.liara.collection.jpa.JPACollections;
 import org.liara.rest.metamodel.RestResource;
+import org.springframework.context.ApplicationContext;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -22,7 +23,7 @@ public class BaseModelResource<Model extends ApplicationEntity>
   private final RelationManager _relationManager;
 
   @NonNull
-  private final CollectionResourceBuilder _collectionResourceBuilder;
+  private final ApplicationContext _context;
 
   public BaseModelResource (@NonNull final BaseModelResourceBuilder<Model> builder) {
     super(
@@ -31,7 +32,7 @@ public class BaseModelResource<Model extends ApplicationEntity>
     );
 
     _relationManager = Objects.requireNonNull(builder.getRelationManager());
-    _collectionResourceBuilder = Objects.requireNonNull(builder.getCollectionResourceBuilder());
+    _context = Objects.requireNonNull(builder.getContext());
   }
 
   @Override
@@ -63,7 +64,7 @@ public class BaseModelResource<Model extends ApplicationEntity>
       return new StaticComputedCollectionResource(
         relation.getDestinationClass(),
         relation.getOperator(getModel()),
-        _collectionResourceBuilder
+        _context.getBean(CollectionResourceBuilder.class)
       );
     } else {
       @NonNull final List<?> results = fetchFirst(relation);
@@ -71,11 +72,11 @@ public class BaseModelResource<Model extends ApplicationEntity>
       if (results.isEmpty()) {
         throw new NoSuchElementException();
       } else {
-        BaseModelResourceBuilder builder = new BaseModelResourceBuilder();
+        @NonNull final BaseModelResourceBuilder builder = (
+          _context.getBean(BaseModelResourceBuilder.class)
+        );
         builder.setModelClass(relation.getDestinationClass());
         builder.setModel((ApplicationEntity) results.get(0));
-        builder.setCollectionResourceBuilder(_collectionResourceBuilder);
-        builder.setRelationManager(_relationManager);
         return builder.build();
       }
     }
@@ -86,8 +87,7 @@ public class BaseModelResource<Model extends ApplicationEntity>
       getModel()
     ).apply(ModelCollection.create(relation.getDestinationClass()));
 
-    @NonNull final EntityManager entityManager =
-      _collectionResourceBuilder.getEntityManagerFactory().createEntityManager();
+    @NonNull final EntityManager entityManager = _context.getBean(EntityManager.class);
     entityManager.getTransaction().begin();
 
     @NonNull final TypedQuery<?> query = entityManager.createQuery(

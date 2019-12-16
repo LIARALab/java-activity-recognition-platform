@@ -1,7 +1,6 @@
 package org.liara.api.io;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.Node;
 import org.liara.api.data.entity.schema.NodeSchema;
 import org.liara.api.data.repository.NodeRepository;
@@ -63,10 +62,8 @@ public class DatabaseNodeDriver
 
   @EventListener
   public void didCreate (@NonNull final DidCreateApplicationEntityEvent creation) {
-    for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
-      if (entity instanceof Node) {
-        didCreateNode((Node) entity);
-      }
+    if (creation.getEntity() instanceof Node) {
+      didCreateNode((Node) creation.getEntity());
     }
   }
 
@@ -88,12 +85,10 @@ public class DatabaseNodeDriver
 
   @EventListener
   public void willCreate (@NonNull final WillCreateApplicationEntityEvent creation) {
-    for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
-      if (entity instanceof Node) {
-        _eventPublisher.getApplicationEventPublisher().publishEvent(
-          new WillCreateNodeEvent(this, (Node) entity)
-        );
-      }
+    if (creation.getEntity() instanceof Node) {
+      _eventPublisher.getApplicationEventPublisher().publishEvent(
+        new WillCreateNodeEvent(this, (Node) creation.getEntity())
+      );
     }
   }
 }

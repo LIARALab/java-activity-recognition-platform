@@ -6,8 +6,8 @@ import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.event.node.DidCreateNodeEvent;
 import org.liara.api.event.node.WillCreateNodeEvent;
-import org.liara.api.event.sensor.SensorWasCreatedEvent;
-import org.liara.api.event.sensor.SensorWillBeCreatedEvent;
+import org.liara.api.event.sensor.DidCreateSensorEvent;
+import org.liara.api.event.sensor.WillCreateSensorEvent;
 import org.liara.api.event.state.DidCreateStateEvent;
 import org.liara.api.event.state.DidUpdateStateEvent;
 import org.liara.api.event.state.WillCreateStateEvent;
@@ -41,10 +41,10 @@ public abstract class AbstractVirtualSensorHandler implements VirtualSensorHandl
   }
 
   @Override
-  public void sensorWillBeCreated (final SensorWillBeCreatedEvent event) { }
+  public void sensorWillBeCreated (final WillCreateSensorEvent event) { }
 
   @Override
-  public void sensorWasCreated (final SensorWasCreatedEvent event) { }
+  public void sensorWasCreated (final DidCreateSensorEvent event) { }
 
   @Override
   public void nodeWillBeCreated (final WillCreateNodeEvent event) { }

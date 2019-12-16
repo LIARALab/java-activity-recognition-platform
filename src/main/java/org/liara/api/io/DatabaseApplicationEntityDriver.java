@@ -42,13 +42,17 @@ public class DatabaseApplicationEntityDriver
   public void create (@NonNull final CreateApplicationEntityEvent creation) {
     try {
       _eventPublisher.willConsume(creation);
-      _eventPublisher.initialize(creation.getEntities());
-      _eventPublisher.willCreate(creation.getEntities());
 
-      Arrays.stream(creation.getEntities()).forEach(_entityManager::persist);
+      Arrays.stream(creation.getEntities()).forEach(
+        (@NonNull final ApplicationEntity entity) -> {
+          _eventPublisher.initialize(entity);
+          _eventPublisher.willCreate(entity);
+          _entityManager.persist(entity);
+          _eventPublisher.didCreate(entity);
+        }
+      );
       _entityManager.flush();
 
-      _eventPublisher.didCreate(creation.getEntities());
       _eventPublisher.didConsume(creation);
     } catch (@NonNull final Throwable throwable) {
       _eventPublisher.didReject(creation);
@@ -60,12 +64,16 @@ public class DatabaseApplicationEntityDriver
   public void update (@NonNull final UpdateApplicationEntityEvent mutation) {
     try {
       _eventPublisher.willConsume(mutation);
-      _eventPublisher.willUpdate(mutation.getEntities());
 
-      Arrays.stream(mutation.getEntities()).forEach(_entityManager::merge);
+      Arrays.stream(mutation.getEntities()).forEach(
+        (@NonNull final ApplicationEntity entity) -> {
+          _eventPublisher.willUpdate(entity);
+          _entityManager.merge(entity);
+          _eventPublisher.didUpdate(entity);
+        }
+      );
       _entityManager.flush();
 
-      _eventPublisher.didUpdate(mutation.getEntities());
       _eventPublisher.didConsume(mutation);
     } catch (@NonNull final Throwable throwable) {
       _eventPublisher.didReject(mutation);
@@ -77,12 +85,18 @@ public class DatabaseApplicationEntityDriver
   public void delete (@NonNull final DeleteApplicationEntityEvent deletion) {
     try {
       _eventPublisher.willConsume(deletion);
-      _eventPublisher.willDelete(deletion.getEntities());
 
-      Arrays.stream(deletion.getEntities()).forEach(_entityManager::remove);
+      Arrays.stream(deletion.getEntities()).forEach(
+        (@NonNull final ApplicationEntity entity) -> {
+          _eventPublisher.willDelete(entity);
+          _entityManager.createQuery(
+            "DELETE FROM " + entity.getClass().getName() + " entity" +
+            " WHERE entity.identifier = :identifier"
+          ).setParameter("identifier", entity.getIdentifier()).executeUpdate();
+          _eventPublisher.didDelete(entity);
+        });
       _entityManager.flush();
 
-      _eventPublisher.didDelete(deletion.getEntities());
       _eventPublisher.didConsume(deletion);
     } catch (@NonNull final Throwable throwable) {
       _eventPublisher.didReject(deletion);
@@ -93,13 +107,14 @@ public class DatabaseApplicationEntityDriver
   @EventListener
   public void initialize (@NonNull final InitializeApplicationEntityEvent initialization) {
     _eventPublisher.willConsume(initialization);
-    for (@NonNull final ApplicationEntity applicationEntity : initialization.getEntities()) {
-      applicationEntity.setCreationDate(ZonedDateTime.now());
-      applicationEntity.setUpdateDate(ZonedDateTime.now());
-      applicationEntity.setDeletionDate(null);
-      if (applicationEntity.getUniversalUniqueIdentifier() == null)
-        applicationEntity.setUniversalUniqueIdentifier(UUID.randomUUID().toString());
-    }
+
+    @NonNull final ApplicationEntity applicationEntity = initialization.getEntity();
+    applicationEntity.setCreationDate(ZonedDateTime.now());
+    applicationEntity.setUpdateDate(ZonedDateTime.now());
+    applicationEntity.setDeletionDate(null);
+    if (applicationEntity.getUniversalUniqueIdentifier() == null)
+      applicationEntity.setUniversalUniqueIdentifier(UUID.randomUUID().toString());
+
     _eventPublisher.didConsume(initialization);
   }
 }

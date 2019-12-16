@@ -5,7 +5,8 @@ import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.data.entity.state.*;
 import org.liara.api.data.repository.*;
-import org.liara.api.event.sensor.SensorWasCreatedEvent;
+import org.liara.api.event.sensor.DidCreateSensorEvent;
+import org.liara.api.event.sensor.DidDeleteSensorEvent;
 import org.liara.api.event.state.DidCreateStateEvent;
 import org.liara.api.event.state.DidUpdateStateEvent;
 import org.liara.api.event.state.WillDeleteStateEvent;
@@ -103,8 +104,14 @@ public class MotionMapperSensor
   }
 
   @Override
-  public void sensorWasCreated (@NonNull final SensorWasCreatedEvent event) {
+  public void sensorWasCreated (@NonNull final DidCreateSensorEvent event) {
     super.sensorWasCreated(event);
+    _asserter.refresh();
+  }
+
+  @Override
+  public void sensorWasDeleted (@NonNull final DidDeleteSensorEvent event) {
+    super.sensorWasDeleted(event);
     _asserter.refresh();
   }
 

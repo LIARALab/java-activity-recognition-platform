@@ -49,29 +49,23 @@ public class DatabaseStateDriver
 
   @EventListener
   public void willCreate (final WillCreateApplicationEntityEvent creation) {
-    for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
-      if (entity instanceof State) {
-        _publisher.publishEvent(new WillCreateStateEvent(this, (State) entity));
-      }
+    if (creation.getEntity() instanceof State) {
+      _publisher.publishEvent(new WillCreateStateEvent(this, (State) creation.getEntity()));
     }
   }
 
   @EventListener
   public void didCreate (final DidCreateApplicationEntityEvent creation) {
-    for (@NonNull final ApplicationEntity entity : creation.getEntities()) {
-      if (entity instanceof State) {
-        _seriesManager.forget(Objects.requireNonNull(((State) entity).getSensorIdentifier()));
-        _publisher.publishEvent(new DidCreateStateEvent(this, (State) entity));
-      }
+    if (creation.getEntity() instanceof State) {
+      _seriesManager.forget(Objects.requireNonNull(((State) creation.getEntity()).getSensorIdentifier()));
+      _publisher.publishEvent(new DidCreateStateEvent(this, (State) creation.getEntity()));
     }
   }
 
   @EventListener
   public void willDelete (final WillDeleteApplicationEntityEvent deletion) {
-    for (@NonNull final ApplicationEntity entity : deletion.getEntities()) {
-      if (entity instanceof State) {
-        _publisher.publishEvent(new WillDeleteStateEvent(this, (State) entity));
-      }
+    if (deletion.getEntity() instanceof State) {
+      _publisher.publishEvent(new WillDeleteStateEvent(this, (State) deletion.getEntity()));
     }
   }
 

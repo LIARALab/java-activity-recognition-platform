@@ -34,15 +34,15 @@ public class APIEventPublisher
     );
   }
 
-  public void willDelete (@NonNull final ApplicationEntity... entities) {
+  public void willDelete (@NonNull final ApplicationEntity entity) {
     _applicationEventPublisher.publishEvent(
-      new WillDeleteApplicationEntityEvent(this, entities)
+      new WillDeleteApplicationEntityEvent(this, entity)
     );
   }
 
-  public void didDelete (@NonNull final ApplicationEntity... entities) {
+  public void didDelete (@NonNull final ApplicationEntity entity) {
     _applicationEventPublisher.publishEvent(
-      new DidDeleteApplicationEntityEvent(this, entities)
+      new DidDeleteApplicationEntityEvent(this, entity)
     );
   }
 
@@ -52,21 +52,21 @@ public class APIEventPublisher
     );
   }
 
-  public void initialize (@NonNull final ApplicationEntity... entities) {
+  public void initialize (@NonNull final ApplicationEntity entity) {
     _applicationEventPublisher.publishEvent(
-      new InitializeApplicationEntityEvent(this, entities)
+      new InitializeApplicationEntityEvent(this, entity)
     );
   }
 
-  public void willCreate (@NonNull final ApplicationEntity... entities) {
+  public void willCreate (@NonNull final ApplicationEntity entity) {
     _applicationEventPublisher.publishEvent(
-      new WillCreateApplicationEntityEvent(this, entities)
+      new WillCreateApplicationEntityEvent(this, entity)
     );
   }
 
-  public void didCreate (@NonNull final ApplicationEntity... entities) {
+  public void didCreate (@NonNull final ApplicationEntity entity) {
     _applicationEventPublisher.publishEvent(
-      new DidCreateApplicationEntityEvent(this, entities)
+      new DidCreateApplicationEntityEvent(this, entity)
     );
   }
 
@@ -76,15 +76,15 @@ public class APIEventPublisher
     );
   }
 
-  public void willUpdate (@NonNull final ApplicationEntity... entities) {
+  public void willUpdate (@NonNull final ApplicationEntity entity) {
     _applicationEventPublisher.publishEvent(
-      new WillUpdateApplicationEntityEvent(this, entities)
+      new WillUpdateApplicationEntityEvent(this, entity)
     );
   }
 
-  public void didUpdate (@NonNull final ApplicationEntity... entities) {
+  public void didUpdate (@NonNull final ApplicationEntity entity) {
     _applicationEventPublisher.publishEvent(
-      new DidUpdateApplicationEntityEvent(this, entities)
+      new DidUpdateApplicationEntityEvent(this, entity)
     );
   }
 

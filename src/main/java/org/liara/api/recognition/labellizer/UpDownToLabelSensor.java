@@ -513,6 +513,12 @@ public class UpDownToLabelSensor
     return _outputs.findAt(dateTime, getOutputSensorIdentifier());
   }
 
+  private @NonNull Optional<LabelState> findLabelStateBefore (
+    @NonNull final ZonedDateTime dateTime
+  ) {
+    return _outputs.findPrevious(dateTime, getOutputSensorIdentifier());
+  }
+
   public @NonNull UpDownToLabelSensorConfiguration getConfiguration () {
     return getConfiguration(UpDownToLabelSensorConfiguration.class).orElseThrow();
   }

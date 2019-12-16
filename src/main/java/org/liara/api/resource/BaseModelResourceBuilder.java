@@ -5,9 +5,15 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.relation.RelationManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
+@Component
+@Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class BaseModelResourceBuilder<Model extends ApplicationEntity>
 {
   @Nullable
@@ -20,27 +26,24 @@ public class BaseModelResourceBuilder<Model extends ApplicationEntity>
   private RelationManager _relationManager;
 
   @Nullable
-  private CollectionResourceBuilder _collectionResourceBuilder;
+  private ApplicationContext _context;
 
   public BaseModelResourceBuilder () {
     _modelClass = null;
     _model = null;
     _relationManager = null;
-    _collectionResourceBuilder = null;
+    _context = null;
+  }
+
+  public BaseModelResourceBuilder (@NonNull final BaseModelResourceBuilder<Model> toCopy) {
+    _modelClass = toCopy.getModelClass();
+    _model = toCopy.getModel();
+    _relationManager = toCopy.getRelationManager();
+    _context = toCopy.getContext();
   }
 
   public @NonNull BaseModelResource<Model> build () {
     return new BaseModelResource<>(this);
-  }
-
-  public @Nullable CollectionResourceBuilder getCollectionResourceBuilder () {
-    return _collectionResourceBuilder;
-  }
-
-  public void setCollectionResourceBuilder (
-    @Nullable final CollectionResourceBuilder collectionResourceBuilder
-  ) {
-    _collectionResourceBuilder = collectionResourceBuilder;
   }
 
   public @Nullable Class<Model> getModelClass () {
@@ -68,25 +71,36 @@ public class BaseModelResourceBuilder<Model extends ApplicationEntity>
     _relationManager = relationManager;
   }
 
+  public @Nullable ApplicationContext getContext () {
+    return _context;
+  }
+
+  @Autowired
+  public void setContext (@Nullable final ApplicationContext context) {
+    _context = context;
+  }
+
   @Override
   public boolean equals (@Nullable final Object other) {
     if (other == null) return false;
     if (other == this) return true;
 
     if (other instanceof BaseModelResourceBuilder) {
-      @NonNull
-      final BaseModelResourceBuilder otherModelResourceBuilder = (BaseModelResourceBuilder) other;
+      @NonNull final BaseModelResourceBuilder otherModelResourceBuilder = (BaseModelResourceBuilder) other;
 
-      return Objects.equals(_modelClass, otherModelResourceBuilder.getModelClass()) &&
-             Objects.equals(_model, otherModelResourceBuilder.getModel()) &&
-             Objects.equals(
-               _relationManager,
-               otherModelResourceBuilder.getRelationManager()
-             ) &&
-             Objects.equals(
-               _collectionResourceBuilder,
-               otherModelResourceBuilder.getCollectionResourceBuilder()
-             );
+      return Objects.equals(
+        _modelClass,
+        otherModelResourceBuilder.getModelClass()
+      ) && Objects.equals(
+        _model,
+        otherModelResourceBuilder.getModel()
+      ) && Objects.equals(
+        _relationManager,
+        otherModelResourceBuilder.getRelationManager()
+      ) && Objects.equals(
+        _context,
+        otherModelResourceBuilder.getContext()
+      );
     }
 
     return false;
@@ -94,6 +108,6 @@ public class BaseModelResourceBuilder<Model extends ApplicationEntity>
 
   @Override
   public int hashCode () {
-    return Objects.hash(_modelClass, _model, _relationManager, _collectionResourceBuilder);
+    return Objects.hash(_modelClass, _model, _relationManager, _context);
   }
 }

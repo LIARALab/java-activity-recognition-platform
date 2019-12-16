@@ -1,5 +1,6 @@
 package org.liara.api.data.repository.local;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.ApplicationEntity;
@@ -138,6 +139,19 @@ public class LocalStateRepository<TimeState extends State>
     } else {
       return Collections.emptyList();
     }
+  }
+
+  @Override
+  public @NonNull @NonNegative Long count (@NonNull final Collection<Long> sensorIdentifiers) {
+    @NonNegative long result = 0;
+
+    for (@NonNull final Long identifier : sensorIdentifiers) {
+      if (_statesBySensors.containsKey(identifier)) {
+        result += _statesBySensors.get(identifier).size();
+      }
+    }
+
+    return result;
   }
 
   @Override

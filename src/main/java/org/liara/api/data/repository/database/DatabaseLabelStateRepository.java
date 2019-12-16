@@ -1,8 +1,6 @@
 package org.liara.api.data.repository.database;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.hibernate.CacheMode;
-import org.hibernate.jpa.QueryHints;
 import org.liara.api.data.entity.state.LabelState;
 import org.liara.api.data.repository.LabelStateRepository;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -40,7 +38,7 @@ public class DatabaseLabelStateRepository
     @NonNull final TypedQuery<LabelState> query = _entityManager.createQuery(
       "SELECT label FROM " + getManagedEntity().getName() + " label" +
       " WHERE label.start <= :area " +
-      "   AND (label.end IS NULL OR label.end >= :area)" +
+      "   AND (label.end IS NULL OR label.end > :area)" +
       "   AND label.sensorIdentifier = :sensorIdentifier" +
       " ORDER BY label.start ASC, label.identifier ASC",
       LabelState.class
@@ -49,7 +47,6 @@ public class DatabaseLabelStateRepository
     query.setParameter("area", area);
     query.setParameter("sensorIdentifier", sensorIdentifier);
     query.setMaxResults(1);
-    query.setHint(QueryHints.HINT_CACHE_MODE, CacheMode.IGNORE);
 
     @NonNull final List<@NonNull LabelState> result = query.getResultList();
 

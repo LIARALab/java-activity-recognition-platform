@@ -25,6 +25,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.event.entity.CreateApplicationEntityEvent;
 import org.liara.api.resource.CollectionResource;
+import org.liara.api.resource.ModelResource;
 import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.error.InvalidModelException;
 import org.liara.rest.request.RestRequest;
@@ -89,50 +90,23 @@ public class SensorCollection
     }
   }
 
+  @Override
+  protected @NonNull ModelResource<Sensor> toModelResource (@NonNull final Sensor entity) {
+    @NonNull final SensorModelBuilder builder = getContext().getBean(SensorModelBuilder.class);
+    builder.getBaseModelResourceBuilder().setModelClass(getModelClass());
+    builder.getBaseModelResourceBuilder().setModel(entity);
+
+    return new SensorModel(builder);
+  }
+
   public void assertIsValid (@NonNull final Object object)
   throws InvalidModelException {
-    @NonNull final Set<@NonNull ConstraintViolation<@NonNull Object>> errors = _validator.validate(
-      object);
+    @NonNull final Set<@NonNull ConstraintViolation<@NonNull Object>> errors = (
+      _validator.validate(object)
+    );
 
     if (errors.size() > 0) {
       throw new InvalidModelException(errors);
     }
   }
-
-  /*
-  @GetMapping("/sensors/{identifier}/states")
-  public @NonNull ResponseEntity<@NonNull Set<@NonNull State>> getStates (
-    @NonNull final HttpServletRequest request,
-    @PathVariable @NonNull final Long identifier
-  ) {
-    return toResponse(apply(
-      new JPAEntityCollection<>(_entityManager, State.class),
-      _configuration,
-      request
-    ));
-  }
-  
-  @GetMapping("/sensors/{identifier}/states/count")
-  public ResponseEntity<Object> countStates (
-    @NonNull final HttpServletRequest request,
-    @PathVariable @NonNull final Long identifier
-  ) throws EntityNotFoundException, InvalidAPIRequestException {    
-    return aggregate(
-      _states.of(_sensors.findByIdentifierOrFail(sensorIdentifier)), 
-      request,
-      EntityCountAggregationTransformation.instantiate()
-    );
-  }
-  
-  @GetMapping("/sensors/{sensorIdentifier}/states/{stateIdentifier}")
-  public State getState (
-    @NonNull final HttpServletRequest request,
-    @PathVariable final long sensorIdentifier,
-    @PathVariable final long stateIdentifier
-  ) throws EntityNotFoundException, InvalidAPIRequestException {    
-    return _states.of(
-      _sensors.findByIdentifierOrFail(sensorIdentifier)
-    ).findByIdentifierOrFail(stateIdentifier);
-  }
-  */
 }
