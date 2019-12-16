@@ -1,7 +1,6 @@
 package org.liara.api.io;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.liara.api.data.entity.ApplicationEntity;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.data.series.SeriesManager;
 import org.liara.api.event.entity.*;
@@ -71,44 +70,38 @@ public class DatabaseStateDriver
 
   @EventListener
   public void didDelete (final DidDeleteApplicationEntityEvent deletion) {
-    for (@NonNull final ApplicationEntity entity : deletion.getEntities()) {
-      if (entity instanceof State) {
-        _seriesManager.forget(Objects.requireNonNull(((State) entity).getSensorIdentifier()));
-        _publisher.publishEvent(new DidDeleteStateEvent(this, (State) entity));
-      }
+    if (deletion.getEntity() instanceof State) {
+      _seriesManager.forget(Objects.requireNonNull(((State) deletion.getEntity()).getSensorIdentifier()));
+      _publisher.publishEvent(new DidDeleteStateEvent(this, (State) deletion.getEntity()));
     }
   }
 
   @EventListener
   public void willUpdate (final WillUpdateApplicationEntityEvent mutation) {
-    for (@NonNull final ApplicationEntity entity : mutation.getEntities()) {
-      if (entity instanceof State) {
-        @NonNull final State newState = (State) entity;
-        @NonNull final State oldState = Duplicator.duplicate(
-          _entityManager.find(
-            newState.getClass(),
-            newState.getIdentifier()
-          )
-        );
+    if (mutation.getEntity() instanceof State) {
+      @NonNull final State newState = (State) mutation.getEntity();
+      @NonNull final State oldState = Duplicator.duplicate(
+        _entityManager.find(
+          newState.getClass(),
+          newState.getIdentifier()
+        )
+      );
 
-        _oldStates.put(newState, oldState);
-        _publisher.publishEvent(new WillUpdateStateEvent(this, oldState, newState));
-      }
+      _oldStates.put(newState, oldState);
+      _publisher.publishEvent(new WillUpdateStateEvent(this, oldState, newState));
     }
   }
 
   @EventListener
   public void didUpdate (final DidUpdateApplicationEntityEvent mutation) {
-    for (@NonNull final ApplicationEntity entity : mutation.getEntities()) {
-      if (entity instanceof State) {
-        @NonNull final State newState = (State) entity;
-        @NonNull final State oldState = _oldStates.get(newState);
+    if (mutation.getEntity() instanceof State) {
+      @NonNull final State newState = (State) mutation.getEntity();
+      @NonNull final State oldState = _oldStates.get(newState);
 
-        _seriesManager.forget(Objects.requireNonNull(newState.getSensorIdentifier()));
+      _seriesManager.forget(Objects.requireNonNull(newState.getSensorIdentifier()));
 
-        _oldStates.remove(newState);
-        _publisher.publishEvent(new DidUpdateStateEvent(this, oldState, newState));
-      }
+      _oldStates.remove(newState);
+      _publisher.publishEvent(new DidUpdateStateEvent(this, oldState, newState));
     }
   }
 }
