@@ -141,6 +141,10 @@ public class State extends ApplicationEntity
     return _sensorIdentifier;
   }
 
+  public @NonNull Long requireSensorIdentifier () {
+    return Objects.requireNonNull(_sensorIdentifier);
+  }
+
   public void setSensorIdentifier (@Nullable final Long sensorIdentifier) {
     _sensorIdentifier = sensorIdentifier;
   }
