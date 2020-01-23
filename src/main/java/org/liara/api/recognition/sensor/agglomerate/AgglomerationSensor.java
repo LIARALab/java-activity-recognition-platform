@@ -582,6 +582,6 @@ public class AgglomerationSensor
 
   @Override
   public @NonNull String getName () {
-    return "liara:agglomerate";
+    return "liara:agglomeration";
   }
 }

@@ -14,7 +14,7 @@ services:
     networks:
       - sapa-api
   sapa-api-database:
-    image: mysql:latest
+    image: mysql:8.0
     container_name: "sapa-api-v2-database"
     expose:
       - 3306

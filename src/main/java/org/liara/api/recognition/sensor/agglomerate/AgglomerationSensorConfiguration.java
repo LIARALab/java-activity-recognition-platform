@@ -7,17 +7,19 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.data.entity.Sensor;
 import org.liara.api.data.entity.SensorConfiguration;
 import org.liara.api.validation.ApplicationEntityReference;
+import org.liara.api.validation.Required;
 
 import java.util.Objects;
 
 public class AgglomerationSensorConfiguration
   implements SensorConfiguration
 {
-  @NonNull
+  @Nullable
   private Long _source;
 
   @NonNegative
-  private long _duration;
+  @Nullable
+  private Long _duration;
 
   public AgglomerationSensorConfiguration () {
     _source = 0L;
@@ -30,20 +32,22 @@ public class AgglomerationSensorConfiguration
   }
 
   @ApplicationEntityReference(Sensor.class)
+  @Required
   public @NonNull Long getSource () {
     return _source;
   }
 
   @JsonSetter
-  public void setSource (@NonNull final Long source) {
+  public void setSource (@Nullable final Long source) {
     _source = source;
   }
 
-  public @NonNegative long getDuration () {
+  @Required
+  public @NonNegative @NonNull Long getDuration () {
     return _duration;
   }
 
-  public void setDuration (@NonNegative final long duration) {
+  public void setDuration (@NonNegative @Nullable final Long duration) {
     _duration = duration;
   }
 
@@ -57,6 +61,10 @@ public class AgglomerationSensorConfiguration
         (AgglomerationSensorConfiguration) other;
 
       return (
+        Objects.equals(
+          _source,
+          otherAgglomerationSensorConfiguration.getSource()
+        ) &&
         Objects.equals(
           _duration,
           otherAgglomerationSensorConfiguration.getDuration()

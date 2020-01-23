@@ -70,7 +70,7 @@ public class State extends ApplicationEntity
 
   public static @NonNull Operator sensor (@NonNull final State state) {
     return Filter.expression(":this.identifier = :identifier")
-             .setParameter("identifier", state.getSensorIdentifier());
+                 .setParameter("identifier", state.getSensorIdentifier());
   }
 
   @RelationFactory(Correlation.class)

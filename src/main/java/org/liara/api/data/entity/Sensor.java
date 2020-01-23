@@ -56,7 +56,7 @@ public class Sensor
 
   public static @NonNull Operator states (@NonNull final Sensor sensor) {
     return Filter.expression(":this.sensorIdentifier = :sensorIdentifier")
-             .setParameter("sensorIdentifier", sensor.getIdentifier());
+                 .setParameter("sensorIdentifier", sensor.getIdentifier());
   }
 
   @RelationFactory(Node.class)
