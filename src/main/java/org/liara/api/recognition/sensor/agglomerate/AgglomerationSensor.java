@@ -30,9 +30,8 @@ import java.util.Optional;
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class AgglomerationSensor
-  extends AbstractVirtualSensorHandler
-  implements ComputedSensorType
-{
+        extends AbstractVirtualSensorHandler
+        implements ComputedSensorType {
   @NonNull
   private final APIEventPublisher _events;
 
@@ -42,23 +41,23 @@ public class AgglomerationSensor
   @NonNull
   private final CorrelationRepository _correlations;
 
-  public AgglomerationSensor (@NonNull final AgglomerationSensorBuilder builder) {
+  public AgglomerationSensor(@NonNull final AgglomerationSensorBuilder builder) {
     _events = Objects.requireNonNull(builder.getEventPublisher());
     _booleans = Objects.requireNonNull(builder.getBooleanStateRepository());
     _correlations = Objects.requireNonNull(builder.getCorrelationRepository());
   }
 
   @Override
-  public void initialize (@NonNull final VirtualSensorRunner runner) {
+  public void initialize(@NonNull final VirtualSensorRunner runner) {
     super.initialize(runner);
 
     @NonNull final Iterator<@NonNull BooleanValueState> states = (
-       _booleans.find(getConfiguration().getSource(), Cursor.ALL).iterator()
+            _booleans.find(getConfiguration().getSource(), Cursor.ALL).iterator()
     );
 
-    @NonNull BooleanValueState lastChange;
-
     if (!states.hasNext()) return;
+
+    @NonNull BooleanValueState lastChange;
 
     do {
       lastChange = states.next();
@@ -69,10 +68,10 @@ public class AgglomerationSensor
     while (states.hasNext()) {
       @NonNull final BooleanValueState state = states.next();
 
-      if (!Objects.equals(lastChange.getValue(), state.getValue())) {
+      if (lastChange.requireValue() != state.requireValue()) {
         if (state.requireValue() && !areAgglomerated(lastChange, state)) {
-          emit(state);
           emit(lastChange);
+          emit(state);
         }
 
         lastChange = state;
@@ -83,7 +82,7 @@ public class AgglomerationSensor
   }
 
   @Override
-  public void stateWasCreated (@NonNull final DidCreateStateEvent event) {
+  public void stateWasCreated(@NonNull final DidCreateStateEvent event) {
     super.stateWasCreated(event);
 
     @NonNull final State stateThatWasCreated = event.getState();
@@ -103,20 +102,20 @@ public class AgglomerationSensor
    * TRUE  TRUE  FALSE - NOTHING
    * TRUE  TRUE  TRUE  - NOTHING
    * TRUE  TRUE  NONE  - NOTHING
-   *
+   * <p>
    * A A X - NOTHING
    *
    * @param stateThatWasCreated
    */
-  private void sourceStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
+  private void sourceStateWasCreated(@NonNull final BooleanValueState stateThatWasCreated) {
     @NonNull final Optional<BooleanValueState> previous = findPrevious(stateThatWasCreated);
 
     if (previous.isPresent()) {
       if (previous.get().requireValue() != stateThatWasCreated.requireValue()) {
-        variantSourceStateWasCreated(stateThatWasCreated);
+        variantSourceStateWasCreated(previous.get(), stateThatWasCreated);
       }
     } else if (stateThatWasCreated.requireValue()) {
-      variantSourceStateWasCreated(stateThatWasCreated);
+      variantSourceStateWasCreated(null, stateThatWasCreated);
     }
   }
 
@@ -133,33 +132,38 @@ public class AgglomerationSensor
    *
    * @param stateThatWasCreated
    */
-  private void variantSourceStateWasCreated (@NonNull final BooleanValueState stateThatWasCreated) {
+  private void variantSourceStateWasCreated(
+          @Nullable final BooleanValueState previous,
+          @NonNull final BooleanValueState stateThatWasCreated
+  ) {
     @NonNull final Optional<BooleanValueState> next = findNextChange(stateThatWasCreated);
 
     if (stateThatWasCreated.requireValue()) {
       if (next.isPresent() && next.get().requireValue()) {
-        expandOrAgglomerate(stateThatWasCreated, next.orElse(null));
+        expandOrAgglomerate(previous, stateThatWasCreated, next.orElse(null));
       } else {
-        createOrAgglomerate(stateThatWasCreated, next.orElse(null));
+        createOrAgglomerate(previous, stateThatWasCreated, next.orElse(null));
       }
     } else if (!next.isPresent()) {
       emit(stateThatWasCreated);
     } else if (next.get().requireValue()) {
-      splitOrAgglomerate(stateThatWasCreated, next.get());
+      splitOrAgglomerate(previous, stateThatWasCreated, next.get());
     } else {
-      reduceOrSplit(stateThatWasCreated, next.get());
+      reduceOrSplit(previous, stateThatWasCreated, next.get());
     }
   }
 
   /**
    * TRUE FALSE TRUE - SPLIT OR AGGLOMERATE
    *
+   * @param previous
    * @param stateThatWasCreated
    * @param next
    */
-  private void splitOrAgglomerate (
-    @NonNull final BooleanValueState stateThatWasCreated,
-    @NonNull final BooleanValueState next
+  private void splitOrAgglomerate(
+          @NonNull final BooleanValueState previous,
+          @NonNull final BooleanValueState stateThatWasCreated,
+          @NonNull final BooleanValueState next
   ) {
     if (!areAgglomerated(stateThatWasCreated, next)) {
       emit(stateThatWasCreated);
@@ -170,15 +174,19 @@ public class AgglomerationSensor
   /**
    * TRUE FALSE FALSE - REDUCE OR SPLIT
    *
+   * @param previous
    * @param stateThatWasCreated
    * @param next
    */
   private void reduceOrSplit(
-    @NonNull final BooleanValueState stateThatWasCreated,
-    @NonNull final BooleanValueState next
+          @NonNull final BooleanValueState previous,
+          @NonNull final BooleanValueState stateThatWasCreated,
+          @NonNull final BooleanValueState next
   ) {
     @NonNull final Optional<BooleanValueState> nextTrue = _booleans.findNextWithValue(
-            stateThatWasCreated.requireEmissionDate(), stateThatWasCreated.requireSensorIdentifier(), true
+            stateThatWasCreated.requireEmissionDate(),
+            stateThatWasCreated.requireSensorIdentifier(),
+            true
     );
 
     if (nextTrue.isPresent()) {
@@ -199,75 +207,201 @@ public class AgglomerationSensor
    * FALSE TRUE TRUE - EXPAND OR AGGLOMERATE
    * NONE  TRUE TRUE - EXPAND OR AGGLOMERATE
    *
+   * @param previous
    * @param stateThatWasCreated
    * @param nextState
    */
-  private void expandOrAgglomerate (
-    @NonNull final BooleanValueState stateThatWasCreated,
-    @NonNull final BooleanValueState nextState
+  private void expandOrAgglomerate(
+          @Nullable final BooleanValueState previous,
+          @NonNull final BooleanValueState stateThatWasCreated,
+          @NonNull final BooleanValueState nextState
   ) {
-    @NonNull final Optional<BooleanValueState> previous = findPreviousChange(stateThatWasCreated);
+    if (previous == null) {
+      move(nextState, stateThatWasCreated);
+    } else {
+      @NonNull final Optional<BooleanValueState> previousTrue = _booleans.findPreviousWithValue(
+              stateThatWasCreated.requireEmissionDate(),
+              stateThatWasCreated.requireSensorIdentifier(),
+              true
+      );
 
-    if (previous.isPresent()) {
-      // expansion into an existing agglomeration
-      if (previous.get().requireValue()) {
-        return;
-      } else if (areAgglomerated(previous.get(), stateThatWasCreated)) {
-        delete(previous.get());
-        delete(nextState);
+      if (previousTrue.isPresent()) {
+        @NonNull final BooleanValueState previousFalse = _booleans.findNextWithValue(
+                previousTrue.get().requireEmissionDate(),
+                stateThatWasCreated.requireSensorIdentifier(),
+                false
+        ).orElseThrow();
+
+        if (!areAgglomerated(previousFalse, stateThatWasCreated)) {
+          move(nextState, stateThatWasCreated);
+        } else if (!areAgglomerated(previousFalse, stateThatWasCreated)) {
+          delete(nextState);
+          delete(previousFalse);
+        }
       } else {
         move(nextState, stateThatWasCreated);
       }
-    } else {
-      move(nextState, stateThatWasCreated);
     }
   }
 
   /**
-   * FALSE TRUE FALSE  - CREATE OR AGGLOMERATE
-   * FALSE TRUE NONE   - CREATE OR AGGLOMERATE
+   * FALSE TRUE FALSE - CREATE OR AGGLOMERATE
+   * FALSE TRUE NONE  - CREATE OR AGGLOMERATE
    * NONE  TRUE FALSE - CREATE OR AGGLOMERATE
    * NONE  TRUE NONE  - CREATE OR AGGLOMERATE
    *
+   * @param previous
    * @param stateThatWasCreated
    * @param nextState
    */
-  private void createOrAgglomerate (
-    @NonNull final BooleanValueState stateThatWasCreated,
-    @Nullable final BooleanValueState nextState
+  private void createOrAgglomerate(
+          @Nullable final BooleanValueState previous,
+          @NonNull final BooleanValueState stateThatWasCreated,
+          @Nullable final BooleanValueState nextState
   ) {
-    @NonNull final Optional<BooleanValueState> previous = findPreviousChange(stateThatWasCreated);
+    if (previous == null && nextState == null) {
+      emit(stateThatWasCreated);
+    } else if (previous == null) {
+      createOrAgglomerateNext(stateThatWasCreated, nextState);
+    } else if (nextState == null) {
+      createOrAgglomeratePrevious(previous, stateThatWasCreated);
+    } else {
+      createOrAgglomerateInner(previous, stateThatWasCreated, nextState);
+    }
+  }
 
-    if (previous.isPresent()) {
-      if (previous.get().requireValue()) {
-        // created into an existing agglomeration
-        return;
-      } else if (areAgglomerated(previous.get(), stateThatWasCreated)) {
-        // created after an existing agglomeration
-        delete(previous.get());
+  /**
+   * FALSE TRUE FALSE - CREATE OR AGGLOMERATE
+   *
+   * @param previous
+   * @param stateThatWasCreated
+   * @param nextState
+   */
+  private void createOrAgglomerateInner(
+          @NonNull final BooleanValueState previous,
+          @NonNull final BooleanValueState stateThatWasCreated,
+          @NonNull final BooleanValueState nextState
+  ) {
+    @NonNull final Optional<BooleanValueState> previousTrue = _booleans.findPreviousWithValue(
+            stateThatWasCreated.requireEmissionDate(),
+            stateThatWasCreated.requireSensorIdentifier(),
+            true
+    );
+
+    @NonNull final Optional<BooleanValueState> nextTrue = _booleans.findNextWithValue(
+            stateThatWasCreated.requireEmissionDate(),
+            stateThatWasCreated.requireSensorIdentifier(),
+            true
+    );
+
+    if (previousTrue.isPresent() && nextTrue.isPresent()) {
+      @NonNull final BooleanValueState previousFalse = _booleans.findNextWithValue(
+              previousTrue.get().requireEmissionDate(),
+              stateThatWasCreated.requireSensorIdentifier(),
+              false
+      ).orElseThrow();
+
+      if (!areAgglomerated(previousFalse, nextTrue.get())) {
+        if (areAgglomerated(previousFalse, stateThatWasCreated)) {
+          delete(previousFalse);
+        } else {
+          emit(stateThatWasCreated);
+        }
+
+        if (areAgglomerated(nextState, nextTrue.get())) {
+          delete(nextTrue.get());
+        } else {
+          emit(nextState);
+        }
+      } // always agglomerated
+    } else if (previousTrue.isPresent()) {
+      emit(nextState);
+
+      @NonNull final BooleanValueState previousFalse = _booleans.findNextWithValue(
+              previousTrue.get().requireEmissionDate(),
+              stateThatWasCreated.requireSensorIdentifier(),
+              false
+      ).orElseThrow();
+
+      if (areAgglomerated(previousFalse, stateThatWasCreated)) {
+        delete(previousFalse);
+      } else {
+        emit(stateThatWasCreated);
+      }
+    } else if (nextTrue.isPresent()) {
+      emit(stateThatWasCreated);
+
+      if (areAgglomerated(nextState, nextTrue.get())) {
+        delete(nextTrue.get());
+      } else {
+        emit(nextState);
+      }
+    } else {
+      emit(stateThatWasCreated);
+      emit(nextState);
+    }
+  }
+
+  /**
+   * FALSE TRUE NONE  - CREATE OR AGGLOMERATE
+   *
+   * @param previous
+   * @param stateThatWasCreated
+   */
+  private void createOrAgglomeratePrevious(
+          @NonNull final BooleanValueState previous,
+          @NonNull final BooleanValueState stateThatWasCreated
+  ) {
+    @NonNull final Optional<BooleanValueState> previousTrue = _booleans.findPreviousWithValue(
+            stateThatWasCreated.requireEmissionDate(),
+            stateThatWasCreated.requireSensorIdentifier(),
+            true
+    );
+
+    if (previousTrue.isPresent()) {
+      @NonNull final BooleanValueState previousFalse = _booleans.findNextWithValue(
+              previousTrue.get().requireEmissionDate(),
+              stateThatWasCreated.requireSensorIdentifier(),
+              false
+      ).orElseThrow();
+
+      if (areAgglomerated(previousFalse, stateThatWasCreated)) {
+        delete(previousFalse);
       } else {
         emit(stateThatWasCreated);
       }
     } else {
       emit(stateThatWasCreated);
     }
+  }
 
-    if (nextState != null) {
-      @NonNull final Optional<BooleanValueState> next = findNextChange(stateThatWasCreated);
+  /**
+   * NONE  TRUE FALSE - CREATE OR AGGLOMERATE
+   *
+   * @param stateThatWasCreated
+   * @param nextState
+   */
+  private void createOrAgglomerateNext(
+          @NonNull final BooleanValueState stateThatWasCreated,
+          @NonNull final BooleanValueState nextState
+  ) {
+    emit(stateThatWasCreated);
 
-      // next must be true, in the other case this method must have fulfilled the first condition.
-      if (next.isPresent()) {
-        if (areAgglomerated(nextState, next.get())) {
-          delete(next.get());
-        } else {
-          emit(nextState);
-        }
-      }
+    @NonNull final Optional<BooleanValueState> nextTrue = _booleans.findNextWithValue(
+            stateThatWasCreated.requireEmissionDate(),
+            stateThatWasCreated.requireSensorIdentifier(),
+            true
+    );
+
+    if (nextTrue.isPresent() && areAgglomerated(nextState, nextTrue.get())) {
+      delete(nextTrue.get());
+    } else {
+      emit(nextState);
     }
   }
 
   @Override
-  public void stateWillBeMutated (@NonNull final WillUpdateStateEvent event) {
+  public void stateWillBeMutated(@NonNull final WillUpdateStateEvent event) {
     super.stateWillBeMutated(event);
 
     @NonNull final State stateThatWillBeMutated = event.getOldValue();
@@ -278,7 +412,7 @@ public class AgglomerationSensor
   }
 
   @Override
-  public void stateWasMutated (@NonNull final DidUpdateStateEvent event) {
+  public void stateWasMutated(@NonNull final DidUpdateStateEvent event) {
     super.stateWasMutated(event);
 
     @NonNull final State stateThatWasMutated = event.getNewValue();
@@ -289,7 +423,7 @@ public class AgglomerationSensor
   }
 
   @Override
-  public void stateWillBeDeleted (@NonNull final WillDeleteStateEvent event) {
+  public void stateWillBeDeleted(@NonNull final WillDeleteStateEvent event) {
     super.stateWillBeDeleted(event);
 
     @NonNull final State stateThatWillBeDeleted = event.getState();
@@ -313,7 +447,7 @@ public class AgglomerationSensor
    *
    * @param stateThatWillBeDeleted
    */
-  private void sourceStateWillBeDeleted (@NonNull final BooleanValueState stateThatWillBeDeleted) {
+  private void sourceStateWillBeDeleted(@NonNull final BooleanValueState stateThatWillBeDeleted) {
     @NonNull final Optional<BooleanValueState> previous = findPrevious(stateThatWillBeDeleted);
 
     if (previous.isPresent()) {
@@ -330,10 +464,10 @@ public class AgglomerationSensor
    * FALSE TRUE NONE  - DROP OR SPLIT
    * NONE  TRUE NONE  - DROP OR SPLIT
    * NONE  TRUE FALSE - DROP OR SPLIT
-   *
+   * <p>
    * FALSE TRUE TRUE - REDUCE LEFT OR SPLIT
    * NONE  TRUE TRUE - REDUCE LEFT OR SPLIT
-   *
+   * <p>
    * TRUE FALSE FALSE - EXPAND RIGHT OR AGGREGATE
    * TRUE FALSE TRUE  - MAY MERGE
    * TRUE FALSE NONE  - DROP
@@ -365,8 +499,8 @@ public class AgglomerationSensor
    * @param next
    */
   private void expandRightOrAggregate(
-    @NonNull final BooleanValueState stateThatWillBeDeleted,
-    @NonNull final BooleanValueState next
+          @NonNull final BooleanValueState stateThatWillBeDeleted,
+          @NonNull final BooleanValueState next
   ) {
     @NonNull final Optional<BooleanValueState> nextChange = findNextChange(stateThatWillBeDeleted);
 
@@ -387,8 +521,8 @@ public class AgglomerationSensor
    * @param next
    */
   private void mayMerge(
-    @NonNull final BooleanValueState stateThatWillBeDeleted,
-    @Nullable final BooleanValueState next
+          @NonNull final BooleanValueState stateThatWillBeDeleted,
+          @Nullable final BooleanValueState next
   ) {
     @NonNull final Optional<BooleanValueState> nextChange = findNextChange(stateThatWillBeDeleted);
 
@@ -408,8 +542,8 @@ public class AgglomerationSensor
    * @param next
    */
   private void dropOrSplit(
-    @NonNull final BooleanValueState stateThatWillBeDeleted,
-    @Nullable final BooleanValueState next
+          @NonNull final BooleanValueState stateThatWillBeDeleted,
+          @Nullable final BooleanValueState next
   ) {
     @NonNull final Optional<BooleanValueState> previousChange = findPreviousChange(stateThatWillBeDeleted);
     @NonNull final Optional<BooleanValueState> nextTrue = findNextSource(stateThatWillBeDeleted, true);
@@ -438,8 +572,8 @@ public class AgglomerationSensor
 
       if (nextTrue.isPresent()) {
         if (
-          nextChange.isPresent() &&
-          nextChange.get().requireEmissionDate().isBefore(nextTrue.get().requireEmissionDate())
+                nextChange.isPresent() &&
+                        nextChange.get().requireEmissionDate().isBefore(nextTrue.get().requireEmissionDate())
         ) {
           delete(nextChange.get());
         } else {
@@ -459,8 +593,8 @@ public class AgglomerationSensor
    * @param next
    */
   private void reduceLeftOrSplit(
-    @NonNull final BooleanValueState stateThatWillBeDeleted,
-    @NonNull final BooleanValueState next
+          @NonNull final BooleanValueState stateThatWillBeDeleted,
+          @NonNull final BooleanValueState next
   ) {
     @NonNull final Optional<BooleanValueState> previousChange = findPreviousChange(stateThatWillBeDeleted);
 
@@ -476,7 +610,7 @@ public class AgglomerationSensor
     }
   }
 
-  private boolean areAgglomerated (@NonNull final State first, @NonNull final State second) {
+  private boolean areAgglomerated(@NonNull final State first, @NonNull final State second) {
     @NonNull final ZonedDateTime start;
     @NonNull final ZonedDateTime end;
 
@@ -491,41 +625,41 @@ public class AgglomerationSensor
     return end.toEpochSecond() - start.toEpochSecond() <= getConfiguration().getDuration();
   }
 
-  public boolean match (@NonNull final State state) {
+  public boolean match(@NonNull final State state) {
     return Objects.equals(state.getSensorIdentifier(), getConfiguration().getSource());
   }
 
-  private @NonNull Optional<BooleanValueState> findPrevious (@NonNull final State state) {
+  private @NonNull Optional<BooleanValueState> findPrevious(@NonNull final State state) {
     return _booleans.findPrevious(state.requireEmissionDate(), getConfiguration().getSource());
   }
 
-  private @NonNull Optional<BooleanValueState> findNext (@NonNull final State state) {
+  private @NonNull Optional<BooleanValueState> findNext(@NonNull final State state) {
     return _booleans.findNext(state.requireEmissionDate(), getConfiguration().getSource());
   }
 
-  private @NonNull Optional<BooleanValueState> findNextSource (@NonNull final State state, final boolean value) {
+  private @NonNull Optional<BooleanValueState> findNextSource(@NonNull final State state, final boolean value) {
     return _booleans.findNextWithValue(state.requireEmissionDate(), getConfiguration().getSource(), value);
   }
 
-  private @NonNull Optional<BooleanValueState> findPreviousSource (@NonNull final State state, final boolean value) {
+  private @NonNull Optional<BooleanValueState> findPreviousSource(@NonNull final State state, final boolean value) {
     return _booleans.findPreviousWithValue(state.requireEmissionDate(), getConfiguration().getSource(), value);
   }
 
-  private @NonNull Optional<BooleanValueState> findPreviousChange (@NonNull final State state) {
+  private @NonNull Optional<BooleanValueState> findPreviousChange(@NonNull final State state) {
     return _booleans.findPrevious(state.requireEmissionDate(), getSensor().orElseThrow().requireIdentifier());
   }
 
-  private @NonNull Optional<BooleanValueState> findNextChange (@NonNull final State state) {
+  private @NonNull Optional<BooleanValueState> findNextChange(@NonNull final State state) {
     return _booleans.findNext(state.requireEmissionDate(), getSensor().orElseThrow().requireIdentifier());
   }
 
-  private @NonNull Optional<BooleanValueState> getOutputFromInput (@NonNull final State output) {
+  private @NonNull Optional<BooleanValueState> getOutputFromInput(@NonNull final State output) {
     return findCorrelationOfOutput(output)
             .map(Correlation::getEndStateIdentifier)
             .flatMap(_booleans::find);
   }
 
-  private void delete (@NonNull final BooleanValueState state) {
+  private void delete(@NonNull final BooleanValueState state) {
     if (state.requireSensorIdentifier().equals(getConfiguration().getSource())) {
       delete(getOutputFromInput(state).orElseThrow());
     } else {
@@ -533,12 +667,12 @@ public class AgglomerationSensor
     }
   }
 
-  private void move (@NonNull final BooleanValueState from, @NonNull final BooleanValueState to) {
+  private void move(@NonNull final BooleanValueState from, @NonNull final BooleanValueState to) {
     delete(from);
     emit(to);
   }
 
-  private void emit (@NonNull final BooleanValueState input) {
+  private void emit(@NonNull final BooleanValueState input) {
     @NonNull final BooleanValueState result = new BooleanValueState();
 
     result.setValue(input.getValue());
@@ -556,32 +690,32 @@ public class AgglomerationSensor
     _events.create(correlation);
   }
 
-  private @NonNull Optional<Correlation> findCorrelationOfInput (@NonNull final State input) {
+  private @NonNull Optional<Correlation> findCorrelationOfInput(@NonNull final State input) {
     return _correlations.findFirstCorrelationFromSeriesWithNameAndThatEndsBy(
-      getSensor().orElseThrow().requireIdentifier(), "origin", input.requireIdentifier()
+            getSensor().orElseThrow().requireIdentifier(), "origin", input.requireIdentifier()
     );
   }
 
-  private @NonNull Optional<Correlation> findCorrelationOfOutput (@NonNull final State output) {
+  private @NonNull Optional<Correlation> findCorrelationOfOutput(@NonNull final State output) {
     return _correlations.findFirstCorrelationWithNameAndThatStartBy("origin", output.requireIdentifier());
   }
 
-  public @NonNull AgglomerationSensorConfiguration getConfiguration () {
+  public @NonNull AgglomerationSensorConfiguration getConfiguration() {
     return getConfiguration(AgglomerationSensorConfiguration.class).orElseThrow();
   }
 
   @Override
-  public @NonNull Class<? extends State> getEmittedStateClass () {
+  public @NonNull Class<? extends State> getEmittedStateClass() {
     return BooleanValueState.class;
   }
 
   @Override
-  public @NonNull Class<? extends SensorConfiguration> getConfigurationClass () {
+  public @NonNull Class<? extends SensorConfiguration> getConfigurationClass() {
     return AgglomerationSensorConfiguration.class;
   }
 
   @Override
-  public @NonNull String getName () {
+  public @NonNull String getName() {
     return "liara:agglomeration";
   }
 }

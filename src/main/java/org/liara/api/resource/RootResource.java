@@ -4,7 +4,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.liara.api.event.system.ApplicationResetEvent;
 import org.liara.api.resource.collection.*;
+import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.metamodel.RestResource;
+import org.liara.rest.request.RestRequest;
+import org.liara.rest.response.RestResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.ApplicationContext;
@@ -12,6 +15,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -72,13 +76,12 @@ public class RootResource
     return resource == null ? RestResource.super.getResource(name) : resource;
   }
 
-  /*
   @Override
   public @NonNull Mono<RestResponse> delete (@NonNull final RestRequest request)
   throws UnsupportedOperationException, IllegalRestRequestException {
     _transactionTemplate.execute(status -> this.tryToReset());
     return Mono.just(RestResponse.ofType(String.class).empty());
-  }*/
+  }
 
   private boolean tryToReset () {
     try {

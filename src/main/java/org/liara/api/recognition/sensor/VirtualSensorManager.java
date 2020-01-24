@@ -12,6 +12,7 @@ import org.liara.api.event.sensor.WillCreateSensorEvent;
 import org.liara.api.event.sensor.WillDeleteSensorEvent;
 import org.liara.api.event.state.*;
 import org.liara.api.event.system.ApplicationResetEvent;
+import org.liara.api.event.system.VirtualManagerResetEvent;
 import org.liara.api.logging.Loggable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -112,7 +113,7 @@ public class VirtualSensorManager
   }
 
   @EventListener
-  public void reset (@NonNull final ApplicationResetEvent event) {
+  public void reset (@NonNull final VirtualManagerResetEvent event) {
     info("Application reset...");
     info("Destroying all running virtual sensors...");
 
