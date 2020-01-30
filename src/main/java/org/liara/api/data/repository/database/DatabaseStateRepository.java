@@ -30,6 +30,26 @@ public class DatabaseStateRepository<TimeState extends State>
   }
 
   @Override
+  public @NonNull Optional<TimeState> find (
+          @NonNull final Long sensorIdentifier,
+          @NonNull final ZonedDateTime date
+  ) {
+    @NonNull final TypedQuery<TimeState> query = _entityManager.createQuery(
+            "SELECT state FROM " + getManagedEntity().getName() + " state" +
+                    " WHERE state.sensorIdentifier = :sensorIdentifier" +
+                    "   AND state.emissionDate = :date",
+            getManagedEntity()
+    );
+
+    query.setParameter("date", date);
+    query.setParameter("sensorIdentifier", sensorIdentifier);
+
+    @NonNull final List<@NonNull TimeState> result = query.getResultList();
+
+    return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+  }
+
+  @Override
   public @NonNull List<@NonNull TimeState> findPrevious (
     @NonNull final ZonedDateTime date,
     @NonNull final Collection<@NonNull Long> sensorIdentifiers,

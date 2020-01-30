@@ -125,6 +125,11 @@ public interface StateRepository<TimeState extends State>
     );
   }
 
+  @NonNull Optional<TimeState> find (
+          @NonNull final Long sensorIdentifier,
+          @NonNull final ZonedDateTime location
+  );
+
   @NonNull List<@NonNull TimeState> find (
     @NonNull final Collection<Long> sensorIdentifiers,
     @NonNull final Cursor cursor

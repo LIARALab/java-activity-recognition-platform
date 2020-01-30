@@ -26,6 +26,8 @@ import org.liara.api.data.entity.Sensor;
 import org.liara.api.event.entity.CreateApplicationEntityEvent;
 import org.liara.api.resource.CollectionResource;
 import org.liara.api.resource.ModelResource;
+import org.liara.api.resource.model.SensorModel;
+import org.liara.api.resource.model.SensorModelBuilder;
 import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.error.InvalidModelException;
 import org.liara.rest.request.RestRequest;

@@ -19,7 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  ******************************************************************************/
-package org.liara.api.resource.collection;
+package org.liara.api.resource.model;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.liara.api.data.entity.Sensor;

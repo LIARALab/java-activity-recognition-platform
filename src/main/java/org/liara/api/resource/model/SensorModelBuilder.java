@@ -1,4 +1,4 @@
-package org.liara.api.resource.collection;
+package org.liara.api.resource.model;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;

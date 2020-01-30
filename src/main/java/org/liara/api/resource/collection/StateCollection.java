@@ -28,6 +28,11 @@ import org.liara.api.data.entity.SensorType;
 import org.liara.api.data.entity.state.State;
 import org.liara.api.io.APIEventPublisher;
 import org.liara.api.resource.CollectionResource;
+import org.liara.api.resource.ModelResource;
+import org.liara.api.resource.model.SensorModel;
+import org.liara.api.resource.model.SensorModelBuilder;
+import org.liara.api.resource.model.StateModel;
+import org.liara.api.resource.model.StateModelBuilder;
 import org.liara.rest.error.IllegalRestRequestException;
 import org.liara.rest.error.InvalidModelException;
 import org.liara.rest.request.RestRequest;
@@ -74,6 +79,15 @@ public class StateCollection
   public @NonNull Mono<RestResponse> post (@NonNull final RestRequest request) {
     return request.getBody(State.class)
              .flatMap(this::post);
+  }
+
+  @Override
+  protected @NonNull ModelResource<State> toModelResource (@NonNull final State entity) {
+    @NonNull final StateModelBuilder builder = getContext().getBean(StateModelBuilder.class);
+    builder.getBaseModelResourceBuilder().setModelClass(getModelClass());
+    builder.getBaseModelResourceBuilder().setModel(entity);
+
+    return new StateModel(builder);
   }
 
   private @NonNull Class<? extends State> getStateTypeFromSensorIdentifier (
